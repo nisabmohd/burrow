@@ -58,8 +58,9 @@ fun burrowTypography(font: BodyFont, scale: Float): Typography {
     val bodyLarge = s(16, 24, FontWeight.Normal)
     val body = s(14, 20, FontWeight.Normal)
     val label = s(12, 16, FontWeight.Medium)
+    val keypad = s(24, 32, FontWeight.Normal)
     return Typography(
-        displayLarge = display, displayMedium = display, displaySmall = display,
+        displayLarge = display, displayMedium = display, displaySmall = keypad,
         headlineLarge = headline, headlineMedium = headline, headlineSmall = title,
         titleLarge = title, titleMedium = titleSmall, titleSmall = s(14, 20, FontWeight.Medium),
         bodyLarge = bodyLarge, bodyMedium = body, bodySmall = s(12, 16, FontWeight.Normal),
@@ -95,4 +96,7 @@ object BurrowType {
 
     /** 12/16 Medium: widget labels, nav labels, chart axis, legend. */
     val label: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.labelMedium
+
+    /** 24/32 Regular: keypad digits only (the prototype's keys). */
+    val keypad: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.displaySmall
 }

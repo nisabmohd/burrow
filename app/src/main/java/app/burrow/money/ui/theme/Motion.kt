@@ -70,6 +70,11 @@ fun fadeThrough(): ContentTransform =
 /** Count-up for hero numbers: once, on first show, 600 ms standard. Not on every recomposition. */
 const val COUNT_UP_MS = 600
 
+fun <T> countUpSpec(): FiniteAnimationSpec<T> = tween(COUNT_UP_MS, easing = Easing.standard)
+
+/** Rings and progress bars move to a new value (docs/MOTION.md § Inside a screen). */
+fun <T> progressSpec(): FiniteAnimationSpec<T> = tween(Duration.LONG, easing = Easing.emphasizedDecelerate)
+
 /** Chart bars grow from 0 with a 40 ms stagger, once per data set. */
 const val BAR_STAGGER_MS = 40
 

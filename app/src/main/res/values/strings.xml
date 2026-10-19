@@ -36,4 +36,14 @@
     <string name="cat_salary">Salary</string>
     <string name="cat_interest">Interest</string>
     <string name="cat_other_income">Other income</string>
+
+    <!-- Shared -->
+    <string name="close">Close</string>
+    <string name="undo">Undo</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="day_time">%1$s, %2$s</string>
+    <string name="key_delete">Delete</string>
+    <string name="key_plus">Plus</string>
+    <string name="key_minus">Minus</string>
 </resources>

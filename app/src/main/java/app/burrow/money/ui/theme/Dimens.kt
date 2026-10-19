@@ -20,6 +20,11 @@ object Space {
     val sheet = 24.dp         // sheet side padding
     val inline = 8.dp         // between buttons or chips in one row (header buttons, chip rows)
     val barStart = 24.dp      // tab title's start inset in the top bar
+    val group = 4.dp          // between the options of a connected button group
+    val small = 8.dp          // icon → its label inside a widget, note or button row
+    val hero = 20.dp          // inside Today's hero
+    val amountTop = 20.dp     // above the keypad amount
+    val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
 }
 
 object Size {
@@ -42,6 +47,14 @@ object Size {
     val heatmapDay = 38.dp
     val chartBar = 16.dp
     val chartHeight = 104.dp
+    val fab = 56.dp
+    /** Space a list leaves under its last item so the FAB never covers it. */
+    val fabClearance = 88.dp
+    val iconSmall = 18.dp     // icons in chips, widget labels, a button group's check
+    val iconButton20 = 20.dp  // icons inside buttons and the hero label
+    val emptyShape = 128.dp
+    val wavyHeight = 14.dp
+    val thinBar = 8.dp
 }
 
 object Shapes {

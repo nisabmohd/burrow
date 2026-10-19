@@ -1,6 +1,16 @@
 package app.burrow.money.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import app.burrow.money.R
+import app.burrow.money.ui.theme.standardSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import app.burrow.money.ui.theme.BurrowType
 import app.burrow.money.ui.theme.NavLabelMinSize
+import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
 
@@ -65,23 +76,72 @@ fun TabTopBar(title: String, modifier: Modifier = Modifier, actions: @Composable
 }
 
 /**
- * The frame of every tab screen: status bar space, [TabTopBar], then [content] filling the rest.
- * [content] gets the screen margin to use as its content padding, so lists scroll edge to edge
- * while their items keep the 16 dp margin. The bottom nav lives outside, in the nav host.
+ * The frame of every tab screen: status bar space, [TabTopBar], then [content] filling the rest,
+ * and an optional [fab] at the bottom end. [content] gets the padding to use for its list: the
+ * 16 dp screen margin, plus room under the last item so the FAB never covers it.
+ * The bottom nav lives outside, in the nav host.
  */
 @Composable
 fun TabScreen(
     title: String,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {},
+    fab: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Column(modifier.fillMaxSize().statusBarsPadding()) {
         TabTopBar(title, actions = actions)
         Box(Modifier.fillMaxWidth().weight(1f)) {
-            content(PaddingValues(start = Space.screen, end = Space.screen, bottom = Space.screen))
+            content(PaddingValues(start = Space.screen, end = Space.screen, bottom = if (fab != null) Size.fabClearance else Space.screen))
+            if (fab != null) Box(Modifier.align(Alignment.BottomEnd).padding(Space.screen)) { fab() }
         }
     }
+}
+
+/**
+ * Top bar of a pushed screen (detail or form): 64 dp, a round back or close button, an optional
+ * `title`, and one action at the end (Save, Edit, Duplicate).
+ */
+@Composable
+fun ScreenTopBar(
+    navIcon: Painter,
+    navLabel: String,
+    onNav: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    Row(
+        modifier.fillMaxWidth().heightIn(min = Size.topBar).padding(horizontal = Space.screen),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Space.inline),
+    ) {
+        TonalIconButton(navIcon, navLabel, onNav)
+        Box(Modifier.weight(1f).padding(start = Space.inline)) {
+            if (title != null) {
+                Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
+            }
+        }
+        actions()
+    }
+}
+
+/**
+ * The extended FAB ("Add expense", "Add bill"): 56 dp primaryContainer pill with an icon. It moves
+ * up while the Undo snackbar shows, so the two never overlap.
+ */
+@Composable
+fun AddFab(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val lift by animateDpAsState(if (LocalSnackbar.current.visible) Space.fabLift else 0.dp, standardSpec(), label = "fabLift")
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        modifier = modifier.offset { IntOffset(0, -lift.roundToPx()) }.height(Size.fab),
+        shape = Shapes.pill,
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        icon = { Icon(painterResource(R.drawable.ic_add_regular), null, modifier = Modifier.size(Size.icon)) },
+        text = { Text(label, style = BurrowType.button) },
+    )
 }
 
 /** One bottom-nav destination: the regular icon, and the fill icon shown while selected. */

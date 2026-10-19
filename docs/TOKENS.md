@@ -70,6 +70,7 @@ Numbers use tabular figures (`tnum`) so amounts line up.
 | `body` | 14 / 20 | 400 | Supporting line, descriptions |
 | `button` | 14 / 20 | 500 | Buttons, chips, section headers, text buttons |
 | `label` | 12 / 16 | 500 | Widget labels, nav labels, chart axis, legends |
+| `keypad` | 24 / 32 | 400 | Keypad digits only |
 
 Never set a size or weight in a screen. Long translations wrap; nav labels may shrink to 10 sp, never below.
 

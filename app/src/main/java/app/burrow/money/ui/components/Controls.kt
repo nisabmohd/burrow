@@ -1,6 +1,24 @@
 package app.burrow.money.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import app.burrow.money.R
+import app.burrow.money.ui.theme.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -119,4 +137,124 @@ fun DayStepper(
         Text(resultLine, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 12.dp))
         Button(onClick = { haptics.confirm(); onDone() }, modifier = Modifier.fillMaxWidth().height(Size.buttonBottom), shape = Shapes.pill) { Text(doneLabel, style = BurrowType.button) }
     }
+}
+
+/** The kinds of button (docs/COMPONENTS.md § Buttons). [OFF] looks disabled but still takes taps. */
+enum class ButtonKind { FILLED, TONAL, DANGER, OFF }
+
+/**
+ * Every button: a 48 dp pill (56 dp at the bottom of a screen or sheet: pass [height]).
+ * An [OFF] button still calls [onClick], so a form can show what is missing ("can't save yet").
+ */
+@Composable
+fun BurrowButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    kind: ButtonKind = ButtonKind.FILLED,
+    icon: Painter? = null,
+    height: androidx.compose.ui.unit.Dp = Size.button,
+) {
+    val c = MaterialTheme.colorScheme
+    val (bg, fg) = when (kind) {
+        ButtonKind.FILLED -> c.primary to c.onPrimary
+        ButtonKind.TONAL -> c.secondaryContainer to c.onSecondaryContainer
+        ButtonKind.DANGER -> c.errorContainer to c.onErrorContainer
+        ButtonKind.OFF -> c.onSurface.copy(alpha = 0.10f) to c.onSurface.copy(alpha = 0.38f)
+    }
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(height),
+        shape = Shapes.pill,
+        colors = ButtonDefaults.buttonColors(containerColor = bg, contentColor = fg),
+        contentPadding = PaddingValues(horizontal = Space.sheet),
+    ) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(Size.iconButton20))
+            Spacer(Modifier.width(Space.small))
+        }
+        Text(text, style = BurrowType.button, maxLines = 1)
+    }
+}
+
+/**
+ * Connected button group (Expense / Income / Transfer, Bills / Budgets / Goals): 48 dp pills 4 dp
+ * apart; the selected one is primary with a check.
+ */
+@Composable
+fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
+        options.forEach { option ->
+            val on = option == selected
+            Row(
+                Modifier
+                    .weight(1f)
+                    .height(Size.button)
+                    .clip(Shapes.pill)
+                    .background(if (on) c.primary else c.surfaceContainer)
+                    .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onSelect(option) } },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val fg = if (on) c.onPrimary else c.onSurfaceVariant
+                if (on) {
+                    Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
+                    Spacer(Modifier.width(Space.group))
+                }
+                Text(label(option), style = BurrowType.button, color = fg, maxLines = 1)
+            }
+        }
+    }
+}
+
+/**
+ * The one text field: a 56 dp pill on surfaceContainer (search bar, payee, note, names), optional
+ * leading icon, and a clear button while it has text.
+ */
+@Composable
+fun PillTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    leading: Painter? = null,
+    clearLabel: String? = null,
+    imeAction: ImeAction = ImeAction.Done,
+    onDone: () -> Unit = {},
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.Sentences,
+) {
+    val c = MaterialTheme.colorScheme
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
+        cursorBrush = SolidColor(c.primary),
+        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction),
+        keyboardActions = KeyboardActions(onAny = { onDone() }),
+        modifier = modifier.fillMaxWidth(),
+        decorationBox = { field ->
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = Size.search).clip(Shapes.pill).background(c.surfaceContainer)
+                    .padding(start = if (leading != null) Space.card else Space.sheet, end = Space.small),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (leading != null) {
+                    Icon(leading, null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.icon))
+                    Spacer(Modifier.width(Space.card))
+                }
+                Box(Modifier.weight(1f)) {
+                    if (value.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
+                    field()
+                }
+                if (value.isNotEmpty() && clearLabel != null) {
+                    IconButton(onClick = { onValueChange("") }) {
+                        Icon(painterResource(R.drawable.ic_close_regular), clearLabel, tint = c.onSurfaceVariant)
+                    }
+                }
+            }
+        },
+    )
 }
