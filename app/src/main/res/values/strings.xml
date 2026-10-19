@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Burrow</string>
+    <string name="tab_today">Today</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_plan">Plan</string>
+    <string name="tab_insights">Insights</string>
+    <string name="tab_more">More</string>
+    <string name="add_expense">Add expense</string>
+    <string name="save">Save</string>
+    <string name="done">Done</string>
+    <string name="mark_paid">Mark paid</string>
+    <string name="filter">Filter</string>
+    <string name="dates">Dates</string>
+    <string name="clear_all">Clear all</string>
+    <string name="welcome_headline">Money that tracks itself</string>
+    <string name="welcome_line">Pay the way you always do. Burrow records it, reminds you of bills and shows what is left.</string>
+    <string name="get_started">Get started</string>
+    <string name="welcome_footer">Free and open source</string>
+    <string name="restore_backup">Restore a backup</string>
+</resources>

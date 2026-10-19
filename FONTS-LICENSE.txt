@@ -1,0 +1,4 @@
+Lexend, Outfit and Atkinson Hyperlegible are licensed under the SIL Open Font License, Version 1.1.
+Full text: https://openfontlicense.org — include it in the app's Open-source licences screen.
+Lexend: Copyright 2018 The Lexend Project Authors. Outfit: Copyright 2021 The Outfit Project Authors.
+Atkinson Hyperlegible: Copyright 2020 Braille Institute of America, Inc.

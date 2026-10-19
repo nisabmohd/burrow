@@ -1,0 +1,203 @@
+"""Small helpers for driving the Burrow app on an emulator or phone over adb.
+
+Only the Python standard library; finds elements by their visible text or TalkBack label
+(content description), so checks don't depend on screen coordinates.
+"""
+import os
+import re
+import subprocess
+import time
+
+PACKAGE = "app.burrow.money"
+ADB = os.environ.get("ADB") or os.path.expanduser("~/Library/Android/sdk/platform-tools/adb")
+
+
+def adb(*args, check=False):
+    return subprocess.run([ADB, *args], capture_output=True, text=True, check=check).stdout
+
+
+def shell(cmd):
+    return adb("shell", cmd)
+
+
+class Node:
+    def __init__(self, raw):
+        def attr(key):
+            m = re.search(key + r'="([^"]*)"', raw)
+            return m.group(1) if m else ""
+        self.text = attr("text").replace("&amp;", "&")
+        self.desc = attr("content-desc").replace("&amp;", "&")
+        self.cls = attr("class")
+        self.package = attr("package")
+        self.clickable = attr("clickable") == "true"
+        self.checkable = attr("checkable") == "true"
+        self.checked = attr("checked") == "true"
+        self.selected = attr("selected") == "true"
+        self.scrollable = attr("scrollable") == "true"
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", attr("bounds")))
+        self.bounds = (x1, y1, x2, y2)
+
+    @property
+    def label(self):
+        return self.text or self.desc
+
+    @property
+    def center(self):
+        x1, y1, x2, y2 = self.bounds
+        return (x1 + x2) // 2, (y1 + y2) // 2
+
+    def __repr__(self):
+        return f"Node({self.label!r} {self.bounds})"
+
+
+def dump():
+    """The current screen as a list of nodes."""
+    shell("uiautomator dump /sdcard/ui.xml")
+    xml = shell("cat /sdcard/ui.xml")
+    return [Node(m.group(0)) for m in re.finditer(r"<node [^>]*>", xml)]
+
+
+def find(label, contains=False, timeout=5.0):
+    """Waits for a node whose text or description is [label] (or contains it)."""
+    end = time.time() + timeout
+    while True:
+        for n in dump():
+            if n.label == label or (contains and label in n.label):
+                return n
+        if time.time() > end:
+            return None
+        time.sleep(0.4)
+
+
+def exists(label, contains=False, timeout=3.0):
+    return find(label, contains, timeout) is not None
+
+
+def tap(label, contains=False, timeout=5.0):
+    n = find(label, contains, timeout)
+    if n is None:
+        raise AssertionError(f"not on screen: {label!r}")
+    shell(f"input tap {n.center[0]} {n.center[1]}")
+    time.sleep(0.8)
+    return n
+
+
+def tap_xy(x, y):
+    shell(f"input tap {x} {y}")
+    time.sleep(0.8)
+
+
+def swipe(x1, y1, x2, y2, ms=300):
+    shell(f"input swipe {x1} {y1} {x2} {y2} {ms}")
+    time.sleep(0.8)
+
+
+def long_press(label, contains=False):
+    n = find(label, contains)
+    if n is None:
+        raise AssertionError(f"not on screen: {label!r}")
+    x, y = n.center
+    swipe(x, y, x, y, 900)
+
+
+def scroll_to(label, contains=False, max_swipes=6):
+    """Scrolls down the current list until [label] is on screen; returns its node or None."""
+    w, h = screen_size()
+    for _ in range(max_swipes + 1):
+        n = find(label, contains, timeout=0.5)
+        # Off-screen nodes can still be listed, with empty bounds; they aren't on screen yet.
+        if n and n.bounds[3] <= n.bounds[1]:
+            n = None
+        if n and n.center[1] < h * 0.7:
+            return n
+        if n:
+            # Found low on screen, where a nav bar or button may cover it: bring it up.
+            for _ in range(3):
+                swipe(w // 2, int(h * 0.6), w // 2, int(h * 0.4), 300)
+                n = find(label, contains, timeout=1.0) or n
+                if n.center[1] < h * 0.7:
+                    break
+            return n
+        swipe(w // 2, int(h * 0.75), w // 2, int(h * 0.35), 300)
+    return None
+
+
+def scroll_to_top(swipes=4):
+    """Scrolls the current list back to its top (headers there, like +, may be scrolled away)."""
+    w, h = screen_size()
+    for _ in range(swipes):
+        swipe(w // 2, int(h * 0.35), w // 2, int(h * 0.85), 200)
+
+
+def type_text(text):
+    shell("input text " + text.replace(" ", "%s").replace("'", "\\'"))
+    time.sleep(0.4)
+
+
+def back():
+    shell("input keyevent KEYCODE_BACK")
+    time.sleep(0.8)
+
+
+def _read(cmd, pattern):
+    """Runs a `wm` query, retrying: adb now and then returns nothing."""
+    for _ in range(5):
+        out = shell(cmd).strip()
+        m = re.search(pattern, out.splitlines()[-1] if out else "")
+        if m:
+            return m
+        time.sleep(0.5)
+    raise AssertionError(f"no answer from `{cmd}`")
+
+
+def screen_size():
+    m = _read("wm size", r"(\d+)x(\d+)")
+    return int(m.group(1)), int(m.group(2))
+
+
+def density():
+    return int(_read("wm density", r"(\d+)").group(1)) / 160
+
+
+def nav(tab):
+    """Taps a bottom-bar tab by its label (the bar's labels are always the last matches)."""
+    end = time.time() + 3
+    while True:  # retry briefly: the bar may still be sliding in after a page transition
+        nodes = [n for n in dump() if n.label == tab and n.package == PACKAGE]
+        if nodes or time.time() > end:
+            break
+        time.sleep(0.4)
+    if not nodes:
+        raise AssertionError(f"tab not found: {tab}")
+    n = max(nodes, key=lambda n: n.bounds[1])
+    shell(f"input tap {n.center[0]} {n.center[1]}")
+    time.sleep(1.0)
+
+
+def small_targets(min_dp=48):
+    """Interactive app nodes smaller than [min_dp], ignoring ones clipped by a scrolling list."""
+    d = density()
+    nodes = dump()
+    # A node touching the top or bottom edge of a scrolling container is cut off, not small.
+    edges = {y for n in nodes if n.scrollable for y in (n.bounds[1], n.bounds[3])}
+    # Compose reports only the uncovered part of a node, so anything under a floating button
+    # (e.g. "Add note") looks small; its hidden edge meets the covering control's edge.
+    covers = [n.bounds for n in nodes if n.package == PACKAGE and n.clickable]
+    out = []
+    for n in nodes:
+        if n.package != PACKAGE or not (n.clickable or n.checkable):
+            continue
+        x1, y1, x2, y2 = n.bounds
+        # Clipped by a list edge (allow a few pixels of rounding), or only a sliver still visible.
+        if any(abs(y1 - e) <= 8 or abs(y2 - e) <= 8 for e in edges) or (y2 - y1) < 12 * d:
+            continue
+        # Sticking out past the top or bottom of a list it sits in: scrolled partly out of view.
+        if any(sx1 <= x1 and x2 <= sx2 and (y1 < sy1 or y2 > sy2) for sx1, sy1, sx2, sy2 in
+               (m.bounds for m in nodes if m.scrollable)):
+            continue
+        if any(c != n.bounds and c[0] < x2 and x1 < c[2] and (abs(y2 - c[1]) <= 2 or abs(y1 - c[3]) <= 2) for c in covers):
+            continue
+        w, h = (x2 - x1) / d, (y2 - y1) / d
+        if w < min_dp - 1.5 or h < min_dp - 1.5:
+            out.append(f"{n.label or n.cls} {w:.0f}x{h:.0f}dp")
+    return out

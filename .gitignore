@@ -1,0 +1,19 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+build/
+/captures/
+.externalNativeBuild/
+.cxx/
+.kotlin/
+*.keystore
+*.jks
+/keystore/
+
+# Design HTML (prototype, galleries) stays out of git; PNGs and tokens are committed.
+*.html
+!app/**/*.html
+
+# Release files go to build/dist/v<version>/ (already ignored by build/).
