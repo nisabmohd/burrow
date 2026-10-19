@@ -59,6 +59,14 @@ def welcome_shows_once():
 
 
 @check
+def tabs_switch_with_titles():
+    for tab in ["Activity", "Plan", "Insights", "More", "Today"]:
+        d.nav(tab)
+        titles = [n for n in d.dump() if n.text == tab]
+        assert len(titles) >= 2, f"{tab}: no title above the content (nav label only)"
+
+
+@check
 def today_shows_budget_and_sample_note():
     assert d.exists("left of", contains=True, timeout=5), "budget hero missing"
     assert d.exists("These are sample transactions", contains=True), "sample-data note missing"

@@ -6,7 +6,7 @@ if something is missing, add a component here first.
 
 | Component | Spec | Kotlin |
 |---|---|---|
-| Top bar (tab) | 64 dp; `headline` title left; right: up to two `TonalIconButton`s | screen code |
+| `TabScreen` / `TabTopBar` | 64 dp; `headline` title 24 dp from the start; right: up to two `TonalIconButton`s, 8 dp apart. `TabScreen` = status bar + top bar + content with the 16 dp margin | Bars.kt |
 | Top bar (detail) | 64 dp; back `TonalIconButton` · optional `title` · one action (edit / filter) | screen code |
 | Top bar (form) | close · title · filled **Save** pill (disabled = `surfaceContainer`) | screen code |
 | `TonalIconButton` | 48 dp circle, `surfaceContainer`; active `primaryContainer`; optional count badge | Controls.kt |
@@ -39,7 +39,7 @@ if something is missing, add a component here first.
 | Snackbar | after every change, ~4 s, Undo; above the nav bar | Material |
 | Dialog | delete, replace data, wrong password only | Material |
 | Switch | Material 3 switch, primary track | Material |
-| Bottom nav | 5 items, 80 dp, selected icon fill + `secondaryContainer` pill | Material `NavigationBar` |
+| `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3× | Bars.kt (Material `NavigationBar`) |
 
 ## Haptics (`Haptics.kt`)
 toggle (switch, mark paid) · tick (chip, segment, stepper) · stepTick (slider) · threshold (swipe far

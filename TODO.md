@@ -14,10 +14,10 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [ ] First commit, push to GitHub, CI green (committed locally; push once the GitHub repo exists)
 
 ## Week 1 — money in and out
-- [ ] **Day 1 · Theme + shell**
-  - [ ] `BurrowTheme` reading ThemeSettings from DataStore
-  - [ ] Edge-to-edge, bottom nav with 5 tabs (fade through), empty tab screens, top bars
-  - [ ] Fonts, colours, dark mode checked against 04 / 11 / 22 / 36 / 53
+- [x] **Day 1 · Theme + shell**
+  - [x] `BurrowTheme` reading ThemeSettings from DataStore
+  - [x] Edge-to-edge, bottom nav with 5 tabs (fade through), empty tab screens, top bars
+  - [x] Fonts, colours, dark mode checked against 04 / 11 / 22 / 36 / 53
 - [ ] **Day 2 · Data**
   - [ ] DAOs for accounts, categories, transactions; repositories in `AppContainer`
   - [ ] Default categories + sample data (flagged `isSample`)

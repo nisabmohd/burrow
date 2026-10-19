@@ -53,6 +53,9 @@ fun burrowTypography(font: BodyFont, scale: Float): Typography {
     )
 }
 
+/** Nav labels shrink to fit long translations, never below this (docs/TOKENS.md § Type). */
+val NavLabelMinSize = 10.sp
+
 /** The only text styles screens use. Colour is never part of a style. */
 object BurrowType {
     /** 44/52 Medium: Today's hero amount, detail-header amounts, keypad amount. */

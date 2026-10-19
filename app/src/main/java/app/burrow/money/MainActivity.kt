@@ -2,45 +2,51 @@ package app.burrow.money
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.burrow.money.ui.nav.BurrowNavHost
 import app.burrow.money.ui.theme.BurrowTheme
-import app.burrow.money.ui.theme.NavMotion
+import app.burrow.money.ui.theme.isDark
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        val container = (application as BurrowApp).container
         setContent {
-            // Week 1: read ThemeSettings from SettingsRepository as state.
-            BurrowTheme { Surface(Modifier.fillMaxSize()) { BurrowNav() } }
+            // Null until DataStore has loaded, so the first real frame already has the right theme.
+            // Until then an empty frame over the window background (page colour, light or night).
+            val settings by container.settings.settings.collectAsStateWithLifecycle(null)
+            val current = settings ?: run {
+                Spacer(Modifier.fillMaxSize())
+                return@setContent
+            }
+            val dark = current.theme.isDark()
+            // Status and nav bar icons follow the app's theme, not just the system's.
+            LaunchedEffect(dark) {
+                val style = if (dark) {
+                    SystemBarStyle.dark(Color.Transparent.toArgb())
+                } else {
+                    SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb())
+                }
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            }
+            BurrowTheme(current.theme) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    BurrowNavHost()
+                }
+            }
         }
-    }
-}
-
-/**
- * One NavHost, transitions from Motion.kt only (docs/MOTION.md):
- * push/pop = shared axis X, tabs = fade through, predictive back is on in the manifest.
- * Routes become @Serializable objects as screens are built (type-safe navigation).
- */
-@Composable
-fun BurrowNav() {
-    val nav = rememberNavController()
-    NavHost(
-        navController = nav,
-        startDestination = "today",
-        enterTransition = NavMotion.push,
-        exitTransition = NavMotion.pushExit,
-        popEnterTransition = NavMotion.pop,
-        popExitTransition = NavMotion.popExit,
-    ) {
-        composable("today") { /* TodayScreen(...) — design/screens/04-today.png */ }
     }
 }

@@ -18,6 +18,8 @@ object Space {
     val sectionBottom = 8.dp  // header → its group
     val card = 16.dp          // inner padding of cards, widgets, notes
     val sheet = 24.dp         // sheet side padding
+    val inline = 8.dp         // between buttons or chips in one row (header buttons, chip rows)
+    val barStart = 24.dp      // tab title's start inset in the top bar
 }
 
 object Size {
