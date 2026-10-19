@@ -3,6 +3,7 @@ package app.burrow.money
 import android.content.Context
 import app.burrow.money.capture.RuleEngine
 import app.burrow.money.data.BurrowDatabase
+import app.burrow.money.data.MoneyRepository
 import app.burrow.money.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,7 @@ class AppContainer(private val context: Context) {
     val strings: Strings = ResourceStrings(context)
     val rules by lazy { RuleEngine() }
     val settings by lazy { SettingsRepository(context) }
-    // val money by lazy { MoneyRepository(database) }          // week 1
+    val money by lazy { MoneyRepository(database, settings, strings) }
     // val bills by lazy { BillRepository(database) }           // week 3
     // val reminders by lazy { ReminderScheduler(context, bills) } // week 3
     // val backup by lazy { BackupManager(database, settings) } // week 5

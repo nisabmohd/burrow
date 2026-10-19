@@ -1,21 +1,18 @@
 package app.burrow.money.data
 
 import android.content.Context
-import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.Upsert
-import kotlinx.coroutines.flow.Flow
 
 /*
  * The schema from docs/DATA.md, v1. Money columns are Long minor units. Times are epoch millis.
  * Add an entity here → bump version → write the Migration (never fallbackToDestructiveMigration
  * in release: people's money lives here). schemas/ is committed (ksp room.schemaLocation).
+ * Until the first release (v0.1.0) v1 may still change in place; after it, only migrations.
  */
 
 @Entity
@@ -104,6 +101,7 @@ data class BudgetEntity(
     val categoryId: Long?,       // null = overall
     val amount: Long,
     val carryOver: Boolean = false,
+    val isSample: Boolean = false,
 )
 
 @Entity
@@ -140,15 +138,6 @@ data class CaptureEntity(
     val txnId: Long? = null,
 )
 
-@Dao
-interface TxnDao {
-    @Query("SELECT * FROM TxnEntity WHERE at BETWEEN :from AND :to ORDER BY at DESC")
-    fun between(from: Long, to: Long): Flow<List<TxnEntity>>
-
-    @Upsert
-    suspend fun upsert(txn: TxnEntity): Long
-}
-
 @Database(
     entities = [
         AccountEntity::class, CategoryEntity::class, TxnEntity::class, BillEntity::class,
@@ -159,7 +148,10 @@ interface TxnDao {
     exportSchema = true,
 )
 abstract class BurrowDatabase : RoomDatabase() {
+    abstract fun accounts(): AccountDao
+    abstract fun categories(): CategoryDao
     abstract fun txns(): TxnDao
+    abstract fun budgets(): BudgetDao
 
     companion object {
         fun create(context: Context): BurrowDatabase =

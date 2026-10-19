@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "606dabea4460153a21a707fdfcdd9d44",
+    "identityHash": "91bfb0dfde5b804813d24bf010ee8aac",
     "entities": [
       {
         "tableName": "AccountEntity",
@@ -458,7 +458,7 @@
       },
       {
         "tableName": "BudgetEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `month` TEXT NOT NULL, `categoryId` INTEGER, `amount` INTEGER NOT NULL, `carryOver` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `month` TEXT NOT NULL, `categoryId` INTEGER, `amount` INTEGER NOT NULL, `carryOver` INTEGER NOT NULL, `isSample` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -486,6 +486,12 @@
           {
             "fieldPath": "carryOver",
             "columnName": "carryOver",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSample",
+            "columnName": "isSample",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -671,7 +677,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '606dabea4460153a21a707fdfcdd9d44')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '91bfb0dfde5b804813d24bf010ee8aac')"
     ]
   }
 }

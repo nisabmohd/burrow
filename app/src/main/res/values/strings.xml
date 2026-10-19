@@ -19,4 +19,21 @@
     <string name="get_started">Get started</string>
     <string name="welcome_footer">Free and open source</string>
     <string name="restore_backup">Restore a backup</string>
+
+    <!-- Default categories (written into the database on first open) -->
+    <string name="cat_food">Food &amp; drinks</string>
+    <string name="cat_groceries">Groceries</string>
+    <string name="cat_transport">Transport</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_bills">Bills &amp; utilities</string>
+    <string name="cat_rent">Rent &amp; home</string>
+    <string name="cat_health">Health</string>
+    <string name="cat_entertainment">Entertainment</string>
+    <string name="cat_travel">Travel</string>
+    <string name="cat_education">Education</string>
+    <string name="cat_gifts">Gifts</string>
+    <string name="cat_other">Other</string>
+    <string name="cat_salary">Salary</string>
+    <string name="cat_interest">Interest</string>
+    <string name="cat_other_income">Other income</string>
 </resources>

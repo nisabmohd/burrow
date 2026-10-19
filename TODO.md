@@ -18,10 +18,10 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] `BurrowTheme` reading ThemeSettings from DataStore
   - [x] Edge-to-edge, bottom nav with 5 tabs (fade through), empty tab screens, top bars
   - [x] Fonts, colours, dark mode checked against 04 / 11 / 22 / 36 / 53
-- [ ] **Day 2 · Data**
-  - [ ] DAOs for accounts, categories, transactions; repositories in `AppContainer`
-  - [ ] Default categories + sample data (flagged `isSample`)
-  - [ ] Money formatting per locale; balance unit tests
+- [x] **Day 2 · Data**
+  - [x] DAOs for accounts, categories, transactions; repositories in `AppContainer`
+  - [x] Default categories + sample data (flagged `isSample`)
+  - [x] Money formatting per locale; balance unit tests
 - [ ] **Day 3 · Add expense (17–20)**
   - [ ] Keypad, Expense / Income / Transfer
   - [ ] Category and account sheets, date, payee, note
