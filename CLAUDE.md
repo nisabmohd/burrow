@@ -50,7 +50,7 @@ minSdk 26, targetSdk 36, Kotlin 2.x, KSP, version catalog. Compose + Material 3.
 DataStore Preferences, Navigation Compose (type-safe routes), ViewModel + StateFlow, kotlinx-serialization
 (rules files, backup JSON). Capture: `RECEIVE_SMS`/`READ_SMS` (foss/github; play after the declaration)
 + `NotificationListenerService`. Reminders: AlarmManager + boot receiver. Backup: encrypted file via SAF.
-Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson (static TTF).
+Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson (static TTF), Space Grotesk (variable TTF, drawn at 470/600).
 
 ## Behaviour rules
 - Transfers never count as spending/income (card bill, ATM, EMI principal, savings, Add money).

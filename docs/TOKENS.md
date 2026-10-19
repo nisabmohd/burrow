@@ -56,7 +56,7 @@ Each category stores a hue; its colours come from it and only follow light/dark 
 | Pink | 318 | #F8D3ED / #701A56 | #BF3696 | #502B45 / #F4B9E2 | #E283C5 |
 
 ## Type
-Lexend (default), Outfit, Atkinson Hyperlegible or the system font; user picks in More › Font and text size.
+Lexend (default), Outfit, Atkinson Hyperlegible, Space Grotesk or the system font; user picks in More › Font and text size.
 Text size: Small 0.92× · Default · Large 1.12×, on top of the system font scale. **Two weights only: 400 and 500.**
 Numbers use tabular figures (`tnum`) so amounts line up.
 

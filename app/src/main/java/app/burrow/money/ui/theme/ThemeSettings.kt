@@ -5,7 +5,7 @@ import androidx.compose.runtime.Immutable
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /** The fonts offered in More › Font and text size. Each bundled font costs APK size: ship only these. */
-enum class BodyFont { LEXEND, OUTFIT, ATKINSON, SYSTEM }
+enum class BodyFont { LEXEND, OUTFIT, ATKINSON, SPACE_GROTESK, SYSTEM }
 
 enum class TextSize(val scale: Float) { SMALL(0.92f), DEFAULT(1f), LARGE(1.12f) }
 

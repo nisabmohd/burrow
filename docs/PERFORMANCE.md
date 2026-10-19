@@ -16,7 +16,7 @@ Burrow must feel instant on a ₹8,000 phone and stay tiny.
   packaging excludes, no dependency-info block. Settings already in `starter/app/build.gradle.kts`.
 - **No libraries** beyond AndroidX + kotlinx-serialization: no DI framework, no chart library, no image
   library, no networking, no Firebase/analytics, no `material-icons-extended`. Ask before adding any.
-- Fonts: static TTFs, two weights each (≈ 400 KB for all three families). Drop a family if size gets tight.
+- Fonts: static TTFs, two weights each, plus one variable Space Grotesk TTF (≈ 540 KB for all four families). Drop a family if size gets tight.
 - Vector drawables only; no PNGs in the app.
 
 ## What keeps it fast

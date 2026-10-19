@@ -5,9 +5,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import app.burrow.money.R
@@ -16,6 +18,7 @@ import app.burrow.money.R
  * Six text styles, two weights (400, 500). Nothing else, anywhere (docs/TOKENS.md § Type).
  * Fonts are static TTFs in res/font (OFL, see res/font/OFL.txt): two weights each, ~55–80 KB per file.
  * Atkinson Hyperlegible has no 500, so its Bold stands in for Medium.
+ * Space Grotesk is one variable TTF (from Sprout); see [SpaceGroteskFamily].
  */
 private fun family(@FontRes regular: Int, @FontRes medium: Int) =
     FontFamily(Font(regular, FontWeight.Normal), Font(medium, FontWeight.Medium))
@@ -24,10 +27,21 @@ private val LexendFamily = family(R.font.lexend_regular, R.font.lexend_medium)
 private val OutfitFamily = family(R.font.outfit_regular, R.font.outfit_medium)
 private val AtkinsonFamily = family(R.font.atkinson_regular, R.font.atkinson_bold)
 
+/**
+ * Space Grotesk's strokes are about 17% thinner than Lexend's at the same weight, so it is drawn a
+ * step heavier (as in Sprout): Regular at 470, Medium at 600. The weights in code stay 400 and 500.
+ */
+@OptIn(ExperimentalTextApi::class)
+private val SpaceGroteskFamily = FontFamily(
+    Font(R.font.space_grotesk, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(470))),
+    Font(R.font.space_grotesk, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+)
+
 fun BodyFont.family(): FontFamily = when (this) {
     BodyFont.LEXEND -> LexendFamily
     BodyFont.OUTFIT -> OutfitFamily
     BodyFont.ATKINSON -> AtkinsonFamily
+    BodyFont.SPACE_GROTESK -> SpaceGroteskFamily
     BodyFont.SYSTEM -> FontFamily.Default
 }
 
