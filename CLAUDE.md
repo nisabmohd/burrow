@@ -53,6 +53,11 @@ DataStore Preferences, Navigation Compose (type-safe routes), ViewModel + StateF
 Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson (static TTF), Space Grotesk (variable TTF, drawn at 470/600).
 
 ## Behaviour rules
+- New expense: amount, then a **Paid to** free-text field (any text; suggestion chips of frequent payees filter as you type and set the usual category), then Category, Account, Date + keypad; extras as chips (Note, Repeat, Attach, Lend or borrow), chosen in
+  More › Customise › New expense form. Future date = upcoming. Repeat creates a bill. Attachments stay on the phone.
+- **Customise** is one screen with tabs Today · Expense · Transactions · Region · Currency, built only from choice tiles,
+  toggle tiles, ordered rows (show/hide + ↑↓) and switch rows. Every new customisation goes there.
+- Every account has "Count in net worth"; credit cards and loans are off by default.
 - Transfers never count as spending/income (card bill, ATM, EMI principal, savings, Add money).
 - Bills: one row per occurrence; swipe right Paid, left Skip; a past one stays "Not paid yet" until marked.
 - Budgets monthly from the user's month-start day; 80% and 100% notifications once each per month;

@@ -25,6 +25,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Burrow">
 
+        <!-- Lets the camera app write one photo for "Take a photo" (76). Not exported. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,6 +49,8 @@
 
         <!-- Bill reminders: one inexact alarm, set again after a reboot, update or clock change. -->
         <receiver android:name=".notify.BillAlarmReceiver" android:exported="false" />
+        <!-- Scheduled backups: a daily check around 3 AM. -->
+        <receiver android:name=".data.BackupAlarmReceiver" android:exported="false" />
         <receiver android:name=".notify.RescheduleReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

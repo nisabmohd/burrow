@@ -51,14 +51,19 @@ def fresh_install():
 # Burrow's checks. Add one per feature as you build it (find by visible text or label, never coordinates).
 
 
-@check
-def welcome_shows_once():
-    assert d.exists("Get started"), "welcome screen missing on first launch"
+def finish_welcome():
+    """Welcome (01) → main currency (02) → accounts (03): keep the defaults."""
     d.tap("Get started")
     if d.exists("Continue", timeout=3):
         d.tap("Continue")
     if d.exists("Done", timeout=3):
         d.tap("Done")
+
+
+@check
+def welcome_shows_once():
+    assert d.exists("Get started"), "welcome screen missing on first launch"
+    finish_welcome()
     assert d.exists("Today", timeout=10), "Today not shown after onboarding"
     d.shell(f"am force-stop {d.PACKAGE}")
     d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
@@ -162,13 +167,17 @@ def activity_delete_and_undo():
     # "Food & drinks": the expense add_expense saved, or a sample row when run alone.
     d.tap("Food & drinks")
     d.tap("Delete")
-    time.sleep(0.8)
-    confirm = [n for n in d.dump() if n.label == "Delete"][-1]  # the dialog's button
-    x1, y1, x2, y2 = confirm.bounds
-    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
-    time.sleep(0.5)
-    nodes = d.dump()  # read and tap Undo from one dump: the snackbar lasts ~4 s
-    undo = [n for n in nodes if n.label == "Undo"]
+    # "Ask before delete" (Customise › Transactions) is off by default: Undo is the safety net.
+    # One screen read takes ~2.5 s and the snackbar lasts ~4 s, so each read looks for both.
+    undo = []
+    for _ in range(3):
+        nodes = d.dump()
+        undo = [n for n in nodes if n.label == "Undo"]
+        if undo:
+            break
+        if any(n.label == "Delete this transaction?" for n in nodes):
+            x1, y1, x2, y2 = [n for n in nodes if n.label == "Delete"][-1].bounds  # the dialog's button
+            d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
     assert undo, "no Undo snackbar after delete"
     x1, y1, x2, y2 = undo[0].bounds
     d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
@@ -302,7 +311,7 @@ def main(filters):
         sys.exit(f"Build first: ./gradlew :app:assembleFossDebug (missing {APK})")
     fresh_install()
     if welcome_shows_once not in selected and d.exists("Get started", timeout=3):
-        d.tap("Get started")
+        finish_welcome()
     failures = 0
     for c in selected:
         try:

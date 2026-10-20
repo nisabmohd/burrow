@@ -44,4 +44,25 @@ class MoneyFormatTest {
         assertEquals(877_00L, inr.whole(876_50))
         assertEquals(1500L, MoneyFormat.of("JPY", Locale.JAPAN).whole(1500))
     }
+
+    @Test fun hiddenAmounts() {
+        val h = inr.withHidden(true)
+        assertEquals("₹ ••••", h.plain(240_00))
+        assertEquals("₹ ••••", h.signed(-240_00))
+        assertEquals("₹ ••••", h.short(6_84_250_00))
+        assertEquals("₹240", h.withHidden(false).plain(240_00))
+    }
+
+    @Test fun customiseChoices() {
+        val en = Locale("en", "IN")
+        assertEquals("INR 1,240", MoneyFormat.of("INR", en, null, "CODE", "AUTO").plain(1_240_00))
+        assertEquals("₹1,240.00", MoneyFormat.of("INR", en, null, "SYMBOL", "ALWAYS").plain(1_240_00))
+        assertEquals("₹1,240", MoneyFormat.of("INR", en, null, "SYMBOL", "NONE").plain(1_240_49))
+        assertEquals("₹1,240.50", MoneyFormat.of("INR", en, null, "SYMBOL", "AUTO").plain(1_240_50))
+        assertEquals("€100.000,00", MoneyFormat.of("EUR", Locale.US, "DOT", "SYMBOL", "ALWAYS").plain(100_000_00))
+        assertEquals("$100,000", MoneyFormat.of("USD", Locale.US, "WESTERN", "SYMBOL", "AUTO").plain(100_000_00))
+        assertEquals("₹1,00,000", MoneyFormat.of("INR", Locale.US, "INDIAN", "SYMBOL", "AUTO").plain(1_00_000_00))
+        assertEquals("¥1,500", MoneyFormat.of("JPY", Locale.JAPAN, null, "SYMBOL", "ALWAYS").plain(1500))
+        assertEquals("INR ••••", MoneyFormat.of("INR", en, null, "CODE", "AUTO").withHidden(true).plain(1))
+    }
 }

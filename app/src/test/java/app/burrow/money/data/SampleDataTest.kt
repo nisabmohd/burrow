@@ -28,6 +28,14 @@ class SampleDataTest {
         assertEquals(listOf(142_300_00L, -8_120_00L, 1_500_00L, 850_00L, 16_600_00L, -21_40_560_00L, 2_00_000_00L), balancesOf(build()))
     }
 
+    /** Design 55: net worth ₹3,61,250 excludes the card and the home loan (Count in net worth off). */
+    @Test fun netWorthLeavesOutCardAndLoan() {
+        val s = build()
+        val counted = s.accounts.withIndex().filter { it.value.includeInNetWorth }.sumOf { balancesOf(s)[it.index] }
+        assertEquals(3_61_250_00L, counted)
+        assertEquals(listOf("CARD", "LOAN"), s.accounts.filter { !it.includeInNetWorth }.map { it.type })
+    }
+
     @Test fun sameDataEveryTime() = assertEquals(build().txns, build().txns)
 
     @Test fun nothingInTheFuture() = assertTrue(build().txns.all { it.at <= now })

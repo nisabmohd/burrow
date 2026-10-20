@@ -40,7 +40,13 @@ fun TxnRow(t: TxnView, index: Int, count: Int, dates: DateText, today: LocalDate
         else -> t.categoryName.orEmpty()
     }
     val base = stringResource(R.string.dot_join, kind, shortName(t.accountName))
-    val line = if (dates.date(t.txn.at) == today) stringResource(R.string.dot_join, base, dates.time(t.txn.at)) else base
+    val upcoming = t.txn.status == app.burrow.money.data.TxnStatus.UPCOMING
+    val showTime = app.burrow.money.ui.LocalListPrefs.current.showTime
+    val line = when {
+        upcoming -> stringResource(R.string.dot_join, stringResource(R.string.upcoming), dates.due(dates.date(t.txn.at)))
+        showTime && dates.date(t.txn.at) == today -> stringResource(R.string.dot_join, base, dates.time(t.txn.at))
+        else -> base
+    }
     ListRow(
         headline = t.title(),
         supporting = line,

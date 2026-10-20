@@ -26,12 +26,12 @@ import app.burrow.money.domain.MoneyFormat
  */
 class CaptureNotifier(private val context: Context) {
 
-    fun show(capture: CaptureEntity, categories: List<CategoryEntity>, from: String?) {
+    fun show(capture: CaptureEntity, categories: List<CategoryEntity>, from: String?, hideAmount: Boolean = false) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
         createChannel()
-        val money = MoneyFormat.of(capture.currency ?: "INR")
+        val money = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount)
         val amount = money.plain(capture.amount ?: 0)
         val incoming = capture.direction == Direction.IN.name
         val title = when {
@@ -82,6 +82,54 @@ class CaptureNotifier(private val context: Context) {
             .setAutoCancel(true)
             .setContentIntent(openReview(context))
         runCatching { NotificationManagerCompat.from(context).notify(id, builder.build()) }
+    }
+
+    /** "Open it to edit first": title and line, tap opens New expense filled in. No buttons. */
+    fun showEdit(capture: CaptureEntity, from: String?, hideAmount: Boolean = false) {
+        if (!allowed()) return
+        createChannel()
+        val title = titleFor(capture, hideAmount)
+        val line = context.getString(R.string.notif_tap_to_check, from ?: context.getString(R.string.app_name))
+        post(notificationId(capture.id), title, line, open(MainActivity.ACTION_OPEN_CAPTURE, capture.id))
+    }
+
+    /** "Save it for me": already saved with the remembered category; tap opens it. */
+    fun showSaved(capture: CaptureEntity, category: String, txnId: Long, hideAmount: Boolean = false) {
+        if (!allowed()) return
+        createChannel()
+        post(notificationId(capture.id), titleFor(capture, hideAmount), context.getString(R.string.notif_saved_to, category), open(MainActivity.ACTION_OPEN_TXN, txnId))
+    }
+
+    private fun allowed() = Build.VERSION.SDK_INT < 33 ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    private fun titleFor(capture: CaptureEntity, hideAmount: Boolean): String {
+        val amount = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount).plain(capture.amount ?: 0)
+        val incoming = capture.direction == Direction.IN.name
+        return when {
+            capture.payee == null -> context.getString(if (incoming) R.string.notif_received else R.string.notif_spent, amount)
+            incoming -> context.getString(R.string.notif_from, amount, app.burrow.money.data.tidyPayee(capture.payee))
+            else -> context.getString(R.string.notif_to, amount, app.burrow.money.data.tidyPayee(capture.payee))
+        }
+    }
+
+    private fun open(action: String, id: Long) = PendingIntent.getActivity(
+        context, (id % 100_000).toInt() + action.hashCode(),
+        Intent(context, MainActivity::class.java).setAction(action).putExtra(MainActivity.EXTRA_ID, id).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
+    private fun post(id: Int, title: String, line: String, tap: PendingIntent) {
+        val n = NotificationCompat.Builder(context, CHANNEL)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
+            .setContentTitle(title)
+            .setContentText(line)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(tap)
+            .build()
+        runCatching { NotificationManagerCompat.from(context).notify(id, n) }
     }
 
     fun cancel(captureId: Long) = NotificationManagerCompat.from(context).cancel(notificationId(captureId))

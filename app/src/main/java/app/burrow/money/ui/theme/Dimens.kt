@@ -62,7 +62,28 @@ object Size {
     val miniChart = 40.dp     // mini bars in widgets
     val ringWidget = 52.dp    // rings in half widgets
     val ringWide = 104.dp     // the ring in a wide widget
+    val categoryTile = 56.dp  // circles in the categories grid
+    val logo = 112.dp         // the mark on About and Welcome
+    val pinKey = 72.dp        // round keys on the PIN pad (71)
+    val pinCookie = 88.dp     // the lock above the PIN pad
     val dotActive = 24.dp
+    val payeeField = 56.dp    // Paid to under the amount (17, 87)
+    val payeeMaxWidth = 340.dp
+    val suggestion = 32.dp    // a Paid to suggestion chip
+    val suggestionCircle = 28.dp
+    val focusRing = 2.dp
+    /** Medium and wider screens: content never stretches past this; it sits centred. */
+    val contentMax = 640.dp
+    /** A landscape phone: wide enough for New expense's form beside its keypad. */
+    val contentMaxLandscape = 900.dp
+    /** From this width the bottom nav becomes a rail (expanded window class). */
+    val railFrom = 840.dp
+    /** Below this height a wide screen is a landscape phone: New expense puts its keypad beside the form. */
+    val landscapeMaxHeight = 480.dp
+    val keypadSide = 340.dp
+    val checkBadge = 22.dp    // the round check on a selected choice or toggle tile
+    val toggleTile = 112.dp   // a toggle tile's height (81, 82)
+    val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
 }
 
 object Shapes {

@@ -44,6 +44,10 @@ import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.IconCircle
+import app.burrow.money.ui.components.IntroCard
+import app.burrow.money.ui.components.IntroPanel
+import app.burrow.money.ui.components.IntroTile
+import app.burrow.money.ui.components.StepDots
 import app.burrow.money.ui.components.Mark
 import app.burrow.money.ui.components.MarkStyle
 import app.burrow.money.ui.components.MessageText
@@ -73,13 +77,13 @@ fun CaptureIntroScreen(onClose: () -> Unit, onAllowed: (sms: Boolean) -> Unit) {
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         if (step == 0) ScreenTopBar(painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose)
         else ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), { step-- })
-        Dots(step, Modifier.align(Alignment.CenterHorizontally).padding(vertical = Space.block))
+        StepDots(step, STEPS, Modifier.align(Alignment.CenterHorizontally).padding(vertical = Space.block))
         AnimatedContent(step, Modifier.weight(1f), transitionSpec = { fadeThrough() }, label = "introStep") { s ->
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Panel {
+                IntroPanel {
                     when (s) {
                         0 -> PanelRecords()
                         1 -> PanelPrivate()
@@ -103,46 +107,12 @@ fun CaptureIntroScreen(onClose: () -> Unit, onAllowed: (sms: Boolean) -> Unit) {
 private val TITLES = listOf(R.string.intro1_title, R.string.intro2_title, R.string.intro3_title)
 private val LINES = listOf(R.string.intro1_line, R.string.intro2_line, R.string.intro3_line)
 
-/** Step dots: the current one is a 24 dp pill. */
-@Composable
-private fun Dots(step: Int, modifier: Modifier) {
-    val c = MaterialTheme.colorScheme
-    val label = stringResource(R.string.step_of, step + 1, STEPS)
-    Row(modifier.semantics { contentDescription = label }, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
-        repeat(STEPS) { i ->
-            Box(Modifier.size(width = if (i == step) Size.dotActive else Size.dot, height = Size.dot).clip(Shapes.pill).background(if (i == step) c.primary else c.outline))
-        }
-    }
-}
-
-/** The rose panel that illustrates a step. */
-@Composable
-private fun Panel(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().clip(Shapes.surface).background(MaterialTheme.colorScheme.primaryContainer).padding(Space.hero),
-        verticalArrangement = Arrangement.spacedBy(Space.block),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        content = content,
-    )
-}
-
-/** A white card inside the panel, slightly tilted like the design. */
-@Composable
-private fun PanelCard(modifier: Modifier = Modifier, tilt: Float = 0f, content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
-    Row(
-        modifier.rotate(tilt).clip(Shapes.surface).background(MaterialTheme.colorScheme.surfaceContainerLowest).padding(horizontal = Space.card, vertical = Space.block),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.block),
-        content = content,
-    )
-}
-
 private const val SAMPLE_SMS = "Rs.240.00 debited from A/c XX1234 to thirdwave@okicici"
 
 @Composable
 private fun SmsCard(marks: List<Mark>) {
     val c = MaterialTheme.colorScheme
-    PanelCard(Modifier.fillMaxWidth(), tilt = -1.5f) {
+    IntroCard(Modifier.fillMaxWidth(), tilt = -1.5f) {
         IconCircle(painterResource(R.drawable.ic_sms_duotone))
         Column {
             Text(stringResource(R.string.intro_sms_from), style = BurrowType.label, color = c.onSurfaceVariant)
@@ -157,7 +127,7 @@ private fun PanelRecords() {
     val money = LocalMoney.current
     SmsCard(emptyList())
     Icon(painterResource(R.drawable.ic_arrow_forward_regular), null, tint = c.onPrimaryContainer, modifier = Modifier.rotate(90f).size(Size.iconButton20))
-    PanelCard(Modifier.fillMaxWidth(), tilt = 1f) {
+    IntroCard(Modifier.fillMaxWidth(), tilt = 1f) {
         CategoryCircle("restaurant", 28f)
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.intro_saved_title, money.plain(240_00)), style = BurrowType.titleSmall, color = c.onSurface)
@@ -173,18 +143,15 @@ private fun PanelPrivate() {
     val payee = SAMPLE_SMS.indexOf("thirdwave")
     SmsCard(listOf(Mark(amount until amount + 6, MarkStyle.SOFT), Mark(payee until SAMPLE_SMS.length, MarkStyle.SOFT)))
     Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
-        SmallPanelCard(R.drawable.ic_wifi_off_duotone, R.string.intro_no_internet, Modifier.weight(1f), -1f)
-        SmallPanelCard(R.drawable.ic_lock_duotone, R.string.intro_otps_skipped, Modifier.weight(1f), 1.5f)
+        SmallIntroCard(R.drawable.ic_wifi_off_duotone, R.string.intro_no_internet, Modifier.weight(1f), -1f)
+        SmallIntroCard(R.drawable.ic_lock_duotone, R.string.intro_otps_skipped, Modifier.weight(1f), 1.5f)
     }
 }
 
 @Composable
-private fun SmallPanelCard(icon: Int, text: Int, modifier: Modifier, tilt: Float) {
+private fun SmallIntroCard(icon: Int, text: Int, modifier: Modifier, tilt: Float) {
     val c = MaterialTheme.colorScheme
-    Column(
-        modifier.rotate(tilt).clip(Shapes.surface).background(c.surfaceContainerLowest).padding(Space.card),
-        verticalArrangement = Arrangement.spacedBy(Space.small),
-    ) {
+    IntroTile(modifier, tilt) {
         Icon(painterResource(icon), null, tint = c.primary, modifier = Modifier.size(Size.icon))
         Text(stringResource(text), style = BurrowType.titleSmall, color = c.onSurface)
     }
@@ -198,7 +165,7 @@ private fun PanelAllow() {
         add(R.drawable.ic_notifications_duotone to R.string.intro_notifications)
     }
     rows.forEach { (icon, text) ->
-        PanelCard(Modifier.fillMaxWidth()) {
+        IntroCard(Modifier.fillMaxWidth()) {
             IconCircle(painterResource(icon), content = c.primary)
             Text(stringResource(text), style = BurrowType.titleSmall, color = c.onSurface)
         }

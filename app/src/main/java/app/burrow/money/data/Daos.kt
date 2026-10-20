@@ -23,10 +23,27 @@ object TxnType {
     const val ADJUST_DOWN = "ADJUST_DOWN"
 }
 
+/** A transaction's state (v4). */
+object TxnStatus {
+    const val POSTED = "POSTED"
+    /** Dated in the future: shown in Plan, posts on its day. */
+    const val UPCOMING = "UPCOMING"
+}
+
+/** Lend or borrow (v4). */
+object Lend {
+    const val LENT = "LENT"
+    const val BORROWED = "BORROWED"
+    const val SETTLE = "SETTLE"
+}
+
 object CategoryKind {
     const val EXPENSE = "EXPENSE"
     const val INCOME = "INCOME"
 }
+
+/** Cards and loans start out of net worth (their dues are already in spending; 86). */
+fun defaultInNetWorth(type: String) = type != AccountType.CARD && type != AccountType.LOAN
 
 object AccountType {
     const val BANK = "BANK"
@@ -87,11 +104,12 @@ interface AccountDao {
     @Query("SELECT * FROM AccountEntity WHERE archived = 0 ORDER BY sortOrder, id")
     fun all(): Flow<List<AccountEntity>>
 
-    @Query("SELECT accountId, type, SUM(amount) AS total FROM TxnEntity GROUP BY accountId, type")
-    fun outSums(): Flow<List<app.burrow.money.domain.TypeSum>>
+    /** Upcoming transactions count only with "Upcoming in balances" (Customise › Transactions). */
+    @Query("SELECT accountId, type, SUM(amount) AS total FROM TxnEntity WHERE status = 'POSTED' OR :withUpcoming GROUP BY accountId, type")
+    fun outSums(withUpcoming: Boolean): Flow<List<app.burrow.money.domain.TypeSum>>
 
-    @Query("SELECT toAccountId AS accountId, SUM(amount) AS total FROM TxnEntity WHERE type = 'TRANSFER' AND toAccountId IS NOT NULL GROUP BY toAccountId")
-    fun inSums(): Flow<List<AccountInSum>>
+    @Query("SELECT toAccountId AS accountId, SUM(amount) AS total FROM TxnEntity WHERE type = 'TRANSFER' AND toAccountId IS NOT NULL AND (status = 'POSTED' OR :withUpcoming) GROUP BY toAccountId")
+    fun inSums(withUpcoming: Boolean): Flow<List<AccountInSum>>
 
     @Query("SELECT * FROM AccountEntity WHERE id = :id")
     fun get(id: Long): Flow<AccountEntity?>
@@ -120,6 +138,22 @@ interface CategoryDao {
 
     @Insert
     suspend fun insertAll(categories: List<CategoryEntity>): List<Long>
+
+    @Upsert
+    suspend fun upsert(category: CategoryEntity): Long
+
+    @Query("UPDATE CategoryEntity SET archived = 1 WHERE id = :id")
+    suspend fun archive(id: Long)
+
+    /** A deleted category's transactions, bills and budgets move to [to] ("Other"). */
+    @Query("UPDATE TxnEntity SET categoryId = :to WHERE categoryId = :from")
+    suspend fun moveTxns(from: Long, to: Long)
+
+    @Query("UPDATE BillEntity SET categoryId = :to WHERE categoryId = :from")
+    suspend fun moveBills(from: Long, to: Long)
+
+    @Query("DELETE FROM BudgetEntity WHERE categoryId = :id")
+    suspend fun deleteBudgets(id: Long)
 }
 
 @Dao
@@ -158,10 +192,10 @@ interface TxnDao {
     @Query("SELECT * FROM TxnEntity WHERE id = :id")
     suspend fun get(id: Long): TxnEntity?
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND at >= :from AND at < :to")
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
     fun spent(from: Long, to: Long): Flow<Long>
 
-    @Query("SELECT categoryId, SUM(amount) AS total FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND categoryId IS NOT NULL AND at >= :from AND at < :to GROUP BY categoryId")
+    @Query("SELECT categoryId, SUM(amount) AS total FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND status = 'POSTED' AND categoryId IS NOT NULL AND at >= :from AND at < :to GROUP BY categoryId")
     fun spentByCategory(from: Long, to: Long): Flow<List<CategorySum>>
 
     @Query("SELECT COUNT(*) FROM TxnEntity")
@@ -170,6 +204,9 @@ interface TxnDao {
     /** The category last used for [payee], so a new payment from them suggests it first. */
     @Query("SELECT categoryId FROM TxnEntity WHERE payee = :payee COLLATE NOCASE AND type = :type AND categoryId IS NOT NULL ORDER BY at DESC LIMIT 1")
     suspend fun lastCategoryFor(payee: String, type: String): Long?
+
+    @Query("SELECT categoryId FROM TxnEntity WHERE type = :type AND categoryId IS NOT NULL AND isSample = 0 ORDER BY at DESC LIMIT 1")
+    suspend fun lastCategory(type: String): Long?
 
     /** Categories used most often for [type], for the other suggestions. */
     @Query("SELECT categoryId FROM TxnEntity WHERE type = :type AND categoryId IS NOT NULL GROUP BY categoryId ORDER BY COUNT(*) DESC LIMIT :limit")
@@ -195,10 +232,27 @@ interface TxnDao {
     )
     fun between(from: Long, to: Long): Flow<List<TxnView>>
 
+    /** Transactions dated in the future (Plan › Bills › Upcoming), soonest first. */
+    @Query(
+        """
+        SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
+               a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+        FROM TxnEntity t
+        JOIN AccountEntity a ON a.id = t.accountId
+        LEFT JOIN CategoryEntity c ON c.id = t.categoryId
+        LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
+        LEFT JOIN GoalEntity g ON g.id = t.goalId
+        WHERE t.status = 'UPCOMING'
+        ORDER BY t.at, t.id
+        """,
+    )
+    fun upcoming(): Flow<List<TxnView>>
+
     @Query("SELECT * FROM TxnEntity WHERE goalId = :goalId ORDER BY at DESC")
     fun forGoal(goalId: Long): Flow<List<TxnEntity>>
 
-    @Query("SELECT goalId, SUM(amount) AS total FROM TxnEntity WHERE goalId IS NOT NULL GROUP BY goalId")
+    @Query("SELECT goalId, SUM(amount) AS total FROM TxnEntity WHERE goalId IS NOT NULL AND status = 'POSTED' GROUP BY goalId")
     fun goalSums(): Flow<List<GoalSum>>
 
     @Query("SELECT MIN(at) FROM TxnEntity")
@@ -218,6 +272,20 @@ interface TxnDao {
 
     @Query("DELETE FROM TxnEntity WHERE isSample = 1")
     suspend fun deleteSamples()
+
+    /** Upcoming transactions whose day has come become posted. */
+    @Query("UPDATE TxnEntity SET status = 'POSTED' WHERE status = 'UPCOMING' AND at <= :now")
+    suspend fun postDue(now: Long): Int
+
+    @Query("SELECT MIN(at) FROM TxnEntity WHERE status = 'UPCOMING'")
+    suspend fun nextUpcoming(): Long?
+
+    /** Payees used most, for the Paid to suggestions (87). */
+    @Query("SELECT payee FROM TxnEntity WHERE type = :type AND payee IS NOT NULL AND payee != '' GROUP BY payee COLLATE NOCASE ORDER BY COUNT(*) DESC, MAX(at) DESC LIMIT :limit")
+    suspend fun topPayees(type: String, limit: Int): List<String>
+
+    @Query("SELECT payee FROM TxnEntity WHERE payee LIKE :prefix || '%' AND payee IS NOT NULL GROUP BY payee COLLATE NOCASE ORDER BY COUNT(*) DESC LIMIT :limit")
+    suspend fun payeesStarting(prefix: String, limit: Int): List<String>
 
     /** Expense categories used by a payee in each of the last months, for the subscription hint. */
     @Query("SELECT * FROM TxnEntity WHERE type = 'EXPENSE' AND at >= :since AND payee IS NOT NULL")
@@ -413,4 +481,91 @@ interface RuleDao {
 
     @Query("DELETE FROM CaptureRuleEntity WHERE id = :id")
     suspend fun delete(id: String)
+}
+
+/** Everything at once, for encrypted backups (docs/DATA.md § Backup). */
+/** Lend / borrow, tags, attachments and exchange rates (v4). */
+@Dao
+interface ExtrasDao {
+    @Query("SELECT * FROM PersonEntity ORDER BY name") fun people(): Flow<List<PersonEntity>>
+    @Query("SELECT * FROM PersonEntity WHERE name = :name COLLATE NOCASE LIMIT 1") suspend fun personNamed(name: String): PersonEntity?
+    @Query("SELECT * FROM PersonEntity WHERE id = :id") suspend fun person(id: Long): PersonEntity?
+    @Insert suspend fun addPerson(p: PersonEntity): Long
+    @Update suspend fun updatePerson(p: PersonEntity)
+
+    /** Each person's lent, borrowed and settled totals (signed in Kotlin). */
+    @Query("SELECT personId, lend, type, SUM(amount) AS total FROM TxnEntity WHERE personId IS NOT NULL AND status = 'POSTED' GROUP BY personId, lend, type")
+    fun lendSums(): Flow<List<LendSum>>
+
+    @Query("SELECT personId, MIN(at) AS since FROM TxnEntity WHERE personId IS NOT NULL GROUP BY personId")
+    fun lendSince(): Flow<List<PersonSince>>
+
+    @Query("SELECT * FROM TagEntity ORDER BY name") fun tags(): Flow<List<TagEntity>>
+    @Query("SELECT * FROM TagEntity WHERE name = :name COLLATE NOCASE LIMIT 1") suspend fun tagNamed(name: String): TagEntity?
+    @Insert suspend fun addTag(t: TagEntity): Long
+    @Query("SELECT t.* FROM TagEntity t JOIN TxnTagEntity x ON x.tagId = t.id WHERE x.txnId = :txnId ORDER BY t.name") suspend fun tagsOf(txnId: Long): List<TagEntity>
+    @Query("DELETE FROM TxnTagEntity WHERE txnId = :txnId") suspend fun clearTags(txnId: Long)
+    @Insert(onConflict = androidx.room.OnConflictStrategy.IGNORE) suspend fun tag(links: List<TxnTagEntity>)
+    @Query("SELECT txnId FROM TxnTagEntity WHERE tagId IN (:tagIds)") fun txnsTagged(tagIds: List<Long>): Flow<List<Long>>
+
+    @Query("SELECT * FROM AttachmentEntity WHERE txnId = :txnId ORDER BY id") suspend fun attachments(txnId: Long): List<AttachmentEntity>
+    @Query("SELECT * FROM AttachmentEntity WHERE txnId = :txnId ORDER BY id") fun attachmentsFlow(txnId: Long): Flow<List<AttachmentEntity>>
+    @Insert suspend fun attach(a: AttachmentEntity): Long
+    @Delete suspend fun detach(a: AttachmentEntity)
+    @Query("DELETE FROM AttachmentEntity WHERE txnId = :txnId") suspend fun detachAll(txnId: Long)
+
+    @Query("SELECT * FROM RateEntity ORDER BY currency") fun rates(): Flow<List<RateEntity>>
+    @Query("SELECT * FROM RateEntity WHERE currency = :currency") suspend fun rate(currency: String): RateEntity?
+    @Upsert suspend fun setRate(r: RateEntity)
+    @Query("DELETE FROM RateEntity WHERE currency = :currency") suspend fun removeRate(currency: String)
+}
+
+data class LendSum(val personId: Long, val lend: String?, val type: String, val total: Long)
+data class PersonSince(val personId: Long, val since: Long)
+
+@Dao
+interface BackupDao {
+    @Query("SELECT * FROM AccountEntity") suspend fun accounts(): List<AccountEntity>
+    @Query("SELECT * FROM CategoryEntity") suspend fun categories(): List<CategoryEntity>
+    @Query("SELECT * FROM TxnEntity") suspend fun txns(): List<TxnEntity>
+    @Query("SELECT * FROM BillEntity") suspend fun bills(): List<BillEntity>
+    @Query("SELECT * FROM BillOccurrenceEntity") suspend fun occurrences(): List<BillOccurrenceEntity>
+    @Query("SELECT * FROM BudgetEntity") suspend fun budgets(): List<BudgetEntity>
+    @Query("SELECT * FROM GoalEntity") suspend fun goals(): List<GoalEntity>
+    @Query("SELECT * FROM CaptureRuleEntity") suspend fun rules(): List<CaptureRuleEntity>
+    @Query("SELECT COUNT(*) FROM TxnEntity WHERE isSample = 0") suspend fun realTxnCount(): Int
+    @Query("SELECT * FROM PersonEntity") suspend fun people(): List<PersonEntity>
+    @Query("SELECT * FROM TagEntity") suspend fun tags(): List<TagEntity>
+    @Query("SELECT * FROM TxnTagEntity") suspend fun txnTags(): List<TxnTagEntity>
+    @Query("SELECT * FROM AttachmentEntity") suspend fun attachments(): List<AttachmentEntity>
+    @Query("SELECT * FROM RateEntity") suspend fun rates(): List<RateEntity>
+    @Insert suspend fun putPeople(l: List<PersonEntity>)
+    @Insert suspend fun putTags(l: List<TagEntity>)
+    @Insert suspend fun putTxnTags(l: List<TxnTagEntity>)
+    @Insert suspend fun putAttachments(l: List<AttachmentEntity>)
+    @Insert suspend fun putRates(l: List<RateEntity>)
+    @Query("DELETE FROM PersonEntity") suspend fun clearPeople()
+    @Query("DELETE FROM TagEntity") suspend fun clearTags()
+    @Query("DELETE FROM TxnTagEntity") suspend fun clearTxnTags()
+    @Query("DELETE FROM AttachmentEntity") suspend fun clearAttachments()
+    @Query("DELETE FROM RateEntity") suspend fun clearRates()
+
+    @Insert suspend fun putAccounts(l: List<AccountEntity>)
+    @Insert suspend fun putCategories(l: List<CategoryEntity>)
+    @Insert suspend fun putTxns(l: List<TxnEntity>)
+    @Insert suspend fun putBills(l: List<BillEntity>)
+    @Insert suspend fun putOccurrences(l: List<BillOccurrenceEntity>)
+    @Insert suspend fun putBudgets(l: List<BudgetEntity>)
+    @Insert suspend fun putGoals(l: List<GoalEntity>)
+    @Insert suspend fun putRules(l: List<CaptureRuleEntity>)
+
+    @Query("DELETE FROM AccountEntity") suspend fun clearAccounts()
+    @Query("DELETE FROM CategoryEntity") suspend fun clearCategories()
+    @Query("DELETE FROM TxnEntity") suspend fun clearTxns()
+    @Query("DELETE FROM BillEntity") suspend fun clearBills()
+    @Query("DELETE FROM BillOccurrenceEntity") suspend fun clearOccurrences()
+    @Query("DELETE FROM BudgetEntity") suspend fun clearBudgets()
+    @Query("DELETE FROM GoalEntity") suspend fun clearGoals()
+    @Query("DELETE FROM CaptureRuleEntity") suspend fun clearRules()
+    @Query("DELETE FROM CaptureEntity") suspend fun clearCaptures()
 }

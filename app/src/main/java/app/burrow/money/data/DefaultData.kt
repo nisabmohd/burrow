@@ -212,6 +212,7 @@ class SampleData(
                 val base = AccountEntity(
                     name = a.name, type = a.type, currency = currency, openingBalance = signedMoney(a.balance) - net[i],
                     colorHue = a.hue, icon = a.icon, sortOrder = i, isSample = true, createdAt = now, number = a.number,
+                    includeInNetWorth = defaultInNetWorth(a.type),
                 )
                 when (a.key) {
                     "icici" -> base.copy(creditLimit = money(1_50_000), statementDay = 5, dueDay = 28)

@@ -15,6 +15,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
+import app.burrow.money.ui.components.SwipeAction
+import app.burrow.money.ui.components.SwipeRow
 import app.burrow.money.ui.LocalMoney
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,13 +52,20 @@ import java.time.LocalDate
  * Filters and the 14-day chart come on Day 16.
  */
 @Composable
-fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit) {
+fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onEdit: (Long) -> Unit = {}, onDuplicate: (Long) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
     val query by vm.searchText.collectAsStateWithLifecycle()
     val money = LocalMoney.current
     val dates = rememberDateText()
     val today = remember { LocalDate.now() }
+    val prefs = app.burrow.money.ui.LocalListPrefs.current
+    val snackbar = app.burrow.money.ui.components.LocalSnackbar.current
+    val editLabel = stringResource(R.string.edit)
+    val duplicateLabel = stringResource(R.string.duplicate)
+    val deleteLabel = stringResource(R.string.delete)
+    val deletedLabel = stringResource(R.string.txn_deleted)
+    var confirmDelete by rememberSaveable { mutableStateOf<Long?>(null) }
     TabScreen(
         title = stringResource(R.string.tab_activity),
         actions = {
@@ -114,11 +123,18 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
                             )
                         }
                         itemsIndexed(g.txns, key = { _, t -> t.txn.id }, contentType = { _, _ -> "txn" }) { i, t ->
-                            TxnRow(
-                                t, i, g.txns.size, dates, today,
-                                onClick = { onOpen(t.txn.id) },
-                                modifier = Modifier.animateItem().padding(top = if (i > 0) Space.row else 0.dp),
-                            )
+                            // Customise › Transactions › Swipe: right edits or duplicates, left deletes.
+                            val right = when (prefs.swipeRight) {
+                                app.burrow.money.data.SwipeRight.EDIT -> SwipeAction(painterResource(R.drawable.ic_edit_regular), editLabel, true) { onEdit(t.txn.id) }
+                                app.burrow.money.data.SwipeRight.DUPLICATE -> SwipeAction(painterResource(R.drawable.ic_content_copy_regular), duplicateLabel, true) { onDuplicate(t.txn.id) }
+                                else -> null
+                            }
+                            val left = if (prefs.swipeLeft == app.burrow.money.data.SwipeLeft.DELETE) SwipeAction(painterResource(R.drawable.ic_delete_regular), deleteLabel, false) {
+                                if (prefs.confirmDelete) confirmDelete = t.txn.id else vm.delete(t.txn.id) { undo -> snackbar.show(deletedLabel, undo) }
+                            } else null
+                            SwipeRow(right, left, app.burrow.money.ui.theme.Shapes.grouped(i, g.txns.size), Modifier.animateItem().padding(top = if (i > 0) Space.row else 0.dp)) {
+                                TxnRow(t, i, g.txns.size, dates, today, onClick = { onOpen(t.txn.id) })
+                            }
                         }
                     }
                 }
@@ -126,6 +142,17 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
         }
     }
 
+    confirmDelete?.let { id ->
+        app.burrow.money.ui.components.ConfirmDialog(
+            icon = painterResource(R.drawable.ic_delete_regular),
+            title = stringResource(R.string.delete_txn_title),
+            text = stringResource(R.string.delete_txn_text),
+            confirm = deleteLabel,
+            dismiss = stringResource(R.string.cancel),
+            onConfirm = { confirmDelete = null; vm.delete(id) { undo -> snackbar.show(deletedLabel, undo) } },
+            onDismiss = { confirmDelete = null },
+        )
+    }
     val sheetState = state ?: return
     when (sheet) {
         "filter" -> FilterSheet(sheetState.filters, sheetState.accounts, sheetState.categories, showType = true, count = vm::count, onApply = { vm.setFilters(it); sheet = null }, onDismiss = { sheet = null })

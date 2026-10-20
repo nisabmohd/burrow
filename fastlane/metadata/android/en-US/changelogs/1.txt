@@ -1,0 +1,7 @@
+First beta.
+- Payments record themselves from bank SMS and payment apps; one tap saves them.
+- Bills and EMIs with reminders, budgets with alerts, goals, accounts and insights.
+- Customise Today, the expense form, region and currency.
+- Notes, tags, repeats, receipts, lend or borrow, upcoming payments.
+- Encrypted backups, CSV, app lock. English and Hindi.
+- No internet permission: nothing leaves your phone.

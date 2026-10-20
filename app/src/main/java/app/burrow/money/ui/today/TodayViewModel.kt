@@ -66,6 +66,13 @@ data class TodayUiState(
     val appCapture: Boolean,
     val shown: Set<String>,
     val widgets: Widgets,
+    // Customise › Today (80)
+    val topCard: String,
+    val order: List<String>,
+    val showReview: Boolean,
+    /** For the Balance top card: net worth now. */
+    val balance: Long,
+    val showTime: Boolean,
 )
 
 /** Today (04–10): the budget hero, notes, widgets, Recent. */
@@ -84,10 +91,13 @@ class TodayViewModel(
 
     private val widgets = combine(
         repo.latest(),
-        combine(repo.accounts, repo.goalsSaved) { a, g -> a.sumOf { it.balance } + g },
+        repo.netWorth,
         plan.occurrences(today.minusDays(62), today.plusDays(62)),
         plan.goals,
-    ) { all, netWorth, occ, goals ->
+    ) { everything, nw, occ, goals ->
+        // Upcoming transactions haven't happened yet: they stay out of every figure.
+        val all = everything.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }
+        val netWorth = nw.total
         val spend = all.filter { it.txn.type == TxnType.EXPENSE && !it.txn.excludeFromStats }
         val week = DayRange.lastDays(7, today)
         val weekTotals = week.dates().map { d -> d to spend.filter { it.txn.at.day() == d }.sumOf { it.txn.amount } }
@@ -126,7 +136,7 @@ class TodayViewModel(
     private val money = combine(
         repo.spent(period),
         plan.budgets(period),
-        repo.latest(RECENT),
+        repo.latest(RECENT_MAX),
         repo.hasSamples,
         repo.txnCount,
     ) { spent, (overall, _), recent, samples, count ->
@@ -134,7 +144,11 @@ class TodayViewModel(
     }
 
     val state: StateFlow<TodayUiState?> = combine(money, capture.reviewCount, settings.settings, widgets) { (hero, recent, flags), review, s, w ->
-        TodayUiState(hero, recent, flags.first, flags.second, review, s.smsCapture, s.notificationCapture, s.homeWidgets, w)
+        TodayUiState(
+            hero, recent.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }.take(s.homeRecentCount), flags.first, flags.second,
+            review, s.smsCapture, s.notificationCapture, s.homeWidgets, w,
+            s.homeTopCard, s.homeWidgetOrder, s.homeShowReview, w.netWorth, s.showTime,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun removeSamples() {
@@ -145,11 +159,10 @@ class TodayViewModel(
         viewModelScope.launch { plan.markPaid(occurrenceId)?.let(onDone) }
     }
 
-    fun setWidget(key: String, on: Boolean) {
-        viewModelScope.launch { settings.setHomeWidget(key, on) }
-    }
+
 
     private companion object {
-        const val RECENT = 4
+        /** Enough rows to fill the largest Recent choice (10) after upcoming ones are left out. */
+        const val RECENT_MAX = 20
     }
 }

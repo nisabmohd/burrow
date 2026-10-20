@@ -113,7 +113,14 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
             }
             ListGroup { rows.forEachIndexed { i, r -> r(i, rows.size) } }
             Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
-                BurrowButton(stringResource(R.string.delete), { sheet = TxnSheet.DELETE }, Modifier.weight(1f), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
+                val askFirst = app.burrow.money.ui.LocalListPrefs.current.confirmDelete
+                BurrowButton(stringResource(R.string.delete), {
+                    // Customise › Transactions › Ask before delete; otherwise Undo is the safety net.
+                    if (askFirst) sheet = TxnSheet.DELETE else {
+                        // Leave only once the row is gone, so the screen's scope isn't cancelled before Undo shows.
+                        vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo); onBack() }
+                    }
+                }, Modifier.weight(1f), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
                 BurrowButton(stringResource(R.string.edit), { onEdit(t.txn.id) }, Modifier.weight(1f), ButtonKind.FILLED, painterResource(R.drawable.ic_edit_regular))
             }
         }
@@ -135,8 +142,7 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
                 dismiss = stringResource(R.string.cancel),
                 onConfirm = {
                     sheet = null
-                    vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo) }
-                    onBack()
+                    vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo); onBack() }
                 },
                 onDismiss = { sheet = null },
             )

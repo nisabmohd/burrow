@@ -10,8 +10,11 @@ import kotlinx.serialization.Serializable
 @Serializable data object InsightsRoute
 @Serializable data object MoreRoute
 
-/** New transaction of [type]; or edit [editId]; or a copy of [duplicateId] dated now. */
-@Serializable data class AddRoute(val type: String = "EXPENSE", val editId: Long = 0L, val duplicateId: Long = 0L, val accountId: Long = 0L)
+/**
+ * New transaction of [type] (blank = Customise › Expense › Opens as); or edit [editId]; or a copy of
+ * [duplicateId] dated now; or a found payment ([captureId], "Open it to edit first").
+ */
+@Serializable data class AddRoute(val type: String = "", val editId: Long = 0L, val duplicateId: Long = 0L, val accountId: Long = 0L, val captureId: Long = 0L)
 
 @Serializable data class TxnRoute(val id: Long)
 
@@ -47,14 +50,39 @@ import kotlinx.serialization.Serializable
 // Accounts (week 4)
 @Serializable data object AccountsRoute
 @Serializable data class AccountRoute(val id: Long)
-@Serializable data class NewAccountRoute(val editId: Long = 0L)
+@Serializable data class NewAccountRoute(val editId: Long = 0L, val type: String = "")
 
 /** Where a notification asks the app to go. */
 sealed interface OpenFromNotification {
     data object Review : OpenFromNotification
     data class Bill(val id: Long) : OpenFromNotification
     data object Budgets : OpenFromNotification
+    data object Insights : OpenFromNotification
+    data class EditCapture(val captureId: Long) : OpenFromNotification
+    data class Txn(val id: Long) : OpenFromNotification
+    data object Accounts : OpenFromNotification
 }
 
 // Insights (week 4)
 @Serializable data class CategoryInsightsRoute(val categoryId: Long)
+
+// Welcome and More (week 5)
+@Serializable data object WelcomeRoute
+@Serializable data object CategoriesRoute
+/** Edit a category; 0 = a new spending one. */
+@Serializable data class EditCategoryRoute(val id: Long = 0L)
+@Serializable data object CurrencyRoute
+@Serializable data object AppearanceRoute
+@Serializable data object FontRoute
+@Serializable data object LanguageRoute
+@Serializable data object NotificationsRoute
+@Serializable data object BackupRoute
+@Serializable data object AppLockRoute
+/** Choose a new PIN (twice). */
+@Serializable data object SetPinRoute
+@Serializable data object AboutRoute
+@Serializable data object LicencesRoute
+
+// Customise (design update 2026-10-20)
+/** Customise (80–85), opened on [tab] (a CustomiseTab name). */
+@Serializable data class CustomiseRoute(val tab: String = "TODAY")

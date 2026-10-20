@@ -113,6 +113,29 @@ class PlanRepository(
     suspend fun deleteBill(id: Long) = db.bills().archive(id)
 
     /**
+     * New expense › Repeat (75): a bill from a saved transaction. Its first due date is the
+     * transaction's day, already paid by it; the next ones follow [every] (WEEK, MONTH, YEAR).
+     */
+    suspend fun repeatFrom(txn: TxnEntity, every: String, subscription: Boolean, remind: Boolean, name: String): Long = db.withTransaction {
+        val day = txn.at.date()
+        val repeat = when (every) {
+            "WEEK" -> Repeat.Weekly(day.dayOfWeek)
+            "YEAR" -> Repeat.Yearly(day.monthValue, day.dayOfMonth)
+            else -> Repeat.Monthly(day.dayOfMonth)
+        }
+        val billId = db.bills().upsert(
+            BillEntity(
+                kind = if (subscription) BillKind.SUBSCRIPTION else BillKind.BILL, name = name, amount = txn.amount,
+                accountId = txn.accountId, categoryId = txn.categoryId, repeatRule = repeat.encode(), startDate = day.millis(),
+                remindersOn = remind, remindDaysBefore = 1,
+            ),
+        )
+        db.bills().insertOccurrences(listOf(BillOccurrenceEntity(billId = billId, dueDate = day.millis(), status = OccurrenceStatus.PAID, txnId = txn.id, amount = txn.amount)))
+        ensureOccurrences()
+        billId
+    }
+
+    /**
      * Marks a due date paid and records the money: an expense for a bill or subscription; for an EMI
      * the principal is a transfer into the loan and the interest an expense in Fees & interest; a
      * card bill is a transfer into the card. Returns how to undo it.

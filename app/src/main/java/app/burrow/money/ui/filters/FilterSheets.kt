@@ -180,7 +180,7 @@ fun DatesSheet(start: DayRange?, onApply: (DayRange?) -> Unit, onDismiss: () -> 
 @Composable
 fun MonthCalendar(month: YearMonth, today: LocalDate, picked: DayRange?, onPick: (LocalDate) -> Unit) {
     val c = MaterialTheme.colorScheme
-    val first = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+    val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
     val days = (0 until 7).map { first.plus(it.toLong()) }
     val lead = (month.atDay(1).dayOfWeek.value - first.value + 7) % 7
     val cells = List(lead) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }

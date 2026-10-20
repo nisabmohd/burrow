@@ -50,17 +50,39 @@ enum class AccountGroup(val types: Set<String>, val label: Int) {
 }
 
 @Immutable
-data class AccountsState(val groups: List<Pair<AccountGroup, List<AccountWithBalance>>>, val netWorth: Long, val count: Int)
+data class AccountsState(
+    val groups: List<Pair<AccountGroup, List<AccountWithBalance>>>,
+    val netWorth: Long,
+    val count: Int,
+    /** Accounts with "Count in net worth" off (55: "excludes ICICI, Home"). */
+    val excluded: List<AccountEntity>,
+    val people: List<app.burrow.money.data.PersonBalance>,
+    val payAccounts: List<AccountWithBalance>,
+)
 
-/** Accounts (55): grouped, with net worth (accounts plus money set aside in goals). */
-class AccountsViewModel(money: MoneyRepository) : ViewModel() {
-    val state: StateFlow<AccountsState?> = combine(money.accounts, money.goalsSaved) { accs, goals ->
+/** Accounts (55): grouped, net worth (the accounts it counts plus goals), lent and borrowed. */
+class AccountsViewModel(private val money: MoneyRepository) : ViewModel() {
+    val state: StateFlow<AccountsState?> = combine(money.accounts, money.netWorth, money.people) { accs, nw, people ->
         AccountsState(
             AccountGroup.entries.map { g -> g to accs.filter { it.account.type in g.types } }.filter { it.second.isNotEmpty() },
-            accs.sumOf { it.balance } + goals,
-            accs.size,
+            nw.total, accs.size, nw.excluded, people,
+            accs.filter { it.account.type == AccountType.BANK || it.account.type == AccountType.CASH || it.account.type == AccountType.WALLET },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Settle up: money from them (they owed you) or to them, neither spending nor income. */
+    fun settle(person: app.burrow.money.data.PersonEntity, accountId: Long, amount: Long, owesYou: Boolean, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        val now = System.currentTimeMillis()
+        val account = money.accounts.first().firstOrNull { it.account.id == accountId }?.account ?: return@launch
+        val id = money.save(
+            TxnEntity(
+                type = if (owesYou) TxnType.INCOME else TxnType.EXPENSE, amount = amount, currency = account.currency, baseAmount = amount,
+                accountId = accountId, payee = person.name, at = now, createdAt = now, updatedAt = now,
+                excludeFromStats = true, personId = person.id, lend = app.burrow.money.data.Lend.SETTLE,
+            ),
+        )
+        onDone { money.delete(id) }
+    }
 }
 
 /** A card's numbers (57). */
@@ -115,15 +137,7 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
         return CardInfo((-balance).coerceAtLeast(0), due, since, statement, a.creditLimit)
     }
 
-    private fun loan(a: AccountEntity, balance: Long): LoanInfo? {
-        val emi = a.emi ?: return null
-        val rate = a.interestRate?.toBigDecimalOrNull() ?: return null
-        val start = a.startDate?.day()
-        val paid = start?.let { (ChronoUnit.MONTHS.between(YearMonth.from(it), YearMonth.from(today)).toInt() + if (today.dayOfMonth >= it.dayOfMonth) 1 else 0).coerceAtLeast(0) } ?: 0
-        val nextDate = start?.let { app.burrow.money.domain.Repeat.Monthly(it.dayOfMonth).nextOnOrAfter(today) } ?: today
-        val schedule = loanSchedule(-balance, rate, emi, nextDate, paid + 1, unit = unit(a.currency))
-        return LoanInfo((-balance).coerceAtLeast(0), emi, paid, paid + schedule.size, schedule.lastOrNull()?.date, schedule.sumOf { it.interest }, schedule.take(3))
-    }
+    private fun loan(a: AccountEntity, balance: Long): LoanInfo? = loanInfo(a, balance, today)
 
     private fun deposit(a: AccountEntity, accs: List<AccountWithBalance>): DepositInfo {
         val putIn = a.principal ?: 0
@@ -164,6 +178,9 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
     }
 
     fun setRemind(on: Boolean) = viewModelScope.launch { state.value?.account?.let { money.updateAccount(it.copy(remind = on)) } }
+
+    /** Count in net worth (86). */
+    fun setInNetWorth(on: Boolean) = viewModelScope.launch { state.value?.account?.let { money.updateAccount(it.copy(includeInNetWorth = on)) } }
 }
 
 @Immutable
@@ -182,7 +199,14 @@ data class AccountForm(
 )
 
 /** New account / edit account: the fields that apply to its type. */
-class NewAccountViewModel(private val money: MoneyRepository, private val editId: Long, private val digits: Int, private val currency: String) : ViewModel() {
+class NewAccountViewModel(
+    private val money: MoneyRepository,
+    private val editId: Long,
+    private val digits: Int,
+    private val currency: String,
+    /** Welcome step 2's "+ Card" etc.: the type to start with. */
+    private val startType: String? = null,
+) : ViewModel() {
     val form = MutableStateFlow<AccountForm?>(null)
     private var original: AccountEntity? = null
     val isEdit get() = editId != 0L
@@ -197,7 +221,7 @@ class NewAccountViewModel(private val money: MoneyRepository, private val editId
                     it.type, it.name, "", it.number.orEmpty(), txt(it.creditLimit), it.statementDay ?: 5, it.dueDay ?: 25,
                     txt(it.emi), it.interestRate.orEmpty(), it.maturityDate?.day(),
                 )
-            } ?: AccountForm()
+            } ?: AccountForm(type = startType ?: AccountType.BANK)
         }
     }
 
@@ -227,6 +251,7 @@ class NewAccountViewModel(private val money: MoneyRepository, private val editId
             val base = original ?: AccountEntity(
                 name = "", type = f.type, currency = currency, openingBalance = opening, colorHue = app.burrow.money.ui.theme.CategoryHues.all.random(),
                 icon = icon, createdAt = System.currentTimeMillis(), sortOrder = 50,
+                includeInNetWorth = app.burrow.money.data.defaultInNetWorth(f.type),
             )
             val a = base.copy(
                 name = f.name.trim(), type = f.type, icon = if (original == null) icon else base.icon,
@@ -245,4 +270,18 @@ class NewAccountViewModel(private val money: MoneyRepository, private val editId
             onSaved()
         }
     }
+}
+
+/** A loan's EMIs paid, left, interest left and the next three (58; Plan › EMIs widget, 22). */
+fun loanInfo(a: AccountEntity, balance: Long, today: LocalDate = LocalDate.now()): LoanInfo? {
+    val emi = a.emi ?: return null
+    val rate = a.interestRate?.toBigDecimalOrNull() ?: return null
+    val zone = java.time.ZoneId.systemDefault()
+    val start = a.startDate?.let { java.time.Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+    val paid = start?.let { (ChronoUnit.MONTHS.between(YearMonth.from(it), YearMonth.from(today)).toInt() + if (today.dayOfMonth >= it.dayOfMonth) 1 else 0).coerceAtLeast(0) } ?: 0
+    val nextDate = start?.let { app.burrow.money.domain.Repeat.Monthly(it.dayOfMonth).nextOnOrAfter(today) } ?: today
+    var unit = 1L
+    repeat(app.burrow.money.data.minorDigits(a.currency)) { unit *= 10 }
+    val schedule = loanSchedule(-balance, rate, emi, nextDate, paid + 1, unit = unit)
+    return LoanInfo((-balance).coerceAtLeast(0), emi, paid, paid + schedule.size, schedule.lastOrNull()?.date, schedule.sumOf { it.interest }, schedule.take(3))
 }

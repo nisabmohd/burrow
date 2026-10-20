@@ -41,9 +41,72 @@ data class Settings(
     val enabledPacks: Set<String> = setOf("in"),
     /** Widgets Today shows (Edit home, 10), by key: week, bill, networth, topcat, goal, inout. */
     val homeWidgets: Set<String> = ALL_HOME_WIDGETS,
+    /** False until Welcome → currency → accounts is done (01–03). */
+    val onboarded: Boolean = false,
+    /** More › Hide amounts: "₹ ••••" until tapped. */
+    val hideAmounts: Boolean = false,
+    /** App lock (70): on when a PIN is set and the switch is on. */
+    val appLock: Boolean = false,
+    val hasPin: Boolean = false,
+    /** Seconds in the background before the app locks again (0 = at once). */
+    val lockAfterSeconds: Int = 60,
+    /** App lock › Hide amounts in notifications. */
+    val hideInNotifications: Boolean = false,
+    // Notifications (66)
+    val notifyCapture: Boolean = true,
+    val notifyBills: Boolean = true,
+    val notifyBudgets: Boolean = true,
+    val notifySummary: Boolean = false,
+    // Backup (69)
+    val backupFolder: String? = null,
+    val backupSchedule: String = "OFF", // OFF, DAILY, WEEKLY
+    val lastBackupAt: Long? = null,
+    val hasBackupPassword: Boolean = false,
+    // Customise › Today (80)
+    val homeTopCard: String = TopCard.BUDGET,
+    /** Widget keys in the order Today shows them (hidden ones too; [homeWidgets] says which are on). */
+    val homeWidgetOrder: List<String> = HOME_WIDGET_ORDER,
+    val homeRecentCount: Int = 5,
+    val homeShowReview: Boolean = true,
+    // Customise › Expense (81)
+    val formExtras: Set<String> = ALL_FORM_EXTRAS,
+    val formDefaultType: String = TxnType.EXPENSE,
+    val formDefaultAccount: Long? = null,
+    // Customise › Transactions (82)
+    val onPaymentFound: String = PaymentFound.ASK,
+    val showTime: Boolean = true,
+    val countUpcoming: Boolean = false,
+    val confirmDelete: Boolean = false,
+    val swipeRight: String = SwipeRight.PAID,
+    val swipeLeft: String = SwipeLeft.SKIP,
+    // Customise › Region (85) and Currency (83)
+    /** Null = from the language (Indian grouping for India, Western otherwise). */
+    val numberFormat: String? = null,
+    val dateFormat: String = DateStyle.WRITTEN,
+    val weekStart: String = "MONDAY",
+    val currencyDisplay: String = "SYMBOL", // SYMBOL, CODE
+    val decimals: String = "AUTO", // AUTO, NONE, ALWAYS
 )
 
 val ALL_HOME_WIDGETS = setOf("week", "bill", "networth", "topcat", "goal", "inout")
+val HOME_WIDGET_ORDER = listOf("week", "bill", "networth", "topcat", "inout", "goal")
+
+/** Today's top card (Customise › Today). */
+object TopCard { const val BUDGET = "BUDGET"; const val SPENT = "SPENT"; const val BALANCE = "BALANCE" }
+
+/** New expense extras (Customise › Expense): chips under the rows, plus the time and last-category options. */
+object FormExtra {
+    const val NOTE = "note"; const val REPEAT = "repeat"; const val ATTACH = "attach"; const val LEND = "lend"
+    const val TIME = "time"; const val LAST_CATEGORY = "lastcat"
+}
+val ALL_FORM_EXTRAS = setOf(FormExtra.NOTE, FormExtra.REPEAT, FormExtra.ATTACH, FormExtra.LEND, FormExtra.TIME, FormExtra.LAST_CATEGORY)
+
+/** What a captured payment does (Customise › Transactions). */
+object PaymentFound { const val ASK = "ASK"; const val EDIT_FIRST = "EDIT_FIRST"; const val SAVE = "SAVE" }
+object SwipeRight { const val PAID = "PAID"; const val EDIT = "EDIT"; const val DUPLICATE = "DUPLICATE" }
+object SwipeLeft { const val SKIP = "SKIP"; const val DELETE = "DELETE" }
+object NumberStyle { const val INDIAN = "INDIAN"; const val WESTERN = "WESTERN"; const val DOT = "DOT"; const val SPACE = "SPACE" }
+object DateStyle { const val WRITTEN = "WRITTEN"; const val DMY = "DMY"; const val MDY = "MDY"; const val YMD = "YMD" }
 
 /** The phone region's currency, or INR when the region has none. */
 fun defaultCurrency(locale: Locale = Locale.getDefault()): String =
@@ -67,6 +130,65 @@ class SettingsRepository(context: Context) {
         val now = it[HOME_WIDGETS] ?: ALL_HOME_WIDGETS
         it[HOME_WIDGETS] = if (on) now + key else now - key
     }
+    suspend fun setTopCard(v: String) = store.edit { it[TOP_CARD] = v }
+    suspend fun setWidgetOrder(order: List<String>) = store.edit { it[WIDGET_ORDER] = order.joinToString(",") }
+    suspend fun setRecentCount(n: Int) = store.edit { it[RECENT_COUNT] = n }
+    suspend fun setShowReview(on: Boolean) = store.edit { it[SHOW_REVIEW] = on }
+    suspend fun setFormExtra(key: String, on: Boolean) = store.edit {
+        val now = it[FORM_EXTRAS] ?: ALL_FORM_EXTRAS
+        it[FORM_EXTRAS] = if (on) now + key else now - key
+    }
+    suspend fun setFormDefaultType(t: String) = store.edit { it[FORM_TYPE] = t }
+    suspend fun setFormDefaultAccount(id: Long?) = store.edit { if (id == null) it.remove(FORM_ACCOUNT) else it[FORM_ACCOUNT] = id }
+    suspend fun setPaymentFound(v: String) = store.edit { it[PAYMENT_FOUND] = v }
+    suspend fun setShowTime(on: Boolean) = store.edit { it[SHOW_TIME] = on }
+    suspend fun setCountUpcoming(on: Boolean) = store.edit { it[COUNT_UPCOMING] = on }
+    suspend fun setConfirmDelete(on: Boolean) = store.edit { it[CONFIRM_DELETE] = on }
+    suspend fun setSwipeRight(v: String) = store.edit { it[SWIPE_RIGHT] = v }
+    suspend fun setSwipeLeft(v: String) = store.edit { it[SWIPE_LEFT] = v }
+    suspend fun setNumberFormat(v: String) = store.edit { it[NUMBER_FORMAT] = v }
+    suspend fun setDateFormat(v: String) = store.edit { it[DATE_FORMAT] = v }
+    suspend fun setWeekStart(v: String) = store.edit { it[WEEK_START] = v }
+    suspend fun setCurrencyDisplay(v: String) = store.edit { it[CURRENCY_DISPLAY] = v }
+    suspend fun setDecimals(v: String) = store.edit { it[DECIMALS] = v }
+    suspend fun setOnboarded() = store.edit { it[ONBOARDED] = true }
+    suspend fun setHideAmounts(on: Boolean) = store.edit { it[HIDE_AMOUNTS] = on }
+    suspend fun setAppLock(on: Boolean) = store.edit { it[APP_LOCK] = on }
+    suspend fun setLockAfter(seconds: Int) = store.edit { it[LOCK_AFTER] = seconds }
+    suspend fun setHideInNotifications(on: Boolean) = store.edit { it[HIDE_IN_NOTIFICATIONS] = on }
+    suspend fun setNotify(key: String, on: Boolean) = store.edit {
+        when (key) {
+            "capture" -> it[NOTIFY_CAPTURE] = on
+            "bills" -> it[NOTIFY_BILLS] = on
+            "budgets" -> it[NOTIFY_BUDGETS] = on
+            "summary" -> it[NOTIFY_SUMMARY] = on
+        }
+    }
+
+    /** The PIN as a salted PBKDF2 hash ("salt:hash", hex); never the PIN itself. */
+    suspend fun pinHash(): String? = store.data.first()[PIN_HASH]
+    suspend fun setPinHash(hash: String?) = store.edit { if (hash == null) it.remove(PIN_HASH) else it[PIN_HASH] = hash }
+
+    suspend fun setBackupFolder(uri: String?) = store.edit { if (uri == null) it.remove(BACKUP_FOLDER) else it[BACKUP_FOLDER] = uri }
+    suspend fun setBackupSchedule(s: String) = store.edit { it[BACKUP_SCHEDULE] = s }
+    suspend fun setLastBackupAt(at: Long) = store.edit { it[LAST_BACKUP_AT] = at }
+
+    /** The backup password, sealed with a key from the Android Keystore (so scheduled backups can run). */
+    suspend fun sealedBackupPassword(): String? = store.data.first()[BACKUP_PASSWORD]
+    suspend fun setSealedBackupPassword(sealed: String?) = store.edit { if (sealed == null) it.remove(BACKUP_PASSWORD) else it[BACKUP_PASSWORD] = sealed }
+
+    /** Delete all data: every setting goes, except that the welcome isn't shown again. */
+    suspend fun clearAllButOnboarding() = store.edit { prefs ->
+        val keep = prefs[ONBOARDED]
+        prefs.clear()
+        if (keep != null) prefs[ONBOARDED] = keep
+        prefs[SAMPLES_DONE] = true
+    }
+
+    /** True once the sample month was seeded or declined: it never comes back after Delete all data. */
+    suspend fun samplesDone(): Boolean = store.data.first()[SAMPLES_DONE] == true
+    suspend fun setSamplesDone() = store.edit { it[SAMPLES_DONE] = true }
+
     suspend fun setSmsCapture(on: Boolean) = store.edit { it[SMS_CAPTURE] = on }
     suspend fun setNotificationCapture(on: Boolean) = store.edit { it[NOTIFICATION_CAPTURE] = on }
     suspend fun setPackEnabled(id: String, on: Boolean) = store.edit {
@@ -98,6 +220,39 @@ class SettingsRepository(context: Context) {
             notificationCapture = this[NOTIFICATION_CAPTURE] ?: false,
             enabledPacks = this[ENABLED_PACKS] ?: setOf("in"),
             homeWidgets = this[HOME_WIDGETS] ?: ALL_HOME_WIDGETS,
+            onboarded = this[ONBOARDED] ?: false,
+            hideAmounts = this[HIDE_AMOUNTS] ?: false,
+            appLock = (this[APP_LOCK] ?: false) && this[PIN_HASH] != null,
+            hasPin = this[PIN_HASH] != null,
+            lockAfterSeconds = this[LOCK_AFTER] ?: 60,
+            hideInNotifications = this[HIDE_IN_NOTIFICATIONS] ?: false,
+            notifyCapture = this[NOTIFY_CAPTURE] ?: true,
+            notifyBills = this[NOTIFY_BILLS] ?: true,
+            notifyBudgets = this[NOTIFY_BUDGETS] ?: true,
+            notifySummary = this[NOTIFY_SUMMARY] ?: false,
+            backupFolder = this[BACKUP_FOLDER],
+            backupSchedule = this[BACKUP_SCHEDULE] ?: "OFF",
+            lastBackupAt = this[LAST_BACKUP_AT],
+            hasBackupPassword = this[BACKUP_PASSWORD] != null,
+            homeTopCard = this[TOP_CARD] ?: TopCard.BUDGET,
+            homeWidgetOrder = this[WIDGET_ORDER]?.split(",")?.filter { it in ALL_HOME_WIDGETS }
+                ?.let { saved -> saved + HOME_WIDGET_ORDER.filter { it !in saved } } ?: HOME_WIDGET_ORDER,
+            homeRecentCount = this[RECENT_COUNT] ?: 5,
+            homeShowReview = this[SHOW_REVIEW] ?: true,
+            formExtras = this[FORM_EXTRAS] ?: ALL_FORM_EXTRAS,
+            formDefaultType = this[FORM_TYPE] ?: TxnType.EXPENSE,
+            formDefaultAccount = this[FORM_ACCOUNT],
+            onPaymentFound = this[PAYMENT_FOUND] ?: PaymentFound.ASK,
+            showTime = this[SHOW_TIME] ?: true,
+            countUpcoming = this[COUNT_UPCOMING] ?: false,
+            confirmDelete = this[CONFIRM_DELETE] ?: false,
+            swipeRight = this[SWIPE_RIGHT] ?: SwipeRight.PAID,
+            swipeLeft = this[SWIPE_LEFT] ?: SwipeLeft.SKIP,
+            numberFormat = this[NUMBER_FORMAT],
+            dateFormat = this[DATE_FORMAT] ?: DateStyle.WRITTEN,
+            weekStart = this[WEEK_START] ?: "MONDAY",
+            currencyDisplay = this[CURRENCY_DISPLAY] ?: "SYMBOL",
+            decimals = this[DECIMALS] ?: "AUTO",
         )
     }
 
@@ -115,6 +270,39 @@ class SettingsRepository(context: Context) {
         val BILLS_CHECKED_AT = longPreferencesKey("billsCheckedAt")
         val BUDGET_ALERTS = stringSetPreferencesKey("budgetAlerts")
         val HOME_WIDGETS = stringSetPreferencesKey("homeWidgets")
+        val ONBOARDED = booleanPreferencesKey("onboarded")
+        val SAMPLES_DONE = booleanPreferencesKey("samplesDone")
+        val HIDE_AMOUNTS = booleanPreferencesKey("hideAmounts")
+        val APP_LOCK = booleanPreferencesKey("appLock")
+        val PIN_HASH = stringPreferencesKey("pinHash")
+        val LOCK_AFTER = intPreferencesKey("lockAfter")
+        val HIDE_IN_NOTIFICATIONS = booleanPreferencesKey("hideInNotifications")
+        val NOTIFY_CAPTURE = booleanPreferencesKey("notifyCapture")
+        val NOTIFY_BILLS = booleanPreferencesKey("notifyBills")
+        val NOTIFY_BUDGETS = booleanPreferencesKey("notifyBudgets")
+        val NOTIFY_SUMMARY = booleanPreferencesKey("notifySummary")
+        val BACKUP_FOLDER = stringPreferencesKey("backupFolderUri")
+        val BACKUP_SCHEDULE = stringPreferencesKey("backupSchedule")
+        val LAST_BACKUP_AT = longPreferencesKey("lastBackupAt")
+        val BACKUP_PASSWORD = stringPreferencesKey("backupPassword")
+        val TOP_CARD = stringPreferencesKey("homeTopCard")
+        val WIDGET_ORDER = stringPreferencesKey("homeWidgetsOrder")
+        val RECENT_COUNT = intPreferencesKey("homeRecentCount")
+        val SHOW_REVIEW = booleanPreferencesKey("homeShowReview")
+        val FORM_EXTRAS = stringSetPreferencesKey("formExtras")
+        val FORM_TYPE = stringPreferencesKey("formDefaultType")
+        val FORM_ACCOUNT = longPreferencesKey("formDefaultAccount")
+        val PAYMENT_FOUND = stringPreferencesKey("onPaymentFound")
+        val SHOW_TIME = booleanPreferencesKey("showTime")
+        val COUNT_UPCOMING = booleanPreferencesKey("countUpcoming")
+        val CONFIRM_DELETE = booleanPreferencesKey("confirmDelete")
+        val SWIPE_RIGHT = stringPreferencesKey("swipeRight")
+        val SWIPE_LEFT = stringPreferencesKey("swipeLeft")
+        val NUMBER_FORMAT = stringPreferencesKey("numberFormat")
+        val DATE_FORMAT = stringPreferencesKey("dateFormat")
+        val WEEK_START = stringPreferencesKey("weekStart")
+        val CURRENCY_DISPLAY = stringPreferencesKey("currencyDisplay")
+        val DECIMALS = stringPreferencesKey("decimals")
     }
 }
 

@@ -15,8 +15,8 @@ plan as tick boxes.
   fade through), empty tab screens, top bars. Check fonts, colours, dark mode against 04/11/22/36/53.
 - **Day 2. Data layer.** Room DAOs (accounts, categories, txns), repositories in `AppContainer`, default
   categories + sample data seeding, `Money.kt` formatting per locale. Unit tests for balances.
-- **Day 3. Add expense.** Keypad, Expense/Income/Transfer, category + account sheets, date, payee, note,
-  can't-save-yet state, Undo snackbar (17–20).
+- **Day 3. Add expense.** Keypad, Expense/Income/Transfer, category + account sheets, date (future = upcoming),
+  extras chips: note + payee + tags, repeat → bill, attach, lend/borrow; can't-save-yet, Undo (17–20, 74–79).
 - **Day 4. Activity.** Day-grouped LazyColumn with keys, search, transaction detail, edit, delete with
   Undo, duplicate (11, 21, 73).
 - **Day 5. Today v1.** Hero budget (count-up), Recent, sample-data note, empty state (04, 06, 09).
@@ -56,7 +56,8 @@ plan as tick boxes.
 - **Day 20. Accounts.** Accounts list, bank/card/loan/deposit details, fix balance, card Pay bill (55–59).
 
 ## Week 5 — settings, backup, polish
-- **Day 21. More.** Status tiles, Categories list/grid + edit, Main currency, Month start (53–54, 60–62, 67).
+- **Day 21. More + customise.** Status tiles, Categories list/grid + edit, Customise Today / New expense form /
+  Transactions, Currencies + rates, Language and region, net-worth switches, Lent and borrowed (53–54, 60–62, 67, 80–86).
 - **Day 22. Appearance + language.** Theme, accent, dynamic colour, font + text size, per-app language
   with Hindi strings (63–65).
 - **Day 23. Backup.** Encrypted file backup/restore via SAF, schedule, keep 7, CSV export/import, wrong

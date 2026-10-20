@@ -4,6 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -26,6 +31,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.burrow.money.AppContainer
 import app.burrow.money.R
 import app.burrow.money.data.TxnType
 import app.burrow.money.ui.LocalMoney
@@ -44,23 +50,31 @@ import app.burrow.money.ui.pickers.AccountSheet
 import app.burrow.money.ui.pickers.CategoryCircle
 import app.burrow.money.ui.pickers.CategorySheet
 import app.burrow.money.ui.pickers.DateSheet
-import app.burrow.money.ui.pickers.TextSheet
+import app.burrow.money.data.FormExtra
+import app.burrow.money.data.Lend
+import app.burrow.money.ui.components.ExtraChip
+import app.burrow.money.ui.components.ExtraChipRow
+import app.burrow.money.ui.components.PayeeField
+import app.burrow.money.ui.components.SuggestionChips
+import app.burrow.money.ui.theme.Size
+import androidx.compose.ui.res.pluralStringResource
 import app.burrow.money.ui.rememberDateText
 import app.burrow.money.ui.theme.BurrowType
 import app.burrow.money.ui.theme.Space
 
-private enum class AddSheet { CATEGORY, ACCOUNT, TO_ACCOUNT, DATE, PAYEE, NOTE }
+private enum class AddSheet { CATEGORY, ACCOUNT, TO_ACCOUNT, WHEN, DATE, TIME, NOTE, REPEAT, ATTACH, LEND }
 
 private val TYPES = listOf(TxnType.EXPENSE, TxnType.INCOME, TxnType.TRANSFER)
 
 /**
- * New expense / income / transfer (designs 17, 18). Close · title · Save; the type group; the
- * amount; rows for category, account, date, payee and note; the keypad pinned at the bottom.
- * Save looks off until there is an amount and a category, and tapping it early turns the missing
- * row red.
+ * New expense / income / transfer (17, 18, 74–79, 87). Close · title · Save; the type group; the
+ * amount; Paid to with suggestions; three rows (category, account, date); the extras chips chosen
+ * in Customise › Expense; the keypad pinned at the bottom. Save looks off until it can save, and
+ * tapping it early turns the missing row red.
  */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
+fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return // nothing drawn until the form has loaded
     val f = s.form
@@ -74,7 +88,7 @@ fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
         vm.save(onSaved)
     }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         ScreenTopBar(
             navIcon = painterResource(R.drawable.ic_close_regular),
             navLabel = stringResource(R.string.close),
@@ -83,8 +97,11 @@ fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
         ) {
             BurrowButton(stringResource(R.string.save), save, kind = if (s.canSave) ButtonKind.FILLED else ButtonKind.OFF)
         }
+        // The keypad steps aside while the system keyboard is up (typing Paid to).
+        val imeUp = androidx.compose.foundation.layout.WindowInsets.Companion.isImeVisible
+        val formContent: @Composable (Modifier) -> Unit = { m ->
         Column(
-            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen),
+            m.padding(horizontal = Space.screen),
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             ButtonGroup(TYPES, f.type, { stringResource(typeLabel(it)) }, vm::setType)
@@ -106,6 +123,22 @@ fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
                     textAlign = TextAlign.Center,
                 )
             }
+            if (f.type != TxnType.TRANSFER) {
+                val cat = s.category
+                val known = f.payee.isNotBlank() && cat != null
+                PayeeField(
+                    f.payee, vm::setPayee, stringResource(payeeLabel(f.type)), stringResource(R.string.clear),
+                    lead = { if (known) CategoryCircle(cat!!.icon, cat.colorHue) else IconCircle(painterResource(R.drawable.ic_storefront_duotone)) },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+                if (s.suggestions.isNotEmpty()) {
+                    SuggestionChips(
+                        s.suggestions, { it.name },
+                        circle = if (f.payee.isNotBlank()) ({ p -> CategoryCircle(p.icon, p.hue, Size.suggestionCircle) }) else null,
+                        onPick = vm::pickPayee,
+                    )
+                }
+            }
             val rows = buildList<@Composable (Int, Int) -> Unit> {
                 if (f.type == TxnType.TRANSFER) {
                     add { i, n -> AccountRow(s.account, R.string.from, i, n) { sheet = AddSheet.ACCOUNT } }
@@ -125,29 +158,32 @@ fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
                     add { i, n -> AccountRow(s.account, if (f.type == TxnType.INCOME) R.string.paid_into else R.string.paid_from, i, n) { sheet = AddSheet.ACCOUNT } }
                 }
                 add { i, n ->
+                    val withTime = s.shows(FormExtra.TIME)
                     ListRow(
-                        headline = dates.dayTime(f.at), supporting = stringResource(R.string.date), index = i, count = n,
-                        lead = { IconCircle(painterResource(R.drawable.ic_schedule_duotone)) },
-                        onClick = { sheet = AddSheet.DATE },
-                    )
-                }
-                add { i, n ->
-                    ListRow(
-                        headline = f.payee.ifBlank { stringResource(R.string.add_payee) }, supporting = stringResource(R.string.payee), index = i, count = n,
-                        lead = { IconCircle(painterResource(R.drawable.ic_storefront_duotone)) },
-                        onClick = { sheet = AddSheet.PAYEE },
-                    )
-                }
-                add { i, n ->
-                    ListRow(
-                        headline = f.note.ifBlank { stringResource(R.string.add_note) }, supporting = stringResource(R.string.note), index = i, count = n,
-                        lead = { IconCircle(painterResource(R.drawable.ic_notes_duotone)) },
-                        onClick = { sheet = AddSheet.NOTE },
+                        headline = if (withTime) dates.dayTime(f.at) else dates.day(dates.date(f.at)),
+                        supporting = stringResource(if (s.upcoming) R.string.upcoming_added_that_day else R.string.date), index = i, count = n,
+                        lead = { IconCircle(painterResource(if (s.upcoming) R.drawable.ic_event_upcoming_duotone else R.drawable.ic_schedule_duotone)) },
+                        onClick = { sheet = AddSheet.WHEN },
                     )
                 }
             }
             ListGroup { rows.forEachIndexed { i, row -> row(i, rows.size) } }
+            // Extras (Customise › Expense): each opens a sheet and shows its value once set.
+            val transfer = f.type == TxnType.TRANSFER
+            val files = f.kept.size + f.attachments.size
+            ExtraChipRow {
+                if (s.shows(FormExtra.NOTE)) ExtraChip(painterResource(R.drawable.ic_notes_regular), stringResource(R.string.note),
+                    f.note.takeIf { it.isNotBlank() }?.let { stringResource(R.string.note_value, it.take(14)) } ?: f.tags.takeIf { it.isNotEmpty() }?.joinToString(" ") { "#$it" }) { sheet = AddSheet.NOTE }
+                if (s.shows(FormExtra.REPEAT) && !transfer && !s.isEdit) ExtraChip(painterResource(R.drawable.ic_event_repeat_regular), stringResource(R.string.extra_repeat),
+                    f.repeat.takeIf { it != Every.NEVER }?.let { stringResource(everyLabel(it)) }) { sheet = AddSheet.REPEAT }
+                if (s.shows(FormExtra.ATTACH)) ExtraChip(painterResource(R.drawable.ic_attach_file_regular), stringResource(R.string.extra_attach),
+                    files.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.n_files, it, it) }) { sheet = AddSheet.ATTACH }
+                if (s.shows(FormExtra.LEND) && !transfer) ExtraChip(painterResource(R.drawable.ic_handshake_regular), stringResource(R.string.extra_lend),
+                    f.lend?.takeIf { f.person.isNotBlank() }?.let { stringResource(if (it == Lend.LENT) R.string.lent_to_name else R.string.borrowed_from_name, f.person) }) { sheet = AddSheet.LEND }
+            }
         }
+        }
+        val keypad: @Composable (Modifier) -> Unit = { m ->
         Keypad(
             onKey = { key ->
                 when {
@@ -158,17 +194,37 @@ fun AddScreen(vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
             },
             doneEnabled = s.canSave || f.input.hasOperator,
             showDot = f.input.digits > 0,
-            modifier = Modifier.padding(start = Space.screen, end = Space.screen, top = Space.block, bottom = Space.screen),
+            modifier = m.padding(start = Space.screen, end = Space.screen, top = Space.block, bottom = Space.screen),
         )
+        }
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            // Short and wide (landscape phone): the keypad sits beside the form (Day 26).
+            if (maxWidth > maxHeight && maxHeight < Size.landscapeMaxHeight) {
+                androidx.compose.foundation.layout.Row(Modifier.fillMaxSize()) {
+                    formContent(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()))
+                    if (!imeUp) keypad(Modifier.width(Size.keypadSide).align(Alignment.CenterVertically))
+                }
+            } else {
+                // Portrait: the form scrolls; the keypad stays pinned so ✓ is always in reach.
+                Column(Modifier.fillMaxSize()) {
+                    formContent(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()))
+                    if (!imeUp) keypad(Modifier)
+                }
+            }
+        }
     }
 
     when (sheet) {
         AddSheet.CATEGORY -> CategorySheet(s.categoriesForType, s.spentByCategory, f.categoryId, { vm.setCategory(it.id); sheet = null }, { sheet = null })
         AddSheet.ACCOUNT -> AccountSheet(s.accountsForType, f.accountId, { vm.setAccount(it.account.id); sheet = null }, { sheet = null })
         AddSheet.TO_ACCOUNT -> AccountSheet(s.accounts.filter { it.account.id != f.accountId }, f.toAccountId, { vm.setToAccount(it.account.id); sheet = null }, { sheet = null })
-        AddSheet.DATE -> DateSheet(dates.date(f.at), { vm.setDate(it); sheet = null }, { sheet = null })
-        AddSheet.PAYEE -> TextSheet(stringResource(R.string.payee), f.payee, stringResource(R.string.payee_hint), { vm.setPayee(it); sheet = null }, { sheet = null })
-        AddSheet.NOTE -> TextSheet(stringResource(R.string.note), f.note, stringResource(R.string.note_hint), { vm.setNote(it); sheet = null }, { sheet = null })
+        AddSheet.WHEN -> WhenSheet(f.at, s.shows(FormExtra.TIME), { vm.setDate(it); sheet = null }, { sheet = AddSheet.DATE }, { sheet = null })
+        AddSheet.DATE -> DateSheet(dates.date(f.at), { vm.setDate(it); sheet = if (s.shows(FormExtra.TIME)) AddSheet.TIME else null }, { sheet = null }, anyDay = true)
+        AddSheet.TIME -> TimeSheet(java.time.Instant.ofEpochMilli(f.at).atZone(java.time.ZoneId.systemDefault()).toLocalTime(), { vm.setTime(it); sheet = null }, { sheet = null })
+        AddSheet.NOTE -> NoteSheet(vm, s) { sheet = null }
+        AddSheet.REPEAT -> RepeatSheet(vm, s) { sheet = null }
+        AddSheet.ATTACH -> AttachSheet(app, vm, s) { sheet = null }
+        AddSheet.LEND -> LendSheet(vm, s) { sheet = null }
         null -> Unit
     }
 }
@@ -189,6 +245,12 @@ private fun AccountRow(account: app.burrow.money.data.AccountWithBalance?, label
     )
 }
 
+fun everyLabel(every: String) = when (every) {
+    Every.WEEK -> R.string.every_week
+    Every.YEAR -> R.string.every_year
+    else -> R.string.every_month
+}
+
 fun typeLabel(type: String) = when (type) {
     TxnType.INCOME -> R.string.type_income
     TxnType.TRANSFER -> R.string.type_transfer
@@ -203,6 +265,7 @@ private fun titleFor(type: String, edit: Boolean) = when (type) {
 
 /** The snackbar line after a save. */
 fun savedMessage(saved: Saved) = when {
+    saved.upcoming -> R.string.saved_upcoming
     saved.wasEdit -> R.string.saved
     saved.type == TxnType.INCOME -> R.string.saved_income
     saved.type == TxnType.TRANSFER -> R.string.saved_transfer

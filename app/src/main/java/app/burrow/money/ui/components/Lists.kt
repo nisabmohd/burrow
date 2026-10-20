@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -98,8 +99,10 @@ fun ListRow(
     ) {
         lead?.invoke()
         Column(Modifier.weight(1f)) {
-            Text(headline, style = BurrowType.bodyLarge, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (supporting != null) Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Large text (Day 26): rows grow to two lines instead of cutting words off.
+            val lines = if (LocalDensity.current.fontScale > LARGE_TEXT) 2 else 1
+            Text(headline, style = BurrowType.bodyLarge, color = colors.onSurface, maxLines = lines, overflow = TextOverflow.Ellipsis)
+            if (supporting != null) Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
         }
         trailing?.invoke()
     }
@@ -132,3 +135,6 @@ fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey
         if (state.firstVisibleItemIndex <= 1) state.scrollToItem(0)
     }
 }
+
+/** From this font scale, text is "large": rows wrap to two lines, notes put their action below. */
+const val LARGE_TEXT = 1.3f

@@ -218,7 +218,7 @@ private fun Patterns(s: InsightsState) {
     val c = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(Space.block)) {
         Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
-            val first = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+            val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
             Widget(
                 stringResource(R.string.busiest_day), painterResource(R.drawable.ic_calendar_view_month_duotone),
                 s.busiest?.getDisplayName(TextStyle.FULL, Locale.getDefault()) ?: "–",
@@ -278,7 +278,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
                 Text(stringResource(R.string.spent_this_month_plain), style = BurrowType.body, color = c.onSurfaceVariant)
             }
         }
-        val first = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+        val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
         val lead = (s.heatMonth.atDay(1).dayOfWeek.value - first.value + 7) % 7
         val cells = List(lead) { null } + (1..s.heatMonth.lengthOfMonth()).map { s.heatMonth.atDay(it) }
         Row(Modifier.fillMaxWidth()) {

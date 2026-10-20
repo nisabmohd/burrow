@@ -44,6 +44,9 @@ fun AutoCaptureScreen(
     onTeach: (Long) -> Unit,
     onRules: () -> Unit,
     onHowItWorks: () -> Unit,
+    /** Customise › Transactions, and what it is set to now. */
+    paymentFound: String = app.burrow.money.data.PaymentFound.ASK,
+    onPaymentFound: () -> Unit = {},
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
@@ -100,6 +103,12 @@ fun AutoCaptureScreen(
                         onClick = { scope.launch { vm.firstNotUnderstood()?.let(onTeach) } },
                     )
                 }
+            }
+            ListGroup {
+                ListRow(
+                    stringResource(R.string.when_payment_found), 0, 1, supporting = stringResource(app.burrow.money.ui.more.paymentFoundLabel(paymentFound)),
+                    lead = { IconCircle(painterResource(R.drawable.ic_edit_note_duotone)) }, onClick = onPaymentFound,
+                )
             }
             ListGroup {
                 ListRow(

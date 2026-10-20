@@ -76,7 +76,7 @@ fun PillBarChart(
     val soft = c.primary.copy(alpha = 0.22f).compositeOverSurface(c.surfaceContainer)
     // Grow once per data set.
     val grow = remember(bars) { Animatable(0f) }
-    LaunchedEffect(bars) { grow.animateTo(1f, tween(450 + bars.size * BAR_STAGGER_MS / 2, easing = Easing.emphasizedDecelerate)) }
+    LaunchedEffect(bars) { grow.animateTo(1f, app.burrow.money.ui.theme.barGrowSpec(bars.size)) }
     Column(modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth().height(height).then(tapArea)) {
             Row(Modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {

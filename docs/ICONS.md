@@ -164,6 +164,9 @@ Never mix icon sets. Never draw an icon with emoji. A new icon: take it from Pho
 | `tune` | funnel-simple |
 | `undo` | arrow-counter-clockwise |
 | `upload_file` | upload-simple |
+| `download` (added: CSV import) | download-simple |
+| `attach_file` (added: Attach, 76) | paperclip |
+| `block` (added: Repeat › Never, 75) | prohibit |
 | `visibility_off` | eye-slash |
 | `volunteer_activism` | hand-heart |
 | `wallet` | wallet |

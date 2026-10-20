@@ -78,3 +78,6 @@ fun <T> progressSpec(): FiniteAnimationSpec<T> = tween(Duration.LONG, easing = E
 /** Chart bars grow from 0 with a 40 ms stagger, once per data set. */
 const val BAR_STAGGER_MS = 40
 
+/** Chart bars grow from the baseline once (longer for more bars, staggered feel). */
+fun barGrowSpec(bars: Int): FiniteAnimationSpec<Float> = tween(Duration.LONG + bars * BAR_STAGGER_MS / 2, easing = Easing.emphasizedDecelerate)
+

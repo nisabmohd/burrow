@@ -38,6 +38,13 @@ data class BillsState(
     val loans: Int,
     val loanAccountId: Long?,
     val hasBills: Boolean,
+    /** The first three subscriptions' circles (icon, hue) for the widget (22). */
+    val subsCircles: List<Pair<String?, Float?>>,
+    /** EMIs paid of all, of the first loan (22: "41 of 240 paid"). */
+    val emisPaid: Int,
+    val emisTotal: Int,
+    /** Dated in the future: added on their day (78). */
+    val upcomingTxns: List<app.burrow.money.data.TxnView>,
 )
 
 @Immutable
@@ -73,8 +80,8 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
         plan.bills,
         plan.budgets(period),
         plan.goals,
-        money.categories,
-    ) { occ, bills, (overall, cats), goals, categories ->
+        combine(money.categories, money.accounts, money.upcoming) { c, a, l -> Triple(c, a, l) },
+    ) { occ, bills, (overall, cats), goals, (categories, accounts, txns) ->
         val upcoming = occ.filter { it.occurrence.status == OccurrenceStatus.UPCOMING }
         val overdue = upcoming.filter { it.date().isBefore(today) }
         val ahead = upcoming.filter { !it.date().isBefore(today) }
@@ -87,6 +94,8 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
         val monthly = { amount: Long, rule: String -> if (Repeat.parse(rule) is Repeat.Yearly) amount / 12 else amount }
         val emis = bills.filter { it.kind == BillKind.EMI }
         val left = overall?.left ?: 0
+        val loanAccount = emis.firstNotNullOfOrNull { it.toAccountId }?.let { id -> accounts.firstOrNull { it.account.id == id } }
+        val loan = loanAccount?.let { app.burrow.money.ui.accounts.loanInfo(it.account, it.balance, today) }
         PlanUiState(
             bills = BillsState(
                 overdue = overdue,
@@ -99,6 +108,10 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
                 loans = emis.mapNotNull { it.toAccountId }.distinct().size,
                 loanAccountId = emis.firstNotNullOfOrNull { it.toAccountId },
                 hasBills = bills.isNotEmpty(),
+                subsCircles = subs.take(3).map { b -> (b.icon ?: categories.firstOrNull { it.id == b.categoryId }?.icon) to (b.colorHue ?: categories.firstOrNull { it.id == b.categoryId }?.colorHue) },
+                emisPaid = loan?.paid ?: 0,
+                emisTotal = loan?.total ?: 0,
+                upcomingTxns = txns,
             ),
             budgets = BudgetsState(period, period.daysLeft(today), overall, cats, perDay(left, period.daysLeft(today), digits), categories.filter { it.kind == CategoryKind.EXPENSE }),
             goals = GoalsState(goals),

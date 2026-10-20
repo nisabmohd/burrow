@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -95,6 +97,7 @@ fun PlanScreen(
     onBudget: (Long?) -> Unit,
     onAddGoal: () -> Unit,
     onOpenGoal: (Long) -> Unit,
+    onOpenTxn: (Long) -> Unit = {},
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     var section by rememberSaveable(start) { mutableStateOf(start) }
@@ -116,7 +119,7 @@ fun PlanScreen(
             )
             AnimatedContent(section, transitionSpec = { fadeThrough() }, label = "plan") { sec ->
                 when (sec) {
-                    PlanSection.BILLS -> BillsSection(s.bills, vm, padding, onAddBill, onOpenBill, onSubscriptions, onLoan)
+                    PlanSection.BILLS -> BillsSection(s.bills, vm, padding, onAddBill, onOpenBill, onSubscriptions, onLoan, onOpenTxn)
                     PlanSection.BUDGETS -> BudgetsSection(s.budgets, vm, padding, onBudget)
                     PlanSection.GOALS -> GoalsSection(s.goals, padding, onAddGoal, onOpenGoal)
                 }
@@ -136,6 +139,7 @@ private fun BillsSection(
     onOpenBill: (Long) -> Unit,
     onSubscriptions: () -> Unit,
     onLoan: (Long?) -> Unit,
+    onOpenTxn: (Long) -> Unit,
 ) {
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -172,19 +176,41 @@ private fun BillsSection(
         }
         s.nextUp?.let { o -> item(key = "next", contentType = "next") { NextUpCard(o, dates, today, { onOpenBill(o.occurrence.billId) }, { paid(o.occurrence.id) }) } }
         item(key = "widgets", contentType = "widgets") {
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+            // Both size to the taller one's content.
+            Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.block)) {
                 Widget(
                     stringResource(R.string.subscriptions), painterResource(R.drawable.ic_autorenew_duotone), money.plain(money.whole(s.subsMonthly)),
-                    pluralStringResource(R.plurals.subs_line, s.subsCount, s.subsCount), Modifier.weight(1f), onClick = onSubscriptions,
+                    pluralStringResource(R.plurals.subs_line, s.subsCount, s.subsCount), Modifier.weight(1f).fillMaxHeight(), onClick = onSubscriptions,
+                    fixedHeight = false,
+                    visual = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Space.group + Space.group / 2)) {
+                            s.subsCircles.forEach { (icon, hue) -> app.burrow.money.ui.pickers.CategoryCircle(icon, hue, app.burrow.money.ui.theme.Size.suggestionCircle + Space.grid) }
+                        }
+                    },
                 )
                 Widget(
                     stringResource(R.string.emis), painterResource(R.drawable.ic_real_estate_agent_duotone), money.plain(s.emiMonthly),
-                    pluralStringResource(R.plurals.emis_line, s.loans, s.loans), Modifier.weight(1f), onClick = { onLoan(s.loanAccountId) },
+                    pluralStringResource(R.plurals.emis_line, s.loans, s.loans), Modifier.weight(1f).fillMaxHeight(), onClick = { onLoan(s.loanAccountId) },
+                    fixedHeight = false,
+                    visual = if (s.emisTotal > 0) ({
+                        androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
+                            app.burrow.money.ui.components.ThinBar(s.emisPaid.toFloat() / s.emisTotal, MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.n_of_n_paid, s.emisPaid, s.emisTotal), style = app.burrow.money.ui.theme.BurrowType.label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }) else null,
                 )
             }
         }
-        billGroup(R.string.this_week, s.thisWeek, dates, today, onOpenBill, paid, skip)
-        billGroup(R.string.later, s.later, dates, today, onOpenBill, paid, skip)
+        val weekDue = s.thisWeek.filter { it.occurrence.status == OccurrenceStatus.UPCOMING }.sumOf { it.amount }
+        billGroup(R.string.this_week, s.thisWeek, dates, today, onOpenBill, paid, skip, weekDue.takeIf { it > 0 }?.let(money::plain))
+        billGroup(R.string.later, s.later, dates, today, onOpenBill, paid, skip, money.plain(s.later.sumOf { it.amount }))
+        // Transactions dated in the future (78): added on their day.
+        if (s.upcomingTxns.isNotEmpty()) {
+            item(key = "h-upcoming", contentType = "header") { SectionHeader(stringResource(R.string.upcoming), meta = money.plain(s.upcomingTxns.sumOf { it.txn.amount })) }
+            item(key = "g-upcoming", contentType = "group") {
+                ListGroup { s.upcomingTxns.forEachIndexed { i, t -> androidx.compose.runtime.key(t.txn.id) { app.burrow.money.ui.txn.TxnRow(t, i, s.upcomingTxns.size, dates, today, { onOpenTxn(t.txn.id) }) } } }
+            }
+        }
     }
 }
 
@@ -197,9 +223,10 @@ private fun LazyListScope.billGroup(
     onOpen: (Long) -> Unit,
     paid: (Long) -> Unit,
     skip: (Long) -> Unit,
+    total: String? = null,
 ) {
     if (list.isEmpty()) return
-    item(key = "h-$title", contentType = "header") { SectionHeader(androidx.compose.ui.res.stringResource(title)) }
+    item(key = "h-$title", contentType = "header") { SectionHeader(androidx.compose.ui.res.stringResource(title), meta = total) }
     item(key = "g-$title", contentType = "group") {
         ListGroup { list.forEachIndexed { i, o -> androidx.compose.runtime.key(o.occurrence.id) { BillRow(o, i, list.size, dates, today, onOpen, paid, skip) } } }
     }
@@ -211,11 +238,13 @@ private fun BillRow(o: OccurrenceView, index: Int, count: Int, dates: DateText, 
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     val isPaid = o.occurrence.status == OccurrenceStatus.PAID
+    // Customise › Transactions › Swipe right: "Mark paid / Save", or open it to edit.
+    val rightPaid = app.burrow.money.ui.LocalListPrefs.current.swipeRight == app.burrow.money.data.SwipeRight.PAID
     val paidLabel = stringResource(R.string.mark_paid)
     val skipLabel = stringResource(R.string.skip)
     val swipe = rememberSwipeToDismissBoxState(confirmValueChange = { v ->
         when (v) {
-            SwipeToDismissBoxValue.StartToEnd -> { haptics.confirm(); paid(o.occurrence.id) }
+            SwipeToDismissBoxValue.StartToEnd -> { haptics.confirm(); if (rightPaid) paid(o.occurrence.id) else onOpen(o.occurrence.billId) }
             SwipeToDismissBoxValue.EndToStart -> { haptics.threshold(); skip(o.occurrence.id) }
             else -> Unit
         }

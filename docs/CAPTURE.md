@@ -14,7 +14,8 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
    A payment-app notification often names neither, so a pair from different sources where one has no
    account also counts (`CaptureLogic.findDuplicate`). The second one is stored as MERGED, never asked.
 5. **Bill match**: a payee + amount (±10%) matching a bill due within 3 days marks that bill **Paid**.
-6. **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
+6. **What happens** follows More › Customise › Transactions › "When a payment is found": **Ask on the notification** (default), **Open it to edit first** (the notification opens New expense pre-filled with amount, payee, account, note = sender), or **Save it for me** (uses the remembered category; editable later).
+   **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
    with two category buttons (remembered payee → category first) and Ignore. One tap saves.
 7. **Review**: anything not acted on waits in To review. Messages no rule could read go to
    "messages not understood" → Teach.

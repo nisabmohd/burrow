@@ -55,6 +55,7 @@ private class Slot(val key: String, val wide: Boolean, val content: @Composable 
 fun TodayWidgets(
     w: Widgets,
     shown: Set<String>,
+    order: List<String>,
     hero: HeroState,
     onWeek: () -> Unit,
     onBill: (Long) -> Unit,
@@ -128,7 +129,7 @@ fun TodayWidgets(
         add(Slot("inout", true) { m, _ ->
             MoneyInOut(w, dates.month(hero.period.start), m)
         })
-    }.filter { it.key in shown }
+    }.filter { it.key in shown }.sortedBy { order.indexOf(it.key) }
 
     Column(verticalArrangement = Arrangement.spacedBy(Space.block)) {
         var i = 0
@@ -181,31 +182,12 @@ private fun Figure(label: String, value: String, modifier: Modifier) {
     }
 }
 
-/** Edit home (10): a switch per widget, Done. */
-@Composable
-fun EditHomeSheet(shown: Set<String>, onToggle: (String, Boolean) -> Unit, onDismiss: () -> Unit) {
-    val rows = listOf(
-        Triple("week", R.string.this_week, R.drawable.ic_bar_chart_duotone),
-        Triple("bill", R.string.next_bill, R.drawable.ic_event_available_duotone),
-        Triple("networth", R.string.net_worth, R.drawable.ic_account_balance_duotone),
-        Triple("topcat", R.string.top_category, R.drawable.ic_pie_duotone),
-        Triple("inout", R.string.money_in_and_out, R.drawable.ic_swap_vert_duotone),
-        Triple("goal", R.string.goal, R.drawable.ic_flag_duotone),
-    )
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.edit_home), onDismiss, stringResource(R.string.edit_home_line))
-        SheetBody {
-            ListGroup {
-                rows.forEachIndexed { i, (key, label, icon) ->
-                    ListRow(
-                        stringResource(label), i, rows.size,
-                        lead = { IconCircle(painterResource(icon)) },
-                        trailing = { BurrowSwitch(key in shown, { onToggle(key, it) }) },
-                        onClick = { onToggle(key, key !in shown) },
-                    )
-                }
-            }
-        }
-        SheetFooter { BurrowButton(stringResource(R.string.done), onDismiss, Modifier.fillMaxWidth(), height = Size.buttonBottom) }
-    }
-}
+/** Today's widgets: key, name, icon (Customise › Today, 80). */
+val HOME_WIDGET_ROWS = mapOf(
+    "week" to (R.string.this_week to R.drawable.ic_bar_chart_duotone),
+    "bill" to (R.string.next_bill to R.drawable.ic_event_available_duotone),
+    "networth" to (R.string.net_worth to R.drawable.ic_account_balance_duotone),
+    "topcat" to (R.string.top_category to R.drawable.ic_pie_duotone),
+    "inout" to (R.string.money_in_and_out to R.drawable.ic_swap_vert_duotone),
+    "goal" to (R.string.goal to R.drawable.ic_flag_duotone),
+)

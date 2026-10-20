@@ -54,6 +54,12 @@ class Notifier(private val context: Context) {
         fun openBill(context: Context, billId: Long) = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_BILL).putExtra(MainActivity.EXTRA_ID, billId).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
+        fun openAccounts(context: Context) = Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_OPEN_ACCOUNTS).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+        fun openInsights(context: Context) = Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_OPEN_INSIGHTS).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
         fun openPlan(context: Context) = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_PLAN).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }

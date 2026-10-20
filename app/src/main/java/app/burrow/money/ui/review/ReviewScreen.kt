@@ -67,7 +67,7 @@ import app.burrow.money.ui.theme.Space
  * left ignores; "Save N payments" saves them all. Empty: All caught up.
  */
 @Composable
-fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit) {
+fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val items = state ?: return
     val snackbar = LocalSnackbar.current
@@ -97,10 +97,12 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit) {
                 val ignore = {
                     vm.ignore(item.capture.id) { undo -> snackbar.show(context.getString(R.string.ignored), undo) }
                 }
+                val rightSaves = app.burrow.money.ui.LocalListPrefs.current.swipeRight == app.burrow.money.data.SwipeRight.PAID
                 val swipe = rememberSwipeToDismissBoxState(
                     confirmValueChange = { v ->
                         when (v) {
-                            SwipeToDismissBoxValue.StartToEnd -> { haptics.confirm(); save(); true }
+                            // Customise › Transactions › Swipe right: save, or open it to edit first.
+                            SwipeToDismissBoxValue.StartToEnd -> if (rightSaves) { haptics.confirm(); save(); true } else { onEdit(item.capture.id); false }
                             SwipeToDismissBoxValue.EndToStart -> { haptics.threshold(); ignore(); true }
                             else -> false
                         }

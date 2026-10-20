@@ -31,10 +31,21 @@ width, light and dark. "→" means what a tap opens.
 ## Recording money
 | PNG | Screen | Layout |
 |---|---|---|
-| 17 / 18 | New expense / transfer | close · title · Save · Expense/Income/Transfer group · ₹ amount (display) · Category / Account / Date rows · Payee / Note · keypad. Save disabled until amount + category; tapping Save early marks the missing row red |
+| 17 / 18 | New expense / transfer | close · title · Save · Expense/Income/Transfer group · ₹ amount (display) · **Paid to** pill (payee) · Category / Account / Date rows · Payee / Note · keypad. Save disabled until amount + category; tapping Save early marks the missing row red |
 | 19 / 20 | Category / Account sheet | list rows with circle + name + one line (spent this month / balance), ✓ on selected, "New category" |
 | 21-transaction | Transaction | centred: category circle, payee, −₹240 (display), date · rows Category / Paid from / Note · "Recorded from SMS" box · Delete / Edit · header Duplicate |
 | 73-delete-dialog | Delete | dialog, Undo snackbar after |
+
+### New expense extras (user, 2026-10-20: simple, but not missing features)
+| PNG | Screen | Layout |
+|---|---|---|
+| 79-expense-with-extras | extras set | chips under the amount show their value: "Every month", "1 file", "Lent to Rahul"; a future date shows "Upcoming · added that day" |
+| 87-payee-typing | Paid to | a **free-text field** right under the amount ("Paid to" / "Received from"): type anything. Up to 4 quiet outlined suggestion chips (frequent payees; payers for income) show below and filter as you type; tapping one fills the text and sets its usual category. Typing a known payee exactly also sets it. Clear with ✕ |
+| 74-expense-note-sheet | Note | Note · tag chips (#Work, #Trip, #Family, #Reimbursable) · Done |
+| 75-expense-repeat-sheet | Repeat | Never / Every week / Every month / Every year · "It is a subscription" · "Remind me a day before". A repeat creates a Bill in Plan |
+| 76-expense-attach-sheet | Attach | Take a photo / Choose a photo / Choose a file · attached files with remove. Files stay in app storage, included in backups |
+| 77-expense-lend-sheet | Lend or borrow | None / I lent / I borrowed · name · "Remind me to settle". Shows under Accounts › Lent and borrowed |
+| 78-expense-date-sheet | Date | Yesterday / Today / Tomorrow / Next Monday · Pick a date and time. Future = **upcoming**: listed in Plan, added to Activity on the day |
 
 ## Plan
 | PNG | Screen | Layout |
@@ -68,11 +79,15 @@ width, light and dark. "→" means what a tap opens.
 ## More and settings
 | PNG | Screen | Layout |
 |---|---|---|
-| 53 / 54 | More | 4 equal status tiles · Money (Categories, Accounts, Main currency, Month starts on) · App (Language, Font and text size, Notifications, Hide amounts, Export or import CSV) · About (About Burrow, Delete all data) |
+| 53 / 54 | More | 4 equal status tiles · Money (Accounts, Categories) · Customise (Today screen, New expense form, Transactions, Language and region, Currency — all open the one Customise screen on that tab) · App (Font and text size, Notifications, Hide amounts, Export or import CSV) · About (About Burrow, Delete all data) |
 | 55–59 | Accounts / bank / card / loan / deposit | centred headers; card: statement amount, due date, Since statement / Available rows, Pay bill; loan: left to pay, EMIs paid, Next EMIs, Prepay; deposit: maturity amount, reminder |
-| 60 / 61 / 62 | Categories list / grid / edit | centred header (13 · spent this month) · list sorted by spend with % (or 3-column tiles via header toggle) · edit: name, colour circles, icon circles in a card, Delete |
+| 60 / 61 / 62 | Categories list / grid / edit | centred header (13 · spent this month) · list sorted by spend with % (or 3-column tiles via header toggle) · FAB "New category" · edit: name, colour circles, icon circles in a card, Delete |
 | 63 / 64 / 65 | Appearance / Font / Language | Light/Dark group, colour swatches, Dynamic colour switch · font rows with preview card + Text size group · language rows with native names |
 | 66 / 67 / 68 | Notifications / Main currency / Month start sheet | switches with a live notification preview · searchable currency rows · DayStepper |
+| 80–85 | **Customise** (one screen; tabs as a scrollable chip row: Today · Expense · Transactions · Region · Currency) | Same four blocks on every tab: **choice tiles** (pick one, selected = primaryContainer + check), **toggle tiles** (pick many, 3 columns, check badge), **pick lists** (one-of-many rows with a round radio), **ordered rows** (icon · name · ↑ ↓ · switch) and switch/plain rows. Today: top card pick list (Budget left / Spent / Balance, value as subtitle) · widgets as ordered rows · recent 3/5/10 · review switch. Expense: extras toggle tiles (Note, Repeat, Attach, Lend, Time, Last category) · opens as Expense/Income/Transfer · default account. Transactions: "When a payment is found" as 3 wide choice tiles (Ask on the notification / Open it to edit first / Save it for me) · list toggles · swipe rows |
+| 83 / 84 | Customise › Currency / rate sheet | primary currency row · Show amounts as: choice tiles Symbol ₹1,240 / Code INR 1,240 · Decimal places: Auto 1,240.5 / None 1,240 / Always 1,240.00 · Other currencies rows ("1 USD = ₹84.10 · set 12 Oct") + Add · rate stepper sheet |
+| 85-language-region | Customise › Region | Language row · Numbers: pick list (example as title, region as subtitle, round radio right) · Dates: pick list (Written out / Day first / Month first / Year first) · Week: connected button group Monday / Sunday / Saturday · Month starts on row → DayStepper |
+| 86-account-card-net-worth | Card detail | "Count in net worth" switch (off by default for cards and loans); Accounts header says what is excluded; "Lent and borrowed" section lists people |
 | 69 / 70 / 71 / 72 | Backup / App lock / PIN / About | plain lists; PIN keypad with wavy lock shape; About with the logo, version, source, licences |
 
 ## Edge cases that must exist (each has a design)

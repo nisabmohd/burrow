@@ -49,18 +49,21 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
     val all = events(list, zone)
     val last = settings.billsCheckedAt()
     if (last != null) {
-        val money = MoneyFormat.of(settings.settings.first().mainCurrency)
+        val st = settings.settings.first()
+        val money = MoneyFormat.of(st.mainCurrency).withHidden(st.hideInNotifications)
+        // "Record it" still records with reminders switched off in Notifications; it just stays quiet.
+        val notifier = if (st.notifyBills) planNotifier else null
         for (e in all.filter { it.at in (last + 1)..now }) {
             val o = e.o
             val amount = money.plain(o.amount)
             val id = 20_000 + (o.occurrence.id % 1_000_000).toInt()
             when {
-                !e.dueDay -> planNotifier.show(id, if (o.remindDaysBefore == 1) string(R.string.reminder_soon, o.name) else context.resources.getQuantityString(R.plurals.reminder_in_days, o.remindDaysBefore, o.name, o.remindDaysBefore), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
+                !e.dueDay -> notifier?.show(id, if (o.remindDaysBefore == 1) string(R.string.reminder_soon, o.name) else context.resources.getQuantityString(R.plurals.reminder_in_days, o.remindDaysBefore, o.name, o.remindDaysBefore), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
                 o.onDue == OnDue.RECORD -> {
                     plan.markPaid(o.occurrence.id, e.at)
-                    planNotifier.show(id, string(R.string.reminder_recorded, o.name), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
+                    notifier?.show(id, string(R.string.reminder_recorded, o.name), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
                 }
-                else -> planNotifier.show(id, string(R.string.reminder_today, o.name), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
+                else -> notifier?.show(id, string(R.string.reminder_today, o.name), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
             }
         }
     }
@@ -84,7 +87,7 @@ class BillAlarmReceiver : BroadcastReceiver() {
 
 /** Reboot, app update, clock or time zone change: alarms are gone or wrong, set them again. */
 class RescheduleReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) = runInBackground(context) { runBillReminders() }
+    override fun onReceive(context: Context, intent: Intent) = runInBackground(context) { runBillReminders(); backup.schedule() }
 }
 
 private fun BroadcastReceiver.runInBackground(context: Context, work: suspend AppContainer.() -> Unit) {
@@ -106,6 +109,7 @@ private fun BroadcastReceiver.runInBackground(context: Context, work: suspend Ap
 suspend fun AppContainer.checkBudgets(saved: TxnEntity, before: TxnEntity?) {
     if (saved.type != TxnType.EXPENSE || saved.isSample) return
     val s = settings.settings.first()
+    if (!s.notifyBudgets) return
     val zone = ZoneId.systemDefault()
     val day = Instant.ofEpochMilli(saved.at).atZone(zone).toLocalDate()
     val period = BudgetPeriod.containing(LocalDate.now(zone), s.monthStartDay)
@@ -113,7 +117,7 @@ suspend fun AppContainer.checkBudgets(saved: TxnEntity, before: TxnEntity?) {
     val added = saved.amount - (before?.takeIf { it.type == TxnType.EXPENSE }?.amount ?: 0)
     if (added <= 0) return
     val (overall, cats) = plan.budgets(period).first()
-    val money = MoneyFormat.of(s.mainCurrency)
+    val money = MoneyFormat.of(s.mainCurrency).withHidden(s.hideInNotifications)
     val lines = listOfNotNull(overall) + cats.filter { it.category?.id == saved.categoryId }
     for (line in lines) {
         val level = budgetAlert(line.spent - added, line.spent, line.amount) ?: continue
@@ -125,5 +129,49 @@ suspend fun AppContainer.checkBudgets(saved: TxnEntity, before: TxnEntity?) {
         val text = if (line.over) strings(R.string.alert_over_line, money.plain(line.spent - line.amount), money.plain(line.amount))
         else strings(R.string.alert_left_line, money.plain(line.left), money.plain(line.amount))
         planNotifier.show(30_000 + (line.category?.id ?: 0).toInt() * 2 + if (level == 100) 1 else 0, title, text, Notifier.openPlan(context))
+    }
+}
+
+/**
+ * Monthly summary (66, off by default): on the first days of a new month, one notification with
+ * last month's spending and what was kept. Sent once per month; runs at app start and with the
+ * daily 3 AM check.
+ */
+suspend fun AppContainer.runMonthlySummary(today: LocalDate = LocalDate.now()) {
+    val s = settings.settings.first()
+    if (!s.notifySummary) return
+    val now = BudgetPeriod.containing(today, s.monthStartDay)
+    if (today.toEpochDay() - now.start.toEpochDay() > 2) return
+    val last = BudgetPeriod.containing(now.start.minusDays(1), s.monthStartDay)
+    val key = "summary:${last.month}"
+    if (settings.budgetAlertSent(key)) return
+    val zone = ZoneId.systemDefault()
+    val txns = money.between(last.start.atStartOfDay(zone).toInstant().toEpochMilli(), last.endExclusive.atStartOfDay(zone).toInstant().toEpochMilli()).first()
+        .filter { !it.txn.isSample && !it.txn.excludeFromStats }
+    val spent = txns.filter { it.txn.type == TxnType.EXPENSE }.sumOf { it.txn.baseAmount }
+    val income = txns.filter { it.txn.type == TxnType.INCOME }.sumOf { it.txn.baseAmount }
+    settings.markBudgetAlert(key)
+    if (spent == 0L && income == 0L) return
+    val money = MoneyFormat.of(s.mainCurrency).withHidden(s.hideInNotifications)
+    val monthName = last.month.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+    val kept = app.burrow.money.domain.keptPercent(income, spent)
+    val line = if (kept != null) strings(R.string.summary_line_kept, money.plain(spent), kept) else strings(R.string.summary_line, money.plain(spent))
+    planNotifier.show(40_000, strings(R.string.summary_title, monthName), line, Notifier.openInsights(context))
+}
+
+/**
+ * Lend or borrow › "Remind me to settle" (77): two weeks on, one notification per person that
+ * still owes or is owed. Runs at app start and with the daily check.
+ */
+suspend fun AppContainer.runSettleReminders(now: Long = System.currentTimeMillis()) {
+    val s = settings.settings.first()
+    val due = money.people.first().filter { p -> p.person.remindAt?.let { it <= now } == true }
+    if (due.isEmpty()) return
+    val money0 = MoneyFormat.of(s.mainCurrency).withHidden(s.hideInNotifications)
+    for (p in due) {
+        money.setPersonReminder(p.person.id, null)
+        if (!s.notifyBills) continue
+        val line = if (p.balance > 0) strings(R.string.settle_owes_you, money0.plain(p.balance)) else strings(R.string.settle_you_owe, money0.plain(-p.balance))
+        planNotifier.show(50_000 + (p.person.id % 10_000).toInt(), strings(R.string.settle_up_with, p.person.name), line, Notifier.openAccounts(context))
     }
 }

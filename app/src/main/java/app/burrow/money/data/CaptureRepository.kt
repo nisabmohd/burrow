@@ -162,6 +162,11 @@ class CaptureRepository(
 
     suspend fun get(id: Long): CaptureEntity? = db.captures().get(id)
 
+    /** "Open it to edit first": the capture was saved from New expense as [txnId]. */
+    suspend fun markSaved(captureId: Long, txnId: Long, categoryId: Long?) {
+        db.captures().get(captureId)?.let { db.captures().update(it.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId)) }
+    }
+
     /** Drops message text older than 30 days (docs/CAPTURE.md § Keep). Run on app start. */
     suspend fun forgetOldText(now: Long = System.currentTimeMillis()) = db.captures().forgetTextBefore(now - 30L * 24 * 60 * 60 * 1000)
 

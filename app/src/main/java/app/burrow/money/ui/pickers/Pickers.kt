@@ -168,13 +168,13 @@ private fun PillTextFieldValue(value: TextFieldValue, onChange: (TextFieldValue)
 /** A day on or before today (transaction dates), or from today on with [future] (goal dates). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateSheet(date: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit, future: Boolean = false, title: String? = null) {
+fun DateSheet(date: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit, future: Boolean = false, title: String? = null, anyDay: Boolean = false) {
     val today = remember { LocalDate.now() }
     val state = rememberDatePickerState(
         initialSelectedDateMillis = date.utcMillis(),
         selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = if (future) utcTimeMillis >= today.utcMillis() else utcTimeMillis <= today.utcMillis()
-            override fun isSelectableYear(year: Int) = if (future) year >= today.year else year <= today.year
+            override fun isSelectableDate(utcTimeMillis: Long) = anyDay || if (future) utcTimeMillis >= today.utcMillis() else utcTimeMillis <= today.utcMillis()
+            override fun isSelectableYear(year: Int) = anyDay || if (future) year >= today.year else year <= today.year
         },
     )
     val haptics = LocalHapticFeedback.current

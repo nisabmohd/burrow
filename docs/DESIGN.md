@@ -43,10 +43,23 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
 - **Insights:** header funnel + calendar → spend chart vs previous period → A day + Biggest →
   By category → Patterns (Busiest day, No-spend days, You kept, Top payee) → month heatmap.
   Everything stays on this one page.
-- **More:** four equal status tiles (Auto-capture, Backup, App lock, Appearance) → Money rows →
-  App rows (Language, Font and text size, Notifications, Hide amounts, Export) → About.
+- **More:** four equal status tiles (Auto-capture, Backup, App lock, Appearance) → Money (Accounts,
+  Categories) → Customise (Today screen, New expense form, Transactions, Language and region, Currency) →
+  App (Font and text size, Notifications, Hide amounts, Export) → About.
 
 `docs/SCREENS.md` has every screen and nested screen in detail.
+
+## Simple, not bare (user, 2026-10-20)
+Power lives one level down, never on the main screens:
+- **New expense** keeps three rows (Category, Account, Date) and the keypad. Extras are chips under the
+  amount (Note, Repeat, Attach, Lend or borrow); each opens a sheet and shows its value once set.
+  Which chips appear is chosen in More › Customise › New expense form.
+- **Customise** (More) is ONE screen with tabs Today · Expense · Transactions · Region · Currency, built from the same four blocks:
+  choice tiles (pick one), toggle tiles (pick many), ordered rows (show/hide + move up/down), switch rows.
+  Any future setting that customises a screen goes here, using these blocks.
+- **Region** and **Currency** are tabs of Customise: language, number and date format, week and month start;
+  primary currency, symbol/code, decimal places, typed-in exchange rates.
+- Every account has "Count in net worth" (cards and loans off by default).
 
 ## Widgets (Today and Insights)
 Half-width widgets are exactly 184 dp tall so rows are even. A widget alone on a row switches to

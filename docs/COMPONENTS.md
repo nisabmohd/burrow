@@ -50,15 +50,34 @@ if something is missing, add a component here first.
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete, replace data, wrong password only | Dialogs.kt |
 | `BurrowSwitch` | Material 3 switch, primary track, toggle haptic | Controls.kt |
-| `Chevron` | trailing arrow of a row that opens a screen; mirrors in RTL (`autoMirror`) | Controls.kt |
+| `Chevron` | trailing arrow of a row that opens a screen; mirrors in RTL (back/forward/chevron/backspace drawables are `autoMirrored`) | Controls.kt |
 | `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3× | Bars.kt (Material `NavigationBar`) |
+| `ExtraChip` / `ExtraChipRow` | New expense extras under the rows (Note, Repeat, Attach, Lend): outlined 36 dp chip, icon + label; set = `secondaryContainer` with the value ("Every month", "1 file"); the row scrolls sideways | PayeeField.kt |
+| `PayeeField` + `SuggestionChips` | Paid to: 56 dp pill under the amount, storefront or the category circle, 2 dp primary ring while typing, ✕ clears; up to 4 quiet outlined chips centred under it (with the category circle while typing) | PayeeField.kt |
+| `ChoiceTiles` (`Choice`) | pick one: equal tiles (`columns` per row; a line shows big as the value, "₹1,240"), or full-width rows when options have icons; selected = `primaryContainer` + `CheckBadge` | Customise.kt |
+| `ToggleTiles` (`Toggle`) | pick many: 3-column 112 dp tiles, icon circle + name, check badge when on (empty ring when off), on = `secondaryContainer` | Customise.kt |
+| `OrderedRow` | 40 dp icon · name · plain ↑ ↓ icon buttons (30% and inactive at the ends) · switch; a hidden row's icon dims to 55% | Customise.kt |
+| `PickList` | a grouped list with round radio marks on the right (top card 80, numbers and dates 85) | Customise.kt |
+| `CheckBadge` | 22 dp primary circle with a check; empty outline ring for "off" | Customise.kt |
+| `StatusTile` | More's four tiles: icon circle (category hue), status top-right, title, one line; "on" tiles tinted `secondaryContainer` | Blocks.kt |
+| `SwipeRow` (`SwipeAction`) | a row with a swipe each way, set in Customise › Transactions; springs back; TalkBack gets the same as custom actions | SwipeRow.kt |
+| `StepDots` / `IntroPanel` / `IntroCard` / `IntroTile` | Welcome and Auto-capture intro: step dots (current = 24 dp pill), the rose panel, tilted white cards | Intro.kt |
+| `BurrowLogo` | the Burrow mark on a primary rounded square (Welcome 40 dp, About 112 dp) | Intro.kt |
+| `PinScreen` | lock in a cookie, title, four dots, 3 × 4 pad of 72 dp round keys (fingerprint, 0, ⌫) | ui/more/LockScreens.kt |
 
 ## Haptics (`Haptics.kt`)
 toggle (switch, mark paid) · tick (chip, segment, stepper) · stepTick (slider) · threshold (swipe far
 enough) · confirm (save, Done). Long-press keeps the system long-press.
 
 ## Gestures
-- Bill row: swipe right = Paid, swipe left = Skip (Undo snackbar). Tap = open.
-- Review card: swipe right = Save, swipe left = Ignore; ✕ ignores; "Save N payments" saves all.
+- Bill row: swipe right = Paid (or open it, when Customise › Transactions › Swipe right is Edit), swipe left = Skip (Undo snackbar). Tap = open.
+- Review card: swipe right = Save (or open it in New expense when set to Edit), swipe left = Ignore; ✕ ignores; "Save N payments" saves all.
+- Activity row: swipe right = Edit or Duplicate, swipe left = Delete, when chosen in Customise › Transactions (off by default).
 - Transaction row: long-press = sheet (Duplicate, Change category, Delete).
 - Pull down on a sheet closes it; predictive back closes sheets and pops screens.
+
+
+## Pick list
+One-of-many choice with 3+ options or long values (number format, date format). A `ListGroup` of rows:
+title = the example value (tabular figures), subtitle = what it is, trailing 24 dp round radio (filled primary + check when on).
+Use choice tiles only for 2–3 short options.

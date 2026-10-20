@@ -192,3 +192,32 @@ fun BurrowNavBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, m
         }
     }
 }
+
+/**
+ * Wide screens (≥ 840 dp, docs/PERFORMANCE.md § Responsive): the same five items as a rail on the
+ * start side, selected = fill icon in a `secondaryContainer` pill.
+ */
+@Composable
+fun BurrowNavRail(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    androidx.compose.material3.NavigationRail(modifier, containerColor = c.surfaceContainerLow) {
+        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+        items.forEachIndexed { i, item ->
+            val isSelected = i == selected
+            androidx.compose.material3.NavigationRailItem(
+                selected = isSelected,
+                onClick = { onSelect(i) },
+                icon = { Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null, modifier = Modifier.size(Size.icon)) },
+                label = { CappedFontScale { Text(item.label, style = BurrowType.label, maxLines = 1) } },
+                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
+                    selectedIconColor = c.onSecondaryContainer,
+                    selectedTextColor = c.onSurface,
+                    indicatorColor = c.secondaryContainer,
+                    unselectedIconColor = c.onSurfaceVariant,
+                    unselectedTextColor = c.onSurfaceVariant,
+                ),
+            )
+        }
+        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+    }
+}

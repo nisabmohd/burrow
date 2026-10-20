@@ -2,6 +2,7 @@ package app.burrow.money.ui.activity
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 import app.burrow.money.data.AccountWithBalance
 import app.burrow.money.data.CategoryEntity
@@ -63,7 +64,12 @@ data class ActivityUiState(
  * Activity (11–16): every transaction, newest first, grouped by day; search; the Filter and Dates
  * sheets; the chart card, where tapping a bar shows only that day. Work runs off the main thread.
  */
-class ActivityViewModel(repo: MoneyRepository, private val store: FilterStore) : ViewModel() {
+class ActivityViewModel(private val repo: MoneyRepository, private val store: FilterStore) : ViewModel() {
+    /** Swipe to delete (Customise › Transactions); Undo puts it back. */
+    fun delete(id: Long, onDeleted: (suspend () -> Unit) -> Unit) {
+        viewModelScope.launch { repo.delete(id)?.let { t -> onDeleted { repo.restore(t) } } }
+    }
+
     private val zone = ZoneId.systemDefault()
     private val query = MutableStateFlow("")
     val searchText: StateFlow<String> = query.asStateFlow()

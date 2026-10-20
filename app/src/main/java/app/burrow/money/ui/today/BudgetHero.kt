@@ -1,6 +1,7 @@
 package app.burrow.money.ui.today
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,39 +37,52 @@ import app.burrow.money.ui.theme.Space
  * shows what was spent this month.
  */
 @Composable
-fun BudgetHero(hero: HeroState, modifier: Modifier = Modifier) {
+fun BudgetHero(hero: HeroState, modifier: Modifier = Modifier, topCard: String = app.burrow.money.data.TopCard.BUDGET, balance: Long = 0) {
     val c = MaterialTheme.colorScheme
     val money = LocalMoney.current
     val dates = rememberDateText()
     val (bg, fg) = if (hero.over) c.errorContainer to c.onErrorContainer else c.primaryContainer to c.onPrimaryContainer
     val month = dates.month(hero.period.start)
     val days = pluralStringResource(R.plurals.days_left, hero.daysLeft, hero.daysLeft)
-    val label = if (hero.budget != null) stringResource(R.string.hero_label, month, days) else stringResource(R.string.hero_label_no_budget, month)
+    // Customise › Today › Top card (80): budget left (default), spent this month, or the balance.
+    val kind = if (topCard == app.burrow.money.data.TopCard.BUDGET && hero.budget == null) app.burrow.money.data.TopCard.SPENT else topCard
+    val label = when (kind) {
+        app.burrow.money.data.TopCard.BALANCE -> stringResource(R.string.top_balance)
+        app.burrow.money.data.TopCard.SPENT -> stringResource(R.string.hero_label_no_budget, month)
+        else -> stringResource(R.string.hero_label, month, days)
+    }
     val amount = when {
-        hero.budget == null -> hero.spent
+        kind == app.burrow.money.data.TopCard.BALANCE -> balance
+        kind == app.burrow.money.data.TopCard.SPENT -> hero.spent
         hero.over -> -hero.left
         else -> hero.left
     }
     val line = when {
-        hero.budget == null -> stringResource(R.string.hero_no_budget)
-        hero.over -> stringResource(R.string.hero_over, money.plain(hero.budget))
-        else -> stringResource(R.string.hero_left, money.plain(hero.budget), money.plain(hero.perDay))
+        kind == app.burrow.money.data.TopCard.BALANCE -> stringResource(R.string.hero_balance_line)
+        kind == app.burrow.money.data.TopCard.SPENT -> hero.budget?.let { stringResource(R.string.hero_spent_of, money.plain(it), days) } ?: stringResource(R.string.hero_no_budget)
+        hero.over -> stringResource(R.string.hero_over, money.plain(hero.budget!!))
+        else -> stringResource(R.string.hero_left, money.plain(hero.budget!!), money.plain(hero.perDay))
     }
     val shown = rememberCountUp(amount)
+    val reveal = app.burrow.money.ui.LocalRevealAmounts.current
+    val revealLabel = stringResource(R.string.show_amounts)
     Column(
-        modifier.fillMaxWidth().clip(Shapes.surface).background(bg).padding(Space.hero)
+        modifier.fillMaxWidth().clip(Shapes.surface).background(bg)
+            // With Hide amounts on, a tap shows them (and hides them again).
+            .then(if (reveal != null) Modifier.clickable(onClickLabel = revealLabel) { reveal() } else Modifier)
+            .padding(Space.hero)
             .clearAndSetSemantics { contentDescription = "$label. ${money.plain(amount)}, $line" },
         verticalArrangement = Arrangement.spacedBy(Space.group),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painterResource(if (hero.over) R.drawable.ic_error_duotone else R.drawable.ic_donut_large_duotone),
+                painterResource(when { kind == app.burrow.money.data.TopCard.BALANCE -> R.drawable.ic_account_balance_duotone; hero.over -> R.drawable.ic_error_duotone; else -> R.drawable.ic_donut_large_duotone }),
                 null, tint = fg, modifier = Modifier.size(Size.iconButton20),
             )
             Text(label, style = BurrowType.button, color = fg, modifier = Modifier.padding(start = Space.small))
         }
-        Text(money.plain(shown), style = BurrowType.display, color = fg, maxLines = 1)
+        Text(if (amount < 0 && kind == app.burrow.money.data.TopCard.BALANCE) money.balance(shown) else money.plain(shown), style = BurrowType.display, color = fg, maxLines = 1)
         Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
-        if (hero.budget != null) WavyProgress(hero.progress, fg, Modifier.padding(top = Space.block))
+        if (hero.budget != null && kind != app.burrow.money.data.TopCard.BALANCE) WavyProgress(hero.progress, fg, Modifier.padding(top = Space.block))
     }
 }

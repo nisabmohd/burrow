@@ -104,22 +104,25 @@ fun Note(
         NoteKind.WARN -> listOf(w.container, w.onContainer, w.onContainer, w.container)
         NoteKind.ERROR -> listOf(c.errorContainer, c.onErrorContainer, c.error, c.errorContainer)
     }
-    Row(
+    // Large text: the action moves under the words so the title never breaks mid-word.
+    val stacked = androidx.compose.ui.platform.LocalDensity.current.fontScale > LARGE_TEXT && action != null && onAction != null
+    Column(
         modifier.fillMaxWidth().heightIn(min = Size.note).clip(Shapes.surface).background(bg)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = Space.card, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.card),
     ) {
-        Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(circle), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = onCircle, modifier = Modifier.size(22.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
+            Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(circle), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = onCircle, modifier = Modifier.size(22.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text(title, style = BurrowType.titleSmall, color = fg)
+                if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
+            }
+            if (!stacked && action != null && onAction != null) TextButton(onClick = onAction) { Text(action, style = BurrowType.button, color = fg) }
+            else if (arrow != null) Icon(arrow, null, tint = fg)
         }
-        Column(Modifier.weight(1f)) {
-            Text(title, style = BurrowType.titleSmall, color = fg)
-            if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
-        }
-        if (action != null && onAction != null) TextButton(onClick = onAction) { Text(action, style = BurrowType.button, color = fg) }
-        else if (arrow != null) Icon(arrow, null, tint = fg)
+        if (stacked) TextButton(onClick = onAction!!, modifier = Modifier.align(Alignment.End)) { Text(action!!, style = BurrowType.button, color = fg) }
     }
 }
 
@@ -139,10 +142,12 @@ fun Widget(
     visual: (@Composable () -> Unit)? = null,
     /** Extra content under the text (Money in and out's figures), wide widgets only. */
     body: (@Composable ColumnScope.() -> Unit)? = null,
+    /** Half widgets are 184 dp; Plan's two small ones size to their content (22). */
+    fixedHeight: Boolean = true,
 ) {
     val c = MaterialTheme.colorScheme
     // Size first, then shape and padding, so a half widget is 184 dp tall in total.
-    val base = modifier.then(if (wide) Modifier.fillMaxWidth() else Modifier.height(Size.widgetHalf))
+    val base = modifier.then(if (wide) Modifier.fillMaxWidth() else if (fixedHeight) Modifier.height(Size.widgetHalf) else Modifier)
         .clip(Shapes.surface).background(c.surfaceContainerLow)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(Space.card)
     if (wide) {
@@ -156,7 +161,7 @@ fun Widget(
     } else {
         Column(base) {
             WidgetText(label, icon, value, line)
-            Spacer(Modifier.weight(1f))
+            if (fixedHeight) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(Space.block))
             visual?.invoke()
         }
     }
@@ -235,5 +240,27 @@ fun CenterTitleHeader(icon: Painter, title: String, line: String? = null, modifi
         Spacer(Modifier.height(Space.block))
         Text(title, style = BurrowType.title, color = c.onSurface, textAlign = TextAlign.Center)
         if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+    }
+}
+
+/**
+ * A More status tile (53): two to a row, 24 dp, a coloured circle top-left, the status top-right
+ * ("On", "2:10 PM"), a title and one line. Tinted while the thing is on.
+ */
+@Composable
+fun StatusTile(icon: Painter, hue: Float, status: String?, title: String, line: String, on: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    Column(
+        modifier.clip(Shapes.surface).background(if (on) c.secondaryContainer else c.surfaceContainerLow).clickable(onClick = onClick).padding(Space.card),
+        verticalArrangement = Arrangement.spacedBy(Space.group),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            IconCircle(icon, hue = hue)
+            Spacer(Modifier.weight(1f))
+            if (status != null) Text(status, style = BurrowType.label, color = c.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(Space.small))
+        Text(title, style = BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
+        Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }

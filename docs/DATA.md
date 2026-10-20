@@ -13,6 +13,18 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 - **Split** expenses: parts must add up before Save is enabled.
 - EMI interest is an expense in "Fees & interest"; principal is a transfer to the loan account.
 
+## Customisation that changes data
+- **Upcoming**: a transaction dated in the future is stored with `status = UPCOMING`, shown in Plan, and
+  becomes POSTED on its day (alarm at midnight + on app open). Balances ignore it unless "Count upcoming in balances".
+- **Repeat** on a new expense creates a `bill` (kind BILL or SUBSCRIPTION) and links the first occurrence to the txn.
+- **Lend / borrow**: `txn.personId` + `txn.lend` (LENT / BORROWED); a `person` table keeps names; the person's
+  balance = lent − borrowed − settlements. Settle up records a linked transaction.
+- **Attachments**: files copied into app storage (`files/attachments/<txnId>/`), `attachment` rows; compressed
+  to ≤ 1600 px JPEG; included in backups; deleted with the transaction.
+- **Tags**: `tag` + `txn_tag` (#Work, #Trip…), filterable in Activity.
+- **Net worth**: `account.includeInNetWorth` (cards and loans default false).
+- **Exchange rates**: `rate` (currency, perPrimary as BigDecimal text, setAt); each txn keeps its own `fxRate`.
+
 ## Entities
 `account`, `category` (parentId for sub-categories), `txn`, `bill` (repeat rule, onDue ASK/RECORD/REMIND),
 `bill_occurrence` (one row per due date: UPCOMING/PAID/SKIPPED, never auto-skipped), `budget`
@@ -21,7 +33,7 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 `loan` + `instalment`, `savings`, `payee` (aliases + default category), `split`, `tag`.
 
 ## DataStore keys
-theme, dynamicColor (false), accentHue (345), font ("lexend"), textSize, languageTag, mainCurrency,
+homeTopCard, homeWidgetsOrder, homeRecentCount, homeShowReview, formExtras (note,repeat,attach,lend), formDefaultType, formDefaultAccount, formLastCategory, showTime, onPaymentFound (ASK / EDIT_FIRST / SAVE), countUpcoming, confirmDelete, swipeRight, swipeLeft, numberFormat, dateFormat, weekStart, currencyDisplay (SYMBOL / CODE), decimals (AUTO / 0 / 2), theme, dynamicColor (false), accentHue (345), font ("lexend"), textSize, languageTag, mainCurrency,
 monthStartDay (1), numberStyle, smsCapture, notificationCapture, enabledPacks, appLock, lockAfter,
 hideAmounts, backupFolderUri, backupSchedule, lastBackupAt, firstOpenAt, txnCount, sampleBannerHidden,
 homeWidgets, supportPromptShownAt, supportPromptDismissCount.

@@ -76,6 +76,10 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: () -> Unit,
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
+    val dates = rememberDateText()
+    val snackbar = LocalSnackbar.current
+    val context = LocalContext.current
+    var settling by rememberSaveable { mutableStateOf<Long?>(null) }
     DetailFrame(onBack, stringResource(R.string.accounts), actions = {
         TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.add_account), onAdd)
     }) {
@@ -83,7 +87,8 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: () -> Unit,
             icon = { HeaderIcon(painterResource(R.drawable.ic_account_balance_regular)) },
             title = stringResource(R.string.net_worth),
             value = money.balance(s.netWorth),
-            line = pluralStringResource(R.plurals.across_accounts, s.count, s.count),
+            line = if (s.excluded.isEmpty()) pluralStringResource(R.plurals.across_accounts, s.count, s.count)
+            else stringResource(R.string.excludes_accounts, s.excluded.joinToString(", ") { app.burrow.money.ui.shortName(it.name) }),
         )
         s.groups.forEach { (group, list) ->
             SectionHeader(stringResource(group.label))
@@ -106,6 +111,32 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: () -> Unit,
                 }
             }
         }
+        // Lent and borrowed (86): who owes whom; tap to settle up.
+        if (s.people.isNotEmpty()) {
+            SectionHeader(stringResource(R.string.lent_and_borrowed), meta = s.people.size.toString())
+            ListGroup {
+                s.people.forEachIndexed { i, p ->
+                    val since = p.since?.let { dates.shortDay(dates.date(it)) }.orEmpty()
+                    ListRow(
+                        p.person.name, i, s.people.size,
+                        supporting = stringResource(if (p.balance > 0) R.string.owes_you_since else R.string.you_owe_since, since),
+                        lead = { IconCircle(painterResource(R.drawable.ic_person_duotone), hue = p.person.colorHue) },
+                        trailing = { AmountTrailing(money.plain(kotlin.math.abs(p.balance))) },
+                        onClick = { settling = p.person.id },
+                    )
+                }
+            }
+        }
+    }
+    val p = s.people.firstOrNull { it.person.id == settling } ?: return
+    val owesYou = p.balance > 0
+    PayInSheet(
+        stringResource(R.string.settle_up_with, p.person.name), stringResource(if (owesYou) R.string.settle_in_line else R.string.settle_out_line, p.person.name),
+        kotlin.math.abs(p.balance), money.digitsUnit() * 100, s.payAccounts, { settling = null },
+        accountLabel = if (owesYou) R.string.into_account else R.string.from_account, accountLine = R.string.not_spending_or_income,
+    ) { account, amount ->
+        settling = null
+        vm.settle(p.person, account, amount, owesYou) { undo -> snackbar.show(context.getString(R.string.settled), undo) }
     }
 }
 
@@ -213,6 +244,21 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 }
             }
         }
+        ListGroup(Modifier.padding(top = Space.block)) {
+            ListRow(
+                stringResource(R.string.count_in_net_worth), 0, 1,
+                supporting = stringResource(
+                    when {
+                        a.type == AccountType.CARD && !a.includeInNetWorth -> R.string.net_worth_off_card
+                        a.type == AccountType.LOAN && !a.includeInNetWorth -> R.string.net_worth_off_loan
+                        a.includeInNetWorth -> R.string.included
+                        else -> R.string.left_out
+                    },
+                ),
+                lead = { IconCircle(painterResource(R.drawable.ic_scales_duotone)) },
+                trailing = { BurrowSwitch(a.includeInNetWorth, vm::setInNetWorth) },
+            )
+        }
         if (s.deposit == null) {
             val today = LocalDate.now()
             s.txns.groupBy { dates.date(it.txn.at) }.entries.take(30).forEach { (day, list) ->
@@ -266,7 +312,17 @@ private fun FixBalanceSheet(current: Long, onDismiss: () -> Unit, onSave: (Long)
 
 /** Pay bill (card) and Prepay (loan): an amount and the account it comes from. */
 @Composable
-private fun PayInSheet(title: String, line: String, start: Long, step: Long, from: List<AccountWithBalance>, onDismiss: () -> Unit, onPay: (Long, Long) -> Unit) {
+private fun PayInSheet(
+    title: String,
+    line: String,
+    start: Long,
+    step: Long,
+    from: List<AccountWithBalance>,
+    onDismiss: () -> Unit,
+    accountLabel: Int = R.string.from_account,
+    accountLine: Int = R.string.a_transfer_not_spending,
+    onPay: (Long, Long) -> Unit,
+) {
     var amount by rememberSaveable { mutableStateOf(start) }
     var fromId by rememberSaveable { mutableStateOf(from.firstOrNull()?.account?.id) }
     var picking by remember { mutableStateOf(false) }
@@ -282,8 +338,8 @@ private fun PayInSheet(title: String, line: String, start: Long, step: Long, fro
         extra = {
             ListGroup {
                 ListRow(
-                    stringResource(R.string.from_account, account?.account?.name.orEmpty()), 0, 1,
-                    supporting = stringResource(R.string.a_transfer_not_spending),
+                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, 1,
+                    supporting = stringResource(accountLine),
                     lead = { CategoryCircle(account?.account?.icon, account?.account?.colorHue) },
                     onClick = { picking = true },
                 )

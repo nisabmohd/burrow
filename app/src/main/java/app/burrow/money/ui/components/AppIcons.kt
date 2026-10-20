@@ -33,6 +33,12 @@ fun duotoneIcon(name: String?): Int = when (name) {
     "shield" -> R.drawable.ic_shield_duotone
     "laptop_mac" -> R.drawable.ic_laptop_mac_duotone
     "flag" -> R.drawable.ic_flag_duotone
+    "pets" -> R.drawable.ic_pets_duotone
+    "fitness_center" -> R.drawable.ic_fitness_center_duotone
+    "local_gas_station" -> R.drawable.ic_local_gas_station_duotone
+    "child_care" -> R.drawable.ic_child_care_duotone
+    "coffee" -> R.drawable.ic_coffee_duotone
+    "checkroom" -> R.drawable.ic_checkroom_duotone
     else -> R.drawable.ic_category_duotone
 }
 
@@ -45,3 +51,10 @@ fun currencyIcon(code: String): Int = when (code) {
     "USD" -> R.drawable.ic_attach_money_regular
     else -> R.drawable.ic_payments_regular
 }
+
+/** Icons a category can have (Edit category, 62), in picker order. */
+val CATEGORY_ICONS = listOf(
+    "restaurant", "shopping_cart", "directions_car", "local_mall", "bolt", "home",
+    "favorite", "movie", "flight", "school", "redeem", "category",
+    "pets", "fitness_center", "local_gas_station", "child_care", "coffee", "checkroom",
+)

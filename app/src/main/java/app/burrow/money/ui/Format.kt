@@ -21,19 +21,47 @@ import java.util.Locale
 /** The main currency's formatter, from settings (provided in MainActivity). */
 val LocalMoney = staticCompositionLocalOf { MoneyFormat.of("INR") }
 
+/** Customise › Region (85): how dates are written, and the first day of the week. */
+@androidx.compose.runtime.Immutable
+data class DatePrefs(val style: String = "WRITTEN", val weekStart: java.time.DayOfWeek = java.time.DayOfWeek.MONDAY)
+
+val LocalDatePrefs = staticCompositionLocalOf { DatePrefs() }
+
+/** Customise › Transactions (82): what lists show and what gestures do. */
+@androidx.compose.runtime.Immutable
+data class ListPrefs(
+    val showTime: Boolean = true,
+    val confirmDelete: Boolean = false,
+    val swipeRight: String = "PAID",
+    val swipeLeft: String = "SKIP",
+)
+
+val LocalListPrefs = staticCompositionLocalOf { ListPrefs() }
+
+/** Set while Hide amounts (More) is on: tapping a hero shows the amounts until tapped again. */
+val LocalRevealAmounts = staticCompositionLocalOf<(() -> Unit)?> { null }
+
 /**
  * Dates as the app writes them (docs/COPY.md): "Today", "Yesterday", "Monday, 13 Oct", and times in
  * the phone's 12 / 24-hour style. Formatters are made once per locale, not per row.
  */
 @Stable
-class DateText(private val context: Context, locale: Locale) {
+class DateText(private val context: Context, locale: Locale, style: String = "WRITTEN") {
+    private val locale0 = locale
     private val zone: ZoneId = ZoneId.systemDefault()
-    private val dayFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEEdMMM"), locale)
-    private val shortDayFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
+    // Numeric styles (Customise › Region): 19/10/2026 day first, 10/19/2026 month first, 2026-10-19 year first.
+    private val numeric: Pair<String, String>? = when (style) {
+        "DMY" -> "dd/MM" to "dd/MM/yyyy"
+        "MDY" -> "MM/dd" to "MM/dd/yyyy"
+        "YMD" -> "MM-dd" to "yyyy-MM-dd"
+        else -> null
+    }
+    private val dayFormat = DateTimeFormatter.ofPattern(numeric?.let { "EEEE, ${it.first}" } ?: DateFormat.getBestDateTimePattern(locale, "EEEEdMMM"), locale)
+    private val shortDayFormat = DateTimeFormatter.ofPattern(numeric?.first ?: DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
     private val monthFormat = DateTimeFormatter.ofPattern("LLLL", locale)
     private val language = locale.language
-    private val weekdayDayFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), locale)
-    private val fullDayFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMMyyyy"), locale)
+    private val weekdayDayFormat = DateTimeFormatter.ofPattern(numeric?.let { "EEE, ${it.first}" } ?: DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), locale)
+    private val fullDayFormat = DateTimeFormatter.ofPattern(numeric?.second ?: DateFormat.getBestDateTimePattern(locale, "dMMMyyyy"), locale)
     private val monthYearFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "MMMMyyyy"), locale)
     private val timeFormat = DateTimeFormatter.ofPattern(
         DateFormat.getBestDateTimePattern(locale, if (DateFormat.is24HourFormat(context)) "Hm" else "hm"), locale,
@@ -86,6 +114,9 @@ class DateText(private val context: Context, locale: Locale) {
     /** "April 2027". */
     fun monthYear(date: LocalDate): String = monthYearFormat.format(date)
 
+    /** "Monday". */
+    fun weekdayName(date: LocalDate): String = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale0)
+
     /** "October" (standalone month name). */
     fun month(date: LocalDate): String = monthFormat.format(date)
 }
@@ -94,7 +125,8 @@ class DateText(private val context: Context, locale: Locale) {
 fun rememberDateText(): DateText {
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
-    return remember(context, locale) { DateText(context, locale) }
+    val style = LocalDatePrefs.current.style
+    return remember(context, locale, style) { DateText(context, locale, style) }
 }
 
 /** The account's short name in rows ("HDFC Savings" → "HDFC"). */

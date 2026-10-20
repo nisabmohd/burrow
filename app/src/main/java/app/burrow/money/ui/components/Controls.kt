@@ -198,11 +198,17 @@ fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> Str
                     Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
                     Spacer(Modifier.width(Space.group))
                 }
-                Text(label(option), style = BurrowType.button, color = fg, maxLines = 1)
+                // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
+                androidx.compose.foundation.text.BasicText(
+                    label(option), style = BurrowType.button.copy(color = fg), maxLines = 1,
+                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+                )
             }
         }
     }
 }
+
+private val ButtonMinText = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp)
 
 /**
  * The one text field: a 56 dp pill on surfaceContainer (search bar, payee, note, names), optional
@@ -220,6 +226,8 @@ fun PillTextField(
     onDone: () -> Unit = {},
     capitalization: KeyboardCapitalization = KeyboardCapitalization.Sentences,
     keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+    /** Dots instead of the text (backup password). */
+    password: Boolean = false,
 ) {
     val c = MaterialTheme.colorScheme
     BasicTextField(
@@ -228,6 +236,7 @@ fun PillTextField(
         singleLine = true,
         textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
         cursorBrush = SolidColor(c.primary),
+        visualTransformation = if (password) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction, keyboardType = keyboardType),
         keyboardActions = KeyboardActions(onAny = { onDone() }),
         modifier = modifier.fillMaxWidth(),
@@ -296,17 +305,10 @@ fun BurrowSwitch(checked: Boolean, onChange: (Boolean) -> Unit, modifier: Modifi
     androidx.compose.material3.Switch(checked = checked, onCheckedChange = { haptics.toggle(it); onChange(it) }, modifier = modifier)
 }
 
-/** The trailing arrow of a row that opens another screen (mirrors in RTL). */
+/** The trailing arrow of a row that opens another screen (the drawable mirrors in RTL: autoMirrored). */
 @Composable
 fun Chevron() = Icon(
     painterResource(R.drawable.ic_chevron_right_regular), null,
     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier = Modifier.size(Size.icon).autoMirror(),
+    modifier = Modifier.size(Size.icon),
 )
-
-/** Flips a drawable for right-to-left languages (chevrons, back arrows). */
-@Composable
-fun Modifier.autoMirror(): Modifier =
-    if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
-        this.scale(scaleX = -1f, scaleY = 1f)
-    } else this

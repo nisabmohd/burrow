@@ -5,6 +5,15 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -48,7 +57,32 @@ import app.burrow.money.ui.insights.CategoryInsightsScreen
 import app.burrow.money.ui.insights.CategoryInsightsViewModel
 import app.burrow.money.ui.insights.InsightsScreen
 import app.burrow.money.ui.insights.InsightsViewModel
+import app.burrow.money.ui.more.AboutScreen
+import app.burrow.money.ui.customise.CustomiseScreen
+import app.burrow.money.ui.customise.CustomiseTab
+import app.burrow.money.ui.customise.CustomiseViewModel
+import app.burrow.money.ui.more.AppLockScreen
+import app.burrow.money.ui.more.AppearanceActions
+import app.burrow.money.ui.more.AppearanceScreen
+import app.burrow.money.ui.more.BackupScreen
+import app.burrow.money.ui.more.CategoriesScreen
+import app.burrow.money.ui.more.CategoriesViewModel
+import app.burrow.money.ui.more.CsvSheet
+import app.burrow.money.ui.more.CurrencyScreen
+import app.burrow.money.ui.more.EditCategoryScreen
+import app.burrow.money.ui.more.EditCategoryViewModel
+import app.burrow.money.ui.more.FontScreen
+import app.burrow.money.ui.more.LanguageScreen
+import app.burrow.money.ui.more.LicencesScreen
+import app.burrow.money.ui.more.MoreDest
 import app.burrow.money.ui.more.MoreScreen
+import app.burrow.money.ui.more.MoreViewModel
+import app.burrow.money.ui.more.NotificationSettingsScreen
+import app.burrow.money.ui.more.PinMode
+import app.burrow.money.ui.more.PinScreen
+import app.burrow.money.ui.welcome.WelcomeScreen
+import app.burrow.money.ui.welcome.WelcomeViewModel
+import app.burrow.money.domain.PinHash
 import app.burrow.money.ui.accounts.AccountScreen
 import app.burrow.money.ui.accounts.AccountViewModel
 import app.burrow.money.ui.accounts.AccountsScreen
@@ -131,6 +165,17 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     val openAdd = { nav.navigate(AddRoute()) }
     val openTxn = { id: Long -> nav.navigate(TxnRoute(id)) }
     var planSection by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(app.burrow.money.ui.plan.PlanSection.BILLS) }
+    // First open: Welcome (01–03); afterwards Today. Read once, so finishing Welcome doesn't jump.
+    val start: Any = remember { if (settings.onboarded) TodayRoute else WelcomeRoute }
+    val appearance = remember {
+        object : AppearanceActions {
+            override fun mode(m: app.burrow.money.ui.theme.ThemeMode) { container.appScope.launch { container.settings.setThemeMode(m) } }
+            override fun accent(hue: Float) { container.appScope.launch { container.settings.setAccentHue(hue) } }
+            override fun dynamic(on: Boolean) { container.appScope.launch { container.settings.setDynamicColor(on) } }
+            override fun font(f: app.burrow.money.ui.theme.BodyFont) { container.appScope.launch { container.settings.setFont(f) } }
+            override fun size(s: app.burrow.money.ui.theme.TextSize) { container.appScope.launch { container.settings.setTextSize(s) } }
+        }
+    }
     val digits = remember(settings.mainCurrency) { app.burrow.money.domain.MoneyFormat.of(settings.mainCurrency).digits }
     // From a notification: capture → To review, bill reminder → the bill, budget alert → Budgets.
     LaunchedEffect(open) {
@@ -138,18 +183,39 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
             OpenFromNotification.Review -> nav.navigate(ReviewRoute) { launchSingleTop = true }
             is OpenFromNotification.Bill -> nav.navigate(BillRoute(open.id)) { launchSingleTop = true }
             OpenFromNotification.Budgets -> { planSection = app.burrow.money.ui.plan.PlanSection.BUDGETS; nav.openTab(PlanRoute) }
+            OpenFromNotification.Insights -> nav.openTab(InsightsRoute)
+            is OpenFromNotification.EditCapture -> nav.navigate(AddRoute(captureId = open.captureId))
+            is OpenFromNotification.Txn -> nav.navigate(TxnRoute(open.id))
+            OpenFromNotification.Accounts -> nav.navigate(AccountsRoute) { launchSingleTop = true }
             null -> return@LaunchedEffect
         }
         onOpened()
     }
 
+    // Responsive (Day 26): from 600 dp the content keeps a readable width, centred; from 840 dp the
+    // bottom nav becomes a rail on the start side.
+    val width = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    val rail = width >= app.burrow.money.ui.theme.Size.railFrom
+    val short = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp < app.burrow.money.ui.theme.Size.landscapeMaxHeight
+    val maxWidth = if (short) app.burrow.money.ui.theme.Size.contentMaxLandscape else app.burrow.money.ui.theme.Size.contentMax
+    val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
     CompositionLocalProvider(LocalSnackbar provides snackbar) {
-        Column(Modifier.fillMaxSize()) {
-            Box(Modifier.weight(1f)) {
+        // Landscape: the system's nav buttons and the camera cutout sit at the sides; keep clear of them.
+        androidx.compose.foundation.layout.Row(
+            Modifier.fillMaxSize().windowInsetsPadding(
+                androidx.compose.foundation.layout.WindowInsets.navigationBars.union(androidx.compose.foundation.layout.WindowInsets.displayCutout)
+                    .only(androidx.compose.foundation.layout.WindowInsetsSides.Horizontal),
+            ),
+        ) {
+        if (rail && current != null) {
+            app.burrow.money.ui.components.BurrowNavRail(items, selected = current.ordinal, onSelect = { i -> nav.openTab(Tab.entries[i].route) }, modifier = Modifier.fillMaxHeight())
+        }
+        Column(Modifier.weight(1f).fillMaxHeight()) {
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
                 NavHost(
                     navController = nav,
-                    startDestination = TodayRoute,
-                    modifier = Modifier.fillMaxSize(),
+                    startDestination = start,
+                    modifier = Modifier.fillMaxHeight().widthIn(max = maxWidth).fillMaxWidth(),
                     enterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.push(this) },
                     exitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.pushExit(this) },
                     popEnterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.pop(this) },
@@ -165,11 +231,12 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBill = { nav.navigate(BillRoute(it)) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
                             onGoal = { nav.navigate(GoalRoute(it)) },
+                            onCustomise = { nav.navigate(CustomiseRoute("TODAY")) },
                         )
                     }
                     composable<ActivityRoute> {
                         val vm = viewModel { ActivityViewModel(container.money, container.filters) }
-                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn)
+                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn, onEdit = { nav.navigate(AddRoute(editId = it)) }, onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) })
                     }
                     composable<PlanRoute> {
                         val vm = viewModel { PlanViewModel(container.plan, container.money, settings.monthStartDay, digits) }
@@ -179,6 +246,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onOpenBill = { nav.navigate(BillRoute(it)) },
                             onSubscriptions = { nav.navigate(SubscriptionsRoute) },
                             onLoan = { id -> nav.navigate(if (id != null) AccountRoute(id) else AccountsRoute) },
+                            onOpenTxn = openTxn,
                             onBudget = { nav.navigate(BudgetRoute(it ?: -1L)) },
                             onAddGoal = { nav.navigate(NewGoalRoute()) },
                             onOpenGoal = { nav.navigate(GoalRoute(it)) },
@@ -225,8 +293,8 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         )
                     }
                     composable<NewAccountRoute> { e ->
-                        val id = e.toRoute<NewAccountRoute>().editId
-                        val vm = viewModel { NewAccountViewModel(container.money, id, digits, settings.mainCurrency) }
+                        val r = e.toRoute<NewAccountRoute>()
+                        val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) }
                         val saved = stringResource(R.string.saved)
                         NewAccountScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
                     }
@@ -250,10 +318,99 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id) }
                         CategoryInsightsScreen(vm, onBack = { nav.popBackStack() }, onOpenTxn = openTxn)
                     }
-                    composable<MoreRoute> { MoreScreen(onAutoCapture = { nav.navigate(AutoCaptureRoute) }) }
+                    composable<MoreRoute> {
+                        val vm = viewModel { MoreViewModel(container) }
+                        var csv by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+                        MoreScreen(vm) { dest ->
+                            when (dest) {
+                                MoreDest.CAPTURE -> nav.navigate(AutoCaptureRoute)
+                                MoreDest.BACKUP -> nav.navigate(BackupRoute)
+                                MoreDest.LOCK -> nav.navigate(AppLockRoute)
+                                MoreDest.APPEARANCE -> nav.navigate(AppearanceRoute)
+                                MoreDest.CATEGORIES -> nav.navigate(CategoriesRoute)
+                                MoreDest.ACCOUNTS -> nav.navigate(AccountsRoute)
+                                MoreDest.CUSTOMISE_TODAY -> nav.navigate(CustomiseRoute("TODAY"))
+                                MoreDest.CUSTOMISE_EXPENSE -> nav.navigate(CustomiseRoute("EXPENSE"))
+                                MoreDest.CUSTOMISE_TRANSACTIONS -> nav.navigate(CustomiseRoute("TRANSACTIONS"))
+                                MoreDest.CUSTOMISE_REGION -> nav.navigate(CustomiseRoute("REGION"))
+                                MoreDest.CUSTOMISE_CURRENCY -> nav.navigate(CustomiseRoute("CURRENCY"))
+                                MoreDest.FONT -> nav.navigate(FontRoute)
+                                MoreDest.NOTIFICATIONS -> nav.navigate(NotificationsRoute)
+                                MoreDest.CSV -> csv = true
+                                MoreDest.ABOUT -> nav.navigate(AboutRoute)
+                            }
+                        }
+                        if (csv) CsvSheet(container) { csv = false }
+                    }
+                    composable<CustomiseRoute> { e ->
+                        val tab = e.toRoute<CustomiseRoute>().tab
+                        val vm = viewModel { CustomiseViewModel(container, settings.monthStartDay) }
+                        CustomiseScreen(
+                            vm, settings, runCatching { CustomiseTab.valueOf(tab) }.getOrDefault(CustomiseTab.TODAY),
+                            onBack = { nav.popBackStack() }, onLanguage = { nav.navigate(LanguageRoute) }, onMainCurrency = { nav.navigate(CurrencyRoute) },
+                        )
+                    }
+                    composable<CategoriesRoute> {
+                        val vm = viewModel { CategoriesViewModel(container, settings.monthStartDay) }
+                        CategoriesScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(EditCategoryRoute(it)) })
+                    }
+                    composable<EditCategoryRoute> { e ->
+                        val id = e.toRoute<EditCategoryRoute>().id
+                        val vm = viewModel { EditCategoryViewModel(container, id) }
+                        EditCategoryScreen(vm, onClose = { nav.popBackStack() })
+                    }
+                    composable<CurrencyRoute> {
+                        CurrencyScreen(settings.mainCurrency, onPick = { code -> container.appScope.launch { container.settings.setMainCurrency(code) }; nav.popBackStack() }, onBack = { nav.popBackStack() })
+                    }
+                    composable<AppearanceRoute> {
+                        AppearanceScreen(settings, appearance, onBack = { nav.popBackStack() }, onFont = { nav.navigate(FontRoute) }, onLanguage = { nav.navigate(LanguageRoute) })
+                    }
+                    composable<FontRoute> { FontScreen(settings, appearance, onBack = { nav.popBackStack() }) }
+                    composable<LanguageRoute> { LanguageScreen(onBack = { nav.popBackStack() }) }
+                    composable<NotificationsRoute> {
+                        NotificationSettingsScreen(settings, onBack = { nav.popBackStack() }) { key, on ->
+                            container.appScope.launch {
+                                container.settings.setNotify(key, on)
+                                if (key == "summary") container.backup.schedule()
+                            }
+                        }
+                    }
+                    composable<BackupRoute> { BackupScreen(container, settings, onBack = { nav.popBackStack() }) }
+                    composable<AppLockRoute> {
+                        AppLockScreen(
+                            settings, onBack = { nav.popBackStack() }, onSetPin = { nav.navigate(SetPinRoute) },
+                            onLock = { on -> container.appScope.launch { container.settings.setAppLock(on) } },
+                            onLockAfter = { sec -> container.appScope.launch { container.settings.setLockAfter(sec) } },
+                            onHideInNotifications = { on -> container.appScope.launch { container.settings.setHideInNotifications(on) } },
+                        )
+                    }
+                    composable<SetPinRoute> {
+                        val pinSaved = stringResource(R.string.pin_saved)
+                        PinScreen(
+                            PinMode.SET, check = { false }, onUnlocked = {},
+                            onPin = { pin ->
+                                container.appScope.launch {
+                                    container.settings.setPinHash(PinHash.make(pin))
+                                    container.settings.setAppLock(true)
+                                }
+                                snackbar.show(pinSaved)
+                                nav.popBackStack()
+                            },
+                            onClose = { nav.popBackStack() },
+                        )
+                    }
+                    composable<AboutRoute> { AboutScreen(onBack = { nav.popBackStack() }, onLicences = { nav.navigate(LicencesRoute) }) }
+                    composable<LicencesRoute> { LicencesScreen(onBack = { nav.popBackStack() }) }
+                    composable<WelcomeRoute> {
+                        val vm = viewModel { WelcomeViewModel(container) }
+                        WelcomeScreen(
+                            container, vm, onAddAccount = { type -> nav.navigate(NewAccountRoute(type = type)) },
+                            onDone = { nav.navigate(TodayRoute) { popUpTo(WelcomeRoute) { inclusive = true } } },
+                        )
+                    }
                     composable<ReviewRoute> {
                         val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
-                        ReviewScreen(vm, onBack = { nav.popBackStack() })
+                        ReviewScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) })
                     }
                     composable<CaptureIntroRoute> {
                         CaptureIntroScreen(
@@ -275,6 +432,8 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onTeach = { nav.navigate(TeachRoute(captureId = it)) },
                             onRules = { nav.navigate(RulesRoute) },
                             onHowItWorks = { nav.navigate(CaptureIntroRoute) },
+                            paymentFound = settings.onPaymentFound,
+                            onPaymentFound = { nav.navigate(CustomiseRoute("TRANSACTIONS")) },
                         )
                     }
                     composable<RulesRoute> {
@@ -310,8 +469,9 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<AddRoute> { e ->
                         val r = e.toRoute<AddRoute>()
-                        val vm = viewModel { AddViewModel(container.money, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency, r.accountId) }
+                        val vm = viewModel { AddViewModel(container, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency, r.accountId, r.captureId) }
                         AddScreen(
+                            container,
                             vm,
                             onClose = { nav.popBackStack() },
                             onSaved = { saved ->
@@ -328,10 +488,10 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         .then(if (current == null) Modifier.navigationBarsPadding() else Modifier),
                 )
             }
-            if (current != null) {
-                val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
+            if (current != null && !rail) {
                 BurrowNavBar(items, selected = current.ordinal, onSelect = { i -> nav.openTab(Tab.entries[i].route) })
             }
+        }
         }
     }
 }

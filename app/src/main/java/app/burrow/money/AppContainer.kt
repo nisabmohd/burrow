@@ -38,7 +38,9 @@ class AppContainer(val context: Context) {
     val planNotifier by lazy { Notifier(context) }
     val capture by lazy { CaptureRepository(context, database, settings, money, rules) }
     val notifier by lazy { CaptureNotifier(context) }
-    // val backup by lazy { BackupManager(database, settings) } // week 5
+    val backup by lazy { app.burrow.money.data.BackupManager(context, database, settings) }
+    val csv by lazy { app.burrow.money.data.CsvTransfer(money, database) }
+    val attachments by lazy { app.burrow.money.data.Attachments(context, database) }
 
     /** Activity's and Insights' filters: kept while the app is open, gone on restart. */
     val filters = app.burrow.money.ui.filters.FilterStore()

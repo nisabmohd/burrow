@@ -54,8 +54,8 @@ fun TodayScreen(
     onBill: (Long) -> Unit,
     onCategory: (Long) -> Unit,
     onGoal: (Long) -> Unit,
+    onCustomise: () -> Unit,
 ) {
-    var editHome by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
     val today = remember { LocalDate.now() }
@@ -112,8 +112,8 @@ fun TodayScreen(
                     )
                 }
             }
-            item(key = "hero", contentType = "hero") { BudgetHero(s.hero, Modifier.animateItem()) }
-            if (s.toReview > 0) {
+            item(key = "hero", contentType = "hero") { BudgetHero(s.hero, Modifier.animateItem(), s.topCard, s.balance) }
+            if (s.toReview > 0 && s.showReview) {
                 item(key = "review", contentType = "note") {
                     Note(
                         kind = NoteKind.INFO,
@@ -128,7 +128,7 @@ fun TodayScreen(
             }
             if (s.shown.isNotEmpty()) item(key = "widgets", contentType = "widgets") {
                 TodayWidgets(
-                    s.widgets, s.shown, s.hero,
+                    s.widgets, s.shown, s.order, s.hero,
                     onWeek = onSeeAll, onBill = onBill,
                     onMarkPaid = { id -> vm.markPaid(id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } },
                     onNetWorth = onAccounts, onCategory = onCategory, onGoal = onGoal,
@@ -147,12 +147,10 @@ fun TodayScreen(
             }
             item(key = "edit-home", contentType = "button") {
                 BurrowButton(
-                    stringResource(R.string.edit_home), { editHome = true },
+                    stringResource(R.string.customise_today), onCustomise,
                     Modifier.fillMaxWidth().padding(top = Space.block), ButtonKind.TONAL, painterResource(R.drawable.ic_dashboard_customize_regular),
                 )
             }
         }
     }
-    val s = state ?: return
-    if (editHome) EditHomeSheet(s.shown, vm::setWidget) { editHome = false }
 }
