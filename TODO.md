@@ -37,22 +37,24 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] First baseline profile; measure cold start and APK size (play release 1.9 MB; cold start ~120 ms on the API 35 emulator)
 
 ## Week 2 — auto-capture
-- [ ] **Day 6 · Rules engine**
-  - [ ] India pack `assets/rules/in.json` (10+ banks and UPI apps), a test per sender
-  - [ ] Rule entity + repository, packs on/off
-- [ ] **Day 7 · SMS + notifications (43)**
-  - [ ] `SmsReceiver` with goAsync, `PaymentNotificationListener` with the allow-list
-  - [ ] Dedupe (10 min), bill match (±10%, 3 days)
-  - [ ] Capture notification with two category buttons + Ignore
-- [ ] **Day 8 · Intro + Review (44–47)**
-  - [ ] 3-step intro with permission requests
-  - [ ] To review: chips, ✕, swipe, "Save N payments", All caught up
-- [ ] **Day 9 · Message rules (49–51)**
-  - [ ] Rules list, rule detail with Test it, Add-rule sheet
-  - [ ] Import / export rules file (validated regexes)
-- [ ] **Day 10 · Teach (48, 52, 07)**
-  - [ ] Tap-to-build rule, re-run on waiting messages
-  - [ ] Auto-capture settings screen, paused note on Today
+- [x] **Day 6 · Rules engine**
+  - [x] India pack `assets/rules/in.json` (10+ banks and UPI apps), a test per sender
+  - [x] Rule entity + repository, packs on/off
+- [x] **Day 7 · SMS + notifications (43)**
+  - [x] `SmsReceiver` with goAsync, `PaymentNotificationListener` with the allow-list
+  - [x] Dedupe (10 min)
+  - [ ] Bill match (±10%, 3 days): needs bills, do it on Day 11
+  - [x] Capture notification with two category buttons + Ignore
+- [x] **Day 8 · Intro + Review (44–47)**
+  - [x] 3-step intro with permission requests
+  - [x] To review: chips, ✕, swipe, "Save N payments", All caught up
+- [x] **Day 9 · Message rules (49–51)**
+  - [x] Rules list, rule detail with Test it, Add-rule sheet
+  - [x] Import / export rules file (validated regexes)
+- [x] **Day 10 · Teach (48, 52, 07)**
+  - [ ] Later: payee names for UPI ids ("thirdwave@okicici" → "Third Wave Coffee", payee aliases); rename a rule (the pencil on 50); more country packs (UAE, UK); Hindi strings for week 2
+  - [x] Tap-to-build rule, re-run on waiting messages
+  - [x] Auto-capture settings screen, paused note on Today
 
 ## Week 3 — Plan
 - [ ] **Day 11 · Bills data**

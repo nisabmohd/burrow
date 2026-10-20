@@ -1,5 +1,6 @@
 package app.burrow.money
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -23,11 +24,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.ui.nav.BurrowNavHost
 import app.burrow.money.ui.theme.BurrowTheme
 import app.burrow.money.ui.theme.isDark
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        /** From the capture notification: open To review. */
+        const val ACTION_OPEN_REVIEW = "app.burrow.money.action.OPEN_REVIEW"
+    }
+
+    /** Set when the capture notification was tapped; the nav host opens To review and clears it. */
+    private val openReview = MutableStateFlow(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) handleIntent(intent)
         val container = (application as BurrowApp).container
         setContent {
             // Null until DataStore has loaded, so the first real frame already has the right theme.
@@ -52,10 +63,20 @@ class MainActivity : ComponentActivity() {
             BurrowTheme(current.theme) {
                 CompositionLocalProvider(LocalMoney provides money) {
                     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        BurrowNavHost(container, current)
+                        val review by openReview.collectAsStateWithLifecycle()
+                        BurrowNavHost(container, current, review, onReviewOpened = { openReview.value = false })
                     }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent?.action == ACTION_OPEN_REVIEW) openReview.value = true
     }
 }

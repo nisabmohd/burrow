@@ -11,6 +11,8 @@ if something is missing, add a component here first.
 | `TonalIconButton` | 48 dp circle, `surfaceContainer`; active `primaryContainer`; optional count badge | Controls.kt |
 | `FilterHeaderButtons` | funnel + calendar, 8 dp apart; badge = number of active filters | Controls.kt |
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing (search, payee, note) | Controls.kt |
+| `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle; the centred header when the big line is words ("142 payments recorded") | Blocks.kt |
+| `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); can report taps | MessageText.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
@@ -29,7 +31,7 @@ if something is missing, add a component here first.
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
 | `ButtonGroup` | 2–3 options, 48 dp pills 4 dp apart; selected = primary with a check | Controls.kt |
-| Chips | 36 dp pills; selected `secondaryContainer` + check; `ChipWrap` wraps in sheets | Controls.kt |
+| `Chip` / `ChipWrap` | 36 dp pills; selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Bars.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
@@ -41,7 +43,8 @@ if something is missing, add a component here first.
 | `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete, replace data, wrong password only | Dialogs.kt |
-| Switch | Material 3 switch, primary track | Material |
+| `BurrowSwitch` | Material 3 switch, primary track, toggle haptic | Controls.kt |
+| `Chevron` | trailing arrow of a row that opens a screen; mirrors in RTL (`autoMirror`) | Controls.kt |
 | `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3× | Bars.kt (Material `NavigationBar`) |
 
 ## Haptics (`Haptics.kt`)

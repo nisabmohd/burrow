@@ -4,7 +4,7 @@
 Installs a fresh debug build (which seeds the sample month on first launch), then runs one short
 check per feature and prints PASS/FAIL. Exit code is the number of failures.
 
-    ./gradlew :app:assemblePlayDebug
+    ./gradlew :app:assembleFossDebug
     python3 tools/smoke.py            # all checks
     python3 tools/smoke.py today notes  # only checks whose name contains these words
 
@@ -20,7 +20,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 import device as d  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-APK = os.path.join(ROOT, "app/build/outputs/apk/play/debug/app-play-debug.apk")
+# foss: the build that reads bank SMS (play only reads payment-app notifications until the Play SMS
+# declaration is approved), so every capture check can run.
+APK = os.path.join(ROOT, "app/build/outputs/apk/foss/debug/app-foss-debug.apk")
 
 CHECKS = []
 
@@ -116,6 +118,26 @@ def activity_search_no_results():
     d.type_text("zzqq")
     assert d.exists("No results for", contains=True), "no empty state for a search miss"
     d.tap("Clear search")
+    d.back()  # close the keyboard, so the nav bar is visible for the next check
+
+
+@check
+def capture_intro_turns_on():
+    recover()
+    d.nav("More")
+    d.tap("Auto-capture")
+    d.tap("How it works")
+    d.tap("Next")
+    d.tap("Next")
+    d.tap("Allow")
+    for _ in range(3):  # Android's own permission dialogs, one per permission group
+        if not d.exists("ALLOW", timeout=3):
+            break
+        d.tap("ALLOW")
+    # The intro opens the notification-access settings; grant it the way the switch there would.
+    d.shell(f"cmd notification allow_listener {d.PACKAGE}/{d.PACKAGE}.capture.PaymentNotificationListener")
+    d.back()
+    assert d.exists("Bank SMS", timeout=5), "Allow did not end on Auto-capture"
 
 
 @check
@@ -126,6 +148,44 @@ def sms_capture_asks_for_category():
     ok = d.exists("₹240", contains=True, timeout=5)
     d.shell("cmd statusbar collapse")
     assert ok, "no capture notification for a bank SMS"
+
+
+@check
+def sms_capture_dedupes_and_reviews():
+    msg = "Rs.180.00 debited from A/c XX1234 on 20-10-26 to VPA chaayos.paytm@hdfc. UPI Ref 629184001."
+    d.adb("emu", "sms", "send", "HDFCBK", msg)
+    time.sleep(2)
+    d.adb("emu", "sms", "send", "HDFCBK", msg)  # the same payment twice: one entry
+    time.sleep(3)
+    recover()
+    d.nav("Today")
+    assert d.exists("2 payments to review", timeout=5), "expected 2 to review (the 240 and one 180)"
+    d.tap("2 payments to review")
+    save = [n for n in d.dump() if n.label == "Save 2 payments"]
+    assert save, "no Save 2 payments button"
+    x1, y1, x2, y2 = save[0].bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    time.sleep(0.5)
+    nodes = d.dump()  # read and tap Undo from one dump: the snackbar lasts ~4 s
+    assert any(n.label == "All caught up" for n in nodes), "review not emptied after saving"
+    undo = [n for n in nodes if n.label == "Undo"]
+    assert undo, "no Undo after saving"
+    x1, y1, x2, y2 = undo[0].bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    assert d.exists("Save 2 payments", timeout=5), "Undo did not bring the payments back"
+
+
+@check
+def not_understood_waits_for_teach():
+    d.adb("emu", "sms", "send", "KOTAKB", "Rs.2,350.00 debited from A/c XX4471 on 18-10-26 to VPA zomato@hdfcbank Ref 629184. Not you? Call 1860-266-2666")
+    time.sleep(3)
+    recover()
+    d.nav("More")
+    d.tap("Auto-capture")
+    assert d.exists("1 message not understood", timeout=5), "unreadable bank SMS not kept for Teach"
+    d.tap("1 message not understood")
+    assert d.exists("Teach a message", timeout=5), "Teach did not open"
+    d.back()
 
 
 @check
@@ -154,6 +214,7 @@ def no_internet_permission():
 
 @check
 def touch_targets_48dp():
+    recover()
     problems = []
     for tab in ["Today", "Activity", "Plan", "Insights", "More"]:
         d.nav(tab)
@@ -173,7 +234,7 @@ def recover():
 def main(filters):
     selected = [c for c in CHECKS if not filters or any(f in c.__name__ for f in filters)]
     if not os.path.exists(APK):
-        sys.exit(f"Build first: ./gradlew :app:assemblePlayDebug (missing {APK})")
+        sys.exit(f"Build first: ./gradlew :app:assembleFossDebug (missing {APK})")
     fresh_install()
     if welcome_shows_once not in selected and d.exists("Get started", timeout=3):
         d.tap("Get started")

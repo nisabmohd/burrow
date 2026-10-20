@@ -11,6 +11,8 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
 3. **Match a rule**: user rules first (newest first), then enabled built-in packs. A rule = sender regex +
    pattern with named groups `amount` (required), `payee`, `account`, `currency`, `balance`.
 4. **Dedupe**: same amount + same account or reference within 10 minutes from SMS and app = one entry.
+   A payment-app notification often names neither, so a pair from different sources where one has no
+   account also counts (`CaptureLogic.findDuplicate`). The second one is stored as MERGED, never asked.
 5. **Bill match**: a payee + amount (±10%) matching a bill due within 3 days marks that bill **Paid**.
 6. **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
    with two category buttons (remembered payee → category first) and Ignore. One tap saves.
@@ -62,7 +64,8 @@ Shared by people for their bank or country (GitHub, chat). **Never contains mess
 }
 ```
 Built-in packs ship as `assets/rules/<country>.json` in the same format; the India pack covers the top
-banks and UPI apps. Every pack has tests in `src/test/…/capture/` with real (anonymised) examples.
+banks and UPI apps (19 rules: HDFC, ICICI, SBI, Axis, Kotak, IDFC FIRST, YES, Bank of Baroda, PNB, Canara;
+Google Pay, PhonePe, Paytm). Each rule carries an anonymised `example`, and `IndiaPackTest` checks every one. Every pack has tests in `src/test/…/capture/` with real (anonymised) examples.
 Import validates every regex (compile + a 50 ms timeout guard against catastrophic patterns) before saving.
 
 ## Privacy promises (say them in the intro, keep them in code)

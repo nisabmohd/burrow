@@ -40,14 +40,14 @@ fun defaultCategories(strings: Strings): List<CategoryEntity> =
         INCOME_CATEGORIES.mapIndexed { i, (name, icon, hue) -> CategoryEntity(name = strings(name), kind = CategoryKind.INCOME, icon = icon, colorHue = hue, sortOrder = 100 + i) }
 
 /** A sample account and the balance it should show today. */
-private data class SampleAccount(val key: String, val name: String, val type: String, val icon: String, val hue: Float, val balance: Long)
+private data class SampleAccount(val key: String, val name: String, val type: String, val icon: String, val hue: Float, val balance: Long, val number: String? = null)
 
 private val SAMPLE_ACCOUNTS = listOf(
-    SampleAccount("hdfc", "HDFC Savings", AccountType.BANK, "account_balance", 215f, 142_300),
-    SampleAccount("icici", "ICICI Amazon Pay", AccountType.CARD, "credit_card", 28f, -8_120),
+    SampleAccount("hdfc", "HDFC Savings", AccountType.BANK, "account_balance", 215f, 142_300, "1234"),
+    SampleAccount("icici", "ICICI Amazon Pay", AccountType.CARD, "credit_card", 28f, -8_120, "8890"),
     SampleAccount("cash", "Cash", AccountType.CASH, "payments", 140f, 1_500),
     SampleAccount("paytm", "Paytm wallet", AccountType.WALLET, "account_balance_wallet", 192f, 850),
-    SampleAccount("kotak", "Kotak", AccountType.BANK, "account_balance", 345f, 16_600),
+    SampleAccount("kotak", "Kotak", AccountType.BANK, "account_balance", 345f, 16_600, "4471"),
     SampleAccount("loan", "Home loan", AccountType.LOAN, "real_estate_agent", 245f, -2_140_560),
     SampleAccount("fd", "Fixed deposit", AccountType.SAVINGS, "savings", 50f, 200_000),
 )
@@ -139,7 +139,7 @@ class SampleData(
             val accounts = SAMPLE_ACCOUNTS.mapIndexed { i, a ->
                 AccountEntity(
                     name = a.name, type = a.type, currency = currency, openingBalance = signedMoney(a.balance) - net[i],
-                    colorHue = a.hue, icon = a.icon, sortOrder = i, isSample = true, createdAt = now,
+                    colorHue = a.hue, icon = a.icon, sortOrder = i, isSample = true, createdAt = now, number = a.number,
                 )
             }
             val month = BudgetPeriod.containing(today, monthStartDay).month.toString()

@@ -15,7 +15,7 @@ value class Minor(val units: Long) {
     val isNegative get() = units < 0
 }
 
-fun minorDigits(currency: String): Int = java.util.Currency.getInstance(currency).defaultFractionDigits.coerceAtLeast(0)
+fun minorDigits(currency: String): Int = runCatching { java.util.Currency.getInstance(currency).defaultFractionDigits }.getOrDefault(2).coerceAtLeast(0)
 
 fun BigDecimal.toMinor(currency: String): Minor =
     Minor(setScale(minorDigits(currency), RoundingMode.HALF_EVEN).movePointRight(minorDigits(currency)).longValueExact())

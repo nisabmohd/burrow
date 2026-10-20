@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.burrow.money.ui.theme.BodyFont
 import app.burrow.money.ui.theme.ThemeMode
@@ -31,6 +32,11 @@ data class Settings(
     val mainCurrency: String = defaultCurrency(),
     /** The day budget months start on, 1–28. */
     val monthStartDay: Int = 1,
+    /** Auto-capture switches (More › Auto-capture); both off until the intro's Allow. */
+    val smsCapture: Boolean = false,
+    val notificationCapture: Boolean = false,
+    /** Built-in rule packs that are on (ids from BUILT_IN_PACKS). */
+    val enabledPacks: Set<String> = setOf("in"),
 )
 
 /** The phone region's currency, or INR when the region has none. */
@@ -51,6 +57,12 @@ class SettingsRepository(context: Context) {
     suspend fun setTextSize(size: TextSize) = store.edit { it[TEXT_SIZE] = size.name }
     suspend fun setMainCurrency(code: String) = store.edit { it[MAIN_CURRENCY] = code }
     suspend fun setMonthStartDay(day: Int) = store.edit { it[MONTH_START_DAY] = day.coerceIn(1, 28) }
+    suspend fun setSmsCapture(on: Boolean) = store.edit { it[SMS_CAPTURE] = on }
+    suspend fun setNotificationCapture(on: Boolean) = store.edit { it[NOTIFICATION_CAPTURE] = on }
+    suspend fun setPackEnabled(id: String, on: Boolean) = store.edit {
+        val now = it[ENABLED_PACKS] ?: setOf("in")
+        it[ENABLED_PACKS] = if (on) now + id else now - id
+    }
 
     private fun Preferences.toSettings(): Settings {
         val theme = ThemeSettings()
@@ -64,6 +76,9 @@ class SettingsRepository(context: Context) {
             ),
             mainCurrency = this[MAIN_CURRENCY] ?: defaultCurrency(),
             monthStartDay = this[MONTH_START_DAY] ?: 1,
+            smsCapture = this[SMS_CAPTURE] ?: false,
+            notificationCapture = this[NOTIFICATION_CAPTURE] ?: false,
+            enabledPacks = this[ENABLED_PACKS] ?: setOf("in"),
         )
     }
 
@@ -75,6 +90,9 @@ class SettingsRepository(context: Context) {
         val TEXT_SIZE = stringPreferencesKey("textSize")
         val MAIN_CURRENCY = stringPreferencesKey("mainCurrency")
         val MONTH_START_DAY = intPreferencesKey("monthStartDay")
+        val SMS_CAPTURE = booleanPreferencesKey("smsCapture")
+        val NOTIFICATION_CAPTURE = booleanPreferencesKey("notificationCapture")
+        val ENABLED_PACKS = stringSetPreferencesKey("enabledPacks")
     }
 }
 

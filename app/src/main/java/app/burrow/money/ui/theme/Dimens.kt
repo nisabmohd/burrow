@@ -55,6 +55,8 @@ object Size {
     val emptyShape = 128.dp
     val wavyHeight = 14.dp
     val thinBar = 8.dp
+    val dot = 8.dp            // step dots (intro); the current step is a pill
+    val dotActive = 24.dp
 }
 
 object Shapes {

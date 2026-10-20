@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -48,7 +49,19 @@ import app.burrow.money.ui.more.MoreScreen
 import app.burrow.money.ui.plan.PlanScreen
 import app.burrow.money.ui.theme.NavMotion
 import app.burrow.money.ui.theme.Space
+import app.burrow.money.ui.capture.AutoCaptureScreen
+import app.burrow.money.ui.capture.AutoCaptureViewModel
+import app.burrow.money.ui.capture.CaptureIntroScreen
+import app.burrow.money.ui.review.ReviewScreen
+import app.burrow.money.ui.review.ReviewViewModel
+import app.burrow.money.ui.rules.RuleScreen
+import app.burrow.money.ui.rules.RuleViewModel
+import app.burrow.money.ui.rules.RulesScreen
+import app.burrow.money.ui.rules.RulesViewModel
+import app.burrow.money.ui.teach.TeachScreen
+import app.burrow.money.ui.teach.TeachViewModel
 import app.burrow.money.ui.today.TodayScreen
+import kotlinx.coroutines.launch
 import app.burrow.money.ui.today.TodayViewModel
 import kotlin.reflect.KClass
 
@@ -84,7 +97,7 @@ private fun NavHostController.openTab(route: Any) = navigate(route) {
  * manifest). The bottom nav shows on tabs only. The Undo snackbar sits above the nav, for every screen.
  */
 @Composable
-fun BurrowNavHost(container: AppContainer, settings: Settings) {
+fun BurrowNavHost(container: AppContainer, settings: Settings, openReview: Boolean = false, onReviewOpened: () -> Unit = {}) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination.tab()
@@ -93,6 +106,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
     val snackbar = remember(undoLabel) { UndoSnackbar(container.appScope, undoLabel) }
     val openAdd = { nav.navigate(AddRoute()) }
     val openTxn = { id: Long -> nav.navigate(TxnRoute(id)) }
+    // From the capture notification.
+    LaunchedEffect(openReview) {
+        if (openReview) {
+            nav.navigate(ReviewRoute) { launchSingleTop = true }
+            onReviewOpened()
+        }
+    }
 
     CompositionLocalProvider(LocalSnackbar provides snackbar) {
         Column(Modifier.fillMaxSize()) {
@@ -107,8 +127,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
                     popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
                 ) {
                     composable<TodayRoute> {
-                        val vm = viewModel { TodayViewModel(container.money, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
-                        TodayScreen(vm, onAdd = openAdd, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) })
+                        val vm = viewModel { TodayViewModel(container.money, container.capture, container.settings, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
+                        TodayScreen(
+                            vm, onAdd = openAdd, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) },
+                            onReview = { nav.navigate(ReviewRoute) },
+                            onCaptureIntro = { nav.navigate(CaptureIntroRoute) },
+                            onFixCapture = { nav.navigate(AutoCaptureRoute) },
+                        )
                     }
                     composable<ActivityRoute> {
                         val vm = viewModel { ActivityViewModel(container.money) }
@@ -116,7 +141,54 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
                     }
                     composable<PlanRoute> { PlanScreen() }
                     composable<InsightsRoute> { InsightsScreen() }
-                    composable<MoreRoute> { MoreScreen() }
+                    composable<MoreRoute> { MoreScreen(onAutoCapture = { nav.navigate(AutoCaptureRoute) }) }
+                    composable<ReviewRoute> {
+                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
+                        ReviewScreen(vm, onBack = { nav.popBackStack() })
+                    }
+                    composable<CaptureIntroRoute> {
+                        CaptureIntroScreen(
+                            onClose = { nav.popBackStack() },
+                            onAllowed = { sms ->
+                                container.appScope.launch {
+                                    container.settings.setSmsCapture(sms)
+                                    container.settings.setNotificationCapture(true)
+                                }
+                                nav.navigate(AutoCaptureRoute) { popUpTo<CaptureIntroRoute> { inclusive = true } }
+                            },
+                        )
+                    }
+                    composable<AutoCaptureRoute> {
+                        val vm = viewModel { AutoCaptureViewModel(container, settings.monthStartDay) }
+                        AutoCaptureScreen(
+                            vm,
+                            onBack = { nav.popBackStack() },
+                            onTeach = { nav.navigate(TeachRoute(captureId = it)) },
+                            onRules = { nav.navigate(RulesRoute) },
+                            onHowItWorks = { nav.navigate(CaptureIntroRoute) },
+                        )
+                    }
+                    composable<RulesRoute> {
+                        val vm = viewModel { RulesViewModel(container.capture, container.settings) }
+                        RulesScreen(
+                            vm,
+                            onBack = { nav.popBackStack() },
+                            onOpen = { nav.navigate(RuleRoute(it)) },
+                            onTeach = { nav.navigate(TeachRoute(captureId = it)) },
+                            onTeachText = { sender, text -> nav.navigate(TeachRoute(sender = sender, text = text)) },
+                        )
+                    }
+                    composable<RuleRoute> { e ->
+                        val id = e.toRoute<RuleRoute>().id
+                        val vm = viewModel { RuleViewModel(container.capture, container.rules, id) }
+                        RuleScreen(vm, onBack = { nav.popBackStack() })
+                    }
+                    composable<TeachRoute> { e ->
+                        val r = e.toRoute<TeachRoute>()
+                        val fallback = stringResource(R.string.my_rule)
+                        val vm = viewModel { TeachViewModel(container.capture, container.rules, r.captureId, r.sender, r.text, fallback) }
+                        TeachScreen(vm, onClose = { nav.popBackStack() })
+                    }
                     composable<TxnRoute> { e ->
                         val id = e.toRoute<TxnRoute>().id
                         val vm = viewModel { TxnViewModel(container.money, id, settings.monthStartDay) }

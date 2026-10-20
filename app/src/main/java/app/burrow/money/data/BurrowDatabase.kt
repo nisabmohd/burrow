@@ -1,6 +1,7 @@
 package app.burrow.money.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Index
@@ -12,7 +13,7 @@ import androidx.room.RoomDatabase
  * The schema from docs/DATA.md, v1. Money columns are Long minor units. Times are epoch millis.
  * Add an entity here → bump version → write the Migration (never fallbackToDestructiveMigration
  * in release: people's money lives here). schemas/ is committed (ksp room.schemaLocation).
- * Until the first release (v0.1.0) v1 may still change in place; after it, only migrations.
+ * Every schema change is a new version with a migration (auto where Room can), even before release.
  */
 
 @Entity
@@ -28,6 +29,8 @@ data class AccountEntity(
     val archived: Boolean = false,
     val isSample: Boolean = false,
     val createdAt: Long,
+    /** Last digits of the account or card number ("1234"), to match "A/c XX1234" in bank messages. */
+    val number: String? = null,
 )
 
 @Entity
@@ -136,6 +139,17 @@ data class CaptureEntity(
     val receivedAt: Long,
     val status: String,          // REVIEW, SAVED, IGNORED, MERGED, UNREAD
     val txnId: Long? = null,
+    // What the rule read (null for UNREAD: messages not understood yet).
+    val amount: Long? = null,
+    val currency: String? = null,
+    val payee: String? = null,
+    val account: String? = null,
+    val direction: String? = null, // OUT, IN
+    val ruleId: String? = null,
+    /** UPI / transaction reference, for spotting the same payment from SMS and app. */
+    val reference: String? = null,
+    /** The category the capture notification or To review will save with. */
+    val categoryId: Long? = null,
 )
 
 @Database(
@@ -144,14 +158,17 @@ data class CaptureEntity(
         BillOccurrenceEntity::class, BudgetEntity::class, GoalEntity::class,
         CaptureRuleEntity::class, CaptureEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)], // v2: account number, parsed capture fields
 )
 abstract class BurrowDatabase : RoomDatabase() {
     abstract fun accounts(): AccountDao
     abstract fun categories(): CategoryDao
     abstract fun txns(): TxnDao
     abstract fun budgets(): BudgetDao
+    abstract fun captures(): CaptureDao
+    abstract fun rules(): RuleDao
 
     companion object {
         fun create(context: Context): BurrowDatabase =

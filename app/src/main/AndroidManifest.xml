@@ -35,6 +35,9 @@
             </intent-filter>
         </activity>
 
+        <!-- The capture notification's buttons (save with a category / Ignore). -->
+        <receiver android:name=".capture.CaptureActionReceiver" android:exported="false" />
+
         <!-- Payment-app notifications (GPay, PhonePe…). The user grants access in system settings. -->
         <service
             android:name=".capture.PaymentNotificationListener"

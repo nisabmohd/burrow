@@ -41,7 +41,16 @@ data class Rule(
     val currency: String? = null,
     val enabled: Boolean = true,
     val userMade: Boolean = false,
+    /**
+     * A sample message the rule reads (shown in Rule detail and used by its test). Packs ship
+     * anonymised examples; a taught rule keeps the user's message on the phone only and
+     * [RuleFiles.export] leaves it out, so shared files never carry message text.
+     */
+    val example: String? = null,
 )
+
+/** The parts of a message a rule picked out, for highlighting (Review, Rule, Teach). */
+enum class Part { AMOUNT, PAYEE, ACCOUNT }
 
 data class Parsed(
     val amountMinor: Long,
@@ -50,4 +59,6 @@ data class Parsed(
     val payee: String?,
     val account: String?,
     val ruleId: String,
+    /** Where each part sits in the message. */
+    val spans: Map<Part, IntRange> = emptyMap(),
 )

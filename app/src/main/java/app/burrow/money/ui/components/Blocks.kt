@@ -208,3 +208,25 @@ fun Cookie(icon: Painter, modifier: Modifier = Modifier) {
 
 private const val COOKIE_BUMPS = 9
 private const val COOKIE_AMP = 0.075
+
+/** The 64 dp icon circle that opens a centred header (primaryContainer). */
+@Composable
+fun HeaderIcon(icon: Painter) {
+    val c = MaterialTheme.colorScheme
+    IconCircle(icon, size = Size.iconCircleBig, container = c.primaryContainer, content = c.onPrimaryContainer)
+}
+
+/**
+ * The centred header when the big line is words, not an amount (Auto-capture: "142 payments
+ * recorded"): 64 dp icon circle, `title`, one muted line.
+ */
+@Composable
+fun CenterTitleHeader(icon: Painter, title: String, line: String? = null, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    Column(modifier.fillMaxWidth().padding(vertical = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
+        HeaderIcon(icon)
+        Spacer(Modifier.height(Space.block))
+        Text(title, style = BurrowType.title, color = c.onSurface, textAlign = TextAlign.Center)
+        if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+    }
+}

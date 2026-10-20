@@ -1,6 +1,7 @@
 package app.burrow.money.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
@@ -92,16 +93,9 @@ fun FilterHeaderButtons(funnel: Painter, calendar: Painter, filterLabel: String,
 /** Wrapping chips (filter sheet: accounts, categories). Fits one screen: never a long list of rows. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun <T> ChipWrap(items: List<T>, label: (T) -> String, selected: (T) -> Boolean, onToggle: (T) -> Unit, haptics: HapticFeedback = LocalHapticFeedback.current) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items.forEach { item ->
-            FilterChip(
-                selected = selected(item),
-                onClick = { haptics.tick(); onToggle(item) },
-                label = { Text(label(item), style = BurrowType.button) },
-                shape = Shapes.pill,
-            )
-        }
+fun <T> ChipWrap(items: List<T>, label: (T) -> String, selected: (T) -> Boolean, onToggle: (T) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+        items.forEach { item -> Chip(label(item), selected(item), { onToggle(item) }) }
     }
 }
 
@@ -132,7 +126,7 @@ fun DayStepper(
             TonalIconButton(plus, plusLabel, { haptics.tick(); onDay((day + 1).coerceAtMost(28)) })
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            quick.forEach { d -> FilterChip(selected = d == day, onClick = { haptics.tick(); onDay(d) }, label = { Text(ordinal(d)) }, shape = Shapes.pill) }
+            quick.forEach { d -> Chip(ordinal(d), d == day, { onDay(d) }) }
         }
         Text(resultLine, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 12.dp))
         Button(onClick = { haptics.confirm(); onDone() }, modifier = Modifier.fillMaxWidth().height(Size.buttonBottom), shape = Shapes.pill) { Text(doneLabel, style = BurrowType.button) }
@@ -266,3 +260,51 @@ fun LinkButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier)
         Text(text, style = BurrowType.button, color = MaterialTheme.colorScheme.primary)
     }
 }
+
+/**
+ * The one chip: a 36 dp pill. Selected = secondaryContainer with a check; otherwise an outline.
+ * [icon] shows when not selected ("More").
+ */
+@Composable
+fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Painter? = null) {
+    val haptics = LocalHapticFeedback.current
+    FilterChip(
+        selected = selected,
+        onClick = { haptics.tick(); onClick() },
+        label = { Text(label, style = BurrowType.button, maxLines = 1) },
+        modifier = modifier.height(Size.chip),
+        shape = Shapes.pill,
+        leadingIcon = when {
+            selected -> { { Icon(painterResource(R.drawable.ic_check_regular), null, modifier = Modifier.size(Size.iconSmall)) } }
+            icon != null -> { { Icon(icon, null, modifier = Modifier.size(Size.iconSmall)) } }
+            else -> null
+        },
+        colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ),
+    )
+}
+
+/** Material 3 switch with the app's toggle haptic. TalkBack reads the row it sits in. */
+@Composable
+fun BurrowSwitch(checked: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    val haptics = LocalHapticFeedback.current
+    androidx.compose.material3.Switch(checked = checked, onCheckedChange = { haptics.toggle(it); onChange(it) }, modifier = modifier)
+}
+
+/** The trailing arrow of a row that opens another screen (mirrors in RTL). */
+@Composable
+fun Chevron() = Icon(
+    painterResource(R.drawable.ic_chevron_right_regular), null,
+    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    modifier = Modifier.size(Size.icon).autoMirror(),
+)
+
+/** Flips a drawable for right-to-left languages (chevrons, back arrows). */
+@Composable
+fun Modifier.autoMirror(): Modifier =
+    if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
+        this.scale(scaleX = -1f, scaleY = 1f)
+    } else this

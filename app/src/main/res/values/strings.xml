@@ -125,4 +125,163 @@
     <string name="recent">Recent</string>
     <string name="see_all">See all</string>
     <string name="empty_today_line">Add your first expense, or let the app record payments from your bank SMS for you.</string>
+
+    <!-- Capture notification (43) -->
+    <string name="channel_capture">Payments found</string>
+    <string name="channel_capture_line">Asks which category a payment from your bank or payment app is</string>
+    <string name="notif_to">%1$s to %2$s</string>
+    <string name="notif_from">%1$s from %2$s</string>
+    <string name="notif_spent">%1$s spent</string>
+    <string name="notif_received">%1$s received</string>
+    <string name="notif_which_category">%1$s · which category?</string>
+    <string name="ignore">Ignore</string>
+
+    <!-- Auto-capture intro (45–47) -->
+    <string name="not_now">Not now</string>
+    <string name="next">Next</string>
+    <string name="allow">Allow</string>
+    <string name="step_of">Step %1$d of %2$d</string>
+    <string name="intro1_title">Payments record themselves</string>
+    <string name="intro1_line">Pay like you always do. When your bank sends the SMS, one tap saves it.</string>
+    <string name="intro2_title">It stays on this phone</string>
+    <string name="intro2_line">The app has no internet access. It keeps only the amount and who you paid.</string>
+    <string name="intro3_title">Allow two things</string>
+    <string name="intro3_line">Android will ask you. You can turn them off any time.</string>
+    <string name="intro_sms_from">HDFC Bank · now</string>
+    <string name="intro_saved_title">%1$s · Third Wave Coffee</string>
+    <string name="intro_saved_line">Saved to Food &amp; drinks</string>
+    <string name="intro_no_internet">No internet</string>
+    <string name="intro_otps_skipped">OTPs skipped</string>
+    <string name="intro_read_sms">Read SMS</string>
+    <string name="intro_notifications">Notifications</string>
+
+    <!-- To review (44) and Today notes (04, 07) -->
+    <string name="to_review">To review</string>
+    <string name="all_caught_up">All caught up</string>
+    <string name="all_caught_up_line">Payments the app finds wait here until you save them.</string>
+    <string name="ignored">Ignored</string>
+    <string name="more">More</string>
+    <plurals name="save_n_payments">
+        <item quantity="one">Save %d payment</item>
+        <item quantity="other">Save %d payments</item>
+    </plurals>
+    <plurals name="n_payments_saved">
+        <item quantity="one">%d payment saved</item>
+        <item quantity="other">%d payments saved</item>
+    </plurals>
+    <plurals name="n_to_review">
+        <item quantity="one">%d payment to review</item>
+        <item quantity="other">%d payments to review</item>
+    </plurals>
+    <string name="found_in_messages">Found in your messages</string>
+    <string name="capture_paused">Auto-capture is paused</string>
+    <string name="capture_paused_listener">Notification access is off</string>
+    <string name="capture_paused_sms">SMS permission is off</string>
+    <string name="fix_it">Fix it</string>
+    <string name="record_for_me">Record payments for me</string>
+
+    <!-- Auto-capture (48) -->
+    <string name="auto_capture">Auto-capture</string>
+    <plurals name="payments_recorded">
+        <item quantity="one">%d payment recorded</item>
+        <item quantity="other">%d payments recorded</item>
+    </plurals>
+    <string name="recorded_line">this month, from your messages</string>
+    <string name="bank_sms">Bank SMS</string>
+    <string name="bank_sms_line">Reads messages from banks</string>
+    <string name="payment_apps">Payment apps</string>
+    <string name="payment_apps_line">GPay, PhonePe, Paytm</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <plurals name="not_understood">
+        <item quantity="one">%d message not understood</item>
+        <item quantity="other">%d messages not understood</item>
+    </plurals>
+    <string name="tap_to_teach">Tap to teach the app</string>
+    <string name="message_rules">Message rules</string>
+    <string name="rules_line">Built-in for India · %1$d of yours</string>
+    <string name="try_it">Try it</string>
+    <string name="try_it_line">Sends a sample payment</string>
+    <string name="how_it_works">How it works</string>
+    <string name="sample_sent">Sample payment sent. Check your notifications.</string>
+
+    <!-- Message rules (49–51) -->
+    <string name="rules_header_line">yours · %1$d on · plus the built-in pack</string>
+    <string name="yours">Yours</string>
+    <string name="built_in_packs">Built-in packs</string>
+    <string name="pack_india">India</string>
+    <plurals name="pack_rules">
+        <item quantity="one">%d rule · banks and UPI apps</item>
+        <item quantity="other">%d rules · banks and UPI apps</item>
+    </plurals>
+    <string name="rule_line">%1$s · read %2$d times</string>
+    <string name="no_rules_yet">No rules of your own yet</string>
+    <string name="add_rule">Add rule</string>
+    <string name="add_a_rule">Add a rule</string>
+    <string name="add_a_rule_line">Teach the app a new message format</string>
+    <string name="paste_message">Paste a message</string>
+    <string name="paste_message_line">Then tap the amount and payee</string>
+    <string name="from_not_understood">From messages not understood</string>
+    <plurals name="n_waiting">
+        <item quantity="one">%d waiting</item>
+        <item quantity="other">%d waiting</item>
+    </plurals>
+    <string name="none_waiting">None waiting</string>
+    <string name="import_rules">Import a rules file</string>
+    <string name="import_rules_line">For your bank, country or language</string>
+    <string name="share_rules">Share your rules</string>
+    <string name="share_rules_line">Without any message text</string>
+    <plurals name="rules_imported">
+        <item quantity="one">%d rule imported</item>
+        <item quantity="other">%d rules imported</item>
+    </plurals>
+    <string name="rules_bad_file">This file has a rule that can\'t be used</string>
+    <string name="rules_shared">Rules file saved</string>
+    <string name="message">Message</string>
+    <string name="message_hint">Paste the bank\'s message</string>
+    <string name="sender">From</string>
+    <string name="sender_hint">Who sent it, like AX-KOTAKB</string>
+    <string name="continue_">Continue</string>
+
+    <!-- Rule (50) -->
+    <string name="rule_from">From %1$s</string>
+    <string name="any_sender">Any sender</string>
+    <string name="example">Example</string>
+    <string name="what_it_reads">What it reads</string>
+    <string name="amount">Amount</string>
+    <string name="paid_to">Paid to</string>
+    <string name="direction">Direction</string>
+    <string name="money_out">Money out</string>
+    <string name="money_in">Money in</string>
+    <string name="decided_by_words">Money in or out, from the words</string>
+    <string name="language_and_numbers">Language and numbers</string>
+    <string name="message_language">Message language</string>
+    <string name="number_style">Number style</string>
+    <string name="test_it">Test it</string>
+    <string name="test_hint">Paste any message</string>
+    <string name="test_reads">Reads %1$s</string>
+    <string name="test_reads_to">Reads %1$s to %2$s</string>
+    <string name="test_no">This rule doesn\'t read it</string>
+    <string name="use_this_rule">Use this rule</string>
+    <string name="delete_rule">Delete rule</string>
+    <string name="rule_deleted">Rule deleted</string>
+    <string name="not_read">Not read</string>
+    <string name="built_in_rule">Built-in · %1$s</string>
+
+    <!-- Teach (52) -->
+    <string name="teach_title">Teach a message</string>
+    <string name="teach_amount">Tap the &lt;b&gt;amount&lt;/b&gt; in the message.</string>
+    <string name="teach_payee">Tap &lt;b&gt;who you paid&lt;/b&gt;, or skip it.</string>
+    <string name="teach_account">Tap the &lt;b&gt;account&lt;/b&gt;, or skip it.</string>
+    <string name="teach_done">Looks right? Save the rule.</string>
+    <string name="not_picked">Not picked yet</string>
+    <string name="not_an_amount">That isn\'t an amount</string>
+    <string name="skip">Skip</string>
+    <string name="teach_saved">Rule saved</string>
+    <plurals name="teach_saved_moved">
+        <item quantity="one">Rule saved · %d payment to review</item>
+        <item quantity="other">Rule saved · %d payments to review</item>
+    </plurals>
+    <string name="teach_fails">The rule doesn\'t read this message yet. Pick the amount again.</string>
+    <string name="my_rule">My rule</string>
 </resources>

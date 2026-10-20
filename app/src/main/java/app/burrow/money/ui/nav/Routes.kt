@@ -14,3 +14,13 @@ import kotlinx.serialization.Serializable
 @Serializable data class AddRoute(val type: String = "EXPENSE", val editId: Long = 0L, val duplicateId: Long = 0L)
 
 @Serializable data class TxnRoute(val id: Long)
+
+// Auto-capture (week 2)
+@Serializable data object ReviewRoute
+@Serializable data object CaptureIntroRoute
+@Serializable data object AutoCaptureRoute
+@Serializable data object RulesRoute
+@Serializable data class RuleRoute(val id: String)
+
+/** Teach a waiting message ([captureId]) or a pasted one ([sender], [text]). */
+@Serializable data class TeachRoute(val captureId: Long = 0L, val sender: String = "", val text: String = "")

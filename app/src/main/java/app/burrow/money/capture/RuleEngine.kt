@@ -16,26 +16,52 @@ class RuleEngine {
         Regex("(?i)\\b(failed|declined|reversed|could not be processed)\\b"),
     )
 
+    /** Compiled patterns, so a message doesn't recompile every rule. */
+    private val cache = object : LinkedHashMap<String, Regex?>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Regex?>?) = size > 256
+    }
+
+    @Synchronized
+    private fun regex(pattern: String): Regex? = cache.getOrPut(pattern) { runCatching { Regex(pattern) }.getOrNull() }
+
+    /** True for OTPs, offers and failed payments: never stored, never parsed. */
+    fun isNoise(body: String): Boolean = skip.any { it.containsMatchIn(body) }
+
     fun parse(sender: String, body: String, rules: List<Rule>, fractionDigits: (String?) -> Int = { 2 }): Parsed? {
-        if (skip.any { it.containsMatchIn(body) }) return null
+        if (isNoise(body)) return null
         for (rule in rules) {
             if (!rule.enabled) continue
-            if (!Regex(rule.sender).containsMatchIn(sender)) continue
-            val m = Regex(rule.pattern).find(body) ?: continue
-            val rawAmount = m.groups["amount"]?.value ?: continue
-            val currency = m.groupOrNull("currency")?.let { normaliseCurrency(it) } ?: rule.currency
-            val amount = parseAmount(rawAmount, rule.numberStyle) ?: continue
-            val minor = amount.setScale(fractionDigits(currency), RoundingMode.HALF_EVEN).movePointRight(fractionDigits(currency)).longValueExact()
-            val dir = rule.direction ?: when {
-                rule.inWords.any { body.contains(it, ignoreCase = true) } -> Direction.IN
-                else -> Direction.OUT
-            }
-            return Parsed(minor, currency, dir, m.groupOrNull("payee")?.trim()?.trimEnd('.', ','), m.groupOrNull("account"), rule.id)
+            val p = parseWith(rule, sender, body, fractionDigits) ?: continue
+            return p
         }
         return null
     }
 
-    private fun MatchResult.groupOrNull(name: String): String? = runCatching { groups[name]?.value }.getOrNull()
+    /** One rule on one message, ignoring the noise filter (Rule detail's "Test it", Teach). */
+    fun parseWith(rule: Rule, sender: String?, body: String, fractionDigits: (String?) -> Int = { 2 }): Parsed? {
+        if (sender != null && regex(rule.sender)?.containsMatchIn(sender) != true) return null
+        val m = regex(rule.pattern)?.find(body) ?: return null
+        val amountGroup = m.groupOrNull("amount") ?: return null
+        val currency = m.groupOrNull("currency")?.value?.let { normaliseCurrency(it) } ?: rule.currency
+        val amount = parseAmount(amountGroup.value, rule.numberStyle) ?: return null
+        val digits = fractionDigits(currency)
+        val minor = runCatching { amount.setScale(digits, RoundingMode.HALF_EVEN).movePointRight(digits).longValueExact() }.getOrNull() ?: return null
+        if (minor <= 0) return null
+        val dir = rule.direction ?: when {
+            rule.inWords.any { body.contains(it, ignoreCase = true) } -> Direction.IN
+            else -> Direction.OUT
+        }
+        val payee = m.groupOrNull("payee")
+        val account = m.groupOrNull("account")
+        val spans = buildMap {
+            put(Part.AMOUNT, (m.groupOrNull("currency")?.range?.first ?: amountGroup.range.first).coerceAtMost(amountGroup.range.first)..amountGroup.range.last)
+            payee?.let { put(Part.PAYEE, it.range) }
+            account?.let { put(Part.ACCOUNT, it.range) }
+        }
+        return Parsed(minor, currency, dir, payee?.value?.trim()?.trimEnd('.', ',')?.ifBlank { null }, account?.value, rule.id, spans)
+    }
+
+    private fun MatchResult.groupOrNull(name: String): MatchGroup? = runCatching { groups[name] }.getOrNull()
 
     private fun normaliseCurrency(s: String): String? = when (s.trim().uppercase().trimEnd('.')) {
         "RS", "INR", "₹" -> "INR"
@@ -49,8 +75,8 @@ class RuleEngine {
     companion object {
         /** "1,23,456.78" / "1.234,56" / "1 234,56" / "1234" → BigDecimal, by the rule's number style. */
         fun parseAmount(raw: String, style: NumberStyle): BigDecimal? {
-            var s = raw.filter { it.isDigit() || it == ',' || it == '.' || it == ' ' || it == ' ' }.trim()
-            style.group?.let { g -> s = s.replace(g.toString(), "").replace(" ", "") }
+            var s = raw.filter { it.isDigit() || it == ',' || it == '.' || it == ' ' || it == ' ' }.trim()
+            style.group?.let { g -> s = s.replace(g.toString(), "").replace(" ", "") }
             if (style.decimal == ',') s = s.replace(',', '.')
             s = s.replace(" ", "")
             return s.toBigDecimalOrNull()

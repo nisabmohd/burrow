@@ -11,10 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
+import app.burrow.money.ui.capture.rememberCapturePaused
 import app.burrow.money.ui.components.AddFab
+import app.burrow.money.ui.components.BurrowButton
+import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.LinkButton
@@ -35,7 +39,7 @@ import java.time.LocalDate
  * With no transactions at all it shows only the empty state. Widgets come on Day 19.
  */
 @Composable
-fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onSeeAll: () -> Unit) {
+fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onSeeAll: () -> Unit, onReview: () -> Unit, onCaptureIntro: () -> Unit, onFixCapture: () -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
     val today = remember { LocalDate.now() }
@@ -51,16 +55,30 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
         fab = { AddFab(stringResource(R.string.add_expense), onAdd) },
     ) { padding ->
         val s = state ?: return@TabScreen // nothing drawn until the data is in: no "₹0" flash
+        val paused = rememberCapturePaused(s.smsCapture, s.appCapture)
         if (s.isEmpty) {
             EmptyState(
                 shape = { Cookie(painterResource(R.drawable.ic_receipt_long_regular)) },
                 title = stringResource(R.string.empty_title),
                 line = stringResource(R.string.empty_today_line),
-                // "Record payments for me" arrives with the auto-capture intro (Day 8).
+                button = if (!s.smsCapture && !s.appCapture) ({ BurrowButton(stringResource(R.string.record_for_me), onCaptureIntro, kind = ButtonKind.TONAL) }) else null,
             )
             return@TabScreen
         }
         LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
+            if (paused != null) {
+                item(key = "paused", contentType = "note") {
+                    Note(
+                        kind = NoteKind.WARN,
+                        icon = painterResource(R.drawable.ic_notifications_paused_duotone),
+                        title = stringResource(R.string.capture_paused),
+                        line = stringResource(paused),
+                        action = stringResource(R.string.fix_it),
+                        onAction = onFixCapture,
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
             if (s.hasSamples) {
                 item(key = "samples", contentType = "note") {
                     Note(
@@ -78,6 +96,19 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
                 }
             }
             item(key = "hero", contentType = "hero") { BudgetHero(s.hero, Modifier.animateItem()) }
+            if (s.toReview > 0) {
+                item(key = "review", contentType = "note") {
+                    Note(
+                        kind = NoteKind.INFO,
+                        icon = painterResource(R.drawable.ic_sms_duotone),
+                        title = pluralStringResource(R.plurals.n_to_review, s.toReview, s.toReview),
+                        line = stringResource(R.string.found_in_messages),
+                        onClick = onReview,
+                        arrow = painterResource(R.drawable.ic_arrow_forward_regular),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
             // Header and rows as one block, so the rows keep the group's 2 dp gap.
             item(key = "recent", contentType = "recent") {
                 Column(Modifier.animateItem()) {
