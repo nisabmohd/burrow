@@ -89,4 +89,22 @@
     <string name="account_card">Credit card</string>
     <string name="account_loan">Loan</string>
     <string name="account_savings">Savings</string>
+
+    <!-- Activity and transaction (11, 16, 21, 73) -->
+    <string name="search_hint">Search payee, amount, note</string>
+    <string name="no_results">No results for “%1$s”</string>
+    <string name="no_results_line">Try a payee, an amount or a note.</string>
+    <string name="clear_search">Clear search</string>
+    <string name="empty_title">Nothing here yet</string>
+    <string name="empty_activity_line">Your expenses and income show up here.</string>
+    <string name="back">Back</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_txn_title">Delete this transaction?</string>
+    <string name="delete_txn_text">It will be removed from the account. You can undo right after.</string>
+    <string name="txn_deleted">Transaction deleted</string>
+    <string name="txn_deleted_title">This transaction was deleted</string>
+    <string name="txn_deleted_line">It is no longer in your list.</string>
 </resources>

@@ -12,3 +12,5 @@ import kotlinx.serialization.Serializable
 
 /** New transaction of [type]; or edit [editId]; or a copy of [duplicateId] dated now. */
 @Serializable data class AddRoute(val type: String = "EXPENSE", val editId: Long = 0L, val duplicateId: Long = 0L)
+
+@Serializable data class TxnRoute(val id: Long)

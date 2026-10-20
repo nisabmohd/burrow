@@ -41,7 +41,11 @@ data class TxnView(
     val categoryIcon: String?,
     val categoryHue: Float?,
     val accountName: String,
+    val accountIcon: String,
+    val accountHue: Float,
     val toAccountName: String?,
+    val toAccountIcon: String?,
+    val toAccountHue: Float?,
 )
 
 /** SUM(amount) of transfers into one account. */
@@ -91,7 +95,8 @@ interface TxnDao {
     @Query(
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
-               a.name AS accountName, ta.name AS toAccountName
+               a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
@@ -105,7 +110,8 @@ interface TxnDao {
     @Query(
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
-               a.name AS accountName, ta.name AS toAccountName
+               a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId

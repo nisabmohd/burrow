@@ -26,9 +26,10 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] Keypad, Expense / Income / Transfer
   - [x] Category and account sheets, date, payee, note
   - [x] Can't-save-yet state, Undo snackbar
-- [ ] **Day 4 · Activity (11, 21, 73)**
-  - [ ] Day groups in a keyed LazyColumn, search
-  - [ ] Transaction detail, edit, delete with Undo, duplicate
+- [x] **Day 4 · Activity (11, 21, 73)**
+  - [ ] Later: long-press row sheet (Duplicate, Change category, Delete); "Recorded from SMS" box (Day 7); paging by month (Day 28)
+  - [x] Day groups in a keyed LazyColumn, search
+  - [x] Transaction detail, edit, delete with Undo, duplicate
 - [ ] **Day 5 · Today v1 (04, 06, 09)**
   - [ ] Hero budget with count-up, Recent
   - [ ] Sample-data note, empty state

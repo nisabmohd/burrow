@@ -31,6 +31,9 @@ import app.burrow.money.AppContainer
 import app.burrow.money.R
 import app.burrow.money.data.Settings
 import app.burrow.money.ui.activity.ActivityScreen
+import app.burrow.money.ui.activity.ActivityViewModel
+import app.burrow.money.ui.txn.TxnScreen
+import app.burrow.money.ui.txn.TxnViewModel
 import app.burrow.money.ui.add.AddScreen
 import app.burrow.money.ui.add.AddViewModel
 import app.burrow.money.ui.add.savedMessage
@@ -87,6 +90,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
     val undoLabel = stringResource(R.string.undo)
     val snackbar = remember(undoLabel) { UndoSnackbar(container.appScope, undoLabel) }
     val openAdd = { nav.navigate(AddRoute()) }
+    val openTxn = { id: Long -> nav.navigate(TxnRoute(id)) }
 
     CompositionLocalProvider(LocalSnackbar provides snackbar) {
         Column(Modifier.fillMaxSize()) {
@@ -101,10 +105,23 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
                     popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
                 ) {
                     composable<TodayRoute> { TodayScreen(onAdd = openAdd) }
-                    composable<ActivityRoute> { ActivityScreen(onAdd = openAdd) }
+                    composable<ActivityRoute> {
+                        val vm = viewModel { ActivityViewModel(container.money) }
+                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn)
+                    }
                     composable<PlanRoute> { PlanScreen() }
                     composable<InsightsRoute> { InsightsScreen() }
                     composable<MoreRoute> { MoreScreen() }
+                    composable<TxnRoute> { e ->
+                        val id = e.toRoute<TxnRoute>().id
+                        val vm = viewModel { TxnViewModel(container.money, id, settings.monthStartDay) }
+                        TxnScreen(
+                            vm,
+                            onBack = { nav.popBackStack() },
+                            onEdit = { nav.navigate(AddRoute(editId = it)) },
+                            onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) },
+                        )
+                    }
                     composable<AddRoute> { e ->
                         val r = e.toRoute<AddRoute>()
                         val vm = viewModel { AddViewModel(container.money, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency) }

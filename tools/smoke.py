@@ -32,7 +32,13 @@ def check(fn):
 
 def fresh_install():
     d.adb("uninstall", d.PACKAGE)
-    out = d.adb("install", APK)
+    out = ""
+    for _ in range(3):  # an emulator near its storage limit refuses installs now and then
+        d.shell("pm trim-caches 8G")
+        out = d.adb("install", APK)
+        if "Success" in out:
+            break
+        time.sleep(2)
     assert "Success" in out, f"install failed: {out}"
     d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
     d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
@@ -82,6 +88,34 @@ def add_expense_saves_and_undo():
     d.tap("Food & drinks")
     d.tap("Save")
     assert d.exists("Undo", timeout=3), "no Undo snackbar after saving"
+
+
+@check
+def activity_delete_and_undo():
+    d.nav("Activity")
+    # "Food & drinks": the expense add_expense saved, or a sample row when run alone.
+    d.tap("Food & drinks")
+    d.tap("Delete")
+    time.sleep(0.8)
+    confirm = [n for n in d.dump() if n.label == "Delete"][-1]  # the dialog's button
+    x1, y1, x2, y2 = confirm.bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    time.sleep(0.5)
+    nodes = d.dump()  # read and tap Undo from one dump: the snackbar lasts ~4 s
+    undo = [n for n in nodes if n.label == "Undo"]
+    assert undo, "no Undo snackbar after delete"
+    x1, y1, x2, y2 = undo[0].bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    assert d.exists("Food & drinks", timeout=5), "Undo did not bring the transaction back"
+
+
+@check
+def activity_search_no_results():
+    d.nav("Activity")
+    d.tap("Search payee, amount, note")
+    d.type_text("zzqq")
+    assert d.exists("No results for", contains=True), "no empty state for a search miss"
+    d.tap("Clear search")
 
 
 @check

@@ -1,6 +1,11 @@
 package app.burrow.money.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Path
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -172,6 +177,34 @@ fun EmptyState(shape: @Composable () -> Unit, title: String, line: String, butto
         Spacer(Modifier.height(16.dp))
         Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
         Text(line, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        if (button != null) { Spacer(Modifier.height(20.dp)); button() }
+        if (button != null) { Spacer(Modifier.height(Space.hero)); button() }
     }
 }
+
+/**
+ * The wavy "cookie" behind an empty state's icon (prototype `cookie()`): 9 soft bumps,
+ * primaryContainer, the icon centred at 42% in onPrimaryContainer.
+ */
+@Composable
+fun Cookie(icon: Painter, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    Box(modifier.size(Size.emptyShape), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.matchParentSize()) {
+            val r0 = size.minDimension / 2
+            val path = Path()
+            for (i in 0..180) {
+                val t = 2 * Math.PI * i / 180
+                val r = r0 * (1 - COOKIE_AMP + COOKIE_AMP * cos(COOKIE_BUMPS * t))
+                val x = (center.x + r * cos(t)).toFloat()
+                val y = (center.y + r * sin(t)).toFloat()
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close()
+            drawPath(path, c.primaryContainer)
+        }
+        Icon(icon, null, tint = c.onPrimaryContainer, modifier = Modifier.fillMaxSize(0.42f))
+    }
+}
+
+private const val COOKIE_BUMPS = 9
+private const val COOKIE_AMP = 0.075
