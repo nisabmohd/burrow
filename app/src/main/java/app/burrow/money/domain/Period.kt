@@ -24,5 +24,15 @@ data class BudgetPeriod(val start: LocalDate, val endExclusive: LocalDate) {
     }
 }
 
-/** "₹X a day" = left ÷ days left including today, never negative (CLAUDE.md § Behaviour). */
-fun perDay(leftMinor: Long, daysLeft: Int): Long = if (leftMinor <= 0) 0 else leftMinor / daysLeft.coerceAtLeast(1)
+/**
+ * "₹X a day" = left ÷ days left including today, never negative (CLAUDE.md § Behaviour), rounded to
+ * whole units of the currency ([digits] minor digits) like the design ("₹1,050 a day").
+ */
+fun perDay(leftMinor: Long, daysLeft: Int, digits: Int = 2): Long {
+    if (leftMinor <= 0) return 0
+    var unit = 1L
+    repeat(digits) { unit *= 10 }
+    val days = daysLeft.coerceAtLeast(1)
+    val whole = (leftMinor / unit + days / 2) / days // rounded whole units
+    return whole * unit
+}

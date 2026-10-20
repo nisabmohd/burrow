@@ -12,11 +12,14 @@ if something is missing, add a component here first.
 | `FilterHeaderButtons` | funnel + calendar, 8 dp apart; badge = number of active filters | Controls.kt |
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing (search, payee, note) | Controls.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
-| Hero (Today only) | `primaryContainer`, 24 dp, label + `display` + line + wavy progress | screen code |
+| `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
 | `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing | Lists.kt |
 | `IconCircle` | 40 dp (64 big), duotone icon at 55%; category colours or neutral | Lists.kt |
 | `SectionHeader` | `button` style title, meta or text button right, 16 above / 8 below | Lists.kt |
+| `TxnRow` / `TxnCircle` | the one transaction row (Today › Recent, Activity): category circle, payee, "Food & drinks · HDFC" (+ time today), amount | ui/txn/TxnRow.kt |
+| `LinkButton` | primary text button ("See all", "Clear all") | Controls.kt |
+| `WavyProgress` / `rememberCountUp` | the hero's wavy bar; a number that counts up once per screen | Charts.kt / CountUp.kt |
 | `AmountTrailing` | `titleSmall` amount over `label` status ("in 6 days", "Paid") | Lists.kt |
 | `Widget` | half: 184 dp fixed; wide: wraps, text left + visual right | Blocks.kt |
 | Next-up card | `surfaceContainerLow` card: label, 64 dp icon circle + name/amount/when, one filled "Mark paid" | screen code |
@@ -35,7 +38,7 @@ if something is missing, add a component here first.
 | Dates sheet | presets row + month calendar, range highlight, "Show 1 – 19 Oct" | build in week 2 |
 | Filter sheet | Type (button group, Activity only) · Accounts chips · Categories chips · Reset / "Show 14 transactions" | build in week 2 |
 | `Keypad` | 4 × 4, 60 dp pill keys 8 dp apart; operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
-| `EmptyState` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
+| `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete, replace data, wrong password only | Dialogs.kt |
 | Switch | Material 3 switch, primary track | Material |

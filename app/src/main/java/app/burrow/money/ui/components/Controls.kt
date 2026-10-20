@@ -258,3 +258,11 @@ fun PillTextField(
         },
     )
 }
+
+/** A text button in primary ("See all", "Clear all"): the only coloured text besides errors. */
+@Composable
+fun LinkButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.compose.material3.TextButton(onClick = onClick, modifier = modifier) {
+        Text(text, style = BurrowType.button, color = MaterialTheme.colorScheme.primary)
+    }
+}

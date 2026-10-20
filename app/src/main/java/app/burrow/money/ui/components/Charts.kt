@@ -121,3 +121,35 @@ fun heatLevel(value: Long, max: Long): Int = when {
     value < max * 0.75 -> 3
     else -> 4
 }
+
+/**
+ * Today's wavy progress (prototype `wavy()`): a sine line for the part used, then a faint straight
+ * track and a dot marking the end. Colour is the content colour of the hero.
+ */
+@Composable
+fun WavyProgress(progress: Float, color: Color, modifier: Modifier = Modifier) {
+    val p = progress.coerceIn(0f, 1f)
+    Canvas(modifier.fillMaxWidth().height(Size.wavyHeight)) {
+        val stroke = 4.dp.toPx()
+        val mid = size.height / 2
+        val amp = 3.2.dp.toPx()
+        val wave = 26.dp.toPx()
+        val inset = 3.dp.toPx()
+        val end = size.width * p
+        if (end > inset * 2) {
+            val path = androidx.compose.ui.graphics.Path()
+            var x = inset
+            path.moveTo(x, mid)
+            while (x <= end - inset) {
+                path.lineTo(x, mid + amp * kotlin.math.sin(2 * Math.PI * x / wave).toFloat())
+                x += 2.dp.toPx()
+            }
+            drawPath(path, color, style = Stroke(stroke, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        }
+        val gap = 8.dp.toPx()
+        if (end < size.width - 14.dp.toPx()) {
+            drawLine(color.copy(alpha = 0.22f), Offset(end + gap, mid), Offset(size.width - gap, mid), strokeWidth = stroke, cap = StrokeCap.Round)
+            drawCircle(color, radius = 2.dp.toPx(), center = Offset(size.width - 2.dp.toPx(), mid))
+        }
+    }
+}

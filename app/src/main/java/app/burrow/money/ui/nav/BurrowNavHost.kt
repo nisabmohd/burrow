@@ -30,6 +30,7 @@ import androidx.navigation.toRoute
 import app.burrow.money.AppContainer
 import app.burrow.money.R
 import app.burrow.money.data.Settings
+import app.burrow.money.domain.MoneyFormat
 import app.burrow.money.ui.activity.ActivityScreen
 import app.burrow.money.ui.activity.ActivityViewModel
 import app.burrow.money.ui.txn.TxnScreen
@@ -48,6 +49,7 @@ import app.burrow.money.ui.plan.PlanScreen
 import app.burrow.money.ui.theme.NavMotion
 import app.burrow.money.ui.theme.Space
 import app.burrow.money.ui.today.TodayScreen
+import app.burrow.money.ui.today.TodayViewModel
 import kotlin.reflect.KClass
 
 /** The five tabs, in nav order (docs/DESIGN.md § Screens, by tab). */
@@ -104,7 +106,10 @@ fun BurrowNavHost(container: AppContainer, settings: Settings) {
                     popEnterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.pop(this) },
                     popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
                 ) {
-                    composable<TodayRoute> { TodayScreen(onAdd = openAdd) }
+                    composable<TodayRoute> {
+                        val vm = viewModel { TodayViewModel(container.money, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
+                        TodayScreen(vm, onAdd = openAdd, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) })
+                    }
                     composable<ActivityRoute> {
                         val vm = viewModel { ActivityViewModel(container.money) }
                         ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn)

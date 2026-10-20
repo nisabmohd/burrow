@@ -30,10 +30,11 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [ ] Later: long-press row sheet (Duplicate, Change category, Delete); "Recorded from SMS" box (Day 7); paging by month (Day 28)
   - [x] Day groups in a keyed LazyColumn, search
   - [x] Transaction detail, edit, delete with Undo, duplicate
-- [ ] **Day 5 · Today v1 (04, 06, 09)**
-  - [ ] Hero budget with count-up, Recent
-  - [ ] Sample-data note, empty state
-  - [ ] First baseline profile; measure cold start and APK size
+- [x] **Day 5 · Today v1 (04, 06, 09)**
+  - [ ] Later: replace raw dp inside the starter components (Blocks, Charts, Controls, Lists) with Dimens tokens
+  - [x] Hero budget with count-up, Recent
+  - [x] Sample-data note, empty state
+  - [x] First baseline profile; measure cold start and APK size (play release 1.9 MB; cold start ~120 ms on the API 35 emulator)
 
 ## Week 2 — auto-capture
 - [ ] **Day 6 · Rules engine**

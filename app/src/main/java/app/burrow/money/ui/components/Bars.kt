@@ -37,6 +37,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -135,7 +136,8 @@ fun AddFab(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val lift by animateDpAsState(if (LocalSnackbar.current.visible) Space.fabLift else 0.dp, standardSpec(), label = "fabLift")
     ExtendedFloatingActionButton(
         onClick = onClick,
-        modifier = modifier.offset { IntOffset(0, -lift.roundToPx()) }.height(Size.fab),
+        // Material's extended FAB hides its text from accessibility, so the label goes on the button.
+        modifier = modifier.offset { IntOffset(0, -lift.roundToPx()) }.height(Size.fab).semantics { contentDescription = label },
         shape = Shapes.pill,
         containerColor = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,

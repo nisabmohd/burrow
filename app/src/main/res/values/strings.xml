@@ -107,4 +107,22 @@
     <string name="txn_deleted">Transaction deleted</string>
     <string name="txn_deleted_title">This transaction was deleted</string>
     <string name="txn_deleted_line">It is no longer in your list.</string>
+
+    <!-- Today (04, 06, 08, 09) -->
+    <plurals name="days_left">
+        <item quantity="one">%d day left</item>
+        <item quantity="other">%d days left</item>
+    </plurals>
+    <string name="hero_label">%1$s budget · %2$s</string>
+    <string name="hero_label_no_budget">Spent in %1$s</string>
+    <string name="hero_left">left of %1$s · %2$s a day</string>
+    <string name="hero_over">over your %1$s budget</string>
+    <string name="hero_no_budget">No budget set yet</string>
+    <string name="sample_title">These are sample transactions</string>
+    <string name="sample_line">They go away when you add your own</string>
+    <string name="remove">Remove</string>
+    <string name="samples_removed">Sample data removed</string>
+    <string name="recent">Recent</string>
+    <string name="see_all">See all</string>
+    <string name="empty_today_line">Add your first expense, or let the app record payments from your bank SMS for you.</string>
 </resources>

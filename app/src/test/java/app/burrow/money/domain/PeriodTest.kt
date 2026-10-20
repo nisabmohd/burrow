@@ -21,7 +21,9 @@ class PeriodTest {
     }
 
     @Test fun perDayRule() {
-        assertEquals(1_049_53L, perDay(13_644_00, 13))
+        assertEquals(1_050_00L, perDay(13_644_00, 13)) // 1,049.54 rounds to 1,050
+        assertEquals(1_169_00L, perDay(14_024_00, 12)) // 1,168.67 rounds to 1,169
         assertEquals(0L, perDay(-500, 5))
+        assertEquals(333L, perDay(1000, 3, digits = 0))
     }
 }
