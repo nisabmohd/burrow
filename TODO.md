@@ -22,10 +22,10 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] DAOs for accounts, categories, transactions; repositories in `AppContainer`
   - [x] Default categories + sample data (flagged `isSample`)
   - [x] Money formatting per locale; balance unit tests
-- [ ] **Day 3 · Add expense (17–20)**
-  - [ ] Keypad, Expense / Income / Transfer
-  - [ ] Category and account sheets, date, payee, note
-  - [ ] Can't-save-yet state, Undo snackbar
+- [x] **Day 3 · Add expense (17–20)**
+  - [x] Keypad, Expense / Income / Transfer
+  - [x] Category and account sheets, date, payee, note
+  - [x] Can't-save-yet state, Undo snackbar
 - [ ] **Day 4 · Activity (11, 21, 73)**
   - [ ] Day groups in a keyed LazyColumn, search
   - [ ] Transaction detail, edit, delete with Undo, duplicate

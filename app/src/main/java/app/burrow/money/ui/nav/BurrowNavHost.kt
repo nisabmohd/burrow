@@ -2,29 +2,48 @@ package app.burrow.money.ui.nav
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import app.burrow.money.AppContainer
 import app.burrow.money.R
+import app.burrow.money.data.Settings
 import app.burrow.money.ui.activity.ActivityScreen
+import app.burrow.money.ui.add.AddScreen
+import app.burrow.money.ui.add.AddViewModel
+import app.burrow.money.ui.add.savedMessage
 import app.burrow.money.ui.components.BurrowNavBar
+import app.burrow.money.ui.components.BurrowSnackbarHost
+import app.burrow.money.ui.components.LocalSnackbar
 import app.burrow.money.ui.components.NavItem
+import app.burrow.money.ui.components.UndoSnackbar
 import app.burrow.money.ui.insights.InsightsScreen
 import app.burrow.money.ui.more.MoreScreen
 import app.burrow.money.ui.plan.PlanScreen
 import app.burrow.money.ui.theme.NavMotion
+import app.burrow.money.ui.theme.Space
 import app.burrow.money.ui.today.TodayScreen
 import kotlin.reflect.KClass
 
@@ -47,42 +66,69 @@ private fun NavDestination?.tab(): Tab? = this?.let { d -> Tab.entries.firstOrNu
 
 private fun NavBackStackEntry.isTab() = destination.tab() != null
 
+/** Switches to a tab the way the bottom nav does: one copy of each, each keeps its scroll position. */
+private fun NavHostController.openTab(route: Any) = navigate(route) {
+    popUpTo(graph.findStartDestination().id) { saveState = true }
+    launchSingleTop = true
+    restoreState = true
+}
+
 /**
  * One NavHost for the app. Motion from Motion.kt only (docs/MOTION.md): switching tabs fades
  * through; pushing a screen uses shared axis X, reversed on back (predictive back is on in the
- * manifest). The bottom nav shows on tabs only.
+ * manifest). The bottom nav shows on tabs only. The Undo snackbar sits above the nav, for every screen.
  */
 @Composable
-fun BurrowNavHost() {
+fun BurrowNavHost(container: AppContainer, settings: Settings) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination.tab()
-    Column(Modifier.fillMaxSize()) {
-        NavHost(
-            navController = nav,
-            startDestination = TodayRoute,
-            modifier = Modifier.weight(1f),
-            enterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.push(this) },
-            exitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.pushExit(this) },
-            popEnterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.pop(this) },
-            popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
-        ) {
-            composable<TodayRoute> { TodayScreen() }
-            composable<ActivityRoute> { ActivityScreen() }
-            composable<PlanRoute> { PlanScreen() }
-            composable<InsightsRoute> { InsightsScreen() }
-            composable<MoreRoute> { MoreScreen() }
-        }
-        if (current != null) {
-            val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
-            BurrowNavBar(items, selected = current.ordinal, onSelect = { i ->
-                nav.navigate(Tab.entries[i].route) {
-                    // One copy of each tab; each keeps its scroll position when you come back.
-                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+    val context = LocalContext.current
+    val undoLabel = stringResource(R.string.undo)
+    val snackbar = remember(undoLabel) { UndoSnackbar(container.appScope, undoLabel) }
+    val openAdd = { nav.navigate(AddRoute()) }
+
+    CompositionLocalProvider(LocalSnackbar provides snackbar) {
+        Column(Modifier.fillMaxSize()) {
+            Box(Modifier.weight(1f)) {
+                NavHost(
+                    navController = nav,
+                    startDestination = TodayRoute,
+                    modifier = Modifier.fillMaxSize(),
+                    enterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.push(this) },
+                    exitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.pushExit(this) },
+                    popEnterTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabEnter(this) else NavMotion.pop(this) },
+                    popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
+                ) {
+                    composable<TodayRoute> { TodayScreen(onAdd = openAdd) }
+                    composable<ActivityRoute> { ActivityScreen(onAdd = openAdd) }
+                    composable<PlanRoute> { PlanScreen() }
+                    composable<InsightsRoute> { InsightsScreen() }
+                    composable<MoreRoute> { MoreScreen() }
+                    composable<AddRoute> { e ->
+                        val r = e.toRoute<AddRoute>()
+                        val vm = viewModel { AddViewModel(container.money, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency) }
+                        AddScreen(
+                            vm,
+                            onClose = { nav.popBackStack() },
+                            onSaved = { saved ->
+                                snackbar.show(context.getString(savedMessage(saved)), saved.undo)
+                                nav.popBackStack()
+                            },
+                        )
+                    }
                 }
-            })
+                // Above the nav bar on tabs; above the gesture bar elsewhere.
+                BurrowSnackbarHost(
+                    snackbar,
+                    Modifier.align(Alignment.BottomCenter).padding(horizontal = Space.screen)
+                        .then(if (current == null) Modifier.navigationBarsPadding() else Modifier),
+                )
+            }
+            if (current != null) {
+                val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
+                BurrowNavBar(items, selected = current.ordinal, onSelect = { i -> nav.openTab(Tab.entries[i].route) })
+            }
         }
     }
 }

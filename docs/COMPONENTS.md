@@ -7,11 +7,10 @@ if something is missing, add a component here first.
 | Component | Spec | Kotlin |
 |---|---|---|
 | `TabScreen` / `TabTopBar` | 64 dp; `headline` title 24 dp from the start; right: up to two `TonalIconButton`s, 8 dp apart. `TabScreen` = status bar + top bar + content with the 16 dp margin | Bars.kt |
-| Top bar (detail) | 64 dp; back `TonalIconButton` · optional `title` · one action (edit / filter) | screen code |
-| Top bar (form) | close · title · filled **Save** pill (disabled = `surfaceContainer`) | screen code |
+| `ScreenTopBar` | 64 dp; back or close `TonalIconButton` · optional `title` · one action (Save pill, Edit, Duplicate) | Bars.kt |
 | `TonalIconButton` | 48 dp circle, `surfaceContainer`; active `primaryContainer`; optional count badge | Controls.kt |
 | `FilterHeaderButtons` | funnel + calendar, 8 dp apart; badge = number of active filters | Controls.kt |
-| Search bar | 56 dp pill, `surfaceContainer`, search icon, clear button when typing | screen code |
+| `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing (search, payee, note) | Controls.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | Hero (Today only) | `primaryContainer`, 24 dp, label + `display` + line + wavy progress | screen code |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
@@ -26,18 +25,19 @@ if something is missing, add a component here first.
 | `PillBarChart` | 16 dp pill bars, 104 dp tall, labels, dots for empty, dashed average, tap to select | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
-| Connected button group | 2–3 options, 48 dp pills; selected = primary with a check | Material `SingleChoiceSegmentedButtonRow` styled as pills |
+| `ButtonGroup` | 2–3 options, 48 dp pills 4 dp apart; selected = primary with a check | Controls.kt |
 | Chips | 36 dp pills; selected `secondaryContainer` + check; `ChipWrap` wraps in sheets | Controls.kt |
-| Buttons | filled (primary), tonal (secondaryContainer), text; 48 dp, 56 dp at the bottom | Material, `Shapes.pill` |
-| Extended FAB | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Material |
-| `BurrowSheet` | every bottom sheet; title + one line + close button; footer buttons pinned | BurrowSheet.kt |
+| `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
+| `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Bars.kt |
+| `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
+| Pickers | `CategorySheet`, `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
 | `DayStepper` | − day +, quick chips, result line, Done — month start and bill due day | Controls.kt |
 | Dates sheet | presets row + month calendar, range highlight, "Show 1 – 19 Oct" | build in week 2 |
 | Filter sheet | Type (button group, Activity only) · Accounts chips · Categories chips · Reset / "Show 14 transactions" | build in week 2 |
-| Keypad | 4 × 4, 60 dp pill keys; operators `secondaryContainer`, ✓ primary | build in week 1 |
+| `Keypad` | 4 × 4, 60 dp pill keys 8 dp apart; operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
 | `EmptyState` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
-| Snackbar | after every change, ~4 s, Undo; above the nav bar | Material |
-| Dialog | delete, replace data, wrong password only | Material |
+| `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
+| `ConfirmDialog` | delete, replace data, wrong password only | Dialogs.kt |
 | Switch | Material 3 switch, primary track | Material |
 | `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3× | Bars.kt (Material `NavigationBar`) |
 

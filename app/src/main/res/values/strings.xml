@@ -46,4 +46,47 @@
     <string name="key_delete">Delete</string>
     <string name="key_plus">Plus</string>
     <string name="key_minus">Minus</string>
+
+    <!-- Add expense (17–20) -->
+    <string name="new_expense">New expense</string>
+    <string name="new_income">New income</string>
+    <string name="new_transfer">New transfer</string>
+    <string name="edit_expense">Edit expense</string>
+    <string name="edit_income">Edit income</string>
+    <string name="edit_transfer">Edit transfer</string>
+    <string name="type_expense">Expense</string>
+    <string name="type_income">Income</string>
+    <string name="type_transfer">Transfer</string>
+    <string name="not_counted">Not counted as spending</string>
+    <string name="choose_category">Choose a category</string>
+    <string name="choose_account">Choose an account</string>
+    <string name="category">Category</string>
+    <string name="account">Account</string>
+    <string name="paid_from">Paid from</string>
+    <string name="paid_into">Paid into</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="date">Date</string>
+    <string name="payee">Payee</string>
+    <string name="add_payee">Add payee</string>
+    <string name="payee_hint">Who you paid</string>
+    <string name="note">Note</string>
+    <string name="add_note">Add a note</string>
+    <string name="note_hint">Anything to remember</string>
+    <string name="clear">Clear</string>
+    <string name="saved">Saved</string>
+    <string name="saved_expense">Expense saved</string>
+    <string name="saved_income">Income saved</string>
+    <string name="saved_transfer">Transfer saved</string>
+    <string name="category_sheet_line">Spent this month shown under each</string>
+    <string name="account_sheet_line">Balance shown under each</string>
+    <string name="spent_this_month">%1$s this month</string>
+    <string name="nothing_this_month">No spending this month</string>
+    <string name="dot_join">%1$s · %2$s</string>
+    <string name="account_bank">Bank</string>
+    <string name="account_cash">Cash</string>
+    <string name="account_wallet">Wallet</string>
+    <string name="account_card">Credit card</string>
+    <string name="account_loan">Loan</string>
+    <string name="account_savings">Savings</string>
 </resources>

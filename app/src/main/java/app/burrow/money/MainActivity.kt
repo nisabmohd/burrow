@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import app.burrow.money.domain.MoneyFormat
+import app.burrow.money.ui.LocalMoney
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,9 +47,13 @@ class MainActivity : ComponentActivity() {
                 }
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
             }
+            val locale = LocalConfiguration.current.locales[0]
+            val money = remember(current.mainCurrency, locale) { MoneyFormat.of(current.mainCurrency, locale) }
             BurrowTheme(current.theme) {
-                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    BurrowNavHost()
+                CompositionLocalProvider(LocalMoney provides money) {
+                    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        BurrowNavHost(container, current)
+                    }
                 }
             }
         }
