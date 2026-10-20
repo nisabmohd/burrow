@@ -29,5 +29,19 @@ fun duotoneIcon(name: String?): Int = when (name) {
     "account_balance_wallet" -> R.drawable.ic_account_balance_wallet_duotone
     "real_estate_agent" -> R.drawable.ic_real_estate_agent_duotone
     "savings" -> R.drawable.ic_savings_duotone
+    "cloud" -> R.drawable.ic_cloud_duotone
+    "shield" -> R.drawable.ic_shield_duotone
+    "laptop_mac" -> R.drawable.ic_laptop_mac_duotone
+    "flag" -> R.drawable.ic_flag_duotone
     else -> R.drawable.ic_category_duotone
+}
+
+/** The icon for a currency in amount fields (₹, $, €, £; a generic coin otherwise). */
+@DrawableRes
+fun currencyIcon(code: String): Int = when (code) {
+    "INR" -> R.drawable.ic_currency_rupee_regular
+    "EUR" -> R.drawable.ic_euro_regular
+    "GBP" -> R.drawable.ic_currency_pound_regular
+    "USD" -> R.drawable.ic_attach_money_regular
+    else -> R.drawable.ic_payments_regular
 }

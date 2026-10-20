@@ -72,6 +72,7 @@ Numbers use tabular figures (`tnum`) so amounts line up.
 | `label` | 12 / 16 | 500 | Widget labels, nav labels, chart axis, legends |
 | `keypad` | 24 / 32 | 400 | Keypad digits only |
 | `intro` | 36 / 44 | 500 | Welcome and intro headlines only |
+| `tiny` | 10 / 12 | 500 | The percent inside a 40 dp ring only |
 
 Never set a size or weight in a screen. Long translations wrap; nav labels may shrink to 10 sp, never below.
 

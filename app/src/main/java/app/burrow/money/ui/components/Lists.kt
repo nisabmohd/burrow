@@ -120,3 +120,15 @@ fun AmountTrailing(amount: String, status: String? = null, statusColor: Color = 
     }
 }
 
+
+/**
+ * A note that appears at the very top of a list (overdue, paused) would land above the first
+ * visible item, and a lazy list keeps that item in place, so the note would sit just off screen.
+ * When [topKey] changes and the list is at (or next to) the top, scroll back to the top.
+ */
+@Composable
+fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey: Any?) {
+    androidx.compose.runtime.LaunchedEffect(topKey) {
+        if (state.firstVisibleItemIndex <= 1) state.scrollToItem(0)
+    }
+}

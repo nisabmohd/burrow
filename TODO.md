@@ -43,7 +43,7 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
 - [x] **Day 7 · SMS + notifications (43)**
   - [x] `SmsReceiver` with goAsync, `PaymentNotificationListener` with the allow-list
   - [x] Dedupe (10 min)
-  - [ ] Bill match (±10%, 3 days): needs bills, do it on Day 11
+  - [x] Bill match (±10%, 3 days): needs bills, do it on Day 11
   - [x] Capture notification with two category buttons + Ignore
 - [x] **Day 8 · Intro + Review (44–47)**
   - [x] 3-step intro with permission requests
@@ -57,33 +57,36 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] Auto-capture settings screen, paused note on Today
 
 ## Week 3 — Plan
-- [ ] **Day 11 · Bills data**
-  - [ ] Occurrences from repeat rules; reminders with AlarmManager + boot receiver
-  - [ ] Ask me / Record it / Only remind on the due day
-- [ ] **Day 12 · Bills tab (22, 25–28)**
-  - [ ] Overdue note, Next up card, week lists, swipe Paid / Skip
-  - [ ] Bill detail, New bill, DayStepper sheet
-- [ ] **Day 13 · Subscriptions + EMIs (29, 58)**
-  - [ ] Subscriptions screen + suggestion note
-  - [ ] Loan account with EMI schedule, prepay
-- [ ] **Day 14 · Budgets (23, 30–32, 68)**
-  - [ ] Month start day, category rows with rings, budget detail, edit sheet
-  - [ ] 80% / 100% notifications
-- [ ] **Day 15 · Goals (24, 33–35)**
-  - [ ] Goals tab, goal detail, Add money (transfer), Goal reached note
+- [x] **Day 11 · Bills data**
+  - [x] Occurrences from repeat rules; reminders with AlarmManager + boot receiver
+  - [x] Ask me / Record it / Only remind on the due day
+- [x] **Day 12 · Bills tab (22, 25–28)**
+  - [x] Overdue note, Next up card, week lists, swipe Paid / Skip
+  - [x] Bill detail, New bill, DayStepper sheet
+- [x] **Day 13 · Subscriptions + EMIs (29, 58)**
+  - [x] Subscriptions screen + suggestion note
+  - [x] Loan account with EMI schedule, prepay
+- [x] **Day 14 · Budgets (23, 30–32, 68)**
+  - [x] Month start day, category rows with rings, budget detail, edit sheet
+  - [x] 80% / 100% notifications
+- [x] **Day 15 · Goals (24, 33–35)**
+  - [x] Goals tab, goal detail, Add money (transfer), Goal reached note
 
 ## Week 4 — Insights and widgets
-- [ ] **Day 16 · Filters (12–16)**
-  - [ ] Filter sheet (chips), Dates sheet, header buttons with badge, active chips
-  - [ ] Activity chart card with tap-a-day
-- [ ] **Day 17 · Insights 1 (36–37, 42)**
-  - [ ] Spend chart vs previous period, A day, Biggest, By category, Category insights
-- [ ] **Day 18 · Insights 2 (38–41)**
-  - [ ] Patterns widgets, heatmap → Activity for a day, empty range
-- [ ] **Day 19 · Today widgets (05, 10)**
-  - [ ] This week, Next bill, Net worth, Top category, Goal (wide), Money in and out, Edit home
-- [ ] **Day 20 · Accounts (55–59)**
-  - [ ] Accounts list; bank, card, loan, deposit details; fix balance; Pay bill
+- [x] **Day 16 · Filters (12–16)**
+  - [x] Filter sheet (chips), Dates sheet, header buttons with badge, active chips
+  - [x] Activity chart card with tap-a-day
+- [x] **Day 17 · Insights 1 (36–37, 42)**
+  - [x] Spend chart vs previous period, A day, Biggest, By category, Category insights
+- [x] **Day 18 · Insights 2 (38–41)**
+  - [x] Patterns widgets, heatmap → Activity for a day, empty range
+- [x] **Day 19 · Today widgets (05, 10)**
+  - [x] This week, Next bill, Net worth, Top category, Goal (wide), Money in and out, Edit home
+- [x] **Day 20 · Accounts (55–59)**
+  - [ ] Later (weeks 3–4): weekly / yearly repeat when creating a bill (monthly only today; edit keeps yearly); the deposit's
+    "Remind me a week before" switch is stored but no maturity reminder is scheduled yet; Month starts on sheet (68) opens from More (Day 21);
+    check budget alerts and bill match on a device; decide whether net worth counts loans (design shows ₹6.84L, the sample with the home loan is −₹14.47L)
+  - [x] Accounts list; bank, card, loan, deposit details; fix balance; Pay bill
 
 ## Week 5 — settings, backup, motion
 - [ ] **Day 21 · More (53–54, 60–62, 67)**

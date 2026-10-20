@@ -64,6 +64,7 @@ Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend
 - Nothing is drawn under a header until its data has loaded (no "₹0" flash).
 - Filters stay while the app is open, reset on restart.
 - Notifications: app name + time, title, one line, no buttons (except the capture notification).
+  Small icon is always the Burrow mark, `R.drawable.ic_notification` (user, 2026-10-20), never a Phosphor glyph.
 
 ## Working with Claude
 - Start each session with `TODO.md`: pick the next unticked day, build it screen by screen against its PNGs.

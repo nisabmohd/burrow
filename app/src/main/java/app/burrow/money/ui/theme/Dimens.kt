@@ -56,6 +56,12 @@ object Size {
     val wavyHeight = 14.dp
     val thinBar = 8.dp
     val dot = 8.dp            // step dots (intro); the current step is a pill
+    val lineChart = 140.dp    // Insights' running-total line
+    val sparkline = 48.dp     // small lines in widgets
+    val stackBar = 12.dp      // By category's stacked bar
+    val miniChart = 40.dp     // mini bars in widgets
+    val ringWidget = 52.dp    // rings in half widgets
+    val ringWide = 104.dp     // the ring in a wide widget
     val dotActive = 24.dp
 }
 

@@ -21,8 +21,11 @@ import java.time.LocalDate
 /** The lead circle of a transaction: its category, or the neutral swap circle for a transfer. */
 @Composable
 fun TxnCircle(t: TxnView, size: androidx.compose.ui.unit.Dp = app.burrow.money.ui.theme.Size.iconCircle) =
-    if (t.txn.type == TxnType.TRANSFER) IconCircle(painterResource(R.drawable.ic_swap_horiz_duotone), size = size)
-    else CategoryCircle(t.categoryIcon, t.categoryHue, size)
+    when (t.txn.type) {
+        TxnType.TRANSFER -> IconCircle(painterResource(R.drawable.ic_swap_horiz_duotone), size = size)
+        TxnType.ADJUST_UP, TxnType.ADJUST_DOWN -> IconCircle(painterResource(R.drawable.ic_balance_duotone), size = size)
+        else -> CategoryCircle(t.categoryIcon, t.categoryHue, size)
+    }
 
 /**
  * One transaction in a list (Today › Recent, Activity): circle, payee, "Food & drinks · HDFC"
@@ -31,7 +34,11 @@ fun TxnCircle(t: TxnView, size: androidx.compose.ui.unit.Dp = app.burrow.money.u
 @Composable
 fun TxnRow(t: TxnView, index: Int, count: Int, dates: DateText, today: LocalDate, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val money = LocalMoney.current
-    val kind = if (t.txn.type == TxnType.TRANSFER) stringResource(R.string.type_transfer) else t.categoryName.orEmpty()
+    val kind = when (t.txn.type) {
+        TxnType.TRANSFER -> stringResource(R.string.type_transfer)
+        TxnType.ADJUST_UP, TxnType.ADJUST_DOWN -> stringResource(R.string.balance_fixed)
+        else -> t.categoryName.orEmpty()
+    }
     val base = stringResource(R.string.dot_join, kind, shortName(t.accountName))
     val line = if (dates.date(t.txn.at) == today) stringResource(R.string.dot_join, base, dates.time(t.txn.at)) else base
     ListRow(

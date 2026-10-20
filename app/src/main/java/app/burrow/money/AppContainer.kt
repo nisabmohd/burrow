@@ -5,6 +5,9 @@ import app.burrow.money.capture.RuleEngine
 import app.burrow.money.capture.CaptureNotifier
 import app.burrow.money.data.BurrowDatabase
 import app.burrow.money.data.CaptureRepository
+import app.burrow.money.data.PlanRepository
+import app.burrow.money.notify.Notifier
+import app.burrow.money.notify.checkBudgets
 import app.burrow.money.data.MoneyRepository
 import app.burrow.money.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -16,17 +19,29 @@ import kotlinx.coroutines.SupervisorJob
  * Everything is lazy so cold start only pays for what the first screen needs.
  * Add repositories here as they are built (see docs/ROADMAP.md).
  */
-class AppContainer(private val context: Context) {
+class AppContainer(val context: Context) {
     val database by lazy { BurrowDatabase.create(context) }
     val strings: Strings = ResourceStrings(context)
     val rules by lazy { RuleEngine() }
     val settings by lazy { SettingsRepository(context) }
-    val money by lazy { MoneyRepository(database, settings, strings) }
+    val money: MoneyRepository by lazy {
+        MoneyRepository(database, settings, strings).also { repo ->
+            // A captured payment may pay a due bill; any expense may cross a budget line.
+            repo.afterSave = { saved, before ->
+                if (saved.source == "SMS" || saved.source == "NOTIFICATION") plan.settleFromPayment(saved)
+                checkBudgets(saved, before)
+            }
+        }
+    }
+    val plan: PlanRepository by lazy { PlanRepository(database, money, strings) }
+    /** Bill reminders and budget alerts (the capture notification is [notifier]). */
+    val planNotifier by lazy { Notifier(context) }
     val capture by lazy { CaptureRepository(context, database, settings, money, rules) }
     val notifier by lazy { CaptureNotifier(context) }
-    // val bills by lazy { BillRepository(database) }           // week 3
-    // val reminders by lazy { ReminderScheduler(context, bills) } // week 3
     // val backup by lazy { BackupManager(database, settings) } // week 5
+
+    /** Activity's and Insights' filters: kept while the app is open, gone on restart. */
+    val filters = app.burrow.money.ui.filters.FilterStore()
 
     /** Lives as long as the process, for work that isn't tied to a screen. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

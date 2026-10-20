@@ -44,9 +44,33 @@ import app.burrow.money.ui.components.BurrowSnackbarHost
 import app.burrow.money.ui.components.LocalSnackbar
 import app.burrow.money.ui.components.NavItem
 import app.burrow.money.ui.components.UndoSnackbar
+import app.burrow.money.ui.insights.CategoryInsightsScreen
+import app.burrow.money.ui.insights.CategoryInsightsViewModel
 import app.burrow.money.ui.insights.InsightsScreen
+import app.burrow.money.ui.insights.InsightsViewModel
 import app.burrow.money.ui.more.MoreScreen
+import app.burrow.money.ui.accounts.AccountScreen
+import app.burrow.money.ui.accounts.AccountViewModel
+import app.burrow.money.ui.accounts.AccountsScreen
+import app.burrow.money.ui.accounts.AccountsViewModel
+import app.burrow.money.ui.accounts.NewAccountScreen
+import app.burrow.money.ui.accounts.NewAccountViewModel
+import app.burrow.money.ui.plan.BillForm
+import app.burrow.money.ui.plan.BillScreen
+import app.burrow.money.ui.plan.BillViewModel
+import app.burrow.money.ui.plan.BudgetScreen
+import app.burrow.money.ui.plan.BudgetViewModel
+import app.burrow.money.ui.plan.GoalScreen
+import app.burrow.money.ui.plan.GoalViewModel
+import app.burrow.money.ui.plan.NewBillScreen
+import app.burrow.money.ui.plan.NewBillViewModel
+import app.burrow.money.ui.plan.NewGoalScreen
+import app.burrow.money.ui.plan.NewGoalViewModel
 import app.burrow.money.ui.plan.PlanScreen
+import app.burrow.money.ui.plan.PlanViewModel
+import app.burrow.money.ui.plan.SubscriptionsScreen
+import app.burrow.money.ui.plan.SubscriptionsViewModel
+import androidx.compose.runtime.setValue
 import app.burrow.money.ui.theme.NavMotion
 import app.burrow.money.ui.theme.Space
 import app.burrow.money.ui.capture.AutoCaptureScreen
@@ -97,7 +121,7 @@ private fun NavHostController.openTab(route: Any) = navigate(route) {
  * manifest). The bottom nav shows on tabs only. The Undo snackbar sits above the nav, for every screen.
  */
 @Composable
-fun BurrowNavHost(container: AppContainer, settings: Settings, openReview: Boolean = false, onReviewOpened: () -> Unit = {}) {
+fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNotification? = null, onOpened: () -> Unit = {}) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination.tab()
@@ -106,12 +130,17 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, openReview: Boole
     val snackbar = remember(undoLabel) { UndoSnackbar(container.appScope, undoLabel) }
     val openAdd = { nav.navigate(AddRoute()) }
     val openTxn = { id: Long -> nav.navigate(TxnRoute(id)) }
-    // From the capture notification.
-    LaunchedEffect(openReview) {
-        if (openReview) {
-            nav.navigate(ReviewRoute) { launchSingleTop = true }
-            onReviewOpened()
+    var planSection by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(app.burrow.money.ui.plan.PlanSection.BILLS) }
+    val digits = remember(settings.mainCurrency) { app.burrow.money.domain.MoneyFormat.of(settings.mainCurrency).digits }
+    // From a notification: capture → To review, bill reminder → the bill, budget alert → Budgets.
+    LaunchedEffect(open) {
+        when (open) {
+            OpenFromNotification.Review -> nav.navigate(ReviewRoute) { launchSingleTop = true }
+            is OpenFromNotification.Bill -> nav.navigate(BillRoute(open.id)) { launchSingleTop = true }
+            OpenFromNotification.Budgets -> { planSection = app.burrow.money.ui.plan.PlanSection.BUDGETS; nav.openTab(PlanRoute) }
+            null -> return@LaunchedEffect
         }
+        onOpened()
     }
 
     CompositionLocalProvider(LocalSnackbar provides snackbar) {
@@ -127,20 +156,100 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, openReview: Boole
                     popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
                 ) {
                     composable<TodayRoute> {
-                        val vm = viewModel { TodayViewModel(container.money, container.capture, container.settings, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
+                        val vm = viewModel { TodayViewModel(container.money, container.capture, container.settings, container.plan, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
                         TodayScreen(
-                            vm, onAdd = openAdd, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) },
+                            vm, onAdd = openAdd, onAccounts = { nav.navigate(AccountsRoute) }, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) },
                             onReview = { nav.navigate(ReviewRoute) },
                             onCaptureIntro = { nav.navigate(CaptureIntroRoute) },
                             onFixCapture = { nav.navigate(AutoCaptureRoute) },
+                            onBill = { nav.navigate(BillRoute(it)) },
+                            onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
+                            onGoal = { nav.navigate(GoalRoute(it)) },
                         )
                     }
                     composable<ActivityRoute> {
-                        val vm = viewModel { ActivityViewModel(container.money) }
+                        val vm = viewModel { ActivityViewModel(container.money, container.filters) }
                         ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn)
                     }
-                    composable<PlanRoute> { PlanScreen() }
-                    composable<InsightsRoute> { InsightsScreen() }
+                    composable<PlanRoute> {
+                        val vm = viewModel { PlanViewModel(container.plan, container.money, settings.monthStartDay, digits) }
+                        PlanScreen(
+                            vm, planSection,
+                            onAddBill = { nav.navigate(NewBillRoute()) },
+                            onOpenBill = { nav.navigate(BillRoute(it)) },
+                            onSubscriptions = { nav.navigate(SubscriptionsRoute) },
+                            onLoan = { id -> nav.navigate(if (id != null) AccountRoute(id) else AccountsRoute) },
+                            onBudget = { nav.navigate(BudgetRoute(it ?: -1L)) },
+                            onAddGoal = { nav.navigate(NewGoalRoute()) },
+                            onOpenGoal = { nav.navigate(GoalRoute(it)) },
+                        )
+                    }
+                    composable<BillRoute> { e ->
+                        val id = e.toRoute<BillRoute>().id
+                        val vm = viewModel { BillViewModel(container.plan, container.money, id) }
+                        BillScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewBillRoute(editId = it)) })
+                    }
+                    composable<NewBillRoute> { e ->
+                        val r = e.toRoute<NewBillRoute>()
+                        val prefill = if (r.name.isNotEmpty() || r.kind != "BILL") BillForm(
+                            kind = r.kind, name = r.name, amount = r.amount, categoryId = r.categoryId.takeIf { it != 0L },
+                            accountId = r.accountId.takeIf { it != 0L },
+                        ) else null
+                        val vm = viewModel { NewBillViewModel(container.plan, container.money, r.editId, prefill, digits) }
+                        val saved = stringResource(R.string.saved)
+                        NewBillScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
+                    }
+                    composable<SubscriptionsRoute> {
+                        val vm = viewModel { SubscriptionsViewModel(container.plan, container.money) }
+                        SubscriptionsScreen(
+                            vm, onBack = { nav.popBackStack() },
+                            onAdd = { f -> nav.navigate(NewBillRoute(kind = f?.kind ?: "SUBSCRIPTION", name = f?.name.orEmpty(), amount = f?.amount.orEmpty(), categoryId = f?.categoryId ?: 0L, accountId = f?.accountId ?: 0L)) },
+                            onOpen = { nav.navigate(BillRoute(it)) },
+                        )
+                    }
+                    composable<BudgetRoute> { e ->
+                        val cat = e.toRoute<BudgetRoute>().categoryId.takeIf { it != -1L }
+                        val vm = viewModel { BudgetViewModel(container.plan, container.money, cat, settings.monthStartDay) }
+                        BudgetScreen(vm, onBack = { nav.popBackStack() }, onOpenCategory = { nav.navigate(BudgetRoute(it)) }, onOpenTxn = openTxn)
+                    }
+                    composable<AccountsRoute> {
+                        val vm = viewModel { AccountsViewModel(container.money) }
+                        AccountsScreen(vm, onBack = { nav.popBackStack() }, onAdd = { nav.navigate(NewAccountRoute()) }, onOpen = { nav.navigate(AccountRoute(it)) })
+                    }
+                    composable<AccountRoute> { e ->
+                        val id = e.toRoute<AccountRoute>().id
+                        val vm = viewModel { AccountViewModel(container.money, container.strings, id) }
+                        AccountScreen(
+                            vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewAccountRoute(it)) },
+                            onTransfer = { nav.navigate(AddRoute(type = "TRANSFER", accountId = it)) }, onOpenTxn = openTxn,
+                        )
+                    }
+                    composable<NewAccountRoute> { e ->
+                        val id = e.toRoute<NewAccountRoute>().editId
+                        val vm = viewModel { NewAccountViewModel(container.money, id, digits, settings.mainCurrency) }
+                        val saved = stringResource(R.string.saved)
+                        NewAccountScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
+                    }
+                    composable<GoalRoute> { e ->
+                        val id = e.toRoute<GoalRoute>().id
+                        val vm = viewModel { GoalViewModel(container.plan, container.money, id) }
+                        GoalScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewGoalRoute(it)) })
+                    }
+                    composable<NewGoalRoute> { e ->
+                        val id = e.toRoute<NewGoalRoute>().editId
+                        val vm = viewModel { NewGoalViewModel(container.plan, container.money, id, digits) }
+                        val saved = stringResource(R.string.saved)
+                        NewGoalScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
+                    }
+                    composable<InsightsRoute> {
+                        val vm = viewModel { InsightsViewModel(container.money, container.filters, settings.monthStartDay) }
+                        InsightsScreen(vm, onCategory = { nav.navigate(CategoryInsightsRoute(it)) }, onDayInActivity = { nav.openTab(ActivityRoute) })
+                    }
+                    composable<CategoryInsightsRoute> { e ->
+                        val id = e.toRoute<CategoryInsightsRoute>().categoryId
+                        val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id) }
+                        CategoryInsightsScreen(vm, onBack = { nav.popBackStack() }, onOpenTxn = openTxn)
+                    }
                     composable<MoreRoute> { MoreScreen(onAutoCapture = { nav.navigate(AutoCaptureRoute) }) }
                     composable<ReviewRoute> {
                         val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
@@ -201,7 +310,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, openReview: Boole
                     }
                     composable<AddRoute> { e ->
                         val r = e.toRoute<AddRoute>()
-                        val vm = viewModel { AddViewModel(container.money, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency) }
+                        val vm = viewModel { AddViewModel(container.money, r.editId, r.duplicateId, r.type, settings.monthStartDay, settings.mainCurrency, r.accountId) }
                         AddScreen(
                             vm,
                             onClose = { nav.popBackStack() },

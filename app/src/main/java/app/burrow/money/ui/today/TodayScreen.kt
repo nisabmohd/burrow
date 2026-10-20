@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -39,7 +42,20 @@ import java.time.LocalDate
  * With no transactions at all it shows only the empty state. Widgets come on Day 19.
  */
 @Composable
-fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onSeeAll: () -> Unit, onReview: () -> Unit, onCaptureIntro: () -> Unit, onFixCapture: () -> Unit) {
+fun TodayScreen(
+    vm: TodayViewModel,
+    onAdd: () -> Unit,
+    onAccounts: () -> Unit,
+    onOpen: (Long) -> Unit,
+    onSeeAll: () -> Unit,
+    onReview: () -> Unit,
+    onCaptureIntro: () -> Unit,
+    onFixCapture: () -> Unit,
+    onBill: (Long) -> Unit,
+    onCategory: (Long) -> Unit,
+    onGoal: (Long) -> Unit,
+) {
+    var editHome by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
     val today = remember { LocalDate.now() }
@@ -48,8 +64,7 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
     TabScreen(
         title = stringResource(R.string.tab_today),
         actions = {
-            // Accounts opens on Day 20.
-            TonalIconButton(painterResource(R.drawable.ic_account_balance_wallet_regular), stringResource(R.string.accounts), onClick = {})
+            TonalIconButton(painterResource(R.drawable.ic_account_balance_wallet_regular), stringResource(R.string.accounts), onClick = onAccounts)
             TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.add_expense), onClick = onAdd)
         },
         fab = { AddFab(stringResource(R.string.add_expense), onAdd) },
@@ -65,7 +80,9 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
             )
             return@TabScreen
         }
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
+        val list = androidx.compose.foundation.lazy.rememberLazyListState()
+        app.burrow.money.ui.components.KeepTopVisible(list, paused to s.hasSamples)
+        LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
             if (paused != null) {
                 item(key = "paused", contentType = "note") {
                     Note(
@@ -109,6 +126,14 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
                     )
                 }
             }
+            if (s.shown.isNotEmpty()) item(key = "widgets", contentType = "widgets") {
+                TodayWidgets(
+                    s.widgets, s.shown, s.hero,
+                    onWeek = onSeeAll, onBill = onBill,
+                    onMarkPaid = { id -> vm.markPaid(id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } },
+                    onNetWorth = onAccounts, onCategory = onCategory, onGoal = onGoal,
+                )
+            }
             // Header and rows as one block, so the rows keep the group's 2 dp gap.
             item(key = "recent", contentType = "recent") {
                 Column(Modifier.animateItem()) {
@@ -120,6 +145,14 @@ fun TodayScreen(vm: TodayViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, o
                     }
                 }
             }
+            item(key = "edit-home", contentType = "button") {
+                BurrowButton(
+                    stringResource(R.string.edit_home), { editHome = true },
+                    Modifier.fillMaxWidth().padding(top = Space.block), ButtonKind.TONAL, painterResource(R.drawable.ic_dashboard_customize_regular),
+                )
+            }
         }
     }
+    val s = state ?: return
+    if (editHome) EditHomeSheet(s.shown, vm::setWidget) { editHome = false }
 }

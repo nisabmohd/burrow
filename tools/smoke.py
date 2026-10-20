@@ -80,8 +80,72 @@ def today_shows_budget_and_sample_note():
     assert d.exists("These are sample transactions", contains=True), "sample-data note missing"
 
 
+# Plan, Accounts, Insights: before the first real entry, which clears the sample month.
+
+
+@check
+def plan_overdue_mark_paid_and_undo():
+    recover()
+    d.nav("Plan")
+    assert d.exists("is overdue", contains=True, timeout=5), "no overdue note on Plan (sample electricity bill)"
+    paid = [n for n in d.dump() if n.label == "Mark paid"][0]
+    x1, y1, x2, y2 = paid.bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    time.sleep(0.5)
+    nodes = d.dump()
+    undo = [n for n in nodes if n.label == "Undo"]
+    assert undo, "no Undo after Mark paid"
+    x1, y1, x2, y2 = undo[0].bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    assert d.exists("is overdue", contains=True, timeout=5), "Undo did not bring the overdue bill back"
+
+
+@check
+def plan_budgets_and_goals():
+    recover()
+    d.nav("Plan")
+    d.tap("Budgets")
+    assert d.exists("left", contains=True, timeout=5), "no budget header"
+    d.tap("Goals")
+    assert d.exists("Saved for goals", timeout=5), "no goals header"
+    d.tap("Japan trip")
+    assert d.exists("Add money", timeout=5), "goal detail has no Add money"
+    d.back()
+
+
+@check
+def accounts_card_and_loan():
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    assert d.exists("Net worth", timeout=5), "Accounts has no net worth"
+    d.tap("ICICI Amazon Pay")
+    assert d.exists("Pay bill", timeout=5), "card has no Pay bill"
+    d.back()
+    d.tap("Home loan")
+    assert d.exists("EMIs paid", contains=True, timeout=5), "loan has no EMI count"
+    d.back()
+    d.back()
+
+
+@check
+def insights_heatmap_opens_activity():
+    recover()
+    d.nav("Insights")
+    assert d.exists("By category", timeout=8), "Insights has no By category"
+    d.scroll_to("Less")
+    days = [n for n in d.dump() if re.match(r"^(\d{1,2} \w+|\w+ \d{1,2}), ", n.label)]  # "17 Oct, ₹…" or "Oct 17, ₹…"
+    assert days, "no heatmap days"
+    x1, y1, x2, y2 = days[0].bounds
+    d.tap_xy((x1 + x2) // 2, (y1 + y2) // 2)
+    assert d.exists("Clear all", timeout=5), "heatmap day did not open Activity with that day"
+    d.tap("Clear all")
+
+
 @check
 def add_expense_saves_and_undo():
+    recover()
+    d.nav("Today")
     d.tap("Add expense")
     for k in "240":
         d.tap(k)
@@ -190,6 +254,7 @@ def not_understood_waits_for_teach():
 
 @check
 def activity_filter_badge():
+    recover()
     d.nav("Activity")
     d.tap("Filter")
     d.tap("Food & drinks")

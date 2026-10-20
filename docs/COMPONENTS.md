@@ -24,10 +24,13 @@ if something is missing, add a component here first.
 | `WavyProgress` / `rememberCountUp` | the hero's wavy bar; a number that counts up once per screen | Charts.kt / CountUp.kt |
 | `AmountTrailing` | `titleSmall` amount over `label` status ("in 6 days", "Paid") | Lists.kt |
 | `Widget` | half: 184 dp fixed; wide: wraps, text left + visual right | Blocks.kt |
-| Next-up card | `surfaceContainerLow` card: label, 64 dp icon circle + name/amount/when, one filled "Mark paid" | screen code |
+| Next-up card | `surfaceContainerLow` card: label, 64 dp icon circle + name/amount/when, one filled "Mark paid" | ui/plan/PlanScreen.kt |
 | Status tiles (More) | 2 equal columns (`minmax(0,1fr)`), 24 dp, icon top-left, status top-right, title, one line | screen code |
 | Category tiles | 3 columns, 56 dp circle + one-word name; dashed "New" tile | screen code |
-| `PillBarChart` | 16 dp pill bars, 104 dp tall, labels, dots for empty, dashed average, tap to select | Charts.kt |
+| `PillBarChart` | 16 dp pill bars, 104 dp tall (40 in widgets), labels, dots for empty, dashed average; one tap area over the chart picks the bar, TalkBack gets a summary and an action per bar | Charts.kt |
+| `ChartCard` / `AverageLegend` | card with icon + label (+ legend or "All days"), the big number, one line, then the chart | ChartCard.kt |
+| `CumulativeLineChart` · `Sparkline` · `StackBar` · `DonutChart` · `SplitBar` · `heatColor` | the Insights line vs the period before; widget lines; By category bar; Top category ring; Money in and out; heatmap tones | Charts.kt |
+| `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
 | `ButtonGroup` | 2–3 options, 48 dp pills 4 dp apart; selected = primary with a check | Controls.kt |
@@ -36,9 +39,12 @@ if something is missing, add a component here first.
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Bars.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet`, `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
+| `AmountStepperSheet` | − amount + with quick chips and an extra row (budget edit 32, Add money 35, Pay bill, Prepay) | StepperSheet.kt |
+| `LabeledField` | a form field with its label above (New bill, New goal, New account) | StepperSheet.kt |
+| `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |
 | `DayStepper` | − day +, quick chips, result line, Done — month start and bill due day | Controls.kt |
-| Dates sheet | presets row + month calendar, range highlight, "Show 1 – 19 Oct" | build in week 2 |
-| Filter sheet | Type (button group, Activity only) · Accounts chips · Categories chips · Reset / "Show 14 transactions" | build in week 2 |
+| `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
+| `FilterSheet` / `ActiveFilterChips` | Type (Activity only) · Accounts · Categories chips · Reset / "Show 14 transactions"; removable chips + Clear all under the search | ui/filters/FilterSheets.kt |
 | `Keypad` | 4 × 4, 60 dp pill keys 8 dp apart; operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
 | `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |

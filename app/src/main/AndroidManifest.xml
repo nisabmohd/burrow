@@ -38,6 +38,17 @@
         <!-- The capture notification's buttons (save with a category / Ignore). -->
         <receiver android:name=".capture.CaptureActionReceiver" android:exported="false" />
 
+        <!-- Bill reminders: one inexact alarm, set again after a reboot, update or clock change. -->
+        <receiver android:name=".notify.BillAlarmReceiver" android:exported="false" />
+        <receiver android:name=".notify.RescheduleReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Payment-app notifications (GPay, PhonePe…). The user grants access in system settings. -->
         <service
             android:name=".capture.PaymentNotificationListener"

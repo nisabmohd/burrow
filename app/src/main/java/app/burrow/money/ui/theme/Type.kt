@@ -60,12 +60,13 @@ fun burrowTypography(font: BodyFont, scale: Float): Typography {
     val label = s(12, 16, FontWeight.Medium)
     val keypad = s(24, 32, FontWeight.Normal)
     val intro = s(36, 44, FontWeight.Medium)
+    val tiny = s(10, 12, FontWeight.Medium)
     return Typography(
         displayLarge = display, displayMedium = intro, displaySmall = keypad,
         headlineLarge = headline, headlineMedium = headline, headlineSmall = title,
         titleLarge = title, titleMedium = titleSmall, titleSmall = s(14, 20, FontWeight.Medium),
         bodyLarge = bodyLarge, bodyMedium = body, bodySmall = s(12, 16, FontWeight.Normal),
-        labelLarge = s(14, 20, FontWeight.Medium), labelMedium = label, labelSmall = label,
+        labelLarge = s(14, 20, FontWeight.Medium), labelMedium = label, labelSmall = tiny,
     )
 }
 
@@ -97,6 +98,9 @@ object BurrowType {
 
     /** 12/16 Medium: widget labels, nav labels, chart axis, legend. */
     val label: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.labelMedium
+
+    /** 10/12 Medium: the percent inside a 40 dp ring only. */
+    val tiny: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.labelSmall
 
     /** 36/44 Medium: the welcome and intro headlines only. */
     val intro: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.displayMedium

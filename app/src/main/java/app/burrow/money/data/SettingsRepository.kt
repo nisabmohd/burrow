@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,6 +18,7 @@ import app.burrow.money.ui.theme.ThemeSettings
 import app.burrow.money.ui.theme.TextSize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.Currency
 import java.util.Locale
@@ -37,7 +39,11 @@ data class Settings(
     val notificationCapture: Boolean = false,
     /** Built-in rule packs that are on (ids from BUILT_IN_PACKS). */
     val enabledPacks: Set<String> = setOf("in"),
+    /** Widgets Today shows (Edit home, 10), by key: week, bill, networth, topcat, goal, inout. */
+    val homeWidgets: Set<String> = ALL_HOME_WIDGETS,
 )
+
+val ALL_HOME_WIDGETS = setOf("week", "bill", "networth", "topcat", "goal", "inout")
 
 /** The phone region's currency, or INR when the region has none. */
 fun defaultCurrency(locale: Locale = Locale.getDefault()): String =
@@ -57,12 +63,24 @@ class SettingsRepository(context: Context) {
     suspend fun setTextSize(size: TextSize) = store.edit { it[TEXT_SIZE] = size.name }
     suspend fun setMainCurrency(code: String) = store.edit { it[MAIN_CURRENCY] = code }
     suspend fun setMonthStartDay(day: Int) = store.edit { it[MONTH_START_DAY] = day.coerceIn(1, 28) }
+    suspend fun setHomeWidget(key: String, on: Boolean) = store.edit {
+        val now = it[HOME_WIDGETS] ?: ALL_HOME_WIDGETS
+        it[HOME_WIDGETS] = if (on) now + key else now - key
+    }
     suspend fun setSmsCapture(on: Boolean) = store.edit { it[SMS_CAPTURE] = on }
     suspend fun setNotificationCapture(on: Boolean) = store.edit { it[NOTIFICATION_CAPTURE] = on }
     suspend fun setPackEnabled(id: String, on: Boolean) = store.edit {
         val now = it[ENABLED_PACKS] ?: setOf("in")
         it[ENABLED_PACKS] = if (on) now + id else now - id
     }
+
+    /** When bill reminders last ran (epoch millis); null before the first run. */
+    suspend fun billsCheckedAt(): Long? = store.data.first()[BILLS_CHECKED_AT]
+    suspend fun setBillsCheckedAt(at: Long) = store.edit { it[BILLS_CHECKED_AT] = at }
+
+    /** Budget alerts already sent ("2026-10:overall:80"), so each goes once a month. */
+    suspend fun budgetAlertSent(key: String): Boolean = key in (store.data.first()[BUDGET_ALERTS] ?: emptySet())
+    suspend fun markBudgetAlert(key: String) = store.edit { it[BUDGET_ALERTS] = ((it[BUDGET_ALERTS] ?: emptySet()) + key).toList().takeLast(200).toSet() }
 
     private fun Preferences.toSettings(): Settings {
         val theme = ThemeSettings()
@@ -79,6 +97,7 @@ class SettingsRepository(context: Context) {
             smsCapture = this[SMS_CAPTURE] ?: false,
             notificationCapture = this[NOTIFICATION_CAPTURE] ?: false,
             enabledPacks = this[ENABLED_PACKS] ?: setOf("in"),
+            homeWidgets = this[HOME_WIDGETS] ?: ALL_HOME_WIDGETS,
         )
     }
 
@@ -93,6 +112,9 @@ class SettingsRepository(context: Context) {
         val SMS_CAPTURE = booleanPreferencesKey("smsCapture")
         val NOTIFICATION_CAPTURE = booleanPreferencesKey("notificationCapture")
         val ENABLED_PACKS = stringSetPreferencesKey("enabledPacks")
+        val BILLS_CHECKED_AT = longPreferencesKey("billsCheckedAt")
+        val BUDGET_ALERTS = stringSetPreferencesKey("budgetAlerts")
+        val HOME_WIDGETS = stringSetPreferencesKey("homeWidgets")
     }
 }
 

@@ -47,10 +47,21 @@ class MoneyRepository(
                         digits = digits, monthStartDay = s.monthStartDay, categoryIds = ids,
                     )
                     val accountIds = sample.accounts.map { db.accounts().insert(it) }
-                    db.txns().insertAll(
-                        sample.txns.map { t -> t.copy(accountId = accountIds[t.accountId.toInt()], toAccountId = t.toAccountId?.let { accountIds[it.toInt()] }) },
-                    )
-                    db.budgets().insert(sample.budget)
+                    fun acc(i: Long) = accountIds[i.toInt()]
+                    // Accounts that point at another account (a deposit's payout) get the real id.
+                    sample.accounts.forEachIndexed { i, a ->
+                        a.payoutAccountId?.let { db.accounts().update(a.copy(id = accountIds[i], payoutAccountId = acc(it))) }
+                    }
+                    db.txns().insertAll(sample.txns.map { t -> t.copy(accountId = acc(t.accountId), toAccountId = t.toAccountId?.let(::acc)) })
+                    sample.budgets.forEach { db.budgets().insert(it) }
+                    sample.bills.forEach { sb ->
+                        val billId = db.bills().upsert(sb.bill.copy(accountId = acc(sb.bill.accountId), toAccountId = sb.bill.toAccountId?.let(::acc)))
+                        db.bills().insertOccurrences(sb.occurrences.map { it.copy(billId = billId) })
+                    }
+                    sample.goals.forEach { sg ->
+                        val goalId = db.goals().upsert(sg.goal.copy(accountId = acc(sg.goal.accountId)))
+                        db.txns().insertAll(sg.added.map { it.copy(accountId = acc(it.accountId), goalId = goalId) })
+                    }
                 }
             }
             seeded = true
@@ -74,6 +85,18 @@ class MoneyRepository(
 
     fun txn(id: Long): Flow<TxnView?> = seededFlow { db.txns().view(id) }
 
+    /** Transactions in [from, to), newest first. */
+    fun between(from: Long, to: Long): Flow<List<TxnView>> = seededFlow { db.txns().between(from, to) }
+
+    fun account(id: Long): Flow<AccountEntity?> = seededFlow { db.accounts().get(id) }
+
+    /** Money set aside in goals (part of net worth, out of the accounts it came from). */
+    val goalsSaved: Flow<Long> = seededFlow { db.txns().goalSums() }.let { f -> kotlinx.coroutines.flow.flow { f.collect { l -> emit(l.sumOf { it.total }) } } }
+
+    suspend fun updateAccount(account: AccountEntity) = db.accounts().update(account)
+
+    suspend fun addAccount(account: AccountEntity): Long = db.accounts().insert(account)
+
     suspend fun get(id: Long): TxnEntity? = db.txns().get(id)
 
     fun spent(period: BudgetPeriod): Flow<Long> = seededFlow { db.txns().spent(period.startMillis(), period.endMillis()) }
@@ -91,11 +114,22 @@ class MoneyRepository(
      * Saves a new or edited transaction and returns its id. The first real entry removes the sample
      * month (CLAUDE.md § Behaviour), keeping any sample account the entry uses.
      */
-    suspend fun save(txn: TxnEntity): Long = db.withTransaction {
-        val id = db.txns().upsert(txn).let { if (it == -1L) txn.id else it }
-        if (!txn.isSample) removeSamplesInTransaction()
-        id
+    suspend fun save(txn: TxnEntity): Long {
+        val before = if (txn.id != 0L) db.txns().get(txn.id) else null
+        val id = db.withTransaction {
+            val id = db.txns().upsert(txn).let { if (it == -1L) txn.id else it }
+            if (!txn.isSample) removeSamplesInTransaction()
+            id
+        }
+        afterSave?.invoke(txn.copy(id = id), before)
+        return id
     }
+
+    /**
+     * Runs after every save (set up in AppContainer): a captured payment may settle a due bill;
+     * budgets may cross 80% / 100%. [before] is the row it replaced, if any.
+     */
+    var afterSave: (suspend (saved: TxnEntity, before: TxnEntity?) -> Unit)? = null
 
     /** Deletes and returns the transaction, for the Undo snackbar. */
     suspend fun delete(id: Long): TxnEntity? = db.txns().get(id)?.also { db.txns().delete(it) }
@@ -111,6 +145,9 @@ class MoneyRepository(
     private suspend fun removeSamplesInTransaction() {
         db.txns().deleteSamples()
         db.budgets().deleteSamples()
+        db.bills().deleteSampleOccurrences()
+        db.bills().deleteSamples()
+        db.goals().deleteSamples()
         db.accounts().keepUsedSampleAccounts()
         db.accounts().deleteSamples()
     }

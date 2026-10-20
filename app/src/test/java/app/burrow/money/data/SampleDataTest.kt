@@ -11,14 +11,15 @@ import java.time.ZoneOffset
 class SampleDataTest {
     private val today = LocalDate.of(2026, 10, 19)
     private val now = today.atTime(9, 30).toInstant(ZoneOffset.UTC).toEpochMilli()
-    private val ids = (1L..15L).toList()
+    private val ids = (1L..16L).toList()
 
     private fun build(currency: String = "INR") =
         SampleData.build(today, now, currency, digits = 2, monthStartDay = 1, categoryIds = ids, zone = ZoneOffset.UTC)
 
     private fun balancesOf(s: SampleData): List<Long> {
-        val out = s.txns.groupBy { it.accountId to it.type }.map { (k, v) -> TypeSum(k.first, k.second, v.sumOf { it.amount }) }
-        val into = s.txns.filter { it.toAccountId != null }.groupBy { it.toAccountId!! }.mapValues { (_, v) -> v.sumOf { it.amount } }
+        val all = s.txns + s.goals.flatMap { it.added }
+        val out = all.groupBy { it.accountId to it.type }.map { (k, v) -> TypeSum(k.first, k.second, v.sumOf { it.amount }) }
+        val into = all.filter { it.toAccountId != null }.groupBy { it.toAccountId!! }.mapValues { (_, v) -> v.sumOf { it.amount } }
         val b = balances(s.accounts.withIndex().associate { (i, a) -> i.toLong() to a.openingBalance }, out, into)
         return s.accounts.indices.map { b.getValue(it.toLong()) }
     }
@@ -36,9 +37,21 @@ class SampleDataTest {
         assertEquals(listOf("Uber", "Third Wave Coffee"), build().txns.filter { it.at >= start }.map { it.payee })
     }
 
+    @Test fun electricityIsOverdueAndOthersPaid() {
+        val electricity = build().bills.first { it.bill.name == "Electricity" }
+        val thisMonth = electricity.occurrences.first { it.dueDate == today.withDayOfMonth(17).atTime(12, 0).toInstant(ZoneOffset.UTC).toEpochMilli() }
+        assertEquals("UPCOMING", thisMonth.status) // 17th has passed: overdue
+        assertTrue(electricity.occurrences.filter { it.dueDate < thisMonth.dueDate }.all { it.status == "PAID" })
+    }
+
+    @Test fun goalsAddUp() {
+        val japan = build().goals.first { it.goal.name == "Japan trip" }
+        assertEquals(1_10_000_00L, japan.added.sumOf { it.amount })
+    }
+
     @Test fun otherCurrenciesAreScaled() {
         val usd = build("USD")
         assertEquals(1_500_00L, usd.txns.first { it.payee == "ACME Pvt Ltd" }.amount)
-        assertEquals(375_00L, usd.budget.amount)
+        assertEquals(375_00L, usd.budgets.first().amount)
     }
 }

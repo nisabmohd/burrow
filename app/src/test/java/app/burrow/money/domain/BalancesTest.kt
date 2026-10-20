@@ -23,4 +23,9 @@ class BalancesTest {
         val b = balances(mapOf(3L to 0L), listOf(TypeSum(3, "EXPENSE", 8_120)), emptyMap())
         assertEquals(-8_120L, b[3L])
     }
+
+    @Test fun fixBalanceMovesItBothWays() {
+        val b = balances(mapOf(1L to 1_000L), listOf(TypeSum(1, "ADJUST_UP", 250), TypeSum(1, "ADJUST_DOWN", 100)), emptyMap())
+        assertEquals(1_150L, b[1L])
+    }
 }

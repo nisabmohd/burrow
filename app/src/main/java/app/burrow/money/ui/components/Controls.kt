@@ -117,13 +117,14 @@ fun DayStepper(
     onDone: () -> Unit,
     doneLabel: String,
     ordinal: (Int) -> String,
+    max: Int = 28,
 ) {
     val haptics = LocalHapticFeedback.current
     Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             TonalIconButton(minus, minusLabel, { haptics.tick(); onDay((day - 1).coerceAtLeast(1)) })
             Text(ordinal(day), style = BurrowType.display, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-            TonalIconButton(plus, plusLabel, { haptics.tick(); onDay((day + 1).coerceAtMost(28)) })
+            TonalIconButton(plus, plusLabel, { haptics.tick(); onDay((day + 1).coerceAtMost(max)) })
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             quick.forEach { d -> Chip(ordinal(d), d == day, { onDay(d) }) }
@@ -218,6 +219,7 @@ fun PillTextField(
     imeAction: ImeAction = ImeAction.Done,
     onDone: () -> Unit = {},
     capitalization: KeyboardCapitalization = KeyboardCapitalization.Sentences,
+    keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
 ) {
     val c = MaterialTheme.colorScheme
     BasicTextField(
@@ -226,7 +228,7 @@ fun PillTextField(
         singleLine = true,
         textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
         cursorBrush = SolidColor(c.primary),
-        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction),
+        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction, keyboardType = keyboardType),
         keyboardActions = KeyboardActions(onAny = { onDone() }),
         modifier = modifier.fillMaxWidth(),
         decorationBox = { field ->

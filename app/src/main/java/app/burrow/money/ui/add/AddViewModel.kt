@@ -79,6 +79,8 @@ class AddViewModel(
     startType: String,
     private val monthStartDay: Int,
     private val currency: String,
+    /** Start with this account (Account › Transfer). */
+    private val startAccountId: Long = 0L,
 ) : ViewModel() {
     private val form = MutableStateFlow<AddForm?>(null)
     private var original: TxnEntity? = null
@@ -110,8 +112,8 @@ class AddViewModel(
                 val pay = accounts.filter { it.account.type != AccountType.LOAN && it.account.type != AccountType.SAVINGS }
                 AddForm(
                     type = startType, input = AmountInput(digits = digits),
-                    accountId = pay.firstOrNull()?.account?.id,
-                    toAccountId = pay.getOrNull(1)?.account?.id,
+                    accountId = startAccountId.takeIf { it != 0L } ?: pay.firstOrNull()?.account?.id,
+                    toAccountId = pay.firstOrNull { it.account.id != startAccountId }?.account?.id.takeIf { startAccountId != 0L } ?: pay.getOrNull(1)?.account?.id,
                 )
             }
         }

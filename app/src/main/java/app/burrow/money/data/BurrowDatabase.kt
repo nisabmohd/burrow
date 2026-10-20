@@ -2,6 +2,7 @@ package app.burrow.money.data
 
 import android.content.Context
 import androidx.room.AutoMigration
+import androidx.room.ColumnInfo
 import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Index
@@ -31,6 +32,23 @@ data class AccountEntity(
     val createdAt: Long,
     /** Last digits of the account or card number ("1234"), to match "A/c XX1234" in bank messages. */
     val number: String? = null,
+    // v3: details by type (null when they don't apply).
+    /** CARD: credit limit. */
+    val creditLimit: Long? = null,
+    /** CARD: statement day and payment due day of the month. */
+    val statementDay: Int? = null,
+    val dueDay: Int? = null,
+    /** LOAN / SAVINGS: yearly interest rate in percent, BigDecimal as text ("8.5"). */
+    val interestRate: String? = null,
+    /** LOAN: the monthly EMI. SAVINGS (deposit): the amount put in. */
+    val emi: Long? = null,
+    val principal: Long? = null,
+    /** LOAN: first EMI date. SAVINGS: start date. */
+    val startDate: Long? = null,
+    /** SAVINGS (deposit): maturity date and the account it pays out to. */
+    val maturityDate: Long? = null,
+    val payoutAccountId: Long? = null,
+    @ColumnInfo(defaultValue = "1") val remind: Boolean = true,
 )
 
 @Entity
@@ -67,6 +85,8 @@ data class TxnEntity(
     val isSample: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long,
+    /** v3: "Add money" to a goal: a transfer out of [accountId] into that goal. */
+    val goalId: Long? = null,
 )
 
 @Entity
@@ -85,6 +105,14 @@ data class BillEntity(
     val remindDaysBefore: Int = 1,
     val remindAtMinutes: Int = 9 * 60,
     val archived: Boolean = false,
+    // v3
+    /** For bills without a category (EMI, card bill): their circle. */
+    val icon: String? = null,
+    val colorHue: Float? = null,
+    /** EMI or card bill: the account the payment goes into (paying it is a transfer, not spending). */
+    val toAccountId: Long? = null,
+    @ColumnInfo(defaultValue = "1") val remindersOn: Boolean = true,
+    @ColumnInfo(defaultValue = "0") val isSample: Boolean = false,
 )
 
 @Entity(indices = [Index("billId"), Index("dueDate")])
@@ -117,6 +145,10 @@ data class GoalEntity(
     val icon: String,
     val colorHue: Float,
     val archived: Boolean = false,
+    // v3
+    @ColumnInfo(defaultValue = "0") val isSample: Boolean = false,
+    /** When it was saved in full (for the Goal reached note). */
+    val reachedAt: Long? = null,
 )
 
 /** A message rule (capture/Rule.kt), stored as JSON so the format can grow without migrations. */
@@ -158,15 +190,20 @@ data class CaptureEntity(
         BillOccurrenceEntity::class, BudgetEntity::class, GoalEntity::class,
         CaptureRuleEntity::class, CaptureEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)], // v2: account number, parsed capture fields
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2), // account number, parsed capture fields
+        AutoMigration(from = 2, to = 3), // account details, goal transfers, bill circles and flags
+    ],
 )
 abstract class BurrowDatabase : RoomDatabase() {
     abstract fun accounts(): AccountDao
     abstract fun categories(): CategoryDao
     abstract fun txns(): TxnDao
     abstract fun budgets(): BudgetDao
+    abstract fun bills(): BillDao
+    abstract fun goals(): GoalDao
     abstract fun captures(): CaptureDao
     abstract fun rules(): RuleDao
 

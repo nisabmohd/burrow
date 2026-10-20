@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.ui.nav.BurrowNavHost
+import app.burrow.money.ui.nav.OpenFromNotification
 import app.burrow.money.ui.theme.BurrowTheme
 import app.burrow.money.ui.theme.isDark
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,10 +31,15 @@ class MainActivity : ComponentActivity() {
     companion object {
         /** From the capture notification: open To review. */
         const val ACTION_OPEN_REVIEW = "app.burrow.money.action.OPEN_REVIEW"
+        /** From a bill reminder: open that bill ([EXTRA_ID]). */
+        const val ACTION_OPEN_BILL = "app.burrow.money.action.OPEN_BILL"
+        /** From a budget alert: open Plan › Budgets. */
+        const val ACTION_OPEN_PLAN = "app.burrow.money.action.OPEN_PLAN"
+        const val EXTRA_ID = "id"
     }
 
-    /** Set when the capture notification was tapped; the nav host opens To review and clears it. */
-    private val openReview = MutableStateFlow(false)
+    /** Set when a notification was tapped; the nav host goes there and clears it. */
+    private val pending = MutableStateFlow<OpenFromNotification?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -63,8 +69,8 @@ class MainActivity : ComponentActivity() {
             BurrowTheme(current.theme) {
                 CompositionLocalProvider(LocalMoney provides money) {
                     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        val review by openReview.collectAsStateWithLifecycle()
-                        BurrowNavHost(container, current, review, onReviewOpened = { openReview.value = false })
+                        val open by pending.collectAsStateWithLifecycle()
+                        BurrowNavHost(container, current, open, onOpened = { pending.value = null })
                     }
                 }
             }
@@ -77,6 +83,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == ACTION_OPEN_REVIEW) openReview.value = true
+        pending.value = when (intent?.action) {
+            ACTION_OPEN_REVIEW -> OpenFromNotification.Review
+            ACTION_OPEN_BILL -> OpenFromNotification.Bill(intent.getLongExtra(EXTRA_ID, 0L))
+            ACTION_OPEN_PLAN -> OpenFromNotification.Budgets
+            else -> pending.value
+        }
     }
 }

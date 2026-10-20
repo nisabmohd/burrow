@@ -32,6 +32,7 @@
     <string name="cat_travel">Travel</string>
     <string name="cat_education">Education</string>
     <string name="cat_gifts">Gifts</string>
+    <string name="cat_fees">Fees &amp; interest</string>
     <string name="cat_other">Other</string>
     <string name="cat_salary">Salary</string>
     <string name="cat_interest">Interest</string>
@@ -284,4 +285,317 @@
     </plurals>
     <string name="teach_fails">The rule doesn\'t read this message yet. Pick the amount again.</string>
     <string name="my_rule">My rule</string>
+
+    <!-- Reminders and alerts -->
+    <string name="channel_reminders">Bills and budgets</string>
+    <string name="channel_reminders_line">Bill reminders and budget alerts</string>
+    <string name="reminder_soon">%1$s is due tomorrow</string>
+    <plurals name="reminder_in_days">
+        <item quantity="one">%1$s is due in %2$d day</item>
+        <item quantity="other">%1$s is due in %2$d days</item>
+    </plurals>
+    <string name="reminder_today">%1$s is due today</string>
+    <string name="reminder_recorded">%1$s recorded</string>
+    <string name="reminder_line">%1$s · from %2$s</string>
+    <string name="budget_overall">Your budget</string>
+    <string name="alert_80">%1$s is at 80%%</string>
+    <string name="alert_100">%1$s is used up</string>
+    <string name="alert_left_line">%1$s left of %2$s</string>
+    <string name="alert_over_line">%1$s over · of %2$s</string>
+
+    <!-- Plan: bills (22, 25–29) -->
+    <string name="bills">Bills</string>
+    <string name="budgets">Budgets</string>
+    <string name="goals">Goals</string>
+    <string name="add_bill">Add bill</string>
+    <string name="add">Add</string>
+    <string name="bill">Bill</string>
+    <string name="subscription">Subscription</string>
+    <string name="subscriptions">Subscriptions</string>
+    <string name="emi">EMI</string>
+    <string name="emis">EMIs</string>
+    <string name="card_bill">Card bill</string>
+    <plurals name="subs_line">
+        <item quantity="one">a month · %d active</item>
+        <item quantity="other">a month · %d active</item>
+    </plurals>
+    <plurals name="emis_line">
+        <item quantity="one">a month · %d loan</item>
+        <item quantity="other">a month · %d loans</item>
+    </plurals>
+    <string name="bill_overdue">%1$s is overdue</string>
+    <string name="was_due">was due %1$s</string>
+    <string name="was_due_cap">Was due %1$s</string>
+    <string name="due_today">Due today</string>
+    <string name="due_on">Due %1$s</string>
+    <string name="all_paid">All paid</string>
+    <string name="next_up">Next up</string>
+    <string name="due_from">%1$s · from %2$s</string>
+    <string name="this_week">This week</string>
+    <string name="later">Later</string>
+    <string name="late">Late</string>
+    <string name="tomorrow">Tomorrow</string>
+    <plurals name="in_days">
+        <item quantity="one">in %d day</item>
+        <item quantity="other">in %d days</item>
+    </plurals>
+    <plurals name="in_months">
+        <item quantity="one">in %d month</item>
+        <item quantity="other">in %d months</item>
+    </plurals>
+    <string name="paid">Paid</string>
+    <string name="marked_paid">Marked paid</string>
+    <string name="skipped">Skipped</string>
+    <string name="no_bills">No bills yet</string>
+    <string name="no_bills_line">Add rent, subscriptions and EMIs to be reminded before they are due.</string>
+    <string name="repeats">Repeats</string>
+    <string name="monthly_on">Monthly on the %1$s</string>
+    <string name="yearly_on">Yearly on %1$s</string>
+    <string name="weekly_on">Weekly on %1$s</string>
+    <string name="monthly">Monthly</string>
+    <string name="yearly">Yearly</string>
+    <string name="on_due_ask">Ask me on the day</string>
+    <string name="on_due_record">Record it for me</string>
+    <string name="on_due_remind">Only remind me</string>
+    <string name="on_due_ask_line">A notification to mark it paid</string>
+    <string name="on_due_record_line">Adds the expense on the day</string>
+    <string name="on_due_remind_line">No expense is added</string>
+    <plurals name="reminder_at">
+        <item quantity="one">Reminder at %1$s, %2$d day before</item>
+        <item quantity="other">Reminder at %1$s, %2$d days before</item>
+    </plurals>
+    <string name="reminders_off">Reminders off</string>
+    <string name="paid_before">Paid before</string>
+    <string name="paid_from_short">Paid from %1$s</string>
+    <string name="delete_bill">Delete bill</string>
+    <string name="delete_bill_title">Delete this bill?</string>
+    <string name="delete_bill_text">Its reminders stop. Payments you already made stay in Activity.</string>
+    <string name="new_bill">New bill</string>
+    <string name="edit_bill">Edit bill</string>
+    <string name="name">Name</string>
+    <string name="bill_name_hint">Netflix, rent, electricity…</string>
+    <string name="due_day">Due day</string>
+    <string name="every_month_on">Every month on the %1$s</string>
+    <string name="due_every_month_on">Due every month on</string>
+    <string name="next_due">Next due %1$s</string>
+    <string name="when_due">When it is due</string>
+    <string name="bill_cant_save">Add a name, an amount and an account to save.</string>
+    <string name="looks_like_sub">%1$s looks like a subscription</string>
+    <string name="paid_in_a_row">%1$s paid 3 months in a row</string>
+    <string name="every_month">Every month</string>
+    <string name="a_year">%1$s a year</string>
+    <string name="active">Active</string>
+    <string name="sub_line">%1$s · next %2$s</string>
+
+    <!-- Plan: budgets (23, 30–32) -->
+    <string name="month_budget">%1$s budget</string>
+    <string name="amount_left">%1$s left</string>
+    <string name="amount_over">%1$s over</string>
+    <string name="budget_line">of %1$s · %2$s a day</string>
+    <plurals name="budget_days_to_go">
+        <item quantity="one">of %1$s · %2$d day to go</item>
+        <item quantity="other">of %1$s · %2$d days to go</item>
+    </plurals>
+    <string name="categories">Categories</string>
+    <string name="no_budget">No budget yet</string>
+    <string name="no_budget_line">Set how much to spend each month. The app shows what is left.</string>
+    <string name="set_budget">Set a budget</string>
+    <string name="monthly_budget">Monthly budget</string>
+    <string name="carry_over">Carry over what is left</string>
+    <string name="carry_over_line">Unspent money rolls into next month</string>
+    <string name="budget_saved">Budget saved</string>
+
+    <!-- Plan: goals (24, 33–35) -->
+    <string name="add_goal">Add goal</string>
+    <string name="saved_for_goals">Saved for goals</string>
+    <plurals name="goals_line">
+        <item quantity="one">of %1$s in %2$d goal</item>
+        <item quantity="other">of %1$s across %2$d goals</item>
+    </plurals>
+    <string name="of_amount">%1$s of %2$s</string>
+    <string name="of_target">of %1$s</string>
+    <string name="by_date">by %1$s</string>
+    <string name="reached">Reached</string>
+    <string name="no_goals">No goals yet</string>
+    <string name="no_goals_line">Save toward a trip, a laptop or a rainy day.</string>
+    <string name="goal_reached">Goal reached</string>
+    <string name="saved_in_full_on">Saved in full on %1$s</string>
+    <string name="added">Added</string>
+    <string name="from_account">From %1$s</string>
+    <string name="add_money">Add money</string>
+    <string name="a_transfer_not_spending">A transfer, not spending</string>
+    <string name="money_added">Money added</string>
+    <string name="delete_goal">Delete goal</string>
+    <string name="delete_goal_title">Delete this goal?</string>
+    <string name="delete_goal_text">The money you added stays in your accounts\' history.</string>
+    <string name="new_goal">New goal</string>
+    <string name="goal_name_hint">Japan trip, new laptop…</string>
+    <string name="target">Target</string>
+    <string name="by_when">By when</string>
+    <string name="no_date">No date</string>
+    <string name="icon">Icon</string>
+    <string name="goal_cant_save">Add a name and a target to save.</string>
+
+    <!-- Accounts (55–59) -->
+    <string name="add_account">Add account</string>
+    <string name="net_worth">Net worth</string>
+    <plurals name="across_accounts">
+        <item quantity="one">across %d account</item>
+        <item quantity="other">across %d accounts</item>
+    </plurals>
+    <string name="group_bank_cash">Bank and cash</string>
+    <string name="group_cards">Cards</string>
+    <string name="group_loans">Loans</string>
+    <string name="group_savings">Savings</string>
+    <string name="amount_due">%1$s due</string>
+    <string name="statement_due">Statement due %1$s</string>
+    <string name="since_statement">Since statement · %1$s</string>
+    <string name="since_statement_plain">Since statement</string>
+    <string name="available">%1$s available</string>
+    <string name="used_of">%1$d%% of %2$s used</string>
+    <string name="no_limit">No limit set</string>
+    <string name="pay_bill">Pay bill</string>
+    <string name="left_to_pay">left to pay</string>
+    <string name="left_to_pay_ends">left to pay · ends %1$s</string>
+    <string name="emis_paid">%1$d of %2$d EMIs paid</string>
+    <string name="a_month">%1$s a month</string>
+    <string name="interest_left">%1$s interest left</string>
+    <string name="at_rate">at %1$s%% a year</string>
+    <string name="next_emis">Next EMIs</string>
+    <string name="prepay">Prepay</string>
+    <string name="prepaid">Prepaid</string>
+    <string name="emi_n">EMI %1$d · %2$s</string>
+    <string name="emi_split">%1$s + %2$s interest</string>
+    <string name="at_maturity">at maturity · %1$s</string>
+    <string name="put_in">%1$s put in</string>
+    <string name="earned_so_far">%1$s earned so far</string>
+    <string name="credit_to">Credit to %1$s</string>
+    <string name="an_account">an account</string>
+    <string name="asks_you_on">Asks you on %1$s</string>
+    <string name="remind_week_before">Remind me a week before</string>
+    <string name="fix_balance">Fix balance</string>
+    <string name="fix_balance_line">If it doesn\'t match your bank</string>
+    <string name="balance_fixed">Balance fixed</string>
+    <string name="transfer_line">Move money to another account</string>
+    <string name="new_account">New account</string>
+    <string name="edit_account">Edit account</string>
+    <string name="kind">Kind</string>
+    <string name="account_name_hint">HDFC Savings, Cash…</string>
+    <string name="balance_now">Balance now</string>
+    <string name="amount_due_now">Amount due now</string>
+    <string name="left_to_pay_now">Left to pay now</string>
+    <string name="put_in_label">Amount put in</string>
+    <string name="last_digits">Last 4 digits</string>
+    <string name="credit_limit">Credit limit</string>
+    <string name="statement_day">Statement day</string>
+    <string name="emi_label">EMI</string>
+    <string name="interest_rate">Interest rate (% a year)</string>
+    <string name="matures_on">Matures on</string>
+    <string name="account_cant_save">Add a name to save.</string>
+
+    <!-- Filters (12–16, 40, 41) -->
+    <string name="type">Type</string>
+    <string name="all">All</string>
+    <string name="spent">Spent</string>
+    <string name="transfers">Transfers</string>
+    <string name="reset">Reset</string>
+    <plurals name="show_n">
+        <item quantity="one">Show %d transaction</item>
+        <item quantity="other">Show %d transactions</item>
+    </plurals>
+    <string name="pick_start">Pick a start day</string>
+    <string name="pick_end">Pick an end day</string>
+    <string name="this_month">This month</string>
+    <string name="last_month">Last month</string>
+    <string name="last_30_days">Last 30 days</string>
+    <string name="this_year">This year</string>
+    <string name="all_dates">All dates</string>
+    <string name="pick_dates">Pick dates</string>
+    <string name="show_range">Show %1$s</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+    <string name="remove_filter">Remove %1$s</string>
+    <string name="last_14_days">Last 14 days</string>
+    <string name="a_day">%1$s a day</string>
+    <string name="all_days">All days</string>
+    <plurals name="spent_n">
+        <item quantity="one">spent · %d transaction</item>
+        <item quantity="other">spent · %d transactions</item>
+    </plurals>
+    <plurals name="came_in_n">
+        <item quantity="one">came in · %d transaction</item>
+        <item quantity="other">came in · %d transactions</item>
+    </plurals>
+    <plurals name="spent_on_n">
+        <item quantity="one">spent on %1$s · %2$d transaction</item>
+        <item quantity="other">spent on %1$s · %2$d transactions</item>
+    </plurals>
+    <plurals name="came_in_on_n">
+        <item quantity="one">came in on %1$s · %2$d transaction</item>
+        <item quantity="other">came in on %1$s · %2$d transactions</item>
+    </plurals>
+    <string name="nothing_matches">Nothing matches these filters</string>
+    <string name="nothing_matches_line">Try fewer filters or other dates.</string>
+    <string name="clear_filters">Clear filters</string>
+
+    <!-- Insights (36–42) -->
+    <string name="spent_range">Spent · %1$s</string>
+    <string name="less_than">%1$s less than %2$s</string>
+    <string name="more_than">%1$s more than %2$s</string>
+    <string name="this_period">This period</string>
+    <string name="before">Before</string>
+    <string name="a_day_label">A day</string>
+    <string name="on_average">on average</string>
+    <string name="biggest">Biggest</string>
+    <string name="by_category">By category</string>
+    <string name="share_line">%1$s · %2$d%%</string>
+    <string name="patterns">Patterns</string>
+    <string name="busiest_day">Busiest day</string>
+    <string name="in_total">%1$s in total</string>
+    <string name="no_spend_days">No-spend days</string>
+    <plurals name="of_days">
+        <item quantity="one">of %d day</item>
+        <item quantity="other">of %d days</item>
+    </plurals>
+    <string name="you_kept">You kept</string>
+    <string name="of_came_in">of %1$s that came in</string>
+    <string name="no_income_yet">No income in these dates</string>
+    <string name="top_payee">Top payee</string>
+    <plurals name="times">
+        <item quantity="one">%1$s · %2$d time</item>
+        <item quantity="other">%1$s · %2$d times</item>
+    </plurals>
+    <string name="month_by_day">%1$s by day</string>
+    <string name="top_day">top day · %1$s</string>
+    <string name="spent_this_month_plain">spent this month</string>
+    <string name="day_spent">%1$s, %2$s</string>
+    <string name="less">Less</string>
+    <string name="more_word">More</string>
+    <string name="no_spending_in">No spending in %1$s</string>
+    <string name="no_spending_line">Pick other dates or categories.</string>
+    <string name="change_dates">Change dates</string>
+    <string name="by_day">By day</string>
+    <string name="avg">avg %1$s</string>
+    <string name="less_than_before">%1$s less than before</string>
+    <string name="more_than_before">%1$s more than before</string>
+
+    <!-- Today widgets (05, 10) -->
+    <string name="spent_in_7_days">spent in 7 days</string>
+    <string name="next_bill">Next bill</string>
+    <string name="this_month_change">%1$s this month</string>
+    <string name="top_category">Top category</string>
+    <string name="of_spending">%1$d%% of spending</string>
+    <string name="goal">Goal</string>
+    <string name="goal_widget_line">of %1$s · %2$s</string>
+    <string name="a_month_to_finish">%1$s a month to finish on time</string>
+    <string name="money_in_out">Money in and out · %1$s</string>
+    <string name="money_in_and_out">Money in and out</string>
+    <string name="came_in">Came in</string>
+    <string name="went_out">Went out</string>
+    <string name="kept">Kept</string>
+    <string name="still_with_you">%1$s still with you this month</string>
+    <string name="more_out_than_in">%1$s more went out than came in</string>
+    <string name="edit_home">Edit home</string>
+    <string name="edit_home_line">Choose what Today shows</string>
+    <string name="chart_summary">%1$s, %2$s spent</string>
 </resources>

@@ -38,4 +38,10 @@ class MoneyFormatTest {
     @Test fun zeroDigitCurrency() {
         assertEquals("¥1,500", MoneyFormat.of("JPY", Locale.JAPAN).plain(1500))
     }
+
+    @Test fun wholeUnits() {
+        assertEquals(876_00L, inr.whole(876_33))
+        assertEquals(877_00L, inr.whole(876_50))
+        assertEquals(1500L, MoneyFormat.of("JPY", Locale.JAPAN).whole(1500))
+    }
 }

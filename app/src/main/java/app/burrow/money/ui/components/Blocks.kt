@@ -137,6 +137,8 @@ fun Widget(
     wide: Boolean = false,
     onClick: (() -> Unit)? = null,
     visual: (@Composable () -> Unit)? = null,
+    /** Extra content under the text (Money in and out's figures), wide widgets only. */
+    body: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val c = MaterialTheme.colorScheme
     // Size first, then shape and padding, so a half widget is 184 dp tall in total.
@@ -144,9 +146,12 @@ fun Widget(
         .clip(Shapes.surface).background(c.surfaceContainerLow)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(Space.card)
     if (wide) {
-        Row(base, verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) { WidgetText(label, icon, value, line) }
-            visual?.invoke()
+        Column(base) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) { WidgetText(label, icon, value, line) }
+                visual?.invoke()
+            }
+            body?.invoke(this)
         }
     } else {
         Column(base) {
@@ -164,9 +169,11 @@ private fun ColumnScope.WidgetText(label: String, icon: Painter, value: String, 
         Icon(icon, null, tint = c.primary, modifier = Modifier.size(18.dp))
         Text(label, style = BurrowType.label, color = c.onSurfaceVariant)
     }
-    Spacer(Modifier.height(12.dp))
-    Text(value, style = BurrowType.title, color = c.onSurface, maxLines = 1)
-    Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 2)
+    if (value.isNotEmpty()) {
+        Spacer(Modifier.height(Space.block))
+        Text(value, style = BurrowType.title, color = c.onSurface, maxLines = 1)
+    }
+    if (line.isNotEmpty()) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 3)
 }
 
 /** Empty state: 128 dp wavy "cookie" shape (primaryContainer) with the icon centred at 42%, title, one line, one tonal button. */
