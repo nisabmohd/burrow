@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -164,7 +166,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
         when {
             s.card != null -> {
                 val card = s.card
-                CenterHeader(icon, a.name, money.plain(card.due), card.dueDate?.let { stringResource(R.string.statement_due, dates.weekdayDay(it)) })
+                CenterHeader(icon, a.name, money.plain(card.due), line = card.dueDate?.let { stringResource(R.string.statement_due, dates.weekdayDay(it)) })
                 ListGroup {
                     ListRow(
                         money.plain(card.sinceStatement), 0, 2,
@@ -185,7 +187,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
             }
             s.loan != null -> {
                 val loan = s.loan
-                CenterHeader(icon, a.name, money.short(loan.left), loan.ends?.let { stringResource(R.string.left_to_pay_ends, dates.monthYear(it)) } ?: stringResource(R.string.left_to_pay))
+                CenterHeader(icon, a.name, money.short(loan.left), line = loan.ends?.let { stringResource(R.string.left_to_pay_ends, dates.monthYear(it)) } ?: stringResource(R.string.left_to_pay))
                 ListGroup {
                     ListRow(
                         stringResource(R.string.emis_paid, loan.paid, loan.total), 0, 2,
@@ -212,7 +214,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
             }
             s.deposit != null -> {
                 val d = s.deposit
-                CenterHeader(icon, a.name, money.plain(d.atMaturity), d.maturity?.let { stringResource(R.string.at_maturity, dates.fullDay(it)) })
+                CenterHeader(icon, a.name, money.plain(d.atMaturity), line = d.maturity?.let { stringResource(R.string.at_maturity, dates.fullDay(it)) })
                 ListGroup {
                     ListRow(
                         stringResource(R.string.put_in, money.short(d.putIn)), 0, 3, supporting = stringResource(R.string.earned_so_far, money.plain(d.earned)),
@@ -231,7 +233,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 }
             }
             else -> {
-                CenterHeader(icon, a.name, money.balance(s.balance), accountLine(a))
+                CenterHeader(icon, a.name, money.balance(s.balance), line = accountLine(a))
                 ListGroup {
                     ListRow(
                         stringResource(R.string.fix_balance), 0, 2, supporting = stringResource(R.string.fix_balance_line),
@@ -323,7 +325,7 @@ private fun PayInSheet(
     accountLine: Int = R.string.a_transfer_not_spending,
     onPay: (Long, Long) -> Unit,
 ) {
-    var amount by rememberSaveable { mutableStateOf(start) }
+    var amount by rememberSaveable { mutableLongStateOf(start) }
     var fromId by rememberSaveable { mutableStateOf(from.firstOrNull()?.account?.id) }
     var picking by remember { mutableStateOf(false) }
     val account = from.firstOrNull { it.account.id == fromId }
@@ -394,7 +396,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
             }
             if (f.type != AccountType.CASH) {
                 LabeledField(stringResource(R.string.last_digits)) {
-                    PillTextField(f.number, { v -> vm.edit { it.copy(number = v.filter { ch -> ch.isDigit() }.take(4)) } }, "1234", leading = painterResource(R.drawable.ic_pin_regular), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Number)
+                    PillTextField(f.number, { v -> vm.edit { it.copy(number = v.filter { ch -> ch.isDigit() }.take(app.burrow.money.ui.accounts.MAX_DIGITS)) } }, "1234", leading = painterResource(R.drawable.ic_pin_regular), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Number)
                 }
             }
             when (f.type) {
@@ -425,7 +427,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
     }
     when (sheet) {
         FormSheet.STATEMENT, FormSheet.DUE -> {
-            var day by rememberSaveable { mutableStateOf(if (sheet == FormSheet.STATEMENT) f.statementDay else f.dueDay) }
+            var day by rememberSaveable { mutableIntStateOf(if (sheet == FormSheet.STATEMENT) f.statementDay else f.dueDay) }
             BurrowSheet({ sheet = null }) {
                 SheetHeader(stringResource(if (sheet == FormSheet.STATEMENT) R.string.statement_day else R.string.due_day), { sheet = null })
                 DayStepper(

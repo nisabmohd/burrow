@@ -83,6 +83,12 @@ android {
         }
     }
 
+    bundle {
+        // The language can be changed inside the app (More › Language), so every Play install needs
+        // every language; split APKs would leave Hindi missing on an English phone. Two languages: tiny.
+        language { enableSplit = false }
+    }
+
     androidResources {
         // Only the languages the app ships (keep in step with values-* folders).
         localeFilters += listOf("en", "hi")

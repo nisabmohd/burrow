@@ -54,6 +54,22 @@ class IndiaPackTest {
         }
     }
 
+    /** Banks show 2 to 6 last digits, masked with X, *, • or dots; every rule reads them all. */
+    @Test fun accountDigitsAreNotFixedAtFour() {
+        val variants = listOf("XX12" to "12", "**123" to "123", "XXXX5678" to "5678", "••123456" to "123456", "..34" to "34", "x7788" to "7788")
+        for (c in cases.filter { it.account?.all(Char::isDigit) == true }) {
+            val rule = pack.rules.first { it.id == c.ruleId }
+            val token = Regex("[Xx*•.]*${c.account}\\b").find(rule.example!!)!!.value
+            for ((written, digits) in variants) {
+                val body = rule.example!!.replaceFirst(token, written)
+                val p = engine.parse(c.sender, body, pack.rules)
+                assertNotNull("${c.ruleId} did not read \"$written\"", p)
+                assertEquals("${c.ruleId} with \"$written\"", digits, p!!.account)
+                assertEquals("${c.ruleId} with \"$written\"", c.amount, p.amountMinor)
+            }
+        }
+    }
+
     @Test fun hdfcWithoutTheDate() {
         val p = engine.parse("AX-HDFCBK", "Rs.240.00 debited from A/c XX1234 to VPA thirdwave@okicici. UPI Ref 4821.", pack.rules)!!
         assertEquals(240_00L, p.amountMinor)

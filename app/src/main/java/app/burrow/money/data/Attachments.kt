@@ -1,5 +1,6 @@
 package app.burrow.money.data
 
+import androidx.core.graphics.scale
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -90,7 +91,7 @@ class Attachments(private val context: Context, private val db: BurrowDatabase) 
         val bmp = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) }
             ?: error("not an image")
         val scale = MAX_PX.toFloat() / maxOf(bmp.width, bmp.height)
-        val sized = if (scale < 1f) Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true) else bmp
+        val sized = if (scale < 1f) bmp.scale((bmp.width * scale).toInt(), (bmp.height * scale).toInt()) else bmp
         out.outputStream().use { sized.compress(Bitmap.CompressFormat.JPEG, 85, it) }
     }
 

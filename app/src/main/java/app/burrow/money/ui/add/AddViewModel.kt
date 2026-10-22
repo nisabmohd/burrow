@@ -171,7 +171,7 @@ class AddViewModel(
                     val payee = capture.payee?.let(::tidyPayee).orEmpty()
                     AddForm(
                         type = type, input = AmountInput.of(capture.amount ?: 0, digits),
-                        categoryId = capture.categoryId ?: payee.takeIf { it.isNotBlank() }?.let { repo.lastCategoryFor(it, type) },
+                        categoryId = capture.categoryId ?: payee.takeIf { it.isNotBlank() }?.let { repo.usualCategoryFor(it, type, raw = capture.payee.orEmpty()) },
                         accountId = app.capture.accountFor(capture) ?: pay.firstOrNull()?.account?.id,
                         at = capture.receivedAt, payee = payee, note = capture.sender,
                     )
@@ -229,7 +229,7 @@ class AddViewModel(
         val names = repo.payeeSuggestions(f.type, f.payee).filter { !it.equals(f.payee.trim(), true) }
         val cats = repo.categories.first()
         suggestions.value = names.map { n ->
-            val cat = repo.lastCategoryFor(n, f.type)?.let { id -> cats.firstOrNull { it.id == id } }
+            val cat = repo.usualCategoryFor(n, f.type)?.let { id -> cats.firstOrNull { it.id == id } }
             PayeeSuggestion(n, cat?.icon, cat?.colorHue, cat?.id)
         }
     }

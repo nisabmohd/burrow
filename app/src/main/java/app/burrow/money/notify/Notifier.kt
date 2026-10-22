@@ -37,11 +37,10 @@ class Notifier(private val context: Context) {
             .setAutoCancel(true)
             .setContentIntent(tap)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(id, n) }
+        postNotification(context, id, n)
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT < 26) return
         val manager = context.getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(CHANNEL) != null) return
         manager.createNotificationChannel(
@@ -68,5 +67,20 @@ class Notifier(private val context: Context) {
 
         fun openPlan(context: Context) = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_PLAN).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    }
+}
+
+/**
+ * Posts [n] only when Burrow may: Android 13+ asks for the permission and the user can take it back at
+ * any time, so a missing permission skips the notification and is never a crash.
+ */
+fun postNotification(context: Context, id: Int, n: android.app.Notification) {
+    if (Build.VERSION.SDK_INT >= 33 &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+    ) return
+    try {
+        NotificationManagerCompat.from(context).notify(id, n)
+    } catch (_: SecurityException) {
+        // Taken back between the check and the post.
     }
 }

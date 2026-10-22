@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Burrow</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">Burrow</string>
     <string name="tab_today">Today</string>
     <string name="tab_activity">Activity</string>
     <string name="tab_plan">Plan</string>
@@ -43,7 +43,7 @@
     <string name="undo">Undo</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
-    <string name="day_time">%1$s, %2$s</string>
+    <string name="day_time" translatable="false">%1$s, %2$s</string>
     <string name="key_delete">Delete</string>
     <string name="key_plus">Plus</string>
     <string name="key_minus">Minus</string>
@@ -69,8 +69,6 @@
     <string name="to">To</string>
     <string name="date">Date</string>
     <string name="payee">Payee</string>
-    <string name="add_payee">Add payee</string>
-    <string name="payee_hint">Who you paid</string>
     <string name="note">Note</string>
     <string name="add_note">Add a note</string>
     <string name="note_hint">Anything to remember</string>
@@ -83,7 +81,7 @@
     <string name="account_sheet_line">Balance shown under each</string>
     <string name="spent_this_month">%1$s this month</string>
     <string name="nothing_this_month">No spending this month</string>
-    <string name="dot_join">%1$s · %2$s</string>
+    <string name="dot_join" translatable="false">%1$s · %2$s</string>
     <string name="account_bank">Bank</string>
     <string name="account_cash">Cash</string>
     <string name="account_wallet">Wallet</string>
@@ -116,7 +114,6 @@
     </plurals>
     <string name="hero_label">%1$s budget · %2$s</string>
     <string name="hero_label_no_budget">Spent in %1$s</string>
-    <string name="hero_left">left of %1$s · %2$s a day</string>
     <string name="hero_over">over your %1$s budget</string>
     <string name="hero_no_budget">No budget set yet</string>
     <string name="sample_title">These are sample transactions</string>
@@ -191,13 +188,9 @@
     <string name="bank_sms">Bank SMS</string>
     <string name="bank_sms_line">Reads messages from banks</string>
     <string name="payment_apps">Payment apps</string>
-    <string name="payment_apps_line">GPay, PhonePe, Paytm</string>
+    <string name="payment_apps_line" translatable="false">GPay, PhonePe, Paytm</string>
     <string name="off">Off</string>
     <string name="on">On</string>
-    <plurals name="not_understood">
-        <item quantity="one">%d message not understood</item>
-        <item quantity="other">%d messages not understood</item>
-    </plurals>
     <string name="tap_to_teach">Tap to teach the app</string>
     <string name="message_rules">Message rules</string>
     <string name="rules_line">Built-in for India · %1$d of yours</string>
@@ -215,7 +208,10 @@
         <item quantity="one">%d rule · banks and UPI apps</item>
         <item quantity="other">%d rules · banks and UPI apps</item>
     </plurals>
-    <string name="rule_line">%1$s · read %2$d times</string>
+    <plurals name="rule_line">
+        <item quantity="one">%1$s · read %2$d time</item>
+        <item quantity="other">%1$s · read %2$d times</item>
+    </plurals>
     <string name="no_rules_yet">No rules of your own yet</string>
     <string name="add_rule">Add rule</string>
     <string name="add_a_rule">Add a rule</string>
@@ -240,7 +236,6 @@
     <string name="rules_shared">Rules file saved</string>
     <string name="message">Message</string>
     <string name="message_hint">Paste the bank\'s message</string>
-    <string name="sender">From</string>
     <string name="sender_hint">Who sent it, like AX-KOTAKB</string>
     <string name="continue_">Continue</string>
 
@@ -485,11 +480,11 @@
     <string name="amount_due_now">Amount due now</string>
     <string name="left_to_pay_now">Left to pay now</string>
     <string name="put_in_label">Amount put in</string>
-    <string name="last_digits">Last 4 digits</string>
+    <string name="last_digits">Last digits</string>
     <string name="credit_limit">Credit limit</string>
     <string name="statement_day">Statement day</string>
     <string name="emi_label">EMI</string>
-    <string name="interest_rate">Interest rate (% a year)</string>
+    <string name="interest_rate" formatted="false">Interest rate (% a year)</string>
     <string name="matures_on">Matures on</string>
     <string name="account_cant_save">Add a name to save.</string>
 
@@ -548,7 +543,7 @@
     <string name="on_average">on average</string>
     <string name="biggest">Biggest</string>
     <string name="by_category">By category</string>
-    <string name="share_line">%1$s · %2$d%%</string>
+    <string name="share_line" translatable="false">%1$s · %2$d%%</string>
     <string name="patterns">Patterns</string>
     <string name="busiest_day">Busiest day</string>
     <string name="in_total">%1$s in total</string>
@@ -568,7 +563,7 @@
     <string name="month_by_day">%1$s by day</string>
     <string name="top_day">top day · %1$s</string>
     <string name="spent_this_month_plain">spent this month</string>
-    <string name="day_spent">%1$s, %2$s</string>
+    <string name="day_spent" translatable="false">%1$s, %2$s</string>
     <string name="less">Less</string>
     <string name="more_word">More</string>
     <string name="no_spending_in">No spending in %1$s</string>
@@ -595,8 +590,6 @@
     <string name="kept">Kept</string>
     <string name="still_with_you">%1$s still with you this month</string>
     <string name="more_out_than_in">%1$s more went out than came in</string>
-    <string name="edit_home">Edit home</string>
-    <string name="edit_home_line">Choose what Today shows</string>
     <string name="chart_summary">%1$s, %2$s spent</string>
     <!-- Week 5: More -->
     <string name="money">Money</string>
@@ -605,7 +598,7 @@
     <string name="backup">Backup</string>
     <string name="app_lock">App lock</string>
     <string name="appearance">Appearance</string>
-    <string name="n_this_month">%1$d this month</string>
+    <string name="n_this_month" tools:ignore="PluralsCandidate">%1$d this month</string>
     <string name="not_set_up">Not set up</string>
     <string name="pin_and_fingerprint">PIN and fingerprint</string>
     <string name="lock_off_line">Off · anyone can open</string>
@@ -624,10 +617,10 @@
     <string name="accent_blue">Blue</string>
     <string name="accent_purple">Purple</string>
     <string name="accent_rose">Rose</string>
-    <string name="font_lexend">Lexend</string>
-    <string name="font_outfit">Outfit</string>
-    <string name="font_atkinson">Atkinson Hyperlegible</string>
-    <string name="font_space_grotesk">Space Grotesk</string>
+    <string name="font_lexend" translatable="false">Lexend</string>
+    <string name="font_outfit" translatable="false">Outfit</string>
+    <string name="font_atkinson" translatable="false">Atkinson Hyperlegible</string>
+    <string name="font_space_grotesk" translatable="false">Space Grotesk</string>
     <string name="font_system">System font</string>
     <string name="size_small">Small</string>
     <string name="size_default">Default</string>
@@ -651,8 +644,6 @@
     <string name="hide_amounts">Hide amounts</string>
     <string name="hide_amounts_line">Shows %1$s until you tap</string>
     <string name="show_amounts">Show amounts</string>
-    <string name="csv">Export or import CSV</string>
-    <string name="csv_line">Spreadsheet of every transaction</string>
     <string name="about_burrow">About Burrow</string>
     <string name="about_line">Version %1$s · free and open source · no internet</string>
     <string name="delete_all">Delete all data</string>
@@ -663,7 +654,6 @@
 
     <!-- Categories (60–62) -->
     <string name="spending">Spending</string>
-    <string name="new_word">New</string>
     <string name="show_grid">Show as grid</string>
     <string name="show_list">Show as list</string>
     <string name="new_category">New category</string>
@@ -688,7 +678,7 @@
     <string name="font">Font</string>
     <string name="text_size">Text size</string>
     <string name="preview">Preview</string>
-    <string name="preview_title">Third Wave Coffee</string>
+    <string name="preview_title" translatable="false">Third Wave Coffee</string>
     <string name="preview_line">Food &amp; drinks · 9:12 AM</string>
     <string name="font_lexend_line">Round and easy to read · default</string>
     <string name="font_outfit_line">Geometric and friendly</string>
@@ -781,11 +771,8 @@
     <string name="restored">Restored</string>
 
     <!-- CSV -->
-    <string name="csv_sheet_line">Opens in any spreadsheet app.</string>
     <string name="csv_export">Export</string>
     <string name="csv_export_line">Every transaction, to a file</string>
-    <string name="csv_import">Import</string>
-    <string name="csv_import_line">date, type, payee, amount, currency, category, account, note</string>
     <string name="csv_exported">Exported</string>
     <string name="csv_failed">Couldn\'t read or write that file</string>
     <plurals name="csv_imported">
@@ -806,7 +793,7 @@
     <!-- Welcome (01–03) -->
     <string name="welcome_left">%1$s left</string>
     <string name="welcome_budget">%1$s budget</string>
-    <string name="welcome_bill">Netflix</string>
+    <string name="welcome_bill" translatable="false">Netflix</string>
     <string name="welcome_currency_title">Your main currency</string>
     <string name="welcome_currency_line">Totals and budgets use this. Accounts can still be in other currencies.</string>
     <string name="welcome_accounts_title">Where is your money?</string>
@@ -828,7 +815,6 @@
         <item quantity="one">%1$d other</item>
         <item quantity="other">%1$d others</item>
     </plurals>
-    <string name="customise_today">Customise Today</string>
     <string name="top_card">Top card</string>
     <string name="top_budget">Budget left</string>
     <string name="top_budget_line">%1$s left this month</string>
@@ -836,7 +822,6 @@
     <string name="top_balance">Balance</string>
     <string name="top_balance_line">%1$s across accounts</string>
     <string name="widgets">Widgets</string>
-    <string name="n_of_n_on_today">%1$d of %2$d on Today</string>
     <string name="move_up">Move %1$s up</string>
     <string name="move_down">Move %1$s down</string>
     <string name="recent_payments">Recent payments</string>
@@ -958,7 +943,7 @@
     <string name="into_account">Into %1$s</string>
     <string name="not_spending_or_income">Not spending or income</string>
     <string name="settled">Settled</string>
-    <string name="n_of_n_paid">%1$d of %2$d paid</string>
+    <string name="n_of_n_paid" tools:ignore="PluralsCandidate">%1$d of %2$d paid</string>
     <string name="settle_owes_you">Owes you %1$s</string>
     <string name="settle_you_owe">You owe %1$s</string>
 
@@ -1080,11 +1065,9 @@
     <string name="choose_a_column">Choose a column</string>
     <string name="not_in_file">Not in this file</string>
     <string name="which_column">Which column?</string>
-    <string name="n_of_n_matched">%1$d of %2$d matched</string>
-    <string name="n_matched_n_new">%1$d matched · %2$d new</string>
+    <string name="n_of_n_matched" tools:ignore="PluralsCandidate">%1$d of %2$d matched</string>
+    <string name="n_matched_n_new" tools:ignore="PluralsCandidate">%1$d matched · %2$d new</string>
     <string name="their_name_in">“%1$s” in %2$s</string>
-    <string name="and">and</string>
-    <string name="into_default">Into the account below</string>
     <string name="all_go_here">Every transaction goes here</string>
     <string name="others_go_here">The rest go here</string>
     <string name="skip_already_here">Skip ones already here</string>
@@ -1148,7 +1131,11 @@
     </plurals>
     <!-- Trust in capture (15) -->
     <string name="recorded_by_itself">Recorded by itself</string>
-    <string name="trust_line">%1$d of %2$d payments this month · you typed %3$d</string>
+    <!-- The count picks the form: "1 of 1 payment", "3 of 5 payments". -->
+    <plurals name="trust_line">
+        <item quantity="one">%1$d of %2$d payment this month · you typed %3$d</item>
+        <item quantity="other">%1$d of %2$d payments this month · you typed %3$d</item>
+    </plurals>
     <string name="percent_by_itself">%1$d%% recorded by itself</string>
     <string name="from_senders">From %1$s</string>
     <plurals name="teach_missed">

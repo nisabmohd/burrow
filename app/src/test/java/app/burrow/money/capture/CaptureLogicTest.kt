@@ -59,4 +59,20 @@ class CaptureLogicTest {
         assertEquals(3L, matchAccount("Paytm Wallet", "Paytm", accounts))
         assertEquals(1L, matchAccount(null, "Google Pay", accounts))
     }
+
+    @Test fun accountDigitsOfAnyLength() {
+        assertTrue(sameAccount("XX12", "4512"))
+        assertTrue(sameAccount("**123", "0123"))
+        assertTrue(sameAccount("XXXXXX123456", "3456"))
+        assertFalse(sameAccount("XX123456", "993456"))
+        assertFalse(sameAccount("X2", "1232"))
+        val accounts = listOf(
+            AccountRef(1, "HDFC Savings", "4512", "BANK"),
+            AccountRef(2, "HDFC Salary", "7712", "BANK"),
+            AccountRef(3, "SBI", "123", "BANK"),
+        )
+        assertEquals(2L, matchAccount("XXXX7712", "HDFC Bank", accounts))
+        assertEquals(1L, matchAccount("XX512", "HDFC Bank", accounts))
+        assertEquals(3L, matchAccount("**123", "SBI", accounts))
+    }
 }

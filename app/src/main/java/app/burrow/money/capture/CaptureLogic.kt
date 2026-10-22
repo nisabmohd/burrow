@@ -25,13 +25,22 @@ fun findDuplicate(source: String, amount: Long, account: String?, reference: Str
             )
     }
 
-/** "XX1234", "*1234" and "1234" are the same account; compare the last digits both have. */
+/** "XX12", "*1234", "••123456" and "1234" can be the same account: compare the last digits both have (at least 2). */
 fun sameAccount(a: String, b: String): Boolean {
     val da = a.filter { it.isDigit() }
     val db = b.filter { it.isDigit() }
     if (da.isEmpty() || db.isEmpty()) return a.equals(b, ignoreCase = true)
-    val n = minOf(da.length, db.length, 4)
-    return da.takeLast(n) == db.takeLast(n)
+    val n = minOf(da.length, db.length)
+    return n >= 2 && da.takeLast(n) == db.takeLast(n)
+}
+
+/** How many last digits two account numbers share. */
+fun sharedDigits(a: String, b: String): Int {
+    val da = a.filter { it.isDigit() }
+    val db = b.filter { it.isDigit() }
+    var n = 0
+    while (n < da.length && n < db.length && da[da.length - 1 - n] == db[db.length - 1 - n]) n++
+    return n
 }
 
 private val REFERENCE = Regex("(?i)(?:ref(?:erence)?\\s*(?:no\\.?)?|refno|utr|txn\\s*id|upi)[\\s:#./-]*(\\d{6,})")
@@ -61,7 +70,9 @@ data class AccountRef(val id: Long, val name: String, val number: String?, val t
  */
 fun matchAccount(captured: String?, bankName: String?, accounts: List<AccountRef>): Long? {
     if (captured != null) {
-        accounts.firstOrNull { it.number != null && sameAccount(captured, it.number) }?.let { return it.id }
+        // Banks show 2 to 6 last digits; when several accounts fit, the longest overlap wins.
+        accounts.filter { it.number != null && sameAccount(captured, it.number) }
+            .maxByOrNull { sharedDigits(captured, it.number!!) }?.let { return it.id }
         accounts.firstOrNull { it.name.equals(captured, ignoreCase = true) }?.let { return it.id }
     }
     val word = bankName?.substringBefore(' ')?.takeIf { it.length >= 3 }

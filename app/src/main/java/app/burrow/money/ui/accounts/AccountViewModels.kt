@@ -30,6 +30,9 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
+/** How many last digits of an account number we keep; banks show 2 to 6 in their messages. */
+const val MAX_DIGITS = 6
+
 private val zone = ZoneId.systemDefault()
 internal fun Long.day(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 private fun LocalDate.millis(): Long = atStartOfDay(zone).toInstant().toEpochMilli()
@@ -255,7 +258,7 @@ class NewAccountViewModel(
             )
             val a = base.copy(
                 name = f.name.trim(), type = f.type, icon = if (original == null) icon else base.icon,
-                number = f.number.filter { it.isDigit() }.takeLast(4).ifEmpty { null },
+                number = f.number.filter { it.isDigit() }.takeLast(MAX_DIGITS).ifEmpty { null },
                 creditLimit = if (f.type == AccountType.CARD) amt(f.limit) else null,
                 statementDay = if (f.type == AccountType.CARD) f.statementDay else null,
                 dueDay = if (f.type == AccountType.CARD) f.dueDay else null,

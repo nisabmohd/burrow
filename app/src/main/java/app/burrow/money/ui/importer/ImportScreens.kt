@@ -114,7 +114,7 @@ fun ImportScreen(app: AppContainer, onBack: () -> Unit, onPicked: (ImportSource,
         pick.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "text/tab-separated-values", "application/csv", "application/vnd.ms-excel", "application/octet-stream"))
     }
     DetailFrame(onBack, stringResource(R.string.import_export)) {
-        CenterTitleHeader(painterResource(R.drawable.ic_import_duotone), stringResource(R.string.bring_history), stringResource(R.string.bring_history_line))
+        CenterTitleHeader(painterResource(R.drawable.ic_import_duotone), stringResource(R.string.bring_history), line = stringResource(R.string.bring_history_line))
         SectionHeader(stringResource(R.string.from_another_app))
         ListGroup {
             ListRow(stringResource(R.string.app_cashew), 0, 4, supporting = stringResource(R.string.cashew_how), lead = { LetterCircle("C") }, onClick = { choose(ImportSource.CASHEW) })

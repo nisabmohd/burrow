@@ -61,7 +61,7 @@ fun RuleScreen(vm: RuleViewModel, onBack: () -> Unit) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
         ) {
-            CenterTitleHeader(painterResource(R.drawable.ic_sms_regular), rule.name, stringResource(R.string.rule_from, senderLabel(rule)))
+            CenterTitleHeader(painterResource(R.drawable.ic_sms_regular), rule.name, line = stringResource(R.string.rule_from, senderLabel(rule)))
             if (rule.example != null) {
                 SectionHeader(stringResource(R.string.example))
                 MessageBox(senderLabel(rule), rule.example, marksFor(example?.spans.orEmpty()))

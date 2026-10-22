@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -403,7 +404,7 @@ data class BudgetEdit(val categoryId: Long?, val name: String, val amount: Long,
 fun BudgetEditSheet(e: BudgetEdit, onDismiss: () -> Unit, onSave: (Long, Boolean) -> Unit) {
     val money = LocalMoney.current
     val unit = money.digitsUnit()
-    var amount by remember(e) { mutableStateOf(e.amount) }
+    var amount by remember(e) { mutableLongStateOf(e.amount) }
     var carry by remember(e) { mutableStateOf(e.carryOver) }
     val step = (if (e.categoryId == null) 1_000 else 500) * unit
     val base = (amount / step).coerceAtLeast(1) * step

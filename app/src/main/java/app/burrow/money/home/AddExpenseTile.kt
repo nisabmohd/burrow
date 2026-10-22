@@ -30,10 +30,14 @@ class AddExpenseTile : TileService() {
             if (Build.VERSION.SDK_INT >= 34) {
                 startActivityAndCollapse(PendingIntent.getActivity(this, 110, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
             } else {
-                @Suppress("DEPRECATION")
-                startActivityAndCollapse(intent)
+                openBefore34(intent)
             }
         }
         if (isLocked) unlockAndRun(go) else go()
     }
+
+    /** Android 13 and older only have the Intent version; 14+ takes the PendingIntent branch above. */
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated")
+    @Suppress("DEPRECATION")
+    private fun openBefore34(intent: Intent) = startActivityAndCollapse(intent)
 }

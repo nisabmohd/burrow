@@ -174,7 +174,11 @@ class MainActivity : ComponentActivity() {
             ACTION_OPEN_BILL -> OpenFromNotification.Bill(intent.getLongExtra(EXTRA_ID, 0L))
             ACTION_OPEN_PLAN -> OpenFromNotification.Budgets
             ACTION_OPEN_INSIGHTS -> OpenFromNotification.Insights
-            ACTION_OPEN_CAPTURE -> OpenFromNotification.EditCapture(intent.getLongExtra(EXTRA_ID, 0L))
+            ACTION_OPEN_CAPTURE -> intent.getLongExtra(EXTRA_ID, 0L).let { id ->
+                // Edit on the capture notification: the notification goes once New expense opens.
+                (application as BurrowApp).container.notifier.cancel(id)
+                OpenFromNotification.EditCapture(id)
+            }
             ACTION_OPEN_TXN -> OpenFromNotification.Txn(intent.getLongExtra(EXTRA_ID, 0L))
             ACTION_OPEN_ACCOUNTS -> OpenFromNotification.Accounts
             ACTION_NEW_EXPENSE -> OpenFromNotification.NewTxn(app.burrow.money.data.TxnType.EXPENSE)

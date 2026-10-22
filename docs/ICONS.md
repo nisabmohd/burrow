@@ -182,3 +182,29 @@ Never mix icon sets. Never draw an icon with emoji. A new icon: take it from Pho
 | `import` | tray-arrow-down | Import or export (10, 11), More row |
 | `export` | export | Export to CSV (10) |
 | `ic_shortcut_*` | layer-list: white glyph on the rose circle | app shortcuts (launchers draw them as they are) |
+
+## Category icons added 2026-10-22 (where money goes)
+The Edit category picker (62) lists 60 icons (10 full rows of 6) grouped by kind of spending; order lives in `CATEGORY_ICONS`
+(`ui/components/AppIcons.kt`). New ones:
+
+| Name | Phosphor | | Name | Phosphor |
+|---|---|---|---|---|
+| `fastfood` | hamburger | | `shoes` | sneaker |
+| `local_bar` | beer-stein | | `jewellery` | diamond |
+| `vegetables` | carrot | | `salon` | scissors |
+| `delivery` | moped | | `medicine` | pill |
+| `two_wheeler` | motorcycle | | `hospital` | first-aid-kit |
+| `taxi` | taxi | | `games` | game-controller |
+| `train` | train | | `tickets` | ticket |
+| `bus` | bus | | `books` | books |
+| `hotel` | bed | | `toys` | puzzle-piece |
+| `apartment` | building-apartment | | `loan_emi` | hand-coins |
+| `water` | drop | | `insurance` | umbrella |
+| `cooking_gas` | flame | | `tax` | calculator |
+| `tv` | television-simple | | `investment` | chart-line-up |
+| `repairs` | wrench | | `gold` | coins |
+| `house_help` | broom | | `gadgets` | headphones |
+| `doctor` | stethoscope | | `plants` | plant |
+
+Also offered in the picker (drawables already there): `smartphone` (recharge), `wifi`, `volunteer_activism`
+(donations), `autorenew` (subscriptions), `payments` (cash), `account_balance` (bank charges), `credit_card`, `savings`, `percent` (fees, interest).

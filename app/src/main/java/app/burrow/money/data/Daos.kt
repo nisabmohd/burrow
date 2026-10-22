@@ -222,9 +222,22 @@ interface TxnDao {
     @Query("SELECT COUNT(*) FROM TxnEntity")
     fun count(): Flow<Int>
 
-    /** The category last used for [payee], so a new payment from them suggests it first. */
-    @Query("SELECT categoryId FROM TxnEntity WHERE payee = :payee COLLATE NOCASE AND type = :type AND categoryId IS NOT NULL ORDER BY at DESC LIMIT 1")
-    suspend fun lastCategoryFor(payee: String, type: String): Long?
+    /**
+     * The categories used for a payee, the one picked most often first (ties: the latest). Counts
+     * entries saved under [payee] and entries saved from a message whose payee was [raw], so a
+     * payee renamed on save ("thirdwave@okicici" kept as "Third Wave Coffee") is still known.
+     */
+    @Query(
+        """
+        SELECT categoryId FROM TxnEntity
+        WHERE type = :type AND categoryId IS NOT NULL AND (
+            payee = :payee COLLATE NOCASE OR
+            id IN (SELECT txnId FROM CaptureEntity WHERE txnId IS NOT NULL AND payee = :raw COLLATE NOCASE)
+        )
+        GROUP BY categoryId ORDER BY COUNT(*) DESC, MAX(at) DESC LIMIT :limit
+        """,
+    )
+    suspend fun usualCategoriesFor(payee: String, raw: String, type: String, limit: Int): List<Long>
 
     @Query("SELECT categoryId FROM TxnEntity WHERE type = :type AND categoryId IS NOT NULL AND isSample = 0 ORDER BY at DESC LIMIT 1")
     suspend fun lastCategory(type: String): Long?

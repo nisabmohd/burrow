@@ -70,7 +70,7 @@ object Importer {
 
     /** Splits the file into rows of cells: commas, semicolons or tabs, quotes and line breaks in quotes. */
     fun table(text: String): List<List<String>> {
-        val t = text.removePrefix("﻿")
+        val t = text.removePrefix("\uFEFF")
         val firstLine = t.lineSequence().firstOrNull { it.isNotBlank() }.orEmpty()
         val sep = listOf('\t', ';', ',').maxByOrNull { c -> firstLine.count { it == c } }?.takeIf { c -> firstLine.count { it == c } > 0 } ?: ','
         val rows = mutableListOf<List<String>>()

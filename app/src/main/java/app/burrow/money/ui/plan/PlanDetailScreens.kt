@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -260,7 +261,7 @@ private fun AddMoneySheet(s: GoalState, goalName: String, onDismiss: () -> Unit,
     val money = LocalMoney.current
     val unit = money.digitsUnit()
     val pay = s.accounts.filter { it.account.type != "LOAN" && it.account.type != "SAVINGS" }
-    var amount by rememberSaveable { mutableStateOf(5_000 * unit) }
+    var amount by rememberSaveable { mutableLongStateOf(5_000 * unit) }
     var from by rememberSaveable { mutableStateOf(pay.firstOrNull { it.account.id == s.line.goal.accountId }?.account?.id ?: pay.firstOrNull()?.account?.id) }
     var picking by remember { mutableStateOf(false) }
     val account = pay.firstOrNull { it.account.id == from }

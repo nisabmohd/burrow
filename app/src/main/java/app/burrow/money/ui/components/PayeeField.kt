@@ -56,8 +56,9 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
     val focus = LocalFocusManager.current
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    val text = rememberFieldText(value)
     BasicTextField(
-        value = value, onValueChange = onChange, singleLine = true,
+        value = text.field, onValueChange = { text.typed(it, onChange) }, singleLine = true,
         textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
         cursorBrush = SolidColor(c.primary), interactionSource = interaction,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
@@ -73,11 +74,11 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
             ) {
                 lead()
                 Box(Modifier.weight(1f)) {
-                    if (value.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
+                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
                     field()
                 }
-                if (value.isNotEmpty()) {
-                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(c.surfaceContainerHigh).clickable(role = Role.Button) { onChange(""); focus.clearFocus() }, contentAlignment = Alignment.Center) {
+                if (text.field.text.isNotEmpty()) {
+                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(c.surfaceContainerHigh).clickable(role = Role.Button) { text.set(""); onChange(""); focus.clearFocus() }, contentAlignment = Alignment.Center) {
                         Icon(painterResource(R.drawable.ic_close_regular), clearLabel, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconButton20))
                     }
                 }

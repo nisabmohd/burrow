@@ -230,9 +230,10 @@ fun PillTextField(
     password: Boolean = false,
 ) {
     val c = MaterialTheme.colorScheme
+    val text = rememberFieldText(value)
     BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = text.field,
+        onValueChange = { text.typed(it, onValueChange) },
         singleLine = true,
         textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
         cursorBrush = SolidColor(c.primary),
@@ -251,11 +252,11 @@ fun PillTextField(
                     Spacer(Modifier.width(Space.card))
                 }
                 Box(Modifier.weight(1f)) {
-                    if (value.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
+                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
                     field()
                 }
-                if (value.isNotEmpty() && clearLabel != null) {
-                    IconButton(onClick = { onValueChange("") }) {
+                if (text.field.text.isNotEmpty() && clearLabel != null) {
+                    IconButton(onClick = { text.set(""); onValueChange("") }) {
                         Icon(painterResource(R.drawable.ic_close_regular), clearLabel, tint = c.onSurfaceVariant)
                     }
                 }

@@ -14,9 +14,14 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
    A payment-app notification often names neither, so a pair from different sources where one has no
    account also counts (`CaptureLogic.findDuplicate`). The second one is stored as MERGED, never asked.
 5. **Bill match**: a payee + amount (±10%) matching a bill due within 3 days marks that bill **Paid**.
-6. **What happens** follows More › Customise › Transactions › "When a payment is found": **Ask on the notification** (default), **Open it to edit first** (the notification opens New expense pre-filled with amount, payee, account, note = sender), or **Save it for me** (uses the remembered category; editable later).
+6. **What happens** follows More › Customise › Transactions › "When a payment is found": **Ask on the notification** (default), **Open it to edit first** (the notification opens New expense pre-filled with amount, payee, account, note = sender), or **Save it for me** (uses the payee's usual category; editable later).
+   A payee's **usual category** is the one picked most often for them (ties: the latest). It counts the
+   name as saved and the message's own spelling, so "thirdwave@okicici" saved as "Third Wave Coffee" is still known.
+   Account digits: banks show 2 to 6 last digits behind X, *, • or dots; rules read any of them and
+   matching compares the digits both sides have (at least 2), the longest overlap winning.
    **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
-   with two category buttons (remembered payee → category first) and Ignore. One tap saves.
+   with two category pills (the payee's usual category first, then your most used), then Ignore and Edit (opens New expense
+   pre-filled, for when neither category fits). One tap saves. The pop-up is shorter: pills + Edit; Ignore is in the shade.
 7. **Review**: anything not acted on waits in To review. Messages no rule could read go to
    "messages not understood" → Teach.
 8. **Keep**: the message text is kept 30 days for review/teach, then deleted; the transaction stays.

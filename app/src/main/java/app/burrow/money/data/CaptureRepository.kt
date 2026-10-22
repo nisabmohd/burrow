@@ -112,12 +112,15 @@ class CaptureRepository(
         if (dup != null) CaptureResult.Duplicate else CaptureResult.Found(capture.copy(id = id))
     }
 
-    /** Two or three categories to offer: the payee's last one first, then the most used. */
+    /**
+     * Two or three categories to offer: the ones usually picked for this payee first (most often,
+     * then latest), then the most used overall, then the defaults.
+     */
     suspend fun suggestions(payee: String?, type: String, count: Int = 3): List<Long> {
-        val last = payee?.let { db.txns().lastCategoryFor(it, type) }
+        val usual = payee?.let { db.txns().usualCategoriesFor(tidyPayee(it), it.trim(), type, count) }.orEmpty()
         val top = db.txns().topCategories(type, count + 1)
         val fallback = money.categories.first().filter { it.kind == if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE }.map { it.id }
-        return (listOfNotNull(last) + top + fallback).distinct().take(count)
+        return (usual + top + fallback).distinct().take(count)
     }
 
     /** The account a capture is about, from its digits or its bank's name. */

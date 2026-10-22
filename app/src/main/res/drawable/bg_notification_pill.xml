@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Category pill in the capture notification (design 43): a tonal pill with a ripple. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/notification_ripple">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="18dp" />
+            <solid android:color="@color/notification_pill" />
+        </shape>
+    </item>
+</ripple>

@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.view.View
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -19,7 +21,8 @@ import app.burrow.money.domain.MoneyFormat
 
 /**
  * The capture notification (design 43): "₹240 to Third Wave Coffee", "HDFC ••1234 · which
- * category?", the two likeliest categories and Ignore as its buttons. One tap saves. Tapping the notification opens
+ * category?", the two likeliest categories as pills, then Ignore and Edit. One tap saves; Edit opens
+ * New expense filled in. Tapping the notification opens
  * To review. The only notification in the app with buttons (CLAUDE.md § Behaviour).
  */
 class CaptureNotifier(private val context: Context) {
@@ -39,27 +42,50 @@ class CaptureNotifier(private val context: Context) {
         }
         val line = context.getString(R.string.notif_which_category, from ?: context.getString(R.string.app_name))
         val id = notificationId(capture.id)
-        // Android's own template: the Burrow mark sits level with the title and line (a custom view
-        // with pills puts it in the middle of the whole card), and the two categories and Ignore are
-        // its action buttons, so one tap saves straight from the pop-up.
+        // Design 43 needs filled pills, which Android's action buttons can't draw (they come out as
+        // outlined, upper-case chips), so the body is our own layout inside Android's frame. Collapsed:
+        // title and line. Expanded: + two category pills, Ignore and Edit. Edit opens New
+        // expense filled in, for when neither category fits.
+        fun withButtons(layout: Int, ignore: Boolean) = RemoteViews(context.packageName, layout).apply {
+            setTextViewText(R.id.title, title)
+            setTextViewText(R.id.line, line)
+            listOf(R.id.category1, R.id.category2).forEachIndexed { i, viewId ->
+                val c = categories.getOrNull(i)
+                if (c == null) {
+                    setViewVisibility(viewId, View.GONE)
+                } else {
+                    setTextViewText(viewId, c.name)
+                    setOnClickPendingIntent(viewId, action(CaptureActionReceiver.ACTION_SAVE, capture.id, c.id))
+                }
+            }
+            if (ignore) {
+                setTextViewText(R.id.ignore, context.getString(R.string.ignore))
+                setOnClickPendingIntent(R.id.ignore, action(CaptureActionReceiver.ACTION_IGNORE, capture.id, 0))
+            }
+            setTextViewText(R.id.edit, context.getString(R.string.edit))
+            setOnClickPendingIntent(R.id.edit, open(MainActivity.ACTION_OPEN_CAPTURE, capture.id))
+        }
+        val body = withButtons(R.layout.notification_capture, ignore = true)
+        // Android cuts the pop-up at ~95 dp: Edit moves onto the pill row, Ignore waits in the shade.
+        val popUp = withButtons(R.layout.notification_capture_headsup, ignore = false)
+        val small = RemoteViews(context.packageName, R.layout.notification_capture_small).apply {
+            setTextViewText(R.id.title, title)
+            setTextViewText(R.id.line, line)
+        }
         val builder = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(line)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(small)
+            .setCustomBigContentView(body)
+            .setCustomHeadsUpContentView(popUp)
             .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             .setAutoCancel(true)
             .setContentIntent(openReview(context))
-        // Contextual actions: Android draws them as pills (design 43), the same in the pop-up and the shade.
-        categories.take(2).forEach { c ->
-            builder.addAction(
-                NotificationCompat.Action.Builder(app.burrow.money.ui.components.duotoneIcon(c.icon), c.name, action(CaptureActionReceiver.ACTION_SAVE, capture.id, c.id))
-                    .setContextual(true).build(),
-            )
-        }
-        builder.addAction(0, context.getString(R.string.ignore), action(CaptureActionReceiver.ACTION_IGNORE, capture.id, 0))
-        runCatching { NotificationManagerCompat.from(context).notify(id, builder.build()) }
+        app.burrow.money.notify.postNotification(context, id, builder.build())
     }
 
     /** "Open it to edit first": title and line, tap opens New expense filled in. No buttons. */
@@ -107,7 +133,7 @@ class CaptureNotifier(private val context: Context) {
             .setAutoCancel(true)
             .setContentIntent(tap)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(id, n) }
+        app.burrow.money.notify.postNotification(context, id, n)
     }
 
     fun cancel(captureId: Long) = NotificationManagerCompat.from(context).cancel(notificationId(captureId))
@@ -123,7 +149,6 @@ class CaptureNotifier(private val context: Context) {
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT < 26) return
         val manager = context.getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(CHANNEL) != null) return
         manager.createNotificationChannel(

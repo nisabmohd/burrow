@@ -1,5 +1,6 @@
 package app.burrow.money.ui.more
 
+import androidx.core.net.toUri
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -257,7 +258,7 @@ fun CurrencyScreen(current: String, onPick: (String) -> Unit, onBack: () -> Unit
 fun AboutScreen(onBack: () -> Unit, onLicences: () -> Unit) {
     val context = LocalContext.current
     val c = MaterialTheme.colorScheme
-    fun open(url: String) = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    fun open(url: String) = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
     DetailFrame(onBack, stringResource(R.string.about)) {
         Column(Modifier.fillMaxWidth().padding(vertical = Space.sheet), horizontalAlignment = Alignment.CenterHorizontally) {
             app.burrow.money.ui.components.BurrowLogo(Size.logo)

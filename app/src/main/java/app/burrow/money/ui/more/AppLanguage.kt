@@ -1,5 +1,6 @@
 package app.burrow.money.ui.more
 
+import androidx.core.content.edit
 import android.app.Activity
 import android.app.LocaleManager
 import android.content.Context
@@ -47,7 +48,8 @@ object AppLanguage {
             activity.getSystemService(LocaleManager::class.java).applicationLocales =
                 if (tag == null) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
         } else {
-            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, tag).commit()
+            // commit, not apply: recreate() below reads it back straight away.
+            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit(commit = true) { putString(KEY, tag) }
             apply(activity.applicationContext.resources, tag)
             activity.recreate()
         }

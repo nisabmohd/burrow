@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -268,7 +269,7 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
 /** Due every month on (28): − day +, quick days, "Next due 1 Nov", Done. */
 @Composable
 private fun DueDaySheet(start: Int, dates: DateText, onDone: (Int) -> Unit, onDismiss: () -> Unit) {
-    var day by rememberSaveable { mutableStateOf(start) }
+    var day by rememberSaveable { mutableIntStateOf(start) }
     val next = Repeat.Monthly(day).nextOnOrAfter(LocalDate.now())
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.due_every_month_on), onDismiss)

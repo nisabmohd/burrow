@@ -164,7 +164,9 @@ class MoneyRepository(
     suspend fun payeeSuggestions(type: String, typed: String, limit: Int = 4): List<String> =
         if (typed.isBlank()) db.txns().topPayees(type, limit) else db.txns().payeesStarting(typed.trim(), limit)
 
-    suspend fun lastCategoryFor(payee: String, type: String): Long? = db.txns().lastCategoryFor(payee, type)
+    /** The category usually picked for [payee] (most often, then latest); [raw] is the message's own spelling. */
+    suspend fun usualCategoryFor(payee: String, type: String, raw: String = payee): Long? =
+        db.txns().usualCategoriesFor(payee.trim(), raw.trim(), type, 1).firstOrNull()
 
     /** The category used last for [type], for "Last category" (Customise › Expense). */
     suspend fun lastCategory(type: String): Long? = db.txns().lastCategory(type)

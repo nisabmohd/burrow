@@ -74,7 +74,7 @@ fun AutoCaptureScreen(
                     androidx.compose.foundation.layout.Spacer(Modifier.height(Space.block))
                     androidx.compose.material3.Text(stringResource(R.string.recorded_by_itself), style = app.burrow.money.ui.theme.BurrowType.title, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                     androidx.compose.material3.Text(
-                        stringResource(R.string.trust_line, s.trust.found, s.trust.total, s.trust.typed),
+                        pluralStringResource(R.plurals.trust_line, s.trust.total, s.trust.found, s.trust.total, s.trust.typed),
                         style = app.burrow.money.ui.theme.BurrowType.body, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
@@ -83,7 +83,7 @@ fun AutoCaptureScreen(
                 CenterTitleHeader(
                     painterResource(R.drawable.ic_sms_regular),
                     pluralStringResource(R.plurals.payments_recorded, s.recordedThisMonth, s.recordedThisMonth),
-                    stringResource(R.string.recorded_line),
+                    line = stringResource(R.string.recorded_line),
                 )
             }
             val switches = buildList<@Composable (Int, Int) -> Unit> {

@@ -54,6 +54,8 @@ fun TodayScreen(
     onBill: (Long) -> Unit,
     onCategory: (Long) -> Unit,
     onGoal: (Long) -> Unit,
+    /** Goes up by one each time the Today tab is tapped: scroll back to the top. */
+    scrollToTop: Int = 0,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
@@ -81,6 +83,7 @@ fun TodayScreen(
         }
         val list = androidx.compose.foundation.lazy.rememberLazyListState()
         app.burrow.money.ui.components.KeepTopVisible(list, paused to s.hasSamples)
+        androidx.compose.runtime.LaunchedEffect(scrollToTop) { if (scrollToTop > 0) list.scrollToItem(0) }
         LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
             if (paused != null) {
                 item(key = "paused", contentType = "note") {

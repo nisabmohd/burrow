@@ -87,8 +87,16 @@ class BillAlarmReceiver : BroadcastReceiver() {
 
 /** Reboot, app update, clock or time zone change: alarms are gone or wrong, set them again. */
 class RescheduleReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) = runInBackground(context) { runBillReminders(); backup.schedule(); scheduleWeeklyReview() }
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action !in RESCHEDULE_ACTIONS) return
+        runInBackground(context) { runBillReminders(); backup.schedule(); scheduleWeeklyReview() }
+    }
 }
+
+/** The system broadcasts RescheduleReceiver listens for (AndroidManifest.xml). */
+private val RESCHEDULE_ACTIONS = setOf(
+    Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED,
+)
 
 private fun BroadcastReceiver.runInBackground(context: Context, work: suspend AppContainer.() -> Unit) {
     val container = (context.applicationContext as BurrowApp).container

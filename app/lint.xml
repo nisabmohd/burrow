@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Lint settings. Everything else is left at its default: fix the warning, don't hide it here.
+-->
+<lint>
+    <!-- The full Phosphor set lives in res/drawable on purpose (docs/ICONS.md); release builds
+         shrink away the icons the app doesn't use, so they cost nothing in the APK. -->
+    <issue id="UnusedResources">
+        <ignore regexp="R\.drawable\.ic_" />
+    </issue>
+</lint>

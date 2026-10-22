@@ -1,5 +1,6 @@
 package app.burrow.money.data
 
+import androidx.core.net.toUri
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -148,7 +149,7 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
     }
 
     /** "Documents/Burrow" from the folder the user picked. */
-    fun folderLabel(uri: String): String = runCatching { DocumentsContract.getTreeDocumentId(Uri.parse(uri)).substringAfter(':').ifEmpty { "/" } }.getOrDefault(uri)
+    fun folderLabel(uri: String): String = runCatching { DocumentsContract.getTreeDocumentId(uri.toUri()).substringAfter(':').ifEmpty { "/" } }.getOrDefault(uri)
 
     suspend fun read(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("can't read file")

@@ -62,8 +62,6 @@
     <string name="to">को</string>
     <string name="date">तारीख़</string>
     <string name="payee">किसे</string>
-    <string name="add_payee">किसे दिया जोड़ें</string>
-    <string name="payee_hint">आपने किसे भुगतान किया</string>
     <string name="note">नोट</string>
     <string name="add_note">नोट जोड़ें</string>
     <string name="note_hint">कुछ भी याद रखने लायक</string>
@@ -104,7 +102,6 @@
     </plurals>
     <string name="hero_label">%1$s का बजट · %2$s</string>
     <string name="hero_label_no_budget">%1$s में खर्च</string>
-    <string name="hero_left">%1$s में से बचा · %2$s रोज़</string>
     <string name="hero_over">आपके %1$s के बजट से ज़्यादा</string>
     <string name="hero_no_budget">अभी कोई बजट नहीं</string>
     <string name="sample_title">ये नमूना लेन-देन हैं</string>
@@ -173,10 +170,6 @@
     <string name="payment_apps">पेमेंट ऐप</string>
     <string name="off">बंद</string>
     <string name="on">चालू</string>
-    <plurals name="not_understood">
-        <item quantity="one">%d संदेश समझ नहीं आया</item>
-        <item quantity="other">%d संदेश समझ नहीं आए</item>
-    </plurals>
     <string name="tap_to_teach">ऐप को सिखाने के लिए टैप करें</string>
     <string name="message_rules">संदेश नियम</string>
     <string name="rules_line">भारत के लिए पहले से · आपके %1$d</string>
@@ -192,7 +185,10 @@
         <item quantity="one">%d नियम · बैंक और UPI ऐप</item>
         <item quantity="other">%d नियम · बैंक और UPI ऐप</item>
     </plurals>
-    <string name="rule_line">%1$s · %2$d बार पढ़ा</string>
+    <plurals name="rule_line">
+        <item quantity="one">%1$s · %2$d बार पढ़ा</item>
+        <item quantity="other">%1$s · %2$d बार पढ़ा</item>
+    </plurals>
     <string name="no_rules_yet">अभी आपका कोई नियम नहीं</string>
     <string name="add_rule">नियम जोड़ें</string>
     <string name="add_a_rule">नियम जोड़ें</string>
@@ -217,7 +213,6 @@
     <string name="rules_shared">नियम फ़ाइल सेव हुई</string>
     <string name="message">संदेश</string>
     <string name="message_hint">बैंक का संदेश चिपकाएँ</string>
-    <string name="sender">से</string>
     <string name="sender_hint">किसने भेजा, जैसे AX-KOTAKB</string>
     <string name="continue_">आगे बढ़ें</string>
     <string name="rule_from">%1$s से</string>
@@ -447,10 +442,10 @@
     <string name="amount_due_now">अभी देय रक़म</string>
     <string name="left_to_pay_now">अभी चुकाना बाकी</string>
     <string name="put_in_label">लगाई गई रक़म</string>
-    <string name="last_digits">आख़िरी 4 अंक</string>
+    <string name="last_digits">आख़िरी अंक</string>
     <string name="credit_limit">क्रेडिट सीमा</string>
     <string name="statement_day">स्टेटमेंट की तारीख़</string>
-    <string name="interest_rate">ब्याज दर (% सालाना)</string>
+    <string name="interest_rate" formatted="false">ब्याज दर (% सालाना)</string>
     <string name="matures_on">मैच्योरिटी की तारीख़</string>
     <string name="account_cant_save">सेव करने के लिए नाम जोड़ें।</string>
     <string name="type">प्रकार</string>
@@ -548,8 +543,6 @@
     <string name="kept">बचा</string>
     <string name="still_with_you">इस महीने %1$s अब भी आपके पास</string>
     <string name="more_out_than_in">आए से %1$s ज़्यादा गया</string>
-    <string name="edit_home">होम बदलें</string>
-    <string name="edit_home_line">चुनें कि आज पर क्या दिखे</string>
     <string name="chart_summary">%1$s, %2$s खर्च</string>
     <string name="money">पैसा</string>
     <string name="app">ऐप</string>
@@ -599,8 +592,6 @@
     <string name="hide_amounts">रक़म छिपाएँ</string>
     <string name="hide_amounts_line">टैप करने तक %1$s दिखता है</string>
     <string name="show_amounts">रक़म दिखाएँ</string>
-    <string name="csv">CSV निर्यात या आयात</string>
-    <string name="csv_line">हर लेन-देन की स्प्रेडशीट</string>
     <string name="about_burrow">Burrow के बारे में</string>
     <string name="about_line">वर्ज़न %1$s · मुफ़्त और ओपन सोर्स · इंटरनेट नहीं</string>
     <string name="delete_all">सारा डेटा मिटाएँ</string>
@@ -609,7 +600,6 @@
     <string name="delete_all_text">इस फ़ोन से हर लेन-देन, खाता, बिल, बजट और लक्ष्य हट जाएगा। इसे वापस नहीं लिया जा सकता; आपके फ़ोल्डर के बैकअप रहेंगे।</string>
     <string name="all_deleted">सारा डेटा मिटाया गया</string>
     <string name="spending">खर्च</string>
-    <string name="new_word">नया</string>
     <string name="show_grid">ग्रिड में दिखाएँ</string>
     <string name="show_list">सूची में दिखाएँ</string>
     <string name="new_category">नई श्रेणी</string>
@@ -714,11 +704,8 @@
     </plurals>
     <string name="replace">बदलें</string>
     <string name="restored">रीस्टोर हो गया</string>
-    <string name="csv_sheet_line">किसी भी स्प्रेडशीट ऐप में खुलती है।</string>
     <string name="csv_export">निर्यात</string>
     <string name="csv_export_line">हर लेन-देन, एक फ़ाइल में</string>
-    <string name="csv_import">आयात</string>
-    <string name="csv_import_line">तारीख़, प्रकार, किसे, रक़म, मुद्रा, श्रेणी, खाता, नोट</string>
     <string name="csv_exported">निर्यात हो गया</string>
     <string name="csv_failed">वह फ़ाइल पढ़ी या लिखी नहीं जा सकी</string>
     <plurals name="csv_imported">
@@ -755,7 +742,6 @@
         <item quantity="one">%1$d और</item>
         <item quantity="other">%1$d और</item>
     </plurals>
-    <string name="customise_today">आज को अपने हिसाब से बनाएँ</string>
     <string name="top_card">ऊपर का कार्ड</string>
     <string name="top_budget">बचा बजट</string>
     <string name="top_budget_line">इस महीने %1$s बचा</string>
@@ -763,7 +749,6 @@
     <string name="top_balance">बैलेंस</string>
     <string name="top_balance_line">सभी खातों में %1$s</string>
     <string name="widgets">विजेट</string>
-    <string name="n_of_n_on_today">आज पर %2$d में से %1$d</string>
     <string name="move_up">%1$s ऊपर करें</string>
     <string name="move_down">%1$s नीचे करें</string>
     <string name="recent_payments">हाल के भुगतान</string>
@@ -1002,8 +987,6 @@
     <string name="n_of_n_matched">%2$d में से %1$d मिले</string>
     <string name="n_matched_n_new">%1$d मिले · %2$d नई</string>
     <string name="their_name_in">%2$s में “%1$s”</string>
-    <string name="and">और</string>
-    <string name="into_default">नीचे वाले खाते में</string>
     <string name="all_go_here">हर लेन-देन यहाँ जाएगा</string>
     <string name="others_go_here">बाकी यहाँ जाएँगे</string>
     <string name="skip_already_here">जो पहले से हैं, छोड़ें</string>
@@ -1064,11 +1047,16 @@
         <item quantity="other">%d सेव करें और ख़त्म</item>
     </plurals>
     <string name="recorded_by_itself">अपने-आप दर्ज</string>
-    <string name="trust_line">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</string>
+    <plurals name="trust_line">
+        <item quantity="one">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</item>
+        <item quantity="other">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</item>
+    </plurals>
     <string name="percent_by_itself">%1$d%% अपने-आप दर्ज</string>
     <string name="from_senders">%1$s से</string>
     <plurals name="teach_missed">
         <item quantity="one">छूटा %d संदेश सिखाएँ</item>
         <item quantity="other">छूटे %d संदेश सिखाएँ</item>
     </plurals>
+    <string name="emi">EMI</string>
+    <string name="emi_label">EMI</string>
 </resources>

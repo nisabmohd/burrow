@@ -2,6 +2,7 @@
 <!-- Home-screen widget 4×2 (02): the Burrow mark + "Safe to spend today", the amount, what is left
      this month, a thin bar, and a 56 dp + that opens New expense. Tapping anywhere else opens Today. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,11 +17,13 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- Not a compound drawable: the mark sits in its own tinted circle, which RemoteViews can't draw on a TextView. -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
 
             <ImageView
                 android:layout_width="@dimen/widget_mark"

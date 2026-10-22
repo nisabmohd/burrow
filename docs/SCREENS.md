@@ -70,7 +70,7 @@ width, light and dark. "→" means what a tap opens.
 ## Auto-capture
 | PNG | Screen | Layout |
 |---|---|---|
-| 43-capture-notification | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category buttons · Ignore |
+| 43-capture-notification | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
 | 44-review | To review | cards: payee, account, time, amount, ✕ · SMS with amount/payee/account highlighted · category chips + More · bottom "Save 3 payments". Empty: "All caught up" |
 | 48-auto-capture | Auto-capture | centred status (142 payments recorded) · Bank SMS / Payment apps switches · "2 messages not understood" → Teach · Message rules · Try it / How it works |
 | 49 / 50 / 51 | Message rules / Rule / Add rule sheet | see `docs/CAPTURE.md` |

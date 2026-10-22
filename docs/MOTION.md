@@ -31,6 +31,8 @@ Good Android motion = the system's own patterns, short and consistent. All specs
 - Nothing loops or bounces for attention. No skeleton shimmer: show nothing until data is ready
   (Room is fast), never a "₹0" flash.
 - One motion per kind of change, everywhere (a sheet always slides up, a tab always fades through).
+- A tab always opens at the top (tapping Today scrolls it up too); back from any tab goes to Today, then out of the app.
+  Filters stay while the app is open (AppContainer), whatever tab you were on.
 - Respect **Remove animations** (`Settings.Global.ANIMATOR_DURATION_SCALE == 0`): skip count-ups and
   bar growth, jump to final values.
 - Animate with `graphicsLayer`/`Modifier.offset { }` lambdas so animation reads state in the

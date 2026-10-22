@@ -97,7 +97,7 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit
                     s.mine.forEachIndexed { i, r ->
                         ListRow(
                             r.name, i, s.mine.size,
-                            supporting = stringResource(R.string.rule_line, senderLabel(r), s.uses[r.id] ?: 0),
+                            supporting = (s.uses[r.id] ?: 0).let { n -> pluralStringResource(R.plurals.rule_line, n, senderLabel(r), n) },
                             lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
                             trailing = { BurrowSwitch(r.enabled, { vm.setEnabled(r.id, it) }) },
                             onClick = { onOpen(r.id) },

@@ -136,6 +136,6 @@ object RuleBuilder {
     private const val META = "\\.[]{}()<>*+-=!?^$|/"
     private const val TRAILING = ".,;:)\"'"
     private val AMOUNT_TOKEN = Regex("^[^\\d\\s]{0,4}\\s?\\d[\\d,. ]*$")
-    private val ACCOUNT_TOKEN = Regex("^[Xx*•.]*\\d{3,}$")
+    private val ACCOUNT_TOKEN = Regex("^[Xx*•.]*\\d{2,}$")
     private val DOT_COMMA_AMOUNT = Regex("\\d\\.\\d{3},\\d{2}$|\\d,\\d{2}$")
 }

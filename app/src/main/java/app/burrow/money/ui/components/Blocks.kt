@@ -56,10 +56,10 @@ fun CenterHeader(
     icon: @Composable () -> Unit,
     title: String,
     value: String,
+    modifier: Modifier = Modifier,
     line: String? = null,
     progress: Float? = null,
     bad: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     val c = MaterialTheme.colorScheme
     Column(modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -94,12 +94,12 @@ fun Note(
     kind: NoteKind,
     icon: Painter,
     title: String,
+    modifier: Modifier = Modifier,
     line: String? = null,
     action: String? = null,
     onAction: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     arrow: Painter? = null,
-    modifier: Modifier = Modifier,
 ) {
     val c = MaterialTheme.colorScheme
     val w = warningColors()
@@ -241,7 +241,7 @@ fun HeaderIcon(icon: Painter) {
  * recorded"): 64 dp icon circle, `title`, one muted line.
  */
 @Composable
-fun CenterTitleHeader(icon: Painter, title: String, line: String? = null, modifier: Modifier = Modifier) {
+fun CenterTitleHeader(icon: Painter, title: String, modifier: Modifier = Modifier, line: String? = null) {
     val c = MaterialTheme.colorScheme
     Column(modifier.fillMaxWidth().padding(vertical = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
         HeaderIcon(icon)

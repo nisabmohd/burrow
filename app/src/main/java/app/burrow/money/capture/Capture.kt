@@ -23,7 +23,7 @@ suspend fun AppContainer.onMessage(source: String, sender: String, body: String,
         val from = account?.let { a -> listOfNotNull(app.burrow.money.ui.shortName(a.name), c.account?.filter { it.isDigit() }?.takeLast(4)?.takeIf { it.isNotEmpty() }?.let { "••$it" }).joinToString(" ") }
         // The waiting payment stays in To review either way; the switch only stops the notification.
         val st = settings.settings.first()
-        val remembered = c.payee?.let { money.lastCategoryFor(tidyPayee(it), type) }
+        val remembered = c.payee?.let { money.usualCategoryFor(tidyPayee(it), type, raw = it) }
         when {
             // Customise › Transactions › "Save it for me": the remembered category, editable later.
             st.onPaymentFound == PaymentFound.SAVE && remembered != null -> {

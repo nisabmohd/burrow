@@ -1,5 +1,6 @@
 package app.burrow.money.ui.nav
 
+import androidx.core.net.toUri
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -142,11 +142,17 @@ private fun NavDestination?.tab(): Tab? = this?.let { d -> Tab.entries.firstOrNu
 
 private fun NavBackStackEntry.isTab() = destination.tab() != null
 
-/** Switches to a tab the way the bottom nav does: one copy of each, each keeps its scroll position. */
+/**
+ * Switches to a tab the way the bottom nav does: one copy of each, opened at the top, and back from
+ * any tab goes to Today, then out. Filters live in AppContainer, so they stay while the app is open.
+ *
+ * Pops to Today, not the graph's start: on the first run the start is Welcome, which is gone after
+ * onboarding, so popping to it did nothing and every tab visited stayed on the stack (back walked
+ * through them all, in a loop). No saved state either: a tab came back at an old scroll offset.
+ */
 private fun NavHostController.openTab(route: Any) = navigate(route) {
-    popUpTo(graph.findStartDestination().id) { saveState = true }
+    popUpTo<TodayRoute>()
     launchSingleTop = true
-    restoreState = true
 }
 
 /**
@@ -164,6 +170,12 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     val snackbar = remember(undoLabel) { UndoSnackbar(container.appScope, undoLabel) }
     val openAdd = { nav.navigate(AddRoute()) }
     val openTxn = { id: Long -> nav.navigate(TxnRoute(id)) }
+    // Today stays at the bottom of the stack, so it keeps its scroll; a tap on its tab brings it to the top.
+    var todayToTop by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val selectTab = { i: Int ->
+        if (Tab.entries[i] == Tab.TODAY) todayToTop++
+        nav.openTab(Tab.entries[i].route)
+    }
     var planSection by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(app.burrow.money.ui.plan.PlanSection.BILLS) }
     // First open: Welcome (01–03); afterwards Today. Read once, so finishing Welcome doesn't jump.
     val start: Any = remember { if (settings.onboarded) TodayRoute else WelcomeRoute }
@@ -199,9 +211,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
 
     // Responsive (Day 26): from 600 dp the content keeps a readable width, centred; from 840 dp the
     // bottom nav becomes a rail on the start side.
-    val width = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val width = with(density) { window.width.toDp() }
     val rail = width >= app.burrow.money.ui.theme.Size.railFrom
-    val short = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp < app.burrow.money.ui.theme.Size.landscapeMaxHeight
+    val short = with(density) { window.height.toDp() } < app.burrow.money.ui.theme.Size.landscapeMaxHeight
     val maxWidth = if (short) app.burrow.money.ui.theme.Size.contentMaxLandscape else app.burrow.money.ui.theme.Size.contentMax
     val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
     CompositionLocalProvider(LocalSnackbar provides snackbar, app.burrow.money.ui.txn.LocalTxnActions provides txnActions) {
@@ -213,7 +227,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
             ),
         ) {
         if (rail && current != null) {
-            app.burrow.money.ui.components.BurrowNavRail(items, selected = current.ordinal, onSelect = { i -> nav.openTab(Tab.entries[i].route) }, modifier = Modifier.fillMaxHeight())
+            app.burrow.money.ui.components.BurrowNavRail(items, selected = current.ordinal, onSelect = selectTab, modifier = Modifier.fillMaxHeight())
         }
         Column(Modifier.weight(1f).fillMaxHeight()) {
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -236,6 +250,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBill = { nav.navigate(BillRoute(it)) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
                             onGoal = { nav.navigate(GoalRoute(it)) },
+                            scrollToTop = todayToTop,
                         )
                     }
                     composable<ActivityRoute> {
@@ -514,7 +529,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<ImportCheckRoute> { e ->
                         val r = e.toRoute<ImportCheckRoute>()
                         val vm = viewModel {
-                            app.burrow.money.ui.importer.ImportCheckViewModel(container, app.burrow.money.domain.ImportSource.valueOf(r.source), android.net.Uri.parse(r.uri))
+                            app.burrow.money.ui.importer.ImportCheckViewModel(container, app.burrow.money.domain.ImportSource.valueOf(r.source), r.uri.toUri())
                         }
                         app.burrow.money.ui.importer.ImportCheckScreen(vm, onBack = { nav.popBackStack() }) { n ->
                             snackbar.show(context.resources.getQuantityString(R.plurals.csv_imported, n, n))
@@ -531,7 +546,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                 )
             }
             if (current != null && !rail) {
-                BurrowNavBar(items, selected = current.ordinal, onSelect = { i -> nav.openTab(Tab.entries[i].route) })
+                BurrowNavBar(items, selected = current.ordinal, onSelect = selectTab)
             }
         }
         }

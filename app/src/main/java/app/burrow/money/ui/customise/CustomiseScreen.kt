@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -377,7 +378,7 @@ fun currencyName(code: String, locale: java.util.Locale) =
 @Composable
 private fun MonthStartSheet(day0: Int, onDone: (Int) -> Unit, onDismiss: () -> Unit) {
     val dates = rememberDateText()
-    var day by rememberSaveable { mutableStateOf(day0) }
+    var day by rememberSaveable { mutableIntStateOf(day0) }
     val period = app.burrow.money.domain.BudgetPeriod.containing(LocalDate.now(), day)
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.month_starts_on), onDismiss, stringResource(R.string.month_starts_line))
