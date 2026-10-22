@@ -54,7 +54,6 @@ fun TodayScreen(
     onBill: (Long) -> Unit,
     onCategory: (Long) -> Unit,
     onGoal: (Long) -> Unit,
-    onCustomise: () -> Unit,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
@@ -144,12 +143,6 @@ fun TodayScreen(
                         }
                     }
                 }
-            }
-            item(key = "edit-home", contentType = "button") {
-                BurrowButton(
-                    stringResource(R.string.customise_today), onCustomise,
-                    Modifier.fillMaxWidth().padding(top = Space.block), ButtonKind.TONAL, painterResource(R.drawable.ic_dashboard_customize_regular),
-                )
             }
         }
     }

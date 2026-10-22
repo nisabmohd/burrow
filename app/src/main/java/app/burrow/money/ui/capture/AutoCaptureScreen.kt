@@ -5,6 +5,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -61,11 +63,29 @@ fun AutoCaptureScreen(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
-            CenterTitleHeader(
-                painterResource(R.drawable.ic_sms_regular),
-                pluralStringResource(R.plurals.payments_recorded, s.recordedThisMonth, s.recordedThisMonth),
-                stringResource(R.string.recorded_line),
-            )
+            val percent = s.trust.percent
+            if (percent != null && s.trust.found > 0) {
+                // Trust in capture (15): how much of this month it recorded by itself.
+                androidx.compose.foundation.layout.Column(
+                    Modifier.fillMaxWidth().padding(vertical = Space.small),
+                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                ) {
+                    app.burrow.money.ui.components.RingPercent(percent / 100f, androidx.compose.material3.MaterialTheme.colorScheme.primary, androidx.compose.material3.MaterialTheme.colorScheme.secondaryContainer, app.burrow.money.ui.theme.Size.ringTrust)
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(Space.block))
+                    androidx.compose.material3.Text(stringResource(R.string.recorded_by_itself), style = app.burrow.money.ui.theme.BurrowType.title, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
+                    androidx.compose.material3.Text(
+                        stringResource(R.string.trust_line, s.trust.found, s.trust.total, s.trust.typed),
+                        style = app.burrow.money.ui.theme.BurrowType.body, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            } else {
+                CenterTitleHeader(
+                    painterResource(R.drawable.ic_sms_regular),
+                    pluralStringResource(R.plurals.payments_recorded, s.recordedThisMonth, s.recordedThisMonth),
+                    stringResource(R.string.recorded_line),
+                )
+            }
             val switches = buildList<@Composable (Int, Int) -> Unit> {
                 if (CaptureAccess.smsInThisBuild) add { i, n ->
                     ListRow(
@@ -96,8 +116,8 @@ fun AutoCaptureScreen(
             if (s.notUnderstood > 0) {
                 ListGroup {
                     ListRow(
-                        pluralStringResource(R.plurals.not_understood, s.notUnderstood, s.notUnderstood), 0, 1,
-                        supporting = stringResource(R.string.tap_to_teach),
+                        pluralStringResource(R.plurals.teach_missed, s.notUnderstood, s.notUnderstood), 0, 1,
+                        supporting = if (s.unreadFrom.isNotEmpty()) stringResource(R.string.from_senders, s.unreadFrom.joinToString(", ")) else stringResource(R.string.tap_to_teach),
                         lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
                         trailing = { Chevron() },
                         onClick = { scope.launch { vm.firstNotUnderstood()?.let(onTeach) } },

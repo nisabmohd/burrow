@@ -13,6 +13,8 @@ import app.burrow.money.domain.BudgetPeriod
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -23,17 +25,29 @@ data class TxnUiState(
     val txn: TxnView?,
     val categories: List<CategoryEntity>,
     val spentByCategory: Map<Long, Long>,
+    /** Split parts (category id → amount), in order. */
+    val parts: List<app.burrow.money.data.SplitEntity> = emptyList(),
+    /** Refunds of this expense. */
+    val refunds: List<TxnEntity> = emptyList(),
+    /** A refund's expense. */
+    val original: TxnView? = null,
+    /** The message it was recorded from (21 "Recorded from SMS"). */
+    val capture: app.burrow.money.data.CaptureEntity? = null,
+    /** Every category, for naming split parts. */
+    val allCategories: List<CategoryEntity> = emptyList(),
 )
 
 /** Transaction detail (21): change the category or note in place, delete with Undo. */
-class TxnViewModel(private val repo: MoneyRepository, private val id: Long, monthStartDay: Int) : ViewModel() {
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+class TxnViewModel(private val repo: MoneyRepository, private val id: Long, monthStartDay: Int, next: app.burrow.money.data.NextRepository) : ViewModel() {
+    private val original = repo.txn(id).flatMapLatest { t -> t?.txn?.refundOf?.let { repo.txn(it) } ?: flowOf(null) }
+
     val state: StateFlow<TxnUiState?> = combine(
-        repo.txn(id),
-        repo.categories,
-        repo.spentByCategory(BudgetPeriod.containing(LocalDate.now(), monthStartDay)),
-    ) { t, cats, spent ->
+        combine(repo.txn(id), repo.categories, repo.spentByCategory(BudgetPeriod.containing(LocalDate.now(), monthStartDay))) { a, b, c -> Triple(a, b, c) },
+        next.splitsOf(id), next.refundsOf(id), original, next.captureFor(id),
+    ) { (t, cats, spent), parts, refunds, orig, capture ->
         val kind = if (t?.txn?.type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
-        TxnUiState(t, cats.filter { it.kind == kind }, spent)
+        TxnUiState(t, cats.filter { it.kind == kind }, spent, parts, refunds, orig, capture, cats)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Applies [change] and hands back how to undo it. */

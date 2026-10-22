@@ -31,6 +31,8 @@ class AppContainer(val context: Context) {
                 if (saved.source == "SMS" || saved.source == "NOTIFICATION") plan.settleFromPayment(saved)
                 checkBudgets(saved, before)
             }
+            // The home-screen widget and the Review shortcut follow every change.
+            repo.changed = { app.burrow.money.home.HomeSurfaces.refresh(this) }
         }
     }
     val plan: PlanRepository by lazy { PlanRepository(database, money, strings) }
@@ -41,6 +43,8 @@ class AppContainer(val context: Context) {
     val backup by lazy { app.burrow.money.data.BackupManager(context, database, settings) }
     val csv by lazy { app.burrow.money.data.CsvTransfer(money, database) }
     val attachments by lazy { app.burrow.money.data.Attachments(context, database) }
+    /** Splits, refunds, favourites, import and trust in capture (burrow-next). */
+    val next by lazy { app.burrow.money.data.NextRepository(database, money) }
 
     /** Activity's and Insights' filters: kept while the app is open, gone on restart. */
     val filters = app.burrow.money.ui.filters.FilterStore()

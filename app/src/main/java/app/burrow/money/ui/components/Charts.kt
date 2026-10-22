@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ fun PillBarChart(
     description: String? = null,
 ) {
     val c = MaterialTheme.colorScheme
+    // Refund-heavy days can net below zero: a bar never points down.
     val max = (bars.maxOfOrNull { it.value } ?: 1L).coerceAtLeast(1L)
     // One tap area over the whole chart (bars are too narrow to be 48 dp targets each): the tap's
     // x picks the bar. TalkBack gets the summary and one action per bar.
@@ -72,7 +74,7 @@ fun PillBarChart(
             description?.let { contentDescription = it }
             customActions = bars.indices.map { i -> CustomAccessibilityAction(labelFor?.invoke(i) ?: bars[i].label) { onSelect(i); true } }
         }
-    val avg = if (bars.isEmpty()) 0f else bars.sumOf { it.value }.toFloat() / bars.size
+    val avg = if (bars.isEmpty()) 0f else bars.sumOf { it.value.coerceAtLeast(0L) }.toFloat() / bars.size
     val soft = c.primary.copy(alpha = 0.22f).compositeOverSurface(c.surfaceContainer)
     // Grow once per data set.
     val grow = remember(bars) { Animatable(0f) }
@@ -84,10 +86,11 @@ fun PillBarChart(
                     Box(Modifier.weight(1f).height(height), contentAlignment = Alignment.BottomCenter) {
                         Canvas(Modifier.fillMaxWidth().height(height)) {
                             val w = minOf(Size.chartBar.toPx(), size.width)
-                            if (b.value == 0L) {
+                            if (b.value <= 0L) {
                                 drawCircle(c.surfaceContainerHigh, radius = 3.dp.toPx(), center = Offset(size.width / 2, size.height - 3.dp.toPx()))
                             } else {
-                                val h = maxOf(8.dp.toPx(), size.height * b.value / max * grow.value)
+                                // Never shorter than 8 dp, never taller than the chart (rounding on tiny charts).
+                                val h = maxOf(8.dp.toPx(), size.height * b.value / max * grow.value).coerceAtMost(size.height)
                                 drawRoundRect(
                                     if (i == selected) c.primary else soft,
                                     topLeft = Offset((size.width - w) / 2, size.height - h),
@@ -98,7 +101,7 @@ fun PillBarChart(
                     }
                 }
             }
-            if (showAverage) Canvas(Modifier.fillMaxWidth().height(height)) {
+            if (showAverage && avg > 0f) Canvas(Modifier.fillMaxWidth().height(height)) {
                 val y = size.height - size.height * (avg / max)
                 drawLine(c.outline, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)))
             }
@@ -106,8 +109,15 @@ fun PillBarChart(
         Row(Modifier.fillMaxWidth().height(22.dp), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {
             bars.forEachIndexed { i, b ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
-                    if (i % showEveryNthLabel == 0 || i == bars.lastIndex) {
-                        Text(b.label, style = BurrowType.label, color = if (i == selected) c.primary else c.onSurfaceVariant, maxLines = 1)
+                    // Every nth label plus the last one; a label too close to the last one gives way ("21 22").
+                    val n = showEveryNthLabel.coerceAtLeast(1)
+                    val shown = i == bars.lastIndex || (i % n == 0 && bars.lastIndex - i >= (n + 1) / 2)
+                    if (shown) {
+                        // Wider than its slot on dense charts (31 days on a 360 dp phone): centred, never clipped.
+                        Text(
+                            b.label, style = BurrowType.label, color = if (i == selected) c.primary else c.onSurfaceVariant, maxLines = 1, softWrap = false,
+                            modifier = Modifier.wrapContentWidth(unbounded = true),
+                        )
                     }
                 }
             }
@@ -126,14 +136,30 @@ fun ProgressRing(progress: Float, color: Color, track: Color, size: Dp, stroke: 
             val s = stroke.toPx()
             val tl = Offset(s / 2, s / 2)
             val arc = GSize(this.size.width - s, this.size.height - s)
-            val p = progress.coerceIn(0f, 1f)
-            val gap = if (p in 0.01f..0.99f) 14f else 0f
-            drawArc(track, -90f + 360f * p + gap / 2, 360f * (1 - p) - gap, false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
-            if (p > 0f) drawArc(color, -90f, 360f * p - gap / 2, false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
+            val p = if (progress.isNaN()) 0f else progress.coerceIn(0f, 1f)
+            val gap = ringGapDegrees(s, arc.width / 2, 3.dp.toPx())
+            when {
+                p <= 0f -> drawArc(track, -90f, 360f, false, tl, arc, style = Stroke(s))
+                p >= 1f -> drawArc(color, -90f, 360f, false, tl, arc, style = Stroke(s))
+                else -> {
+                    val done = 360f * p
+                    val rest = 360f - done - gap
+                    if (rest > 0f) drawArc(track, -90f + done + gap / 2, rest, false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
+                    // A sliver still shows as a dot rather than vanishing.
+                    drawArc(color, -90f + gap / 2, (done - gap).coerceAtLeast(0.01f), false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
+                }
+            }
         }
         content()
     }
 }
+
+/**
+ * The angle two round-capped arcs must leave between them so their caps don't touch: one stroke
+ * width (half a cap at each end) plus [visible] of clear space, measured on the ring's radius.
+ */
+internal fun ringGapDegrees(stroke: Float, radius: Float, visible: Float): Float =
+    if (radius <= 0f) 0f else Math.toDegrees(((stroke + visible) / radius).toDouble()).toFloat().coerceAtMost(60f)
 
 /** Heatmap day: 38 dp circle, 5 tonal steps of primary (0 = surfaceContainer), today has a 2 dp ring. */
 fun heatLevel(value: Long, max: Long): Int = when {
@@ -219,8 +245,9 @@ fun CumulativeLineChart(current: List<Long>, previous: List<Long>, modifier: Mod
     Canvas(modifier.fillMaxWidth().height(height)) {
         val n = maxOf(current.size, previous.size, 2)
         val max = maxOf(current.maxOrNull() ?: 0, previous.maxOrNull() ?: 0, 1).toFloat()
-        fun x(i: Int) = size.width * i / (n - 1)
-        fun y(v: Long) = size.height - size.height * (v / max) * grow.value
+        val pad = 2.dp.toPx() // half the line, so the top and ends aren't cut off
+        fun x(i: Int) = pad + (size.width - 2 * pad) * i / (n - 1)
+        fun y(v: Long) = size.height - pad - (size.height - 2 * pad) * (v.coerceAtLeast(0L) / max) * grow.value
         fun path(values: List<Long>) = androidx.compose.ui.graphics.Path().apply {
             values.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) }
         }
@@ -230,11 +257,13 @@ fun CumulativeLineChart(current: List<Long>, previous: List<Long>, modifier: Mod
             val area = androidx.compose.ui.graphics.Path().apply {
                 addPath(line)
                 lineTo(x(current.lastIndex), size.height)
-                lineTo(0f, size.height)
+                lineTo(x(0), size.height)
                 close()
             }
             drawPath(area, c.primary.copy(alpha = 0.12f))
             drawPath(line, c.primary, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        } else if (current.size == 1) {
+            drawCircle(c.primary, 3.dp.toPx(), Offset(x(0), y(current[0])))
         }
     }
 }
@@ -246,35 +275,58 @@ fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, fill: Boolean =
     Canvas(modifier.fillMaxWidth().height(Size.sparkline)) {
         if (values.size < 2) return@Canvas
         val min = values.min().toFloat()
+        val flat = values.max() == values.min()
         val span = (values.max() - values.min()).toFloat().coerceAtLeast(1f)
+        val pad = 1.dp.toPx()
         val p = androidx.compose.ui.graphics.Path()
         values.forEachIndexed { i, v ->
-            val px = size.width * i / (values.size - 1)
-            val py = size.height - size.height * ((v - min) / span) * 0.9f - size.height * 0.05f
+            val px = pad + (size.width - 2 * pad) * i / (values.size - 1)
+            val py = if (flat) size.height / 2 else size.height - size.height * ((v - min) / span) * 0.9f - size.height * 0.05f
             if (i == 0) p.moveTo(px, py) else p.lineTo(px, py)
         }
         if (fill) {
-            val area = androidx.compose.ui.graphics.Path().apply { addPath(p); lineTo(size.width, size.height); lineTo(0f, size.height); close() }
+            val area = androidx.compose.ui.graphics.Path().apply { addPath(p); lineTo(size.width - pad, size.height); lineTo(pad, size.height); close() }
             drawPath(area, c.primary.copy(alpha = 0.12f))
         }
         drawPath(p, c.primary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
 
-/** Categories as one stacked bar of pills, 3 dp apart (By category, 37). */
+/**
+ * Categories as one stacked bar of pills, 3 dp apart (By category, 37). The parts always fill the
+ * width exactly: a tiny share gets a 3 dp sliver (taken from the big ones), never an overflow.
+ */
 @Composable
 fun StackBar(parts: List<Pair<Color, Long>>, modifier: Modifier = Modifier) {
-    val total = parts.sumOf { it.second }.coerceAtLeast(1)
+    val shown = parts.filter { it.second > 0 }
+    val total = shown.sumOf { it.second }.coerceAtLeast(1)
     Canvas(modifier.fillMaxWidth().height(Size.stackBar)) {
+        if (shown.isEmpty()) {
+            drawRoundRect(Color.Gray.copy(alpha = 0.15f), Offset.Zero, size, CornerRadius(size.height / 2, size.height / 2))
+            return@Canvas
+        }
         val gap = 3.dp.toPx()
-        val usable = size.width - gap * (parts.size - 1).coerceAtLeast(0)
+        val usable = (size.width - gap * (shown.size - 1)).coerceAtLeast(0f)
+        val widths = stackWidths(shown.map { it.second }, usable, minOf(3.dp.toPx(), usable / shown.size))
         var x = 0f
-        parts.forEach { (color, v) ->
-            val w = (usable * v / total).coerceAtLeast(size.height)
-            drawRoundRect(color, Offset(x, 0f), GSize(w, size.height), CornerRadius(size.height / 2, size.height / 2))
+        shown.forEachIndexed { i, (color, _) ->
+            val w = widths[i]
+            val r = minOf(w, size.height) / 2
+            drawRoundRect(color, Offset(x, 0f), GSize(w, size.height), CornerRadius(r, r))
             x += w + gap
         }
     }
+}
+
+/** Widths for [values] that add up to exactly [usable], each at least [min]. */
+internal fun stackWidths(values: List<Long>, usable: Float, min: Float): List<Float> {
+    val total = values.sum().toFloat().coerceAtLeast(1f)
+    val raw = values.map { usable * it / total }
+    val small = raw.count { it < min }
+    val borrowed = raw.filter { it < min }.sumOf { (min - it).toDouble() }.toFloat()
+    val bigTotal = raw.filter { it >= min }.sum()
+    if (small == 0 || bigTotal <= 0f) return raw
+    return raw.map { if (it < min) min else it - borrowed * (it / bigTotal) }
 }
 
 /** Five tonal steps of primary for the heatmap: none, then four levels (heatLevel). */
@@ -290,19 +342,25 @@ fun heatColor(level: Int): Color {
     }
 }
 
-/** A ring split by category (Top category widget): arcs in each category's colour, small gaps. */
+/** A ring split by category (Top category widget): arcs in each category's colour, gaps sized to the caps. */
 @Composable
 fun DonutChart(parts: List<Pair<Color, Long>>, size: Dp = Size.ringWidget, stroke: Dp = 6.dp) {
-    val total = parts.sumOf { it.second }.coerceAtLeast(1)
+    val shown = parts.filter { it.second > 0 }
+    val total = shown.sumOf { it.second }.coerceAtLeast(1)
     Canvas(Modifier.size(size)) {
         val s = stroke.toPx()
         val tl = Offset(s / 2, s / 2)
         val arc = GSize(this.size.width - s, this.size.height - s)
-        val gap = if (parts.size > 1) 10f else 0f
+        if (shown.size <= 1) {
+            drawArc(shown.firstOrNull()?.first ?: Color.Gray.copy(alpha = 0.2f), -90f, 360f, false, tl, arc, style = Stroke(s))
+            return@Canvas
+        }
+        val gap = ringGapDegrees(s, arc.width / 2, 2.dp.toPx())
         var start = -90f
-        parts.forEach { (color, v) ->
+        shown.forEach { (color, v) ->
             val sweep = 360f * v / total
-            drawArc(color, start + gap / 2, (sweep - gap).coerceAtLeast(1f), false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
+            // A share smaller than the gap still shows as a dot.
+            drawArc(color, start + gap / 2, (sweep - gap).coerceAtLeast(0.01f), false, tl, arc, style = Stroke(s, cap = StrokeCap.Round))
             start += sweep
         }
     }
@@ -316,9 +374,9 @@ fun SplitBar(part: Long, whole: Long, modifier: Modifier = Modifier) {
     Canvas(modifier.fillMaxWidth().height(Size.stackBar)) {
         val gap = 4.dp.toPx()
         val h = size.height
-        val w1 = (size.width - gap) * f
-        if (w1 > 0) drawRoundRect(c.primary, Offset.Zero, GSize(w1.coerceAtLeast(h), h), CornerRadius(h / 2, h / 2))
-        val x2 = w1 + gap
-        if (x2 < size.width) drawRoundRect(c.secondaryContainer, Offset(x2, 0f), GSize(size.width - x2, h), CornerRadius(h / 2, h / 2))
+        val w1 = when { f <= 0f -> 0f; f >= 1f -> size.width; else -> ((size.width - gap) * f).coerceAtLeast(h) }
+        if (w1 > 0) drawRoundRect(c.primary, Offset.Zero, GSize(w1, h), CornerRadius(h / 2, h / 2))
+        val x2 = if (w1 > 0) w1 + gap else 0f
+        if (f < 1f && x2 < size.width - h / 2) drawRoundRect(c.secondaryContainer, Offset(x2, 0f), GSize(size.width - x2, h), CornerRadius(h / 2, h / 2))
     }
 }

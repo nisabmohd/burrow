@@ -62,6 +62,9 @@ object Size {
     val miniChart = 40.dp     // mini bars in widgets
     val ringWidget = 52.dp    // rings in half widgets
     val ringWide = 104.dp     // the ring in a wide widget
+    val ringTrust = 112.dp    // "92% recorded by itself" on Auto-capture (15)
+    val favouriteCircle = 24.dp // the category circle inside a favourite chip (04)
+    val dragLift = 6.dp       // shadow under a row being dragged (16)
     val categoryTile = 56.dp  // circles in the categories grid
     val logo = 112.dp         // the mark on About and Welcome
     val pinKey = 72.dp        // round keys on the PIN pad (71)

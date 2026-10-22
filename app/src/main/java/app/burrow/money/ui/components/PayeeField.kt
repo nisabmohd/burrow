@@ -130,3 +130,23 @@ fun ExtraChip(icon: Painter, label: String, value: String?, onClick: () -> Unit)
 fun ExtraChipRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Row(modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.small)) { content() }
 }
+
+/**
+ * A one-tap favourite on New expense (04): 24 dp category circle, "Chai ₹20", outlined pill.
+ * One tap saves it (the caller does that, with Undo).
+ */
+@Composable
+fun FavouriteChip(label: String, circle: @Composable () -> Unit, onClick: () -> Unit) {
+    val c = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    Row(
+        Modifier.heightIn(min = Size.button).clip(Shapes.pill).border(Space.group / 4, c.outline, Shapes.pill)
+            .clickable(role = Role.Button) { haptics.confirm(); onClick() }
+            .padding(start = Space.small, end = Space.card),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Space.small),
+    ) {
+        circle()
+        Text(label, style = BurrowType.button, color = c.onSurface, maxLines = 1)
+    }
+}

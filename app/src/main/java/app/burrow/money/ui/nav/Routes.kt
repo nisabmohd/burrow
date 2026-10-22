@@ -61,6 +61,10 @@ sealed interface OpenFromNotification {
     data class EditCapture(val captureId: Long) : OpenFromNotification
     data class Txn(val id: Long) : OpenFromNotification
     data object Accounts : OpenFromNotification
+    /** Widget, shortcut or quick settings tile. */
+    data class NewTxn(val type: String) : OpenFromNotification
+    data object Search : OpenFromNotification
+    data object SundayReview : OpenFromNotification
 }
 
 // Insights (week 4)
@@ -86,3 +90,11 @@ sealed interface OpenFromNotification {
 // Customise (design update 2026-10-20)
 /** Customise (80–85), opened on [tab] (a CustomiseTab name). */
 @Serializable data class CustomiseRoute(val tab: String = "TODAY")
+
+// Next round (burrow-next, 2026-10-22)
+@Serializable data object FavouritesRoute
+@Serializable data class SplitRoute(val txnId: Long)
+@Serializable data object SundayReviewRoute
+@Serializable data object ImportRoute
+/** Check before import (11): the file the user picked, read from [uri], as [source] (an ImportSource name). */
+@Serializable data class ImportCheckRoute(val source: String, val uri: String)

@@ -1,5 +1,7 @@
 package app.burrow.money.ui.welcome
 
+import app.burrow.money.domain.BudgetPeriod
+import app.burrow.money.domain.budgetChips
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +37,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import app.burrow.money.ui.components.tick
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,13 +94,19 @@ class WelcomeViewModel(private val app: AppContainer) : ViewModel() {
 
     fun remove(a: AccountEntity) = viewModelScope.launch { app.money.updateAccount(a.copy(archived = true)) }
 
+    /** Step 2 (12): the monthly budget, from this month on. Skip leaves none. */
+    fun setBudget(amount: Long) = viewModelScope.launch {
+        val s = app.settings.settings.first()
+        app.plan.setBudget(BudgetPeriod.containing(java.time.LocalDate.now(), s.monthStartDay), null, amount, false)
+    }
+
     fun finish(onDone: () -> Unit) = viewModelScope.launch {
         app.settings.setOnboarded()
         onDone()
     }
 }
 
-private const val STEPS = 2
+private const val STEPS = 3
 
 /**
  * Welcome, then two steps in one screen (shared axis between them, the dots on top). Back on a step
@@ -106,6 +115,12 @@ private const val STEPS = 2
 @Composable
 fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String) -> Unit, onDone: () -> Unit) {
     var page by rememberSaveable { mutableIntStateOf(0) }
+    val currency by vm.currency.collectAsStateWithLifecycle()
+    // The budget step's amount, in minor units; starts on the second chip (₹30,000 for INR).
+    val digits = MoneyFormat.of(currency).digits
+    var unit = 1L
+    repeat(digits) { unit *= 10 }
+    var budget by rememberSaveable(currency) { androidx.compose.runtime.mutableLongStateOf(budgetChips(currency)[1] * unit) }
     val restore = rememberRestoreFlow(app) { vm.finish(onDone) }
     val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(restore) }
     BackHandler(page > 0) { page-- }
@@ -118,6 +133,7 @@ fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String
             when (p) {
                 0 -> Pitch(onRestore = { pickFile.launch(arrayOf("*/*")) })
                 1 -> CurrencyStep(vm)
+                2 -> BudgetStep(currency, budget, unit) { budget = it }
                 else -> AccountsStep(vm, onAddAccount)
             }
         }
@@ -125,6 +141,10 @@ fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String
             when (page) {
                 0 -> BurrowButton(stringResource(R.string.get_started), { page = 1 }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
                 1 -> BurrowButton(stringResource(R.string.continue_), { page = 2 }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+                2 -> {
+                    BurrowButton(stringResource(R.string.skip_for_now), { page = 3 }, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
+                    BurrowButton(stringResource(R.string.continue_), { if (budget > 0) vm.setBudget(budget); page = 3 }, Modifier.weight(1f), height = Size.buttonBottom)
+                }
                 else -> {
                     BurrowButton(stringResource(R.string.skip), { vm.finish(onDone) }, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
                     BurrowButton(stringResource(R.string.done), { vm.finish(onDone) }, Modifier.weight(1f), height = Size.buttonBottom)
@@ -227,7 +247,7 @@ private fun AccountsStep(vm: WelcomeViewModel, onAdd: (String) -> Unit) {
     val accounts by vm.accounts.collectAsStateWithLifecycle()
     val money = LocalMoney.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen)) {
-        StepHeading(2, R.string.welcome_accounts_title, R.string.welcome_accounts_line)
+        StepHeading(3, R.string.welcome_accounts_title, R.string.welcome_accounts_line)
         if (accounts.isNotEmpty()) {
             ListGroup {
                 accounts.forEachIndexed { i, a ->
@@ -247,4 +267,46 @@ private fun AccountsStep(vm: WelcomeViewModel, onAdd: (String) -> Unit) {
             }
         }
     }
+}
+
+/**
+ * 2 of 3 (12): how much a month. − amount + (tap the amount to type it), quick chips, and what that
+ * means a day on average this month.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BudgetStep(currency: String, amount: Long, unit: Long, onAmount: (Long) -> Unit) {
+    val money = LocalMoney.current
+    val c = MaterialTheme.colorScheme
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val chips = app.burrow.money.domain.budgetChips(currency).map { it * unit }
+    val step = app.burrow.money.domain.budgetStep(currency) * unit
+    var typing by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    val days = java.time.YearMonth.now().lengthOfMonth()
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen)) {
+        StepHeading(2, R.string.welcome_budget_title, R.string.welcome_budget_line)
+        Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
+            TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { haptics.tick(); onAmount((amount - step).coerceAtLeast(step)) })
+            Text(
+                money.plain(amount), style = BurrowType.display, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
+                modifier = Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { typing = true },
+            )
+            TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); onAmount(amount + step) })
+        }
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+            chips.forEach { v -> Chip(money.short(v), v == amount, { onAmount(v) }) }
+        }
+        Spacer(Modifier.height(Space.block))
+        ListGroup {
+            ListRow(
+                stringResource(R.string.n_a_day, money.plain(app.burrow.money.domain.perDay(amount, days, MoneyFormat.of(currency).digits))), 0, 1,
+                supporting = stringResource(R.string.safe_on_average_day),
+                lead = { IconCircle(painterResource(R.drawable.ic_today_duotone)) },
+            )
+        }
+    }
+    if (typing) app.burrow.money.ui.components.AmountKeypadSheet(
+        stringResource(R.string.welcome_budget_title), amount, MoneyFormat.of(currency).digits,
+        { if (it > 0) onAmount(it); typing = false }, { typing = false },
+    )
 }

@@ -67,7 +67,11 @@ fun MoreScreen(vm: MoreViewModel, onOpen: (MoreDest) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
                 StatusTile(
                     painterResource(R.drawable.ic_sms_duotone), 28f, stringResource(if (captureOn) R.string.on else R.string.off),
-                    stringResource(R.string.auto_capture), if (captureOn) stringResource(R.string.n_this_month, s.capturedThisMonth) else stringResource(R.string.not_set_up),
+                    stringResource(R.string.auto_capture), when {
+                        !captureOn -> stringResource(R.string.not_set_up)
+                        s.trustPercent != null && s.capturedThisMonth > 0 -> stringResource(R.string.percent_by_itself, s.trustPercent)
+                        else -> stringResource(R.string.n_this_month, s.capturedThisMonth)
+                    },
                     captureOn, { onOpen(MoreDest.CAPTURE) }, Modifier.weight(1f),
                 )
                 StatusTile(
@@ -106,7 +110,7 @@ fun MoreScreen(vm: MoreViewModel, onOpen: (MoreDest) -> Unit) {
                 ListRow(stringResource(R.string.font_and_size), 0, 4, supporting = stringResource(R.string.dot_join, fontName(st.theme.font), textSizeName(st.theme.textSize)), lead = { IconCircle(painterResource(R.drawable.ic_text_fields_duotone), hue = 345f) }, onClick = { onOpen(MoreDest.FONT) })
                 ListRow(stringResource(R.string.notifications), 1, 4, supporting = stringResource(R.string.notifications_line), lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone), hue = 10f) }, onClick = { onOpen(MoreDest.NOTIFICATIONS) })
                 ListRow(stringResource(R.string.hide_amounts), 2, 4, supporting = stringResource(R.string.hide_amounts_line, money.withHidden(true).plain(0)), lead = { IconCircle(painterResource(R.drawable.ic_visibility_off_duotone), hue = 318f) }, trailing = { BurrowSwitch(st.hideAmounts, vm::setHideAmounts) })
-                ListRow(stringResource(R.string.csv), 3, 4, supporting = stringResource(R.string.csv_line), lead = { IconCircle(painterResource(R.drawable.ic_table_view_duotone), hue = 168f) }, onClick = { onOpen(MoreDest.CSV) })
+                ListRow(stringResource(R.string.import_export), 3, 4, supporting = stringResource(R.string.import_export_line), lead = { IconCircle(painterResource(R.drawable.ic_import_duotone), hue = 168f) }, onClick = { onOpen(MoreDest.CSV) })
             }
             SectionHeader(stringResource(R.string.about))
             ListGroup {

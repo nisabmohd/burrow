@@ -58,6 +58,9 @@ Each category stores a hue; its colours come from it and only follow light/dark 
 ## Type
 Lexend (default), Outfit, Atkinson Hyperlegible, Space Grotesk or the system font; user picks in More › Font and text size.
 Text size: Small 0.92× · Default · Large 1.12×, on top of the system font scale. **Two weights only: 400 and 500.**
+The fonts are variable TTFs drawn a step heavier than their name so they match the PNGs (a browser
+draws strokes heavier than Android): Lexend 440 / 540, Outfit 450 / 550, Atkinson 440 / 680, Space
+Grotesk 490 / 620 (`Type.kt`). Screens still only say 400 or 500.
 Numbers use tabular figures (`tnum`) so amounts line up.
 
 | Style (`BurrowType.`) | Size / line | Weight | Used for |

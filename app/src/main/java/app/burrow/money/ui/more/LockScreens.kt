@@ -253,16 +253,17 @@ private fun lockAfterLabel(seconds: Int) = when (seconds) {
 
 /** Notifications (66): a switch per kind and a live preview of the capture notification. */
 @Composable
-fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSet: (String, Boolean) -> Unit) {
+fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSundayReview: () -> Unit = {}, onSet: (String, Boolean) -> Unit) {
     val c = MaterialTheme.colorScheme
     DetailFrame(onBack, stringResource(R.string.notifications)) {
         val rows = listOf(
             listOf("capture", R.string.n_payment_found, R.string.n_payment_found_line, R.drawable.ic_sms_duotone),
             listOf("bills", R.string.n_bill_reminders, R.string.n_bill_reminders_line, R.drawable.ic_event_available_duotone),
             listOf("budgets", R.string.n_budget_alerts, R.string.n_budget_alerts_line, R.drawable.ic_donut_large_duotone),
+            listOf("weekly", R.string.sunday_review, R.string.n_sunday_review_line, R.drawable.ic_event_available_duotone),
             listOf("summary", R.string.n_monthly_summary, R.string.n_monthly_summary_line, R.drawable.ic_summarize_duotone),
         )
-        val on = mapOf("capture" to settings.notifyCapture, "bills" to settings.notifyBills, "budgets" to settings.notifyBudgets, "summary" to settings.notifySummary)
+        val on = mapOf("capture" to settings.notifyCapture, "bills" to settings.notifyBills, "budgets" to settings.notifyBudgets, "weekly" to settings.notifyWeekly, "summary" to settings.notifySummary)
         ListGroup {
             rows.forEachIndexed { i, r ->
                 val key = r[0] as String
@@ -270,6 +271,8 @@ fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSet: (S
                     stringResource(r[1] as Int), i, rows.size, supporting = stringResource(r[2] as Int),
                     lead = { IconCircle(painterResource(r[3] as Int)) },
                     trailing = { BurrowSwitch(on.getValue(key), { onSet(key, it) }) },
+                    // The Sunday review row also opens this week's review.
+                    onClick = if (key == "weekly") onSundayReview else null,
                 )
             }
         }

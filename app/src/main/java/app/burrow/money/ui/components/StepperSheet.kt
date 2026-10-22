@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -69,3 +71,43 @@ fun LabeledField(label: String, content: @Composable () -> Unit) {
         content()
     }
 }
+
+/**
+ * Type an exact amount (a split part, a refund, the Welcome budget): the amount big, the keypad, ✓.
+ * [max] caps it (a refund can't be more than was paid); over it, ✓ looks off.
+ */
+@Composable
+fun AmountKeypadSheet(title: String, amount: Long, digits: Int, onDone: (Long) -> Unit, onDismiss: () -> Unit, max: Long? = null) {
+    val money = LocalMoney.current
+    var input by androidx.compose.runtime.saveable.rememberSaveable(stateSaver = AmountInputSaver) {
+        androidx.compose.runtime.mutableStateOf(app.burrow.money.domain.AmountInput.of(amount, digits))
+    }
+    val value = input.minor()
+    val ok = value >= 0 && (max == null || value <= max)
+    BurrowSheet(onDismiss) {
+        SheetHeader(title, onDismiss, max?.let { stringResource(R.string.at_most, money.plain(it)) })
+        SheetBody {
+            Text(
+                money.plain(value), style = BurrowType.display, textAlign = TextAlign.Center, maxLines = 1,
+                color = if (ok) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Keypad(
+                onKey = { key ->
+                    when {
+                        key != Key.Done -> input = input.apply(key)
+                        input.hasOperator -> input = input.evaluated()
+                        ok -> onDone(value)
+                    }
+                },
+                doneEnabled = ok, showDot = digits > 0,
+            )
+        }
+    }
+}
+
+/** Keeps what was typed across rotation. */
+private val AmountInputSaver = androidx.compose.runtime.saveable.Saver<app.burrow.money.domain.AmountInput, List<Any>>(
+    save = { listOf(it.text, it.digits) },
+    restore = { app.burrow.money.domain.AmountInput(text = it[0] as String, digits = it[1] as Int) },
+)

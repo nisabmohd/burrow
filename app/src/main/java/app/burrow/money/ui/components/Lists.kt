@@ -2,6 +2,8 @@ package app.burrow.money.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +74,7 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, meta: String? = 
  * The one list row: 72 dp (56 when there is no supporting line), lead circle, headline + one
  * supporting line, trailing slot (amount, ring, switch, chevron). Selected rows use secondaryContainer.
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun ListRow(
     headline: String,
@@ -84,15 +87,29 @@ fun ListRow(
     lead: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    /** Long-press (450 ms): a transaction's actions sheet (06). */
+    onLongClick: (() -> Unit)? = null,
+    /** Being dragged (16): it lifts onto surfaceContainerHigh with all corners round. */
+    lifted: Boolean = false,
+    headlineColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     val colors = MaterialTheme.colorScheme
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val shape = if (lifted) Shapes.surface else Shapes.grouped(index, count)
     Row(
         modifier
             .fillMaxWidth()
             .heightIn(min = if (supporting == null) Size.rowOneLine else Size.row)
-            .clip(Shapes.grouped(index, count))
-            .background(if (selected) colors.secondaryContainer else colors.surfaceContainerLow)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (lifted) Modifier.shadow(Size.dragLift, shape) else Modifier)
+            .clip(shape)
+            .background(when { lifted -> colors.surfaceContainerHigh; selected -> colors.secondaryContainer; else -> colors.surfaceContainerLow })
+            .then(
+                when {
+                    onLongClick != null -> Modifier.combinedClickable(onClick = { onClick?.invoke() }, onLongClick = { haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress); onLongClick() })
+                    onClick != null -> Modifier.clickable(onClick = onClick)
+                    else -> Modifier
+                },
+            )
             .padding(horizontal = Space.card, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.card),
@@ -101,7 +118,7 @@ fun ListRow(
         Column(Modifier.weight(1f)) {
             // Large text (Day 26): rows grow to two lines instead of cutting words off.
             val lines = if (LocalDensity.current.fontScale > LARGE_TEXT) 2 else 1
-            Text(headline, style = BurrowType.bodyLarge, color = colors.onSurface, maxLines = lines, overflow = TextOverflow.Ellipsis)
+            Text(headline, style = BurrowType.bodyLarge, color = headlineColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
             if (supporting != null) Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
         }
         trailing?.invoke()
@@ -138,3 +155,11 @@ fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey
 
 /** From this font scale, text is "large": rows wrap to two lines, notes put their action below. */
 const val LARGE_TEXT = 1.3f
+
+/** A 40 dp circle with a letter (Import: Cashew, Walnut, Money Manager; no brand logos, 10). */
+@Composable
+fun LetterCircle(letter: String, modifier: Modifier = Modifier) {
+    Box(modifier.size(Size.iconCircle).clip(Shapes.pill).background(MaterialTheme.colorScheme.surfaceContainer), contentAlignment = Alignment.Center) {
+        Text(letter, style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

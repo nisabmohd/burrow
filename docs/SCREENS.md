@@ -95,3 +95,24 @@ no data · sample data · auto-capture paused · permission denied · can't save
 split not balanced · search no results · filter shows nothing · after delete (Undo) · no bills · no
 budget · over budget · overdue bill · not enough data for insights · empty range · backup failed ·
 wrong backup password · replace-data confirm · wrong PIN · review all caught up · goal reached.
+
+## Next round (burrow-next, 2026-10-22) — PNGs in `design/next/`, spec in `docs/NEXT.md`
+| # | Screen | What |
+|---|---|---|
+| 01 | Today | hero line "left of ₹30,000 · ₹608 safe to spend today"; no Customise Today button |
+| 02 | Home screen | widget 4×2 Safe to spend today (+ opens New expense); 2×2 Add expense, Next bill; long-press shortcuts New expense · New income · Review N (only when some wait) · Search |
+| 03 | Quick settings | "Add expense · Burrow" tile |
+| 04 | New expense | "★ Favourites · one tap saves" + Edit, chips; Favourite chip in the extras (Customise › Expense) |
+| 05 | Favourites | centred header with the count, drag rows with ✕, how to add one; empty state |
+| 06 | Long-press a row | actions sheet, Delete in its own group |
+| 07 | Transaction | Split across categories · Add a refund rows; Recorded from SMS box; a refund links its expense |
+| 08 | Split payment | parts with − amount + (tap to type), Add a part, "Put ₹X in …" chip, Save when they add up |
+| 09 | Refund sheet | − amount +, All of it / Half, Back into account, Save refund |
+| 10 | Import or export | Cashew, Walnut, Money Manager (letter circles), Any spreadsheet; Restore a backup; Export to CSV |
+| 11 | Check before import | count + range, Columns (spreadsheet), Categories (unmatched in red), Accounts, Skip ones already here, Import N |
+| 12 | Welcome 2 of 3 | How much a month? − amount +, chips, "₹968 a day", Skip for now / Continue |
+| 13 | Sunday review notification | Sunday 6 PM: "Your week: ₹X spent" · "N to review · 2 bills due · ₹X left. Takes 30 seconds." |
+| 14 | Sunday review | week header vs the week before, four rows, "Save N and finish" |
+| 15 | Auto-capture | 112 dp ring "92% · Recorded by itself", "Teach it N messages it missed · From …"; More tile "92% recorded by itself" |
+| 16 | Customise › Today | drag to reorder widgets |
+| 17 | Notifications | Sunday review switch (row opens this week's review) |

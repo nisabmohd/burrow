@@ -5,6 +5,7 @@ package app.burrow.money.domain
  * transaction type per account; this adds them up with the right signs. Pure, unit-tested.
  * Expenses and transfers out lower the account; income and transfers in raise it. "Fix balance"
  * adds ADJUST_UP / ADJUST_DOWN rows: they move the balance and never count as spending or income.
+ * A REFUND puts money back into its account (and lowers spending, never counts as income).
  */
 data class TypeSum(val accountId: Long, val type: String, val total: Long)
 
@@ -12,7 +13,7 @@ fun balances(opening: Map<Long, Long>, outSums: List<TypeSum>, transfersIn: Map<
     opening.mapValues { (id, start) ->
         val own = outSums.filter { it.accountId == id }.sumOf { s ->
             when (s.type) {
-                "INCOME", "ADJUST_UP" -> s.total
+                "INCOME", "ADJUST_UP", "REFUND" -> s.total
                 "EXPENSE", "TRANSFER", "ADJUST_DOWN" -> -s.total
                 else -> 0L
             }

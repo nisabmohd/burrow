@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -52,7 +53,7 @@ import java.time.LocalDate
  * Filters and the 14-day chart come on Day 16.
  */
 @Composable
-fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onEdit: (Long) -> Unit = {}, onDuplicate: (Long) -> Unit = {}) {
+fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onEdit: (Long) -> Unit = {}, onDuplicate: (Long) -> Unit = {}, focusSearch: kotlinx.coroutines.flow.MutableStateFlow<Boolean>? = null) {
     val state by vm.state.collectAsStateWithLifecycle()
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
     val query by vm.searchText.collectAsStateWithLifecycle()
@@ -84,6 +85,7 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
     ) { padding ->
         val s = state ?: return@TabScreen
         Column(Modifier.fillMaxSize()) {
+            val focus = androidx.compose.runtime.remember { androidx.compose.ui.focus.FocusRequester() }
             PillTextField(
                 value = query,
                 onValueChange = vm::search,
@@ -91,8 +93,13 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
                 leading = painterResource(R.drawable.ic_search_regular),
                 clearLabel = stringResource(R.string.clear),
                 imeAction = ImeAction.Search,
-                modifier = Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small),
+                modifier = Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small).focusRequester(focus),
             )
+            // The Search shortcut: straight into typing.
+            val wantFocus = focusSearch?.collectAsStateWithLifecycle()?.value == true
+            androidx.compose.runtime.LaunchedEffect(wantFocus) {
+                if (wantFocus) { runCatching { focus.requestFocus() }; focusSearch?.value = false }
+            }
             ActiveFilterChips(s.filters, s.accounts, s.categories, vm::setFilters, Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small))
             when {
                 s.isEmpty -> EmptyState(

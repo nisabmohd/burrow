@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget 4×2 (02): the Burrow mark + "Safe to spend today", the amount, what is left
+     this month, a thin bar, and a 56 dp + that opens New expense. Tapping anywhere else opens Today. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_hero"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/widget_padding">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/widget_mark"
+                android:layout_height="@dimen/widget_mark"
+                android:background="@drawable/widget_circle_primary"
+                android:importantForAccessibility="no"
+                android:padding="5dp"
+                android:src="@drawable/ic_notification"
+                android:tint="@color/widget_on_primary" />
+
+            <TextView
+                android:id="@+id/widget_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="@string/safe_to_spend_today"
+                android:textColor="@color/widget_on_hero"
+                android:textSize="@dimen/widget_body" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:paddingTop="4dp"
+            android:text="@string/widget_dash"
+            android:textColor="@color/widget_on_hero"
+            android:textSize="@dimen/widget_amount" />
+
+        <TextView
+            android:id="@+id/widget_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_open_once"
+            android:textColor="@color/widget_on_hero_muted"
+            android:textSize="@dimen/widget_body" />
+
+        <ProgressBar
+            android:id="@+id/widget_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/widget_bar"
+            android:layout_marginTop="12dp"
+            android:max="1000"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_progress" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/widget_add"
+        android:layout_width="@dimen/widget_add_big"
+        android:layout_height="@dimen/widget_add_big"
+        android:layout_marginStart="@dimen/widget_padding"
+        android:background="@drawable/widget_circle_primary"
+        android:contentDescription="@string/add_expense"
+        android:padding="16dp"
+        android:src="@drawable/ic_add_regular"
+        android:tint="@color/widget_on_primary" />
+</LinearLayout>

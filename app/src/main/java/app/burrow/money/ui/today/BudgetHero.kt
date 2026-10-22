@@ -32,7 +32,7 @@ import app.burrow.money.ui.theme.Space
 
 /**
  * The one hero in the app (docs/DESIGN.md rule 1): primaryContainer, "October budget · 13 days
- * left", what is left counting up once, "left of ₹30,000 · ₹1,050 a day", the wavy progress.
+ * left", what is left counting up once, "left of ₹30,000 · ₹608 safe to spend today" (01), the wavy progress.
  * Over budget it turns red-toned and says "₹6,300 over your ₹30,000 budget". Without a budget it
  * shows what was spent this month.
  */
@@ -61,7 +61,7 @@ fun BudgetHero(hero: HeroState, modifier: Modifier = Modifier, topCard: String =
         kind == app.burrow.money.data.TopCard.BALANCE -> stringResource(R.string.hero_balance_line)
         kind == app.burrow.money.data.TopCard.SPENT -> hero.budget?.let { stringResource(R.string.hero_spent_of, money.plain(it), days) } ?: stringResource(R.string.hero_no_budget)
         hero.over -> stringResource(R.string.hero_over, money.plain(hero.budget!!))
-        else -> stringResource(R.string.hero_left, money.plain(hero.budget!!), money.plain(hero.perDay))
+        else -> stringResource(R.string.hero_left_safe, money.plain(hero.budget!!), money.plain(hero.safeToday))
     }
     val shown = rememberCountUp(amount)
     val reveal = app.burrow.money.ui.LocalRevealAmounts.current

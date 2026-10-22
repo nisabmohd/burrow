@@ -150,3 +150,22 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
 - [ ] No raw colour, size or string in screens; components only
 - [ ] Merged manifest has no INTERNET
 - [ ] Committed with a clear message
+
+## Next round (burrow-next, 2026-10-22) — `docs/NEXT.md`, PNGs in `design/next/`
+- [x] **Charts and type**
+  - [x] Fix charts: donut caps overlapped (Top category), stacked bar overflowed with small shares (By category), ring caps touched at small sizes, labels collided ("21 22"), clipped labels on dense charts, line strokes cut off, average rounded down
+  - [x] Fonts drawn a step heavier to match the PNGs (variable Lexend / Outfit / Atkinson)
+- [x] **Add**
+  - [x] Home-screen widget 4×2 Safe to spend today + 2×2 Add expense, Next bill (02)
+  - [x] App shortcuts: New expense, New income, Review N payments, Search (02)
+  - [x] Quick settings tile Add expense (03)
+  - [x] Favourites on New expense, Favourite chip, Favourites screen with drag and remove (04, 05)
+  - [x] Import: Cashew, Walnut, Money Manager, any spreadsheet; check screen; duplicates; remembered mappings (10, 11)
+  - [x] Split across categories and refunds (07–09)
+- [x] **Improve**
+  - [x] Welcome step 2 of 3: monthly budget (12)
+  - [x] Sunday review notification and screen; switch in Notifications (13, 14, 17)
+  - [x] Trust in capture: "92% recorded by itself", Teach row with senders, More tile (15)
+  - [x] Long-press any transaction row (06)
+  - [x] Customise reorders by drag, no arrows (16); Customise Today button gone from Today (01)
+- [x] Smoke suite: a check per feature with edge cases (51 checks; crash log read after each)

@@ -29,6 +29,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import app.burrow.money.ui.theme.WidgetValueMinSize
 import androidx.compose.ui.unit.dp
 import app.burrow.money.ui.theme.BurrowType
 import app.burrow.money.ui.theme.Shapes
@@ -176,9 +180,13 @@ private fun ColumnScope.WidgetText(label: String, icon: Painter, value: String, 
     }
     if (value.isNotEmpty()) {
         Spacer(Modifier.height(Space.block))
-        Text(value, style = BurrowType.title, color = c.onSurface, maxLines = 1)
+        // One line always: a long name ("Food & drinks" at large text) shrinks to fit, then ends in "…".
+        BasicText(
+            value, style = BurrowType.title.copy(color = c.onSurface), maxLines = 1, overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(minFontSize = WidgetValueMinSize, maxFontSize = BurrowType.title.fontSize),
+        )
     }
-    if (line.isNotEmpty()) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 3)
+    if (line.isNotEmpty()) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
 }
 
 /** Empty state: 128 dp wavy "cookie" shape (primaryContainer) with the icon centred at 42%, title, one line, one tonal button. */

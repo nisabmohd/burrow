@@ -173,3 +173,12 @@ Never mix icon sets. Never draw an icon with emoji. A new icon: take it from Pho
 | `wallpaper` | paint-brush |
 | `wifi` | wifi-high |
 | `wifi_off` | wifi-slash |
+
+## Added 2026-10-22 (burrow-next)
+| Name | Phosphor | Where |
+|---|---|---|
+| `call_split` | arrows-split | Split across categories (07, 08) |
+| `refund` | arrow-u-up-left | Add a refund (07, 09) |
+| `import` | tray-arrow-down | Import or export (10, 11), More row |
+| `export` | export | Export to CSV (10) |
+| `ic_shortcut_*` | layer-list: white glyph on the rose circle | app shortcuts (launchers draw them as they are) |

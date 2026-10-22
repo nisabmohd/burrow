@@ -2,11 +2,4 @@
 <resources>
     <color name="page">#FDF9FA</color>
     <color name="ic_launcher_background">#A3294B</color>
-    <!-- Capture notification (RemoteViews can't read the Compose theme): Rose tokens from docs/TOKENS.md. -->
-    <color name="notification_text">#20181A</color>
-    <color name="notification_text_muted">#5F5356</color>
-    <color name="notification_pill">#E9D3D8</color>
-    <color name="notification_pill_text">#381E25</color>
-    <color name="notification_accent">#9E2E4A</color>
-    <color name="notification_ripple">#33381E25</color>
 </resources>

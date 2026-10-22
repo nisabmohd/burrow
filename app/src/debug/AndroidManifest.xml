@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: lets tools/smoke.py run the Sunday review and redraw widgets without waiting for Sunday 6 PM. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver android:name=".DebugActions" android:exported="true">
+            <intent-filter>
+                <action android:name="app.burrow.money.debug.SUNDAY_REVIEW" />
+                <action android:name="app.burrow.money.debug.HOME" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

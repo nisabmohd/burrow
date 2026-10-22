@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Burrow mark for the status bar: the launcher mark cropped to fill a 24 dp square, white
-     (Android tints it). Every Burrow notification uses this as its small icon. -->
+<!-- Burrow mark for the status bar: white (Android tints it), optically centred (a touch high, the ground line is heavy) in a 24 dp square with 1 dp
+     padding on the sides like every system icon. Every Burrow notification uses this as its small icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="300" android:viewportHeight="300">
-    <group android:translateX="-106" android:translateY="-108">
-        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M126,340 L386,340" />
-        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M156,340 C156,236 200,176 256,176 C312,176 356,236 356,340" />
-        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M220,340 L220,300 C220,280 236,264 256,264 C276,264 292,280 292,300 L292,340" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="320" android:viewportHeight="320">
+    <group android:translateX="-96" android:translateY="-102">
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="30" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M126,340 L386,340" />
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="30" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M156,340 C156,236 200,176 256,176 C312,176 356,236 356,340" />
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="30" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M220,340 L220,300 C220,280 236,264 256,264 C276,264 292,280 292,300 L292,340" />
     </group>
 </vector>

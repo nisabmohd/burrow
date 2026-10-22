@@ -87,7 +87,7 @@ class BillAlarmReceiver : BroadcastReceiver() {
 
 /** Reboot, app update, clock or time zone change: alarms are gone or wrong, set them again. */
 class RescheduleReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) = runInBackground(context) { runBillReminders(); backup.schedule() }
+    override fun onReceive(context: Context, intent: Intent) = runInBackground(context) { runBillReminders(); backup.schedule(); scheduleWeeklyReview() }
 }
 
 private fun BroadcastReceiver.runInBackground(context: Context, work: suspend AppContainer.() -> Unit) {

@@ -16,26 +16,26 @@ import app.burrow.money.R
 
 /*
  * Six text styles, two weights (400, 500). Nothing else, anywhere (docs/TOKENS.md § Type).
- * Fonts are static TTFs in res/font (OFL, see res/font/OFL.txt): two weights each, ~55–80 KB per file.
- * Atkinson Hyperlegible has no 500, so its Bold stands in for Medium.
- * Space Grotesk is one variable TTF (from Sprout); see [SpaceGroteskFamily].
- */
-private fun family(@FontRes regular: Int, @FontRes medium: Int) =
-    FontFamily(Font(regular, FontWeight.Normal), Font(medium, FontWeight.Medium))
-
-private val LexendFamily = family(R.font.lexend_regular, R.font.lexend_medium)
-private val OutfitFamily = family(R.font.outfit_regular, R.font.outfit_medium)
-private val AtkinsonFamily = family(R.font.atkinson_regular, R.font.atkinson_bold)
-
-/**
- * Space Grotesk's strokes are about 17% thinner than Lexend's at the same weight, so it is drawn a
- * step heavier (as in Sprout): Regular at 470, Medium at 600. The weights in code stay 400 and 500.
+ * Fonts are variable TTFs in res/font (OFL, see FONTS-LICENSE.txt), one file per family.
+ *
+ * The designs are drawn in a browser, which renders strokes heavier than Android does. So each
+ * family is drawn a step heavier than its nominal weight to match the PNGs: the weights in code stay
+ * 400 and 500 (checked side by side against design/screens at 4x, 2026-10-22).
  */
 @OptIn(ExperimentalTextApi::class)
-private val SpaceGroteskFamily = FontFamily(
-    Font(R.font.space_grotesk, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(470))),
-    Font(R.font.space_grotesk, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+private fun variable(@FontRes res: Int, regular: Int, medium: Int) = FontFamily(
+    Font(res, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(regular))),
+    Font(res, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(medium))),
 )
+
+private val LexendFamily = variable(R.font.lexend, 440, 540)
+private val OutfitFamily = variable(R.font.outfit, 450, 550)
+
+/** Atkinson Hyperlegible has no true 500; its "Medium" is drawn near Bold, as before. */
+private val AtkinsonFamily = variable(R.font.atkinson, 440, 680)
+
+/** Space Grotesk's strokes are about 17% thinner than Lexend's at the same weight (as in Sprout). */
+private val SpaceGroteskFamily = variable(R.font.space_grotesk, 490, 620)
 
 fun BodyFont.family(): FontFamily = when (this) {
     BodyFont.LEXEND -> LexendFamily
@@ -72,6 +72,9 @@ fun burrowTypography(font: BodyFont, scale: Float): Typography {
 
 /** Nav labels shrink to fit long translations, never below this (docs/TOKENS.md § Type). */
 val NavLabelMinSize = 10.sp
+
+/** A widget's big value (a long category name, a large amount) shrinks to stay on one line, never below this. */
+val WidgetValueMinSize = 16.sp
 
 /** The only text styles screens use. Colour is never part of a style. */
 object BurrowType {

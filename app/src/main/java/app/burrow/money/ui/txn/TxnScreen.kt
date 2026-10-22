@@ -52,7 +52,14 @@ private enum class TxnSheet { CATEGORY, NOTE, DELETE }
  * The "Recorded from SMS" box comes with auto-capture (Day 7).
  */
 @Composable
-fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDuplicate: (Long) -> Unit) {
+fun TxnScreen(
+    vm: TxnViewModel,
+    onBack: () -> Unit,
+    onEdit: (Long) -> Unit,
+    onDuplicate: (Long) -> Unit,
+    onSplit: (Long) -> Unit = {},
+    onOpenTxn: (Long) -> Unit = {},
+) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
@@ -64,7 +71,7 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         val t = s.txn
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack) {
-            if (t != null) TonalIconButton(painterResource(R.drawable.ic_content_copy_regular), stringResource(R.string.duplicate), { onDuplicate(t.txn.id) })
+            if (t != null && t.txn.type != TxnType.REFUND) TonalIconButton(painterResource(R.drawable.ic_content_copy_regular), stringResource(R.string.duplicate), { onDuplicate(t.txn.id) })
         }
         if (t == null) {
             EmptyState(
@@ -93,7 +100,8 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
                     add { i, n ->
                         ListRow(
                             t.categoryName.orEmpty(), i, n, supporting = stringResource(R.string.category),
-                            lead = { CategoryCircle(t.categoryIcon, t.categoryHue) }, onClick = { sheet = TxnSheet.CATEGORY },
+                            // A split payment's categories are changed on the split screen.
+                            lead = { CategoryCircle(t.categoryIcon, t.categoryHue) }, onClick = { if (s.parts.isNotEmpty()) onSplit(t.txn.id) else sheet = TxnSheet.CATEGORY },
                         )
                     }
                     add { i, n ->
@@ -112,6 +120,42 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
                 }
             }
             ListGroup { rows.forEachIndexed { i, r -> r(i, rows.size) } }
+            // Split and refund (07): an expense can be shared across categories or get money back.
+            val actions = LocalTxnActions.current
+            if (t.txn.type == TxnType.EXPENSE && t.txn.status == app.burrow.money.data.TxnStatus.POSTED) {
+                ListGroup {
+                    ListRow(
+                        stringResource(R.string.split_across), 0, 2,
+                        supporting = if (s.parts.isEmpty()) stringResource(R.string.split_line)
+                        else s.parts.joinToString(" · ") { p -> "${s.allCategories.firstOrNull { it.id == p.categoryId }?.name.orEmpty()} ${money.plain(p.amount)}" },
+                        lead = { IconCircle(painterResource(R.drawable.ic_call_split_duotone)) },
+                        onClick = { onSplit(t.txn.id) },
+                    )
+                    ListRow(
+                        stringResource(R.string.add_refund), 1, 2,
+                        supporting = if (s.refunds.isEmpty()) stringResource(R.string.add_refund_line)
+                        else stringResource(R.string.refunded_on, money.plain(s.refunds.sumOf { it.amount }), dates.shortDay(dates.date(s.refunds.last().at))),
+                        lead = { IconCircle(painterResource(R.drawable.ic_refund_duotone)) },
+                        onClick = { actions?.refund(t) },
+                    )
+                }
+            }
+            s.original?.let { o ->
+                ListGroup {
+                    ListRow(
+                        stringResource(R.string.refund_for, o.title()), 0, 1, supporting = money.forTxn(o.txn.type, o.txn.amount),
+                        lead = { TxnCircle(o) }, trailing = { app.burrow.money.ui.components.Chevron() }, onClick = { onOpenTxn(o.txn.id) },
+                    )
+                }
+            }
+            s.capture?.let { m ->
+                app.burrow.money.ui.components.SectionHeader(stringResource(if (m.source == "SMS") R.string.recorded_from_sms else R.string.recorded_from_app))
+                if (m.body.isBlank()) {
+                    androidx.compose.material3.Text(stringResource(R.string.message_forgotten), style = app.burrow.money.ui.theme.BurrowType.body, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    app.burrow.money.ui.components.MessageBox(stringResource(R.string.dot_join, m.sender, dates.time(m.receivedAt)), m.body, emptyList())
+                }
+            }
             Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
                 val askFirst = app.burrow.money.ui.LocalListPrefs.current.confirmDelete
                 BurrowButton(stringResource(R.string.delete), {
@@ -121,7 +165,7 @@ fun TxnScreen(vm: TxnViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onDu
                         vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo); onBack() }
                     }
                 }, Modifier.weight(1f), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
-                BurrowButton(stringResource(R.string.edit), { onEdit(t.txn.id) }, Modifier.weight(1f), ButtonKind.FILLED, painterResource(R.drawable.ic_edit_regular))
+                if (t.txn.type != TxnType.REFUND) BurrowButton(stringResource(R.string.edit), { onEdit(t.txn.id) }, Modifier.weight(1f), ButtonKind.FILLED, painterResource(R.drawable.ic_edit_regular))
             }
         }
         val txn = t

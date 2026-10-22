@@ -38,5 +38,6 @@ suspend fun AppContainer.onMessage(source: String, sender: String, body: String,
             else -> if (st.notifyCapture) notifier.show(c, suggested, from, hideAmount = st.hideInNotifications)
         }
     }
+    if (result is CaptureResult.Found) app.burrow.money.home.HomeSurfaces.refresh(this) // "Review N payments" shortcut
     return result
 }

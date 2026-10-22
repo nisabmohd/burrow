@@ -85,8 +85,9 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
         val income = f.type == TypeFilter.INCOME
         val chartType = if (income) TxnType.INCOME else TxnType.EXPENSE
         // The chart counts money out (or in), whatever the Type filter, within the other filters.
-        val inChart = txns.filter { f.copy(type = TypeFilter.ALL).matches(it, zone, withRange = false) && it.txn.type == chartType && !it.txn.excludeFromStats && it.date() in range }
-        val perDay = inChart.groupBy { it.date() }.mapValues { (_, l) -> l.sumOf { it.txn.amount } }
+        // Refunds lower the spending of their day.
+        val inChart = txns.filter { f.copy(type = TypeFilter.ALL).matches(it, zone, withRange = false) && (it.txn.type == chartType || (!income && it.txn.type == TxnType.REFUND)) && !it.txn.excludeFromStats && it.date() in range }
+        val perDay = inChart.groupBy { it.date() }.mapValues { (_, l) -> l.sumOf { if (it.txn.type == TxnType.REFUND) -it.txn.amount else it.txn.amount }.coerceAtLeast(0) }
         val chartBars = bars(range, perDay)
         val bucket = bucketFor(range)
         val total = perDay.values.sum()
@@ -143,7 +144,7 @@ private fun unit(currency: String): Long {
 /** Money out is negative, in is positive; a transfer moves money without changing the total. */
 fun TxnView.signedAmount(): Long = when (txn.type) {
     TxnType.EXPENSE -> -txn.amount
-    TxnType.INCOME -> txn.amount
+    TxnType.INCOME, TxnType.REFUND -> txn.amount
     else -> 0
 }
 

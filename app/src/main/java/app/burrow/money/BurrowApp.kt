@@ -6,6 +6,7 @@ import app.burrow.money.ui.more.AppLanguage
 import app.burrow.money.notify.runBillReminders
 import app.burrow.money.notify.runMonthlySummary
 import app.burrow.money.notify.runSettleReminders
+import app.burrow.money.notify.scheduleWeeklyReview
 import kotlinx.coroutines.launch
 
 class BurrowApp : Application() {
@@ -23,6 +24,8 @@ class BurrowApp : Application() {
         // Scheduled backups: set the next daily check.
         container.appScope.launch { container.backup.schedule(); container.runMonthlySummary() }
         // Upcoming transactions whose day has come; attachment files of deleted transactions.
-        container.appScope.launch { container.money.postDue(); container.attachments.cleanOrphans(); container.runSettleReminders() }
+        container.appScope.launch { container.money.postDue(); container.attachments.cleanOrphans(); container.next.cleanOrphans(); container.runSettleReminders() }
+        // Sunday review (13): the next Sunday 6 PM alarm. Home-screen widget and shortcuts: fresh numbers.
+        container.appScope.launch { container.scheduleWeeklyReview(); app.burrow.money.home.HomeSurfaces.refresh(container) }
     }
 }

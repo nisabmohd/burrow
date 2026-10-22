@@ -69,7 +69,7 @@ data class CategoryEntity(
 )
 
 @kotlinx.serialization.Serializable
-@Entity(indices = [Index("at"), Index("accountId"), Index("categoryId")])
+@Entity(indices = [Index("at"), Index("accountId"), Index("categoryId"), Index("refundOf")])
 data class TxnEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: String,            // EXPENSE, INCOME, TRANSFER, REFUND, ADJUSTMENT
@@ -97,6 +97,8 @@ data class TxnEntity(
     /** v4: lend or borrow. [lend] is LENT, BORROWED or SETTLE (a settlement with [personId]). */
     val personId: Long? = null,
     val lend: String? = null,
+    /** v5: a REFUND row points at the expense it pays back (lowers that category, never income). */
+    val refundOf: Long? = null,
 )
 
 @kotlinx.serialization.Serializable
@@ -237,6 +239,39 @@ data class TxnTagEntity(val txnId: Long, val tagId: Long)
 @Entity
 data class RateEntity(@PrimaryKey val currency: String, val perPrimary: String, val setAt: Long)
 
+/**
+ * v5: one part of a split payment (08). The payment stays one row in Activity; its parts count
+ * toward their own categories and budgets. Parts always add up to the payment's amount.
+ */
+@kotlinx.serialization.Serializable
+@Entity(indices = [Index("txnId")])
+data class SplitEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val txnId: Long,
+    val categoryId: Long,
+    val amount: Long,
+)
+
+/** v5: a one-tap expense on New expense (04, 05): "Chai ₹20 · Cash". */
+@kotlinx.serialization.Serializable
+@Entity
+data class FavouriteEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val amount: Long,
+    val categoryId: Long,
+    val accountId: Long,
+    val sortOrder: Int = 0,
+)
+
+/**
+ * v5: how another app's names map onto Burrow's (Import, 11), remembered for the next import.
+ * [kind] is CATEGORY or ACCOUNT; [targetId] the Burrow category or account.
+ */
+@kotlinx.serialization.Serializable
+@Entity(primaryKeys = ["source", "kind", "theirName"])
+data class ImportMapEntity(val source: String, val kind: String, val theirName: String, val targetId: Long)
+
 /** v3 → v4: cards and loans start out of net worth. */
 class V3To4 : androidx.room.migration.AutoMigrationSpec {
     override fun onPostMigrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
@@ -250,13 +285,15 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
         BillOccurrenceEntity::class, BudgetEntity::class, GoalEntity::class,
         CaptureRuleEntity::class, CaptureEntity::class,
         PersonEntity::class, AttachmentEntity::class, TagEntity::class, TxnTagEntity::class, RateEntity::class,
+        SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
         AutoMigration(from = 2, to = 3), // account details, goal transfers, bill circles and flags
         AutoMigration(from = 3, to = 4, spec = V3To4::class), // customise: net worth, upcoming, lend, tags, files, rates
+        AutoMigration(from = 4, to = 5), // next: refunds, split parts, favourites, import mappings
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {
@@ -270,6 +307,7 @@ abstract class BurrowDatabase : RoomDatabase() {
     abstract fun backup(): BackupDao
     abstract fun rules(): RuleDao
     abstract fun extras(): ExtrasDao
+    abstract fun next(): NextDao
 
     companion object {
         fun create(context: Context): BurrowDatabase =

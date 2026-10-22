@@ -5,7 +5,7 @@ reminds you of bills and shows what is left. **It never goes online.**
 Package `app.burrow.money` · GNU GPL v3 · Play title "Burrow: Expense Tracker".
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
-`docs/SCREENS.md` (with `design/screens/*.png`), `docs/MOTION.md`, `docs/PERFORMANCE.md`,
+`docs/SCREENS.md` (with `design/screens/*.png` and `design/next/*.png`), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
 `docs/CAPTURE.md`, `docs/DATA.md`, `docs/COPY.md`, `docs/ICONS.md`. Today's work: `TODO.md`.
 The PNGs are the source of truth for layout, sizes and colours. `design/prototype/burrow-prototype.html`
 (not in git) is the clickable version.
@@ -50,13 +50,16 @@ minSdk 26, targetSdk 36, Kotlin 2.x, KSP, version catalog. Compose + Material 3.
 DataStore Preferences, Navigation Compose (type-safe routes), ViewModel + StateFlow, kotlinx-serialization
 (rules files, backup JSON). Capture: `RECEIVE_SMS`/`READ_SMS` (foss/github; play after the declaration)
 + `NotificationListenerService`. Reminders: AlarmManager + boot receiver. Backup: encrypted file via SAF.
-Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson (static TTF), Space Grotesk (variable TTF, drawn at 470/600).
+Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson, Space Grotesk:
+variable TTFs drawn a step heavier to match the PNGs (Lexend 440/540; see `docs/TOKENS.md`).
+Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/widget.xml`.
 
 ## Behaviour rules
-- New expense: amount, then a **Paid to** free-text field (any text; suggestion chips of frequent payees filter as you type and set the usual category), then Category, Account, Date + keypad; extras as chips (Note, Repeat, Attach, Lend or borrow), chosen in
+- New expense: amount, then a **Paid to** free-text field (any text; suggestion chips of frequent payees filter as you type and set the usual category), then Category, Account, Date + keypad; extras as chips (Note, Repeat, Attach, Favourite, Lend or borrow), chosen in
   More › Customise › New expense form. Future date = upcoming. Repeat creates a bill. Attachments stay on the phone.
 - **Customise** is one screen with tabs Today · Expense · Transactions · Region · Currency, built only from choice tiles,
-  toggle tiles, ordered rows (show/hide + ↑↓) and switch rows. Every new customisation goes there.
+  toggle tiles, ordered rows (show/hide + drag ⠿, never arrows) and switch rows. Every new customisation goes there.
+- Long-press any transaction row: one actions sheet (06). Favourites save with one tap on an empty New expense.
 - Every account has "Count in net worth"; credit cards and loans are off by default.
 - Transfers never count as spending/income (card bill, ATM, EMI principal, savings, Add money).
 - Bills: one row per occurrence; swipe right Paid, left Skip; a past one stays "Not paid yet" until marked.
@@ -65,9 +68,13 @@ Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend
 - Auto-capture: user rules first, then packs; drop OTP/offers/failed; dedupe 10 min; bill match ±10% / 3 days;
   message text deleted after 30 days.
 - Undo snackbar after every change (~4 s); FAB moves up with it.
-- First run: Welcome → currency → accounts → Today with sample data + note; samples go on the first real entry.
+- First run: Welcome → currency → monthly budget (skippable) → accounts → Today with sample data + note; samples go on the first real entry.
 - Nothing is drawn under a header until its data has loaded (no "₹0" flash).
 - Filters stay while the app is open, reset on restart.
+- Safe to spend today = (left this month + spent today) ÷ days left including today − spent today, never
+  below 0. Today's hero, the home-screen widget and the Sunday review show this same number.
+- Refunds lower their category's spending, never count as income. Split payments stay one row in
+  Activity; each part counts in its own category and budget.
 - Notifications: app name + time, title, one line, no buttons (except the capture notification).
   Small icon is always the Burrow mark, `R.drawable.ic_notification` (user, 2026-10-20), never a Phosphor glyph.
 

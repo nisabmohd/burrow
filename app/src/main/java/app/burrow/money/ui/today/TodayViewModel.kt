@@ -30,10 +30,12 @@ import java.time.ZoneId
 
 /** The budget block: [budget] is null when none is set. */
 @Immutable
-data class HeroState(val period: BudgetPeriod, val daysLeft: Int, val spent: Long, val budget: Long?, val digits: Int = 2) {
+data class HeroState(val period: BudgetPeriod, val daysLeft: Int, val spent: Long, val budget: Long?, val digits: Int = 2, val spentToday: Long = 0) {
     val left get() = (budget ?: 0) - spent
     val over get() = budget != null && left < 0
     val perDay get() = perDay(left, daysLeft, digits)
+    /** The daily number (NEXT.md): same on Today, the home-screen widget and the Sunday review. */
+    val safeToday get() = app.burrow.money.domain.safeToSpendToday(left, spentToday, daysLeft, digits)
     val progress get() = if (budget == null || budget <= 0) 0f else (spent.toFloat() / budget).coerceIn(0f, 1f)
 }
 
@@ -83,6 +85,7 @@ class TodayViewModel(
     private val plan: PlanRepository,
     monthStartDay: Int,
     private val digits: Int,
+    next: app.burrow.money.data.NextRepository,
 ) : ViewModel() {
     private val zone = ZoneId.systemDefault()
     private val today = LocalDate.now(zone)
@@ -90,7 +93,7 @@ class TodayViewModel(
     private fun Long.day(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 
     private val widgets = combine(
-        repo.latest(),
+        next.stats, // splits count in their own categories, refunds lower spending
         repo.netWorth,
         plan.occurrences(today.minusDays(62), today.plusDays(62)),
         plan.goals,
@@ -125,7 +128,9 @@ class TodayViewModel(
             netWorthChange = inPeriod.sumOf(::effect),
             topCategory = byCat.firstOrNull()?.first?.let { t -> CategoryEntity(t.txn.categoryId!!, t.categoryName.orEmpty(), kind = "EXPENSE", icon = t.categoryIcon.orEmpty(), colorHue = t.categoryHue ?: 0f) },
             topShare = if (total > 0) Math.round(byCat.first().second * 100f / total) else 0,
-            categoryParts = byCat.take(4).map { (t, v) -> (t.categoryHue ?: 0f) to v },
+            // Top three in colour plus the rest as one grey part (hue NaN), so the ring shows true shares.
+            categoryParts = byCat.take(3).map { (t, v) -> (t.categoryHue ?: 0f) to v } +
+                listOfNotNull(byCat.drop(3).sumOf { it.second }.takeIf { it > 0 }?.let { Float.NaN to it }),
             goal = goal,
             goalPerMonth = goal?.let { goalPerMonth(it.goal.target, it.saved, today, it.goal.targetDate?.day()) },
             cameIn = inPeriod.filter { it.txn.type == TxnType.INCOME }.sumOf { it.txn.amount },
@@ -134,13 +139,13 @@ class TodayViewModel(
     }.flowOn(Dispatchers.Default)
 
     private val money = combine(
-        repo.spent(period),
+        combine(repo.spent(period), next.spentToday(today)) { a, b -> a to b },
         plan.budgets(period),
         repo.latest(RECENT_MAX),
         repo.hasSamples,
         repo.txnCount,
-    ) { spent, (overall, _), recent, samples, count ->
-        Triple(HeroState(period, period.daysLeft(today), spent, overall?.amount, digits), recent, samples to (count == 0))
+    ) { (spent, spentToday), (overall, _), recent, samples, count ->
+        Triple(HeroState(period, period.daysLeft(today), spent, overall?.amount, digits, spentToday), recent, samples to (count == 0))
     }
 
     val state: StateFlow<TodayUiState?> = combine(money, capture.reviewCount, settings.settings, widgets) { (hero, recent, flags), review, s, w ->

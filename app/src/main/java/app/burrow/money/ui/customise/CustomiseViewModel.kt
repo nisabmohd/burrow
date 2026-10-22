@@ -22,6 +22,7 @@ data class CustomiseState(
     val netWorth: Long,
     val accounts: List<AccountWithBalance>,
     val rates: List<RateEntity>,
+    val favourites: Int,
 )
 
 /** Customise (80–85): one screen, five tabs; every change is saved at once. */
@@ -30,20 +31,16 @@ class CustomiseViewModel(private val app: AppContainer, monthStartDay: Int) : Vi
     private val s = app.settings
 
     val state: StateFlow<CustomiseState?> = combine(
-        app.money.overallBudget(period), app.money.spent(period), app.money.netWorth, app.money.accounts, app.money.rates,
-    ) { budget, spent, nw, accounts, rates ->
-        CustomiseState(budget?.let { it.amount - spent }, spent, nw.total, accounts, rates)
+        combine(app.money.overallBudget(period), app.money.spent(period)) { a, b -> a to b }, app.money.netWorth, app.money.accounts, app.money.rates, app.next.favourites,
+    ) { (budget, spent), nw, accounts, rates, favs ->
+        CustomiseState(budget?.let { it.amount - spent }, spent, nw.total, accounts, rates, favs.size)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private fun go(block: suspend () -> Unit) { viewModelScope.launch { block() } }
 
     // Today (80)
     fun topCard(v: String) = go { s.setTopCard(v) }
-    fun moveWidget(order: List<String>, key: String, up: Boolean) = go {
-        val i = order.indexOf(key)
-        val j = if (up) i - 1 else i + 1
-        if (i >= 0 && j in order.indices) s.setWidgetOrder(order.toMutableList().apply { add(j, removeAt(i)) })
-    }
+    fun setWidgetOrder(order: List<String>) = go { s.setWidgetOrder(order) }
     fun showWidget(key: String, on: Boolean) = go { s.setHomeWidget(key, on) }
     fun recent(n: Int) = go { s.setRecentCount(n) }
     fun showReview(on: Boolean) = go { s.setShowReview(on) }

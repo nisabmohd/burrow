@@ -20,7 +20,8 @@ import app.burrow.money.R
  */
 class Notifier(private val context: Context) {
 
-    fun show(id: Int, title: String, line: String, open: Intent) {
+    /** [kind] shows next to the app name ("Burrow · Sunday review · 6:00 PM"). */
+    fun show(id: Int, title: String, line: String, open: Intent, kind: String? = null) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -31,6 +32,8 @@ class Notifier(private val context: Context) {
             .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
             .setContentTitle(title)
             .setContentText(line)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(line))
+            .setSubText(kind)
             .setAutoCancel(true)
             .setContentIntent(tap)
             .build()
@@ -59,6 +62,9 @@ class Notifier(private val context: Context) {
 
         fun openInsights(context: Context) = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_INSIGHTS).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+        fun openSundayReview(context: Context) = Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_SUNDAY_REVIEW).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
         fun openPlan(context: Context) = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_PLAN).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)

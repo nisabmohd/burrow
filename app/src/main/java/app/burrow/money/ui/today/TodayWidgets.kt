@@ -107,8 +107,21 @@ fun TodayWidgets(
                     stringResource(R.string.top_category), painterResource(R.drawable.ic_pie_duotone), cat.name,
                     stringResource(R.string.of_spending, w.topShare), m, wide, onClick = { onCategory(cat.id) },
                     visual = {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.SpaceBetween) {
-                            DonutChart(w.categoryParts.map { (hue, v) -> categoryColors(hue).solid to v })
+                        // Alone on a row (wide) the text keeps the left side; half width, donut left and icon right.
+                        Row(
+                            if (wide) Modifier else Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = if (wide) Arrangement.spacedBy(Space.block) else Arrangement.SpaceBetween,
+                        ) {
+                            // Design 05: the top category in its colour, the next ones soft, everything else grey.
+                            DonutChart(
+                                w.categoryParts.mapIndexed { i, (hue, v) ->
+                                    when {
+                                        hue.isNaN() -> c.surfaceContainerHighest
+                                        i == 0 -> categoryColors(hue).solid
+                                        else -> categoryColors(hue).container
+                                    } to v
+                                },
+                            )
                             CategoryCircle(cat.icon, cat.colorHue)
                         }
                     },

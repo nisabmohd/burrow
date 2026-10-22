@@ -16,7 +16,7 @@ if something is missing, add a component here first.
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
-| `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing | Lists.kt |
+| `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing; optional long-press, and `lifted` while dragged | Lists.kt |
 | `IconCircle` | 40 dp (64 big), duotone icon at 55%; category colours or neutral | Lists.kt |
 | `SectionHeader` | `button` style title, meta or text button right, 16 above / 8 below | Lists.kt |
 | `TxnRow` / `TxnCircle` | the one transaction row (Today › Recent, Activity): category circle, payee, "Food & drinks · HDFC" (+ time today), amount | ui/txn/TxnRow.kt |
@@ -56,7 +56,12 @@ if something is missing, add a component here first.
 | `PayeeField` + `SuggestionChips` | Paid to: 56 dp pill under the amount, storefront or the category circle, 2 dp primary ring while typing, ✕ clears; up to 4 quiet outlined chips centred under it (with the category circle while typing) | PayeeField.kt |
 | `ChoiceTiles` (`Choice`) | pick one: equal tiles (`columns` per row; a line shows big as the value, "₹1,240"), or full-width rows when options have icons; selected = `primaryContainer` + `CheckBadge` | Customise.kt |
 | `ToggleTiles` (`Toggle`) | pick many: 3-column 112 dp tiles, icon circle + name, check badge when on (empty ring when off), on = `secondaryContainer` | Customise.kt |
-| `OrderedRow` | 40 dp icon · name · plain ↑ ↓ icon buttons (30% and inactive at the ends) · switch; a hidden row's icon dims to 55% | Customise.kt |
+| `OrderedRow` | ⠿ drag handle · 40 dp icon · name · switch, inside `DragColumn`; a hidden row's icon dims to 55%. No up/down arrows anywhere (16) | Customise.kt |
+| `DragColumn` | reorder by drag (16): hold the ⠿ handle, the row lifts (`surfaceContainerHigh` + shadow), the others slide to make room; saved on drop; TalkBack gets "Move … up / down" actions | DragList.kt |
+| `LetterCircle` | 40 dp neutral circle with one letter (Import: Cashew, Walnut, Money Manager; never brand logos) | Lists.kt |
+| `FavouriteChip` | New expense favourites (04): outlined 48 dp pill, 24 dp category circle, "Chai ₹20"; one tap saves | PayeeField.kt |
+| `AmountKeypadSheet` | type an exact amount in a sheet (split part, refund, Welcome budget): amount, keypad, ✓; optional maximum | StepperSheet.kt |
+| `TxnActions` + `TxnActionsHost` (`LocalTxnActions`) | long-press any `TxnRow` (06): one sheet (Change category, Duplicate to today, Split, Add a refund, Save as favourite, Delete in its own group) and the refund sheet (09), hosted once by the nav host | ui/txn/TxnActions.kt |
 | `PickList` | a grouped list with round radio marks on the right (top card 80, numbers and dates 85) | Customise.kt |
 | `CheckBadge` | 22 dp primary circle with a check; empty outline ring for "off" | Customise.kt |
 | `StatusTile` | More's four tiles: icon circle (category hue), status top-right, title, one line; "on" tiles tinted `secondaryContainer` | Blocks.kt |

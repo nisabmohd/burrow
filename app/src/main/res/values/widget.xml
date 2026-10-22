@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Home-screen widgets and shortcut icons (02). RemoteViews can't read the Compose theme, so these are
+  the Rose 345 tokens from docs/TOKENS.md (night values in values-night/widget.xml), and the widgets
+  use the system font, as the design says. Sizes follow docs/TOKENS.md: 24 dp surfaces, 16 dp padding.
+-->
+<resources>
+    <color name="widget_hero">#FCD4DE</color>
+    <color name="widget_on_hero">#4E1221</color>
+    <color name="widget_on_hero_muted">#B34E1221</color>
+    <color name="widget_track">#384E1221</color>
+    <color name="widget_primary">#9E2E4A</color>
+    <color name="widget_on_primary">#FFFFFF</color>
+    <color name="widget_surface">#F6EEF0</color>
+    <color name="widget_circle">#EFE4E7</color>
+    <color name="widget_text">#20181A</color>
+    <color name="widget_text_muted">#5F5356</color>
+
+    <dimen name="widget_radius">24dp</dimen>
+    <dimen name="widget_padding">16dp</dimen>
+    <dimen name="widget_add_big">56dp</dimen>
+    <dimen name="widget_add_small">40dp</dimen>
+    <dimen name="widget_mark">24dp</dimen>
+    <dimen name="widget_bar">8dp</dimen>
+    <dimen name="widget_amount">44sp</dimen>
+    <dimen name="widget_title">16sp</dimen>
+    <dimen name="widget_body">14sp</dimen>
+</resources>

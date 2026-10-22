@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="page">#130F10</color>
-    <!-- Capture notification (RemoteViews can't read the Compose theme): Rose tokens from docs/TOKENS.md. -->
-    <color name="notification_text">#EBE5E6</color>
-    <color name="notification_text_muted">#BCAEB2</color>
-    <color name="notification_pill">#49373B</color>
-    <color name="notification_pill_text">#F0DBE0</color>
-    <color name="notification_accent">#F9AABD</color>
-    <color name="notification_ripple">#33F0DBE0</color>
 </resources>

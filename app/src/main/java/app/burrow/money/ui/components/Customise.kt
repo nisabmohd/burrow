@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -151,8 +150,8 @@ fun ToggleTiles(options: List<Toggle>, onToggle: (String, Boolean) -> Unit, onLa
 }
 
 /**
- * Show/hide and order (80 widgets): icon · name · ↑ ↓ · switch. Hidden rows dim. The arrows at the
- * ends fade to 30% and do nothing.
+ * Show/hide and order (80 widgets, 16): ⠿ handle · icon · name · switch. Drag the handle to reorder
+ * (inside [DragColumn]); hidden rows dim. No up/down arrows anywhere.
  */
 @Composable
 fun OrderedRow(
@@ -161,26 +160,19 @@ fun OrderedRow(
     index: Int,
     count: Int,
     on: Boolean,
-    onMove: (up: Boolean) -> Unit,
     onToggle: (Boolean) -> Unit,
-    upLabel: String,
-    downLabel: String,
+    handle: @Composable () -> Unit,
+    lifted: Boolean,
 ) {
-    val c = MaterialTheme.colorScheme
     ListRow(
-        name, index, count,
-        lead = { Box(Modifier.alpha(if (on) 1f else HIDDEN_ALPHA)) { IconCircle(icon) } },
-        trailing = {
+        name, index, count, lifted = lifted,
+        lead = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton({ onMove(true) }, enabled = index > 0) {
-                    Icon(painterResource(R.drawable.ic_arrow_upward_regular), upLabel, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconButton20).alpha(if (index > 0) 1f else EDGE_ALPHA))
-                }
-                IconButton({ onMove(false) }, enabled = index < count - 1) {
-                    Icon(painterResource(R.drawable.ic_arrow_downward_regular), downLabel, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconButton20).alpha(if (index < count - 1) 1f else EDGE_ALPHA))
-                }
-                BurrowSwitch(on, onToggle, Modifier.padding(start = Space.small))
+                handle()
+                Box(Modifier.alpha(if (on) 1f else HIDDEN_ALPHA)) { IconCircle(icon) }
             }
         },
+        trailing = { BurrowSwitch(on, onToggle) },
     )
 }
 
@@ -202,4 +194,3 @@ fun <T> PickList(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit) {
 }
 
 private const val HIDDEN_ALPHA = 0.55f
-private const val EDGE_ALPHA = 0.3f

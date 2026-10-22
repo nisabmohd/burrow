@@ -67,7 +67,6 @@ import app.burrow.money.ui.more.AppearanceScreen
 import app.burrow.money.ui.more.BackupScreen
 import app.burrow.money.ui.more.CategoriesScreen
 import app.burrow.money.ui.more.CategoriesViewModel
-import app.burrow.money.ui.more.CsvSheet
 import app.burrow.money.ui.more.CurrencyScreen
 import app.burrow.money.ui.more.EditCategoryScreen
 import app.burrow.money.ui.more.EditCategoryViewModel
@@ -120,6 +119,7 @@ import app.burrow.money.ui.teach.TeachScreen
 import app.burrow.money.ui.teach.TeachViewModel
 import app.burrow.money.ui.today.TodayScreen
 import kotlinx.coroutines.launch
+import app.burrow.money.notify.scheduleWeeklyReview
 import app.burrow.money.ui.today.TodayViewModel
 import kotlin.reflect.KClass
 
@@ -177,6 +177,8 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
         }
     }
     val digits = remember(settings.mainCurrency) { app.burrow.money.domain.MoneyFormat.of(settings.mainCurrency).digits }
+    // Long-press on any transaction row (06), and the refund sheet (09): one host for the whole app.
+    val txnActions = remember { app.burrow.money.ui.txn.TxnActions(container, settings.monthStartDay) { id -> nav.navigate(SplitRoute(id)) } }
     // From a notification: capture → To review, bill reminder → the bill, budget alert → Budgets.
     LaunchedEffect(open) {
         when (open) {
@@ -187,6 +189,9 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
             is OpenFromNotification.EditCapture -> nav.navigate(AddRoute(captureId = open.captureId))
             is OpenFromNotification.Txn -> nav.navigate(TxnRoute(open.id))
             OpenFromNotification.Accounts -> nav.navigate(AccountsRoute) { launchSingleTop = true }
+            is OpenFromNotification.NewTxn -> if (settings.onboarded) nav.navigate(AddRoute(type = open.type)) { launchSingleTop = true }
+            OpenFromNotification.Search -> { container.filters.focusSearch.value = true; nav.openTab(ActivityRoute) }
+            OpenFromNotification.SundayReview -> nav.navigate(SundayReviewRoute) { launchSingleTop = true }
             null -> return@LaunchedEffect
         }
         onOpened()
@@ -199,7 +204,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     val short = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp < app.burrow.money.ui.theme.Size.landscapeMaxHeight
     val maxWidth = if (short) app.burrow.money.ui.theme.Size.contentMaxLandscape else app.burrow.money.ui.theme.Size.contentMax
     val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
-    CompositionLocalProvider(LocalSnackbar provides snackbar) {
+    CompositionLocalProvider(LocalSnackbar provides snackbar, app.burrow.money.ui.txn.LocalTxnActions provides txnActions) {
         // Landscape: the system's nav buttons and the camera cutout sit at the sides; keep clear of them.
         androidx.compose.foundation.layout.Row(
             Modifier.fillMaxSize().windowInsetsPadding(
@@ -222,7 +227,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     popExitTransition = { if (initialState.isTab() && targetState.isTab()) NavMotion.tabExit(this) else NavMotion.popExit(this) },
                 ) {
                     composable<TodayRoute> {
-                        val vm = viewModel { TodayViewModel(container.money, container.capture, container.settings, container.plan, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits) }
+                        val vm = viewModel { TodayViewModel(container.money, container.capture, container.settings, container.plan, settings.monthStartDay, MoneyFormat.of(settings.mainCurrency).digits, container.next) }
                         TodayScreen(
                             vm, onAdd = openAdd, onAccounts = { nav.navigate(AccountsRoute) }, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) },
                             onReview = { nav.navigate(ReviewRoute) },
@@ -231,12 +236,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBill = { nav.navigate(BillRoute(it)) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
                             onGoal = { nav.navigate(GoalRoute(it)) },
-                            onCustomise = { nav.navigate(CustomiseRoute("TODAY")) },
                         )
                     }
                     composable<ActivityRoute> {
                         val vm = viewModel { ActivityViewModel(container.money, container.filters) }
-                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn, onEdit = { nav.navigate(AddRoute(editId = it)) }, onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) })
+                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn, onEdit = { nav.navigate(AddRoute(editId = it)) }, onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) }, focusSearch = container.filters.focusSearch)
                     }
                     composable<PlanRoute> {
                         val vm = viewModel { PlanViewModel(container.plan, container.money, settings.monthStartDay, digits) }
@@ -310,17 +314,16 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         NewGoalScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
                     }
                     composable<InsightsRoute> {
-                        val vm = viewModel { InsightsViewModel(container.money, container.filters, settings.monthStartDay) }
+                        val vm = viewModel { InsightsViewModel(container.money, container.filters, settings.monthStartDay, container.next.stats) }
                         InsightsScreen(vm, onCategory = { nav.navigate(CategoryInsightsRoute(it)) }, onDayInActivity = { nav.openTab(ActivityRoute) })
                     }
                     composable<CategoryInsightsRoute> { e ->
                         val id = e.toRoute<CategoryInsightsRoute>().categoryId
-                        val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id) }
+                        val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id, container.next.stats) }
                         CategoryInsightsScreen(vm, onBack = { nav.popBackStack() }, onOpenTxn = openTxn)
                     }
                     composable<MoreRoute> {
                         val vm = viewModel { MoreViewModel(container) }
-                        var csv by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
                         MoreScreen(vm) { dest ->
                             when (dest) {
                                 MoreDest.CAPTURE -> nav.navigate(AutoCaptureRoute)
@@ -336,11 +339,10 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                                 MoreDest.CUSTOMISE_CURRENCY -> nav.navigate(CustomiseRoute("CURRENCY"))
                                 MoreDest.FONT -> nav.navigate(FontRoute)
                                 MoreDest.NOTIFICATIONS -> nav.navigate(NotificationsRoute)
-                                MoreDest.CSV -> csv = true
+                                MoreDest.CSV -> nav.navigate(ImportRoute)
                                 MoreDest.ABOUT -> nav.navigate(AboutRoute)
                             }
                         }
-                        if (csv) CsvSheet(container) { csv = false }
                     }
                     composable<CustomiseRoute> { e ->
                         val tab = e.toRoute<CustomiseRoute>().tab
@@ -348,6 +350,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         CustomiseScreen(
                             vm, settings, runCatching { CustomiseTab.valueOf(tab) }.getOrDefault(CustomiseTab.TODAY),
                             onBack = { nav.popBackStack() }, onLanguage = { nav.navigate(LanguageRoute) }, onMainCurrency = { nav.navigate(CurrencyRoute) },
+                            onFavourites = { nav.navigate(FavouritesRoute) },
                         )
                     }
                     composable<CategoriesRoute> {
@@ -368,10 +371,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<FontRoute> { FontScreen(settings, appearance, onBack = { nav.popBackStack() }) }
                     composable<LanguageRoute> { LanguageScreen(onBack = { nav.popBackStack() }) }
                     composable<NotificationsRoute> {
-                        NotificationSettingsScreen(settings, onBack = { nav.popBackStack() }) { key, on ->
+                        NotificationSettingsScreen(settings, onBack = { nav.popBackStack() }, onSundayReview = { nav.navigate(SundayReviewRoute) }) { key, on ->
                             container.appScope.launch {
                                 container.settings.setNotify(key, on)
                                 if (key == "summary") container.backup.schedule()
+                                if (key == "weekly") container.scheduleWeeklyReview()
                             }
                         }
                     }
@@ -459,12 +463,14 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<TxnRoute> { e ->
                         val id = e.toRoute<TxnRoute>().id
-                        val vm = viewModel { TxnViewModel(container.money, id, settings.monthStartDay) }
+                        val vm = viewModel { TxnViewModel(container.money, id, settings.monthStartDay, container.next) }
                         TxnScreen(
                             vm,
                             onBack = { nav.popBackStack() },
                             onEdit = { nav.navigate(AddRoute(editId = it)) },
                             onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) },
+                            onSplit = { nav.navigate(SplitRoute(it)) },
+                            onOpenTxn = openTxn,
                         )
                     }
                     composable<AddRoute> { e ->
@@ -475,12 +481,48 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             vm,
                             onClose = { nav.popBackStack() },
                             onSaved = { saved ->
-                                snackbar.show(context.getString(savedMessage(saved)), saved.undo)
+                                snackbar.show(saved.label ?: context.getString(savedMessage(saved)), saved.undo)
                                 nav.popBackStack()
                             },
+                            onFavourites = { nav.navigate(FavouritesRoute) },
                         )
                     }
+                    composable<FavouritesRoute> {
+                        val vm = viewModel { app.burrow.money.ui.favourites.FavouritesViewModel(container.next) }
+                        app.burrow.money.ui.favourites.FavouritesScreen(vm, onBack = { nav.popBackStack() })
+                    }
+                    composable<SplitRoute> { e ->
+                        val id = e.toRoute<SplitRoute>().txnId
+                        val vm = viewModel { app.burrow.money.ui.txn.SplitViewModel(container, id, settings.monthStartDay) }
+                        app.burrow.money.ui.txn.SplitScreen(vm, onClose = { nav.popBackStack() })
+                    }
+                    composable<SundayReviewRoute> {
+                        val vm = viewModel { app.burrow.money.ui.review.SundayReviewViewModel(container) }
+                        app.burrow.money.ui.review.SundayReviewScreen(
+                            vm, onBack = { nav.popBackStack() },
+                            onReview = { nav.navigate(ReviewRoute) },
+                            onBills = { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) },
+                            onBudget = { nav.navigate(BudgetRoute()) },
+                            onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
+                        )
+                    }
+                    composable<ImportRoute> {
+                        app.burrow.money.ui.importer.ImportScreen(container, onBack = { nav.popBackStack() }) { source, uri ->
+                            nav.navigate(ImportCheckRoute(source.name, uri.toString()))
+                        }
+                    }
+                    composable<ImportCheckRoute> { e ->
+                        val r = e.toRoute<ImportCheckRoute>()
+                        val vm = viewModel {
+                            app.burrow.money.ui.importer.ImportCheckViewModel(container, app.burrow.money.domain.ImportSource.valueOf(r.source), android.net.Uri.parse(r.uri))
+                        }
+                        app.burrow.money.ui.importer.ImportCheckScreen(vm, onBack = { nav.popBackStack() }) { n ->
+                            snackbar.show(context.resources.getQuantityString(R.plurals.csv_imported, n, n))
+                            nav.popBackStack(MoreRoute, inclusive = false)
+                        }
+                    }
                 }
+                app.burrow.money.ui.txn.TxnActionsHost(txnActions)
                 // Above the nav bar on tabs; above the gesture bar elsewhere.
                 BurrowSnackbarHost(
                     snackbar,

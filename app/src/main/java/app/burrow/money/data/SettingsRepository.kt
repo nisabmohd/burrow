@@ -57,6 +57,8 @@ data class Settings(
     val notifyBills: Boolean = true,
     val notifyBudgets: Boolean = true,
     val notifySummary: Boolean = false,
+    /** Sunday review (13): Sunday 6 PM, on by default. */
+    val notifyWeekly: Boolean = true,
     // Backup (69)
     val backupFolder: String? = null,
     val backupSchedule: String = "OFF", // OFF, DAILY, WEEKLY
@@ -98,6 +100,8 @@ object TopCard { const val BUDGET = "BUDGET"; const val SPENT = "SPENT"; const v
 object FormExtra {
     const val NOTE = "note"; const val REPEAT = "repeat"; const val ATTACH = "attach"; const val LEND = "lend"
     const val TIME = "time"; const val LAST_CATEGORY = "lastcat"
+    /** The Favourite chip (04): saves the expense as a one-tap favourite too. */
+    const val FAVOURITE = "favourite"
 }
 val ALL_FORM_EXTRAS = setOf(FormExtra.NOTE, FormExtra.REPEAT, FormExtra.ATTACH, FormExtra.LEND, FormExtra.TIME, FormExtra.LAST_CATEGORY)
 
@@ -135,6 +139,8 @@ class SettingsRepository(context: Context) {
     suspend fun setRecentCount(n: Int) = store.edit { it[RECENT_COUNT] = n }
     suspend fun setShowReview(on: Boolean) = store.edit { it[SHOW_REVIEW] = on }
     suspend fun setFormExtra(key: String, on: Boolean) = store.edit {
+        // The Favourite chip came later: it is on unless switched off, also for forms customised before it.
+        if (key == FormExtra.FAVOURITE) { it[FAVOURITE_OFF] = !on; return@edit }
         val now = it[FORM_EXTRAS] ?: ALL_FORM_EXTRAS
         it[FORM_EXTRAS] = if (on) now + key else now - key
     }
@@ -162,6 +168,7 @@ class SettingsRepository(context: Context) {
             "bills" -> it[NOTIFY_BILLS] = on
             "budgets" -> it[NOTIFY_BUDGETS] = on
             "summary" -> it[NOTIFY_SUMMARY] = on
+            "weekly" -> it[NOTIFY_WEEKLY] = on
         }
     }
 
@@ -230,6 +237,7 @@ class SettingsRepository(context: Context) {
             notifyBills = this[NOTIFY_BILLS] ?: true,
             notifyBudgets = this[NOTIFY_BUDGETS] ?: true,
             notifySummary = this[NOTIFY_SUMMARY] ?: false,
+            notifyWeekly = this[NOTIFY_WEEKLY] ?: true,
             backupFolder = this[BACKUP_FOLDER],
             backupSchedule = this[BACKUP_SCHEDULE] ?: "OFF",
             lastBackupAt = this[LAST_BACKUP_AT],
@@ -239,7 +247,7 @@ class SettingsRepository(context: Context) {
                 ?.let { saved -> saved + HOME_WIDGET_ORDER.filter { it !in saved } } ?: HOME_WIDGET_ORDER,
             homeRecentCount = this[RECENT_COUNT] ?: 5,
             homeShowReview = this[SHOW_REVIEW] ?: true,
-            formExtras = this[FORM_EXTRAS] ?: ALL_FORM_EXTRAS,
+            formExtras = (this[FORM_EXTRAS] ?: ALL_FORM_EXTRAS).let { if (this[FAVOURITE_OFF] == true) it - FormExtra.FAVOURITE else it + FormExtra.FAVOURITE },
             formDefaultType = this[FORM_TYPE] ?: TxnType.EXPENSE,
             formDefaultAccount = this[FORM_ACCOUNT],
             onPaymentFound = this[PAYMENT_FOUND] ?: PaymentFound.ASK,
@@ -281,6 +289,7 @@ class SettingsRepository(context: Context) {
         val NOTIFY_BILLS = booleanPreferencesKey("notifyBills")
         val NOTIFY_BUDGETS = booleanPreferencesKey("notifyBudgets")
         val NOTIFY_SUMMARY = booleanPreferencesKey("notifySummary")
+        val NOTIFY_WEEKLY = booleanPreferencesKey("weeklyReview")
         val BACKUP_FOLDER = stringPreferencesKey("backupFolderUri")
         val BACKUP_SCHEDULE = stringPreferencesKey("backupSchedule")
         val LAST_BACKUP_AT = longPreferencesKey("lastBackupAt")
@@ -290,6 +299,7 @@ class SettingsRepository(context: Context) {
         val RECENT_COUNT = intPreferencesKey("homeRecentCount")
         val SHOW_REVIEW = booleanPreferencesKey("homeShowReview")
         val FORM_EXTRAS = stringSetPreferencesKey("formExtras")
+        val FAVOURITE_OFF = booleanPreferencesKey("formFavouriteOff")
         val FORM_TYPE = stringPreferencesKey("formDefaultType")
         val FORM_ACCOUNT = longPreferencesKey("formDefaultAccount")
         val PAYMENT_FOUND = stringPreferencesKey("onPaymentFound")

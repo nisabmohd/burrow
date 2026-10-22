@@ -62,6 +62,8 @@ data class AddForm(
     val lend: String? = null,
     val person: String = "",
     val settleRemind: Boolean = true,
+    /** The Favourite chip (04): also keep this as a one-tap favourite. */
+    val favourite: Boolean = false,
 )
 
 /** A Paid to suggestion (87): a payee and the category it usually goes to. */
@@ -79,6 +81,8 @@ data class AddUiState(
     val extras: Set<String>,
     val suggestions: List<PayeeSuggestion>,
     val knownTags: List<String>,
+    /** One-tap favourites (04), shown while the amount is still empty. */
+    val favourites: List<app.burrow.money.data.FavouriteView> = emptyList(),
 ) {
     val category get() = categories.firstOrNull { it.id == form.categoryId }
     val account get() = accounts.firstOrNull { it.account.id == form.accountId }
@@ -103,7 +107,7 @@ data class AddUiState(
 private const val UPCOMING_SLACK = 60_000L
 
 /** A finished save: what the snackbar says and how Undo puts things back. */
-class Saved(val type: String, val wasEdit: Boolean, val upcoming: Boolean = false, val undo: suspend () -> Unit)
+class Saved(val type: String, val wasEdit: Boolean, val upcoming: Boolean = false, val label: String? = null, val undo: suspend () -> Unit)
 
 /**
  * New, edit or duplicate a transaction (17, 18, 74–79, 87). [editId] edits; [duplicateId] copies
@@ -135,9 +139,9 @@ class AddViewModel(
             val period = BudgetPeriod.containing(LocalDate.now(), monthStartDay)
             combine(
                 combine(repo.categories, repo.accounts, repo.spentByCategory(period)) { a, b, c -> Triple(a, b, c) },
-                app.settings.settings, suggestions, repo.tags,
-            ) { (cats, accs, spent), s, sug, tags ->
-                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name })
+                app.settings.settings, suggestions, repo.tags, app.next.favourites,
+            ) { (cats, accs, spent), s, sug, tags, favs ->
+                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -237,6 +241,15 @@ class AddViewModel(
     fun setLend(kind: String?) = edit { it.copy(lend = kind) }
     fun setPerson(name: String) = edit { it.copy(person = name) }
     fun setSettleRemind(on: Boolean) = edit { it.copy(settleRemind = on) }
+    fun setFavourite(on: Boolean) = edit { it.copy(favourite = on) }
+
+    /** One tap on a favourite chip (04): saved to now, with Undo. */
+    fun spendFavourite(f: app.burrow.money.data.FavouriteView, label: String, onSaved: (Saved) -> Unit) {
+        viewModelScope.launch {
+            val id = app.next.spendFavourite(f.favourite)
+            onSaved(Saved(TxnType.EXPENSE, wasEdit = false, label = label) { repo.delete(id) })
+        }
+    }
 
     fun addAttachment(p: Attachments.Pending) = edit { it.copy(attachments = it.attachments + p) }
     fun removePending(p: Attachments.Pending) = edit { p.file.delete(); it.copy(attachments = it.attachments - p) }
@@ -303,10 +316,15 @@ class AddViewModel(
             } else null
             if (personId != null && f.settleRemind) repo.setPersonReminder(personId, now + SETTLE_AFTER)
             if (captureId != 0L) app.capture.markSaved(captureId, id, txn.categoryId)
+            // The Favourite chip: "Chai ₹20 · Cash" for one tap next time.
+            val favouriteId = if (f.favourite && f.type == TxnType.EXPENSE && txn.categoryId != null) {
+                app.next.addFavourite(txn.payee ?: s.category?.name.orEmpty(), txn.amount, txn.categoryId, txn.accountId)
+            } else null
             onSaved(
                 Saved(f.type, base != null, s.upcoming) {
                     if (base != null) repo.restore(base) else repo.delete(id)
                     billId?.let { app.plan.deleteBill(it) }
+                    favouriteId?.let { app.next.removeFavourite(it) }
                 },
             )
         }

@@ -51,3 +51,19 @@ homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 ## Sample data
 First open seeds a realistic month (flagged `isSample`), with the "These are sample transactions"
 note. Removed on the first real transaction or by "Remove".
+
+## v5 (2026-10-22, burrow-next)
+- `TxnEntity.refundOf` + type `REFUND`: money back for an expense. Raises its account, lowers that
+  category's spending (SQL `spent` / `spentByCategory` subtract it), never counts as income.
+- `SplitEntity(txnId, categoryId, amount)`: a split payment. Parts always add up to the payment and
+  there are 2+ of them; the payment stays one row in Activity, its own category becomes the biggest
+  part. Category totals in SQL use the parts; `expandForStats` unfolds them for Insights, Today's
+  widgets and Category insights. Changing the amount or type in Edit drops the split.
+- `FavouriteEntity(name, amount, categoryId, accountId, sortOrder)`: one-tap expenses (04, 05).
+- `ImportMapEntity(source, kind, theirName, targetId)`: another app's category / account names →
+  Burrow's, remembered for the next import (11).
+- Backups are version 3 and carry splits, favourites and import mappings.
+- DataStore: `weeklyReview` (Sunday review, on by default), `formFavouriteOff`. The Welcome budget is
+  a normal overall `BudgetEntity` from this month on (not a DataStore key), so Budgets shows it.
+- The daily number: safe to spend today = (left this month + spent today) ÷ days left including
+  today − spent today, never below 0 (`domain/Next.kt`). Today, the widget and the Sunday review.

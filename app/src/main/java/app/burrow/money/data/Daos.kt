@@ -21,6 +21,8 @@ object TxnType {
     /** "Fix balance": moves an account's balance, never spending or income. */
     const val ADJUST_UP = "ADJUST_UP"
     const val ADJUST_DOWN = "ADJUST_DOWN"
+    /** v5: money back for an expense ([TxnEntity.refundOf]): raises the account, lowers that category's spending. */
+    const val REFUND = "REFUND"
 }
 
 /** A transaction's state (v4). */
@@ -152,6 +154,12 @@ interface CategoryDao {
     @Query("UPDATE BillEntity SET categoryId = :to WHERE categoryId = :from")
     suspend fun moveBills(from: Long, to: Long)
 
+    @Query("UPDATE SplitEntity SET categoryId = :to WHERE categoryId = :from")
+    suspend fun moveSplits(from: Long, to: Long)
+
+    @Query("UPDATE FavouriteEntity SET categoryId = :to WHERE categoryId = :from")
+    suspend fun moveFavourites(from: Long, to: Long)
+
     @Query("DELETE FROM BudgetEntity WHERE categoryId = :id")
     suspend fun deleteBudgets(id: Long)
 }
@@ -192,10 +200,23 @@ interface TxnDao {
     @Query("SELECT * FROM TxnEntity WHERE id = :id")
     suspend fun get(id: Long): TxnEntity?
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
+    /** Spending in [from, to): expenses less refunds. */
+    @Query("SELECT COALESCE(SUM(CASE WHEN type = 'REFUND' THEN -amount ELSE amount END), 0) FROM TxnEntity WHERE type IN ('EXPENSE', 'REFUND') AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
     fun spent(from: Long, to: Long): Flow<Long>
 
-    @Query("SELECT categoryId, SUM(amount) AS total FROM TxnEntity WHERE type = 'EXPENSE' AND excludeFromStats = 0 AND status = 'POSTED' AND categoryId IS NOT NULL AND at >= :from AND at < :to GROUP BY categoryId")
+    /** Spending by category: a split payment counts in each part's category; refunds lower theirs. */
+    @Query(
+        """
+        SELECT categoryId, SUM(total) AS total FROM (
+            SELECT t.categoryId AS categoryId, CASE WHEN t.type = 'REFUND' THEN -t.amount ELSE t.amount END AS total FROM TxnEntity t
+            WHERE t.type IN ('EXPENSE', 'REFUND') AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
+              AND NOT EXISTS (SELECT 1 FROM SplitEntity s WHERE s.txnId = t.id)
+            UNION ALL
+            SELECT s.categoryId AS categoryId, s.amount AS total FROM SplitEntity s JOIN TxnEntity t ON t.id = s.txnId
+            WHERE t.type = 'EXPENSE' AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
+        ) WHERE categoryId IS NOT NULL GROUP BY categoryId
+        """,
+    )
     fun spentByCategory(from: Long, to: Long): Flow<List<CategorySum>>
 
     @Query("SELECT COUNT(*) FROM TxnEntity")
@@ -521,6 +542,107 @@ interface ExtrasDao {
 }
 
 data class LendSum(val personId: Long, val lend: String?, val type: String, val total: Long)
+
+/** A split part with its category's name and circle. */
+data class SplitView(
+    @Embedded val split: SplitEntity,
+    val categoryName: String,
+    val categoryIcon: String,
+    val categoryHue: Float,
+)
+
+/** A favourite with what its chip and row need. */
+data class FavouriteView(
+    @Embedded val favourite: FavouriteEntity,
+    val categoryName: String,
+    val categoryIcon: String,
+    val categoryHue: Float,
+    val accountName: String,
+)
+
+/** How many payments this period came from each source (MANUAL, SMS, NOTIFICATION, BILL…). */
+data class SourceCount(val source: String, val count: Int)
+
+/** Day, amount and payee of a transaction: enough to spot one already here (Import). */
+data class TxnKey(val at: Long, val amount: Long, val payee: String?)
+
+/** The next round (docs/IDEAS.md, burrow-next): split parts, refunds, favourites, import mappings, trust. */
+@Dao
+interface NextDao {
+    @Query(
+        """
+        SELECT s.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue
+        FROM SplitEntity s JOIN CategoryEntity c ON c.id = s.categoryId JOIN TxnEntity t ON t.id = s.txnId
+        ORDER BY s.txnId, s.id
+        """,
+    )
+    fun splits(): Flow<List<SplitView>>
+
+    @Query("SELECT * FROM SplitEntity WHERE txnId = :txnId ORDER BY id")
+    fun splitsOf(txnId: Long): Flow<List<SplitEntity>>
+
+    @Query("SELECT * FROM SplitEntity WHERE txnId = :txnId ORDER BY id")
+    suspend fun splitsFor(txnId: Long): List<SplitEntity>
+
+    @Query("DELETE FROM SplitEntity WHERE txnId = :txnId")
+    suspend fun clearSplits(txnId: Long)
+
+    @Insert
+    suspend fun insertSplits(parts: List<SplitEntity>)
+
+    /** Parts of payments that are gone (deleted, or the sample month) — run at app start. */
+    @Query("DELETE FROM SplitEntity WHERE txnId NOT IN (SELECT id FROM TxnEntity)")
+    suspend fun cleanOrphanSplits()
+
+    @Query("SELECT * FROM TxnEntity WHERE refundOf = :txnId AND type = 'REFUND' ORDER BY at")
+    fun refundsOf(txnId: Long): Flow<List<TxnEntity>>
+
+    @Query(
+        """
+        SELECT f.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue, a.name AS accountName
+        FROM FavouriteEntity f JOIN CategoryEntity c ON c.id = f.categoryId JOIN AccountEntity a ON a.id = f.accountId
+        WHERE a.archived = 0
+        ORDER BY f.sortOrder, f.id
+        """,
+    )
+    fun favourites(): Flow<List<FavouriteView>>
+
+    @Query("SELECT * FROM FavouriteEntity WHERE id = :id")
+    suspend fun favourite(id: Long): FavouriteEntity?
+
+    @Query("SELECT COALESCE(MAX(sortOrder), -1) + 1 FROM FavouriteEntity")
+    suspend fun nextFavouriteOrder(): Int
+
+    @Upsert
+    suspend fun upsertFavourite(f: FavouriteEntity): Long
+
+    @Query("DELETE FROM FavouriteEntity WHERE id = :id")
+    suspend fun deleteFavourite(id: Long)
+
+    @Query("UPDATE FavouriteEntity SET sortOrder = :order WHERE id = :id")
+    suspend fun setFavouriteOrder(id: Long, order: Int)
+
+    @Query("SELECT * FROM ImportMapEntity WHERE source = :source")
+    suspend fun importMaps(source: String): List<ImportMapEntity>
+
+    @Upsert
+    suspend fun putImportMaps(maps: List<ImportMapEntity>)
+
+    @Query("SELECT at, amount, payee FROM TxnEntity WHERE at >= :from AND at < :to AND isSample = 0")
+    suspend fun keysBetween(from: Long, to: Long): List<TxnKey>
+
+    /** The message a payment was recorded from (21 "Recorded from SMS"). */
+    @Query("SELECT * FROM CaptureEntity WHERE txnId = :txnId ORDER BY receivedAt DESC LIMIT 1")
+    fun captureFor(txnId: Long): Flow<CaptureEntity?>
+
+    /** Real payments in the period by source, for "Recorded by itself" (15). Imports and transfers aren't payments typed or found. */
+    @Query("SELECT source, COUNT(*) AS count FROM TxnEntity WHERE at >= :from AND at < :to AND type IN ('EXPENSE', 'INCOME') AND isSample = 0 AND status = 'POSTED' AND source != 'IMPORT' GROUP BY source")
+    fun sourceCounts(from: Long, to: Long): Flow<List<SourceCount>>
+
+    /** Senders of the messages it couldn't read ("From Kotak and SBI Card"). */
+    @Query("SELECT DISTINCT sender FROM CaptureEntity WHERE status = 'UNREAD' ORDER BY receivedAt DESC LIMIT 3")
+    fun unreadSenders(): Flow<List<String>>
+}
 data class PersonSince(val personId: Long, val since: Long)
 
 @Dao
@@ -539,6 +661,15 @@ interface BackupDao {
     @Query("SELECT * FROM TxnTagEntity") suspend fun txnTags(): List<TxnTagEntity>
     @Query("SELECT * FROM AttachmentEntity") suspend fun attachments(): List<AttachmentEntity>
     @Query("SELECT * FROM RateEntity") suspend fun rates(): List<RateEntity>
+    @Query("SELECT * FROM SplitEntity") suspend fun splits(): List<SplitEntity>
+    @Query("SELECT * FROM FavouriteEntity") suspend fun favourites(): List<FavouriteEntity>
+    @Query("SELECT * FROM ImportMapEntity") suspend fun importMaps(): List<ImportMapEntity>
+    @Insert suspend fun putSplits(l: List<SplitEntity>)
+    @Insert suspend fun putFavourites(l: List<FavouriteEntity>)
+    @Insert suspend fun putImportMaps(l: List<ImportMapEntity>)
+    @Query("DELETE FROM SplitEntity") suspend fun clearSplits()
+    @Query("DELETE FROM FavouriteEntity") suspend fun clearFavourites()
+    @Query("DELETE FROM ImportMapEntity") suspend fun clearImportMaps()
     @Insert suspend fun putPeople(l: List<PersonEntity>)
     @Insert suspend fun putTags(l: List<TagEntity>)
     @Insert suspend fun putTxnTags(l: List<TxnTagEntity>)

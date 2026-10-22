@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.isImeVisible
@@ -74,7 +76,7 @@ private val TYPES = listOf(TxnType.EXPENSE, TxnType.INCOME, TxnType.TRANSFER)
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit) {
+fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit, onFavourites: () -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return // nothing drawn until the form has loaded
     val f = s.form
@@ -105,6 +107,10 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             ButtonGroup(TYPES, f.type, { stringResource(typeLabel(it)) }, vm::setType)
+            // Favourites (04): while nothing is typed, one tap saves a usual expense.
+            if (f.type == TxnType.EXPENSE && !s.isEdit && s.amount == 0L && s.favourites.isNotEmpty()) {
+                Favourites(s.favourites, onFavourites) { fav, label -> vm.spendFavourite(fav, label, onSaved) }
+            }
             Column(Modifier.fillMaxWidth().padding(top = Space.amountTop, bottom = Space.block), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     money.plain(s.amount),
@@ -178,6 +184,8 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
                     f.repeat.takeIf { it != Every.NEVER }?.let { stringResource(everyLabel(it)) }) { sheet = AddSheet.REPEAT }
                 if (s.shows(FormExtra.ATTACH)) ExtraChip(painterResource(R.drawable.ic_attach_file_regular), stringResource(R.string.extra_attach),
                     files.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.n_files, it, it) }) { sheet = AddSheet.ATTACH }
+                if (s.shows(FormExtra.FAVOURITE) && f.type == TxnType.EXPENSE) ExtraChip(painterResource(R.drawable.ic_star_regular), stringResource(R.string.favourite),
+                    if (f.favourite) stringResource(R.string.favourite) else null) { vm.setFavourite(!f.favourite) }
                 if (s.shows(FormExtra.LEND) && !transfer) ExtraChip(painterResource(R.drawable.ic_handshake_regular), stringResource(R.string.extra_lend),
                     f.lend?.takeIf { f.person.isNotBlank() }?.let { stringResource(if (it == Lend.LENT) R.string.lent_to_name else R.string.borrowed_from_name, f.person) }) { sheet = AddSheet.LEND }
             }
@@ -270,4 +278,26 @@ fun savedMessage(saved: Saved) = when {
     saved.type == TxnType.INCOME -> R.string.saved_income
     saved.type == TxnType.TRANSFER -> R.string.saved_transfer
     else -> R.string.saved_expense
+}
+
+/** "★ Favourites · one tap saves" · Edit, then the chips in a row that scrolls sideways (04). */
+@Composable
+private fun Favourites(list: List<app.burrow.money.data.FavouriteView>, onEdit: () -> Unit, onSpend: (app.burrow.money.data.FavouriteView, String) -> Unit) {
+    val c = MaterialTheme.colorScheme
+    val money = LocalMoney.current
+    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Icon(painterResource(R.drawable.ic_star_regular), null, tint = c.primary, modifier = Modifier.padding(end = Space.small).size(Size.iconSmall))
+        Text(stringResource(R.string.favourites_one_tap), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f))
+        app.burrow.money.ui.components.LinkButton(stringResource(R.string.edit), onEdit)
+    }
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(Space.small),
+    ) {
+        list.forEach { f ->
+            val label = stringResource(R.string.favourite_chip, f.favourite.name, money.plain(f.favourite.amount))
+            val saved = stringResource(R.string.favourite_saved, f.favourite.name, money.plain(f.favourite.amount))
+            app.burrow.money.ui.components.FavouriteChip(label, { CategoryCircle(f.categoryIcon, f.categoryHue, Size.favouriteCircle) }) { onSpend(f, saved) }
+        }
+    }
 }

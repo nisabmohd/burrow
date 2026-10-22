@@ -216,10 +216,13 @@ class MoneyRepository(
         val before = if (txn.id != 0L) db.txns().get(txn.id) else null
         val id = db.withTransaction {
             val id = db.txns().upsert(txn).let { if (it == -1L) txn.id else it }
+            // A split no longer adds up once the amount or type changes: it becomes one category again.
+            if (before != null && (before.amount != txn.amount || txn.type != TxnType.EXPENSE)) db.next().clearSplits(id)
             if (!txn.isSample) removeSamplesInTransaction()
             id
         }
         afterSave?.invoke(txn.copy(id = id), before)
+        changed?.invoke()
         return id
     }
 
@@ -229,12 +232,16 @@ class MoneyRepository(
      */
     var afterSave: (suspend (saved: TxnEntity, before: TxnEntity?) -> Unit)? = null
 
+    /** Runs after any change to transactions (the home-screen widget and the Review shortcut refresh). */
+    var changed: (suspend () -> Unit)? = null
+
     /** Deletes and returns the transaction, for the Undo snackbar. */
-    suspend fun delete(id: Long): TxnEntity? = db.txns().get(id)?.also { db.txns().delete(it) }
+    suspend fun delete(id: Long): TxnEntity? = db.txns().get(id)?.also { db.txns().delete(it); changed?.invoke() }
 
     /** Puts a deleted transaction back with its old id. */
     suspend fun restore(txn: TxnEntity) {
         db.txns().upsert(txn)
+        changed?.invoke()
     }
 
     suspend fun saveCategory(c: CategoryEntity): Long = db.categories().upsert(c).let { if (it == -1L) c.id else it }
@@ -246,6 +253,8 @@ class MoneyRepository(
             ?: cats.first { it.id != id }
         db.categories().moveTxns(id, target.id)
         db.categories().moveBills(id, target.id)
+        db.categories().moveSplits(id, target.id)
+        db.categories().moveFavourites(id, target.id)
         db.categories().deleteBudgets(id)
         db.categories().archive(id)
     }

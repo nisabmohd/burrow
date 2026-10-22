@@ -30,7 +30,7 @@ data class Filters(
         val x = t.txn
         val typeOk = when (type) {
             TypeFilter.ALL -> true
-            TypeFilter.SPENT -> x.type == TxnType.EXPENSE
+            TypeFilter.SPENT -> x.type == TxnType.EXPENSE || x.type == TxnType.REFUND
             TypeFilter.INCOME -> x.type == TxnType.INCOME
             TypeFilter.TRANSFERS -> x.type == TxnType.TRANSFER
         }
@@ -46,4 +46,6 @@ data class Filters(
 class FilterStore {
     val activity = MutableStateFlow(Filters())
     val insights = MutableStateFlow(Filters())
+    /** The Search shortcut (02): Activity focuses its search field once. */
+    val focusSearch = MutableStateFlow(false)
 }

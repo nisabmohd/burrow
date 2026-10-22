@@ -72,11 +72,11 @@ internal fun TxnView.isSpending() = txn.type == TxnType.EXPENSE && !txn.excludeF
  * Insights (36–41): spending in the picked dates (this month by default) against the period before,
  * a day on average, the biggest payment, by category, patterns and the month heatmap. One page.
  */
-class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int) : ViewModel() {
+class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int, stats: kotlinx.coroutines.flow.Flow<List<TxnView>> = money.latest()) : ViewModel() {
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 
-    val state: StateFlow<InsightsState?> = combine(money.latest(), store.insights, money.accounts, money.categories) { all, f, accounts, categories ->
+    val state: StateFlow<InsightsState?> = combine(stats, store.insights, money.accounts, money.categories) { all, f, accounts, categories ->
         val range = f.range ?: defaultRange
         val prev = range.previous()
         val matching = all.filter { f.copy(range = null).matches(it, zone, withRange = false) }
@@ -138,11 +138,11 @@ data class CategoryInsightsState(
 )
 
 /** Category insights (42): one category in the picked dates, by day, and its transactions. */
-class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long) : ViewModel() {
+class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: kotlinx.coroutines.flow.Flow<List<TxnView>> = money.latest()) : ViewModel() {
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 
-    val state: StateFlow<CategoryInsightsState?> = combine(money.latest(), store.insights, money.categories) { all, f, cats ->
+    val state: StateFlow<CategoryInsightsState?> = combine(stats, store.insights, money.categories) { all, f, cats ->
         val cat = cats.firstOrNull { it.id == categoryId } ?: return@combine null
         val range = f.range ?: defaultRange
         val mine = all.filter { it.isSpending() && it.txn.categoryId == categoryId && f.copy(categories = emptySet(), range = null).matches(it, zone, withRange = false) }

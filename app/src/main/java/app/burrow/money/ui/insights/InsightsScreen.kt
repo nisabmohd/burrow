@@ -356,7 +356,7 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
             value = money.plain(selBar?.second ?: 0),
             line = selBar?.first?.let { dates.shortDay(it) },
             modifier = Modifier.padding(top = Space.block),
-            trailing = { app.burrow.money.ui.components.AverageLegend(stringResource(R.string.avg, money.short(if (s.bars.isEmpty()) 0 else s.total / s.bars.size))) },
+            trailing = { app.burrow.money.ui.components.AverageLegend(stringResource(R.string.avg, money.short(money.whole(if (s.bars.isEmpty()) 0 else s.total / s.bars.size)))) },
         ) {
             PillBarChart(
                 bars = s.bars.map { (d, v) -> Bar(if (day) d.dayOfMonth.toString() else dates.shortDay(d), v) },

@@ -37,6 +37,7 @@ fun TxnRow(t: TxnView, index: Int, count: Int, dates: DateText, today: LocalDate
     val kind = when (t.txn.type) {
         TxnType.TRANSFER -> stringResource(R.string.type_transfer)
         TxnType.ADJUST_UP, TxnType.ADJUST_DOWN -> stringResource(R.string.balance_fixed)
+        TxnType.REFUND -> stringResource(R.string.dot_join, stringResource(R.string.refund), t.categoryName.orEmpty())
         else -> t.categoryName.orEmpty()
     }
     val base = stringResource(R.string.dot_join, kind, shortName(t.accountName))
@@ -56,5 +57,7 @@ fun TxnRow(t: TxnView, index: Int, count: Int, dates: DateText, today: LocalDate
         lead = { TxnCircle(t) },
         trailing = { AmountTrailing(money.forTxn(t.txn.type, t.txn.amount)) },
         onClick = onClick,
+        // Long-press anywhere a transaction is listed: its actions sheet (06).
+        onLongClick = LocalTxnActions.current?.let { a -> { a.open(t) } },
     )
 }

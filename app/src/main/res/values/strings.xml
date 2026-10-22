@@ -961,4 +961,198 @@
     <string name="n_of_n_paid">%1$d of %2$d paid</string>
     <string name="settle_owes_you">Owes you %1$s</string>
     <string name="settle_you_owe">You owe %1$s</string>
+
+    <!-- Next round (burrow-next, 2026-10-22) -->
+    <!-- The daily number (01, 02, 14) -->
+    <string name="hero_left_safe">left of %1$s · %2$s safe to spend today</string>
+    <string name="safe_to_spend_today">Safe to spend today</string>
+    <string name="safe_today_line">%1$s safe to spend today</string>
+    <!-- Home-screen widget, shortcuts, tile (02, 03) -->
+    <string name="widget_dash">–</string>
+    <string name="widget_open_once">Open Burrow once to fill this in</string>
+    <string name="widget_left_line">%1$s left in %2$s · %3$s</string>
+    <string name="widget_over_line">%1$s over in %2$s</string>
+    <string name="widget_no_budget">Set a monthly budget for a daily number</string>
+    <string name="widget_bill_title">%1$s %2$s</string>
+    <string name="widget_safe_description">What is safe to spend today, and a button to add an expense</string>
+    <string name="widget_add_description">Add an expense in one tap</string>
+    <string name="widget_bill_description">Your next bill and when it is due</string>
+    <string name="no_bills_due">No bills due</string>
+    <string name="due_tomorrow">Due tomorrow</string>
+    <string name="not_paid_yet">Not paid yet</string>
+    <string name="search">Search</string>
+    <plurals name="review_n_payments">
+        <item quantity="one">Review %d payment</item>
+        <item quantity="other">Review %d payments</item>
+    </plurals>
+    <plurals name="n_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="due_in_days">
+        <item quantity="one">Due in %d day</item>
+        <item quantity="other">Due in %d days</item>
+    </plurals>
+    <!-- Favourites (04, 05) -->
+    <string name="favourite">Favourite</string>
+    <string name="favourites">Favourites</string>
+    <string name="favourites_one_tap">Favourites · one tap saves</string>
+    <string name="favourite_chip">%1$s %2$s</string>
+    <string name="favourite_saved">%1$s %2$s saved</string>
+    <string name="favourite_added">Saved as a favourite</string>
+    <string name="favourite_removed">Favourite removed</string>
+    <string name="favourites_line">One tap on New expense saves them</string>
+    <string name="favourites_how">To add one, fill in New expense and turn on the Favourite chip before you save.</string>
+    <string name="no_favourites">No favourites yet</string>
+    <string name="save_as_favourite">Save as favourite</string>
+    <string name="save_as_favourite_line">One tap on New expense</string>
+    <string name="hold_and_drag">Hold ⠿ and drag to reorder</string>
+    <plurals name="n_favourites">
+        <item quantity="one">%d favourite · one tap saves</item>
+        <item quantity="other">%d favourites · one tap saves</item>
+    </plurals>
+    <!-- Long-press a row (06) -->
+    <string name="change_category">Change category</string>
+    <string name="duplicate_today">Duplicate to today</string>
+    <string name="duplicate_today_line">Same payee, amount and category</string>
+    <string name="duplicated_today">Duplicated to today</string>
+    <!-- Split and refund (07–09) -->
+    <string name="split_across">Split across categories</string>
+    <string name="split_line">One payment, more than one category</string>
+    <string name="split_payment">Split payment</string>
+    <string name="still_to_place">%1$s still to put in a category</string>
+    <string name="too_much_placed">%1$s more than the payment</string>
+    <string name="split_add_part_line">Add a part to split it</string>
+    <string name="split_adds_up">The parts add up</string>
+    <string name="tap_to_change">Tap to change</string>
+    <string name="add_a_part">Add a part</string>
+    <string name="split_put_in">Put %1$s in %2$s</string>
+    <string name="take_from">Take %1$s from %2$s</string>
+    <string name="split_explain">Each part counts toward its own category and budget. The payment stays one row in Activity.</string>
+    <string name="split_saved">Split saved</string>
+    <string name="unsplit">Put it back in one category</string>
+    <string name="unsplit_done">Back in one category</string>
+    <string name="less_for">Less for %1$s</string>
+    <string name="more_for">More for %1$s</string>
+    <string name="type_amount">Type the amount</string>
+    <string name="at_most">At most %1$s</string>
+    <plurals name="split_in_parts">
+        <item quantity="one">Split in %d part</item>
+        <item quantity="other">Split in %d parts</item>
+    </plurals>
+    <string name="add_refund">Add a refund</string>
+    <string name="add_refund_line">Money back for this payment</string>
+    <string name="refund">Refund</string>
+    <string name="refund_for">Refund for %1$s</string>
+    <string name="all_of_it">All of it</string>
+    <string name="half">Half</string>
+    <string name="back_into">Back into %1$s</string>
+    <string name="refund_lowers">Lowers %1$s, not counted as income</string>
+    <string name="save_refund">Save refund</string>
+    <string name="refund_saved">Refund saved</string>
+    <string name="refunded_in_full">This payment is already paid back in full.</string>
+    <string name="refunded_so_far">%1$s came back already</string>
+    <string name="refunded_on">%1$s back · %2$s</string>
+    <string name="recorded_from_sms">Recorded from SMS</string>
+    <string name="recorded_from_app">Recorded from a notification</string>
+    <string name="message_forgotten">The message text was deleted after 30 days.</string>
+    <!-- Import (10, 11) -->
+    <string name="import_export">Import or export</string>
+    <string name="import_export_line">Cashew, Walnut, Money Manager, CSV, backup</string>
+    <string name="bring_history">Bring your history</string>
+    <string name="bring_history_line">Pick the file your old app exported. It is read on this phone.</string>
+    <string name="from_another_app">From another app</string>
+    <string name="from_burrow">From Burrow</string>
+    <string name="app_cashew">Cashew</string>
+    <string name="app_walnut">Walnut</string>
+    <string name="app_money_manager">Money Manager</string>
+    <string name="a_spreadsheet">a spreadsheet</string>
+    <string name="cashew_how">In Cashew: Settings › Export data › CSV</string>
+    <string name="walnut_how">In Walnut: Export › All transactions</string>
+    <string name="money_manager_how">In Money Manager: Backup › Export to CSV</string>
+    <string name="any_spreadsheet">Any spreadsheet (CSV)</string>
+    <string name="any_spreadsheet_line">You match the columns once</string>
+    <string name="replaces_phone">Replaces what is on this phone</string>
+    <string name="check_before_import">Check before import</string>
+    <string name="transactions_from">Transactions from %1$s</string>
+    <string name="columns">Columns</string>
+    <string name="column_type">Money in or out</string>
+    <string name="choose_a_column">Choose a column</string>
+    <string name="not_in_file">Not in this file</string>
+    <string name="which_column">Which column?</string>
+    <string name="n_of_n_matched">%1$d of %2$d matched</string>
+    <string name="n_matched_n_new">%1$d matched · %2$d new</string>
+    <string name="their_name_in">“%1$s” in %2$s</string>
+    <string name="and">and</string>
+    <string name="into_default">Into the account below</string>
+    <string name="all_go_here">Every transaction goes here</string>
+    <string name="others_go_here">The rest go here</string>
+    <string name="skip_already_here">Skip ones already here</string>
+    <string name="nothing_to_import">Nothing to import</string>
+    <string name="nothing_to_import_line">This file has no payments Burrow can read. Check it is the CSV export from %1$s.</string>
+    <string name="pick_another_file">Pick another file</string>
+    <plurals name="import_n">
+        <item quantity="one">Import %d transaction</item>
+        <item quantity="other">Import %d transactions</item>
+    </plurals>
+    <plurals name="n_accounts">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="n_lines_skipped">
+        <item quantity="one">%d line left out</item>
+        <item quantity="other">%d lines left out</item>
+    </plurals>
+    <plurals name="same_day_amount_payee">
+        <item quantity="one">Same day, amount and payee · %d found</item>
+        <item quantity="other">Same day, amount and payee · %d found</item>
+    </plurals>
+    <!-- Welcome budget step (12) -->
+    <string name="welcome_budget_title">How much a month?</string>
+    <string name="welcome_budget_line">Your limit for a month. Today then shows what is left and what is safe to spend each day.</string>
+    <string name="n_a_day">%1$s a day</string>
+    <string name="safe_on_average_day">Safe to spend on an average day</string>
+    <string name="skip_for_now">Skip for now</string>
+    <!-- Sunday review (13, 14) -->
+    <string name="sunday_review">Sunday review</string>
+    <string name="n_sunday_review_line">30 seconds: your week, what to review, bills due</string>
+    <string name="weekly_title">Your week: %1$s spent</string>
+    <string name="weekly_to_review">%1$d to review</string>
+    <string name="weekly_left">%1$s left</string>
+    <string name="weekly_takes_30s">Takes 30 seconds.</string>
+    <string name="your_week">Your week · %1$s</string>
+    <string name="less_than_week_before">%1$s less than the week before</string>
+    <string name="more_than_week_before">%1$s more than the week before</string>
+    <string name="same_as_week_before">Same as the week before</string>
+    <string name="saved_when_you_finish">Saved when you finish</string>
+    <string name="nothing_waiting">Nothing waits in To review</string>
+    <string name="no_bills_this_week">No bills due this week</string>
+    <string name="name_due">%1$s %2$s</string>
+    <string name="name_not_paid">%1$s not paid yet</string>
+    <string name="left_in_month">%1$s left in %2$s</string>
+    <string name="over_in_month">%1$s over in %2$s</string>
+    <string name="most_on">Most on %1$s</string>
+    <string name="this_week_amount">%1$s this week</string>
+    <string name="nothing_spent_week">Nothing spent this week</string>
+    <plurals name="weekly_bills_due">
+        <item quantity="one">%d bill due</item>
+        <item quantity="other">%d bills due</item>
+    </plurals>
+    <plurals name="bills_due_this_week">
+        <item quantity="one">%d bill due this week</item>
+        <item quantity="other">%d bills due this week</item>
+    </plurals>
+    <plurals name="save_n_and_finish">
+        <item quantity="one">Save %d and finish</item>
+        <item quantity="other">Save %d and finish</item>
+    </plurals>
+    <!-- Trust in capture (15) -->
+    <string name="recorded_by_itself">Recorded by itself</string>
+    <string name="trust_line">%1$d of %2$d payments this month · you typed %3$d</string>
+    <string name="percent_by_itself">%1$d%% recorded by itself</string>
+    <string name="from_senders">From %1$s</string>
+    <plurals name="teach_missed">
+        <item quantity="one">Teach it %d message it missed</item>
+        <item quantity="other">Teach it %d messages it missed</item>
+    </plurals>
 </resources>

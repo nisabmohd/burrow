@@ -57,6 +57,13 @@ class MainActivity : ComponentActivity() {
         const val ACTION_OPEN_TXN = "app.burrow.money.action.OPEN_TXN"
         /** Settle-up reminder: open Accounts (Lent and borrowed). */
         const val ACTION_OPEN_ACCOUNTS = "app.burrow.money.action.OPEN_ACCOUNTS"
+        /** Widget, shortcut, quick settings tile: New expense / New income. */
+        const val ACTION_NEW_EXPENSE = "app.burrow.money.action.NEW_EXPENSE"
+        const val ACTION_NEW_INCOME = "app.burrow.money.action.NEW_INCOME"
+        /** Shortcut: Activity with the search field focused. */
+        const val ACTION_SEARCH = "app.burrow.money.action.SEARCH"
+        /** Sunday review notification (13). */
+        const val ACTION_SUNDAY_REVIEW = "app.burrow.money.action.SUNDAY_REVIEW"
         const val EXTRA_ID = "id"
         private const val KEY_LOCKED = "locked"
     }
@@ -170,6 +177,10 @@ class MainActivity : ComponentActivity() {
             ACTION_OPEN_CAPTURE -> OpenFromNotification.EditCapture(intent.getLongExtra(EXTRA_ID, 0L))
             ACTION_OPEN_TXN -> OpenFromNotification.Txn(intent.getLongExtra(EXTRA_ID, 0L))
             ACTION_OPEN_ACCOUNTS -> OpenFromNotification.Accounts
+            ACTION_NEW_EXPENSE -> OpenFromNotification.NewTxn(app.burrow.money.data.TxnType.EXPENSE)
+            ACTION_NEW_INCOME -> OpenFromNotification.NewTxn(app.burrow.money.data.TxnType.INCOME)
+            ACTION_SEARCH -> OpenFromNotification.Search
+            ACTION_SUNDAY_REVIEW -> OpenFromNotification.SundayReview
             else -> pending.value
         }
     }

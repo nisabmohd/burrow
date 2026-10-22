@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small widget 2×2 (02): a + circle and "Add expense"; opens New expense.
+     RemoteViews allow only some views (no plain View), so a FrameLayout places the text at the bottom. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_surface"
+    android:contentDescription="@string/add_expense"
+    android:padding="@dimen/widget_padding">
+
+    <ImageView
+        android:layout_width="@dimen/widget_add_small"
+        android:layout_height="@dimen/widget_add_small"
+        android:layout_gravity="top|start"
+        android:background="@drawable/widget_circle_primary"
+        android:importantForAccessibility="no"
+        android:padding="10dp"
+        android:src="@drawable/ic_add_regular"
+        android:tint="@color/widget_on_primary" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:maxLines="2"
+        android:text="@string/add_expense"
+        android:textColor="@color/widget_text"
+        android:textSize="@dimen/widget_title" />
+</FrameLayout>

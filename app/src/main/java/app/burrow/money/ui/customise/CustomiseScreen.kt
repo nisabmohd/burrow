@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +63,7 @@ import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.ListGroup
 import app.burrow.money.ui.components.ListRow
 import app.burrow.money.ui.components.OrderedRow
+import app.burrow.money.ui.components.DragColumn
 import app.burrow.money.ui.components.PickList
 import app.burrow.money.ui.components.PillTextField
 import app.burrow.money.ui.components.ScreenTopBar
@@ -106,6 +108,7 @@ fun CustomiseScreen(
     onBack: () -> Unit,
     onLanguage: () -> Unit,
     onMainCurrency: () -> Unit,
+    onFavourites: () -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(start) }
     var sheet by rememberSaveable { mutableStateOf<CustomiseSheet?>(null) }
@@ -128,7 +131,7 @@ fun CustomiseScreen(
                 val s = state ?: return@Column
                 when (t) {
                     CustomiseTab.TODAY -> TodayTab(vm, settings, s)
-                    CustomiseTab.EXPENSE -> ExpenseTab(vm, settings, s) { sheet = CustomiseSheet.ACCOUNT }
+                    CustomiseTab.EXPENSE -> ExpenseTab(vm, settings, s, onFavourites) { sheet = CustomiseSheet.ACCOUNT }
                     CustomiseTab.TRANSACTIONS -> TransactionsTab(vm, settings, { sheet = CustomiseSheet.SWIPE_RIGHT }, { sheet = CustomiseSheet.SWIPE_LEFT })
                     CustomiseTab.REGION -> RegionTab(vm, settings, onLanguage) { sheet = CustomiseSheet.MONTH_START }
                     CustomiseTab.CURRENCY -> CurrencyTab(vm, settings, s, onMainCurrency, onRate = { rateFor = it }, onAdd = { sheet = CustomiseSheet.ADD_CURRENCY })
@@ -173,17 +176,16 @@ private fun TodayTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseSta
         settings.homeTopCard, vm::topCard,
     )
     val order = settings.homeWidgetOrder
-    SectionHeader(stringResource(R.string.widgets), meta = stringResource(R.string.n_of_n_on_today, order.count { it in settings.homeWidgets }, order.size))
-    ListGroup {
-        order.forEachIndexed { i, key ->
-            val (label, icon) = HOME_WIDGET_ROWS.getValue(key)
-            val name = stringResource(label)
-            OrderedRow(
-                painterResource(icon), name, i, order.size, key in settings.homeWidgets,
-                onMove = { up -> vm.moveWidget(order, key, up) }, onToggle = { vm.showWidget(key, it) },
-                upLabel = stringResource(R.string.move_up, name), downLabel = stringResource(R.string.move_down, name),
-            )
-        }
+    SectionHeader(stringResource(R.string.widgets), meta = stringResource(R.string.hold_and_drag))
+    val names = HOME_WIDGET_ROWS.mapValues { (_, v) -> stringResource(v.first) }
+    val upLabels = names.mapValues { (_, n) -> stringResource(R.string.move_up, n) }
+    val downLabels = names.mapValues { (_, n) -> stringResource(R.string.move_down, n) }
+    DragColumn(
+        order, key = { it }, onMove = vm::setWidgetOrder,
+        moveUpLabel = { upLabels.getValue(it) }, moveDownLabel = { downLabels.getValue(it) },
+    ) { key, i, n, handle, lifted ->
+        val (_, icon) = HOME_WIDGET_ROWS.getValue(key)
+        OrderedRow(painterResource(icon), names.getValue(key), i, n, key in settings.homeWidgets, { vm.showWidget(key, it) }, handle, lifted)
     }
     SectionHeader(stringResource(R.string.recent_payments))
     ButtonGroup(listOf(3, 5, 10), settings.homeRecentCount, { it.toString() }, vm::recent, Modifier.fillMaxWidth())
@@ -199,7 +201,7 @@ private fun TodayTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseSta
 
 /** New expense form (81): extras, opens as, default account. */
 @Composable
-private fun ExpenseTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseState, onAccount: () -> Unit) {
+private fun ExpenseTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseState, onFavourites: () -> Unit, onAccount: () -> Unit) {
     val on = stringResource(R.string.on)
     val off = stringResource(R.string.off)
     SectionHeader(stringResource(R.string.extras_title), meta = stringResource(R.string.tap_show_hide))
@@ -212,9 +214,17 @@ private fun ExpenseTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseS
             Toggle(FormExtra.LEND, stringResource(R.string.extra_lend), painterResource(R.drawable.ic_handshake_duotone), FormExtra.LEND in x),
             Toggle(FormExtra.TIME, stringResource(R.string.extra_time), painterResource(R.drawable.ic_schedule_duotone), FormExtra.TIME in x),
             Toggle(FormExtra.LAST_CATEGORY, stringResource(R.string.extra_last_category), painterResource(R.drawable.ic_history_duotone), FormExtra.LAST_CATEGORY in x),
+            Toggle(FormExtra.FAVOURITE, stringResource(R.string.favourite), painterResource(R.drawable.ic_star_duotone), FormExtra.FAVOURITE in x),
         ),
         vm::extra, on, off,
     )
+    SectionHeader(stringResource(R.string.favourites))
+    ListGroup {
+        ListRow(
+            stringResource(R.string.favourites), 0, 1, supporting = pluralStringResource(R.plurals.n_favourites, s.favourites, s.favourites),
+            lead = { IconCircle(painterResource(R.drawable.ic_star_duotone)) }, trailing = { app.burrow.money.ui.components.Chevron() }, onClick = onFavourites,
+        )
+    }
     SectionHeader(stringResource(R.string.opens_as))
     ChoiceTiles(
         listOf(

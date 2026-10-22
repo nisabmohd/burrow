@@ -1,5 +1,6 @@
 package app.burrow.money.ui.capture
 
+import app.burrow.money.domain.BudgetPeriod
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,18 +22,22 @@ data class AutoCaptureState(
     val smsBanks: List<String>,
     val notUnderstood: Int,
     val yourRules: Int,
+    /** "92% · Recorded by itself" (15). */
+    val trust: app.burrow.money.data.Trust = app.burrow.money.data.Trust(0, 0),
+    /** Who sent the messages it couldn't read ("Kotak and SBI Card"). */
+    val unreadFrom: List<String> = emptyList(),
 )
 
 /** Auto-capture (48): the two switches, messages to teach, rules, Try it. */
 class AutoCaptureViewModel(private val app: AppContainer, monthStartDay: Int) : ViewModel() {
     val state: StateFlow<AutoCaptureState?> = combine(
-        app.capture.savedThisMonth(monthStartDay),
+        combine(app.capture.savedThisMonth(monthStartDay), app.next.trust(BudgetPeriod.containing(java.time.LocalDate.now(), monthStartDay)), app.next.unreadSenders) { a, b, c -> Triple(a, b, c) },
         app.settings.settings,
         app.capture.banksSeen("SMS"),
         app.capture.notUnderstoodCount,
         app.capture.userRules,
-    ) { saved, s, banks, unread, mine ->
-        AutoCaptureState(saved, s.smsCapture, s.notificationCapture, banks, unread, mine.size)
+    ) { (saved, trust, from), s, banks, unread, mine ->
+        AutoCaptureState(saved, s.smsCapture, s.notificationCapture, banks, unread, mine.size, trust, from.map(::senderName).distinct())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setSms(on: Boolean) = viewModelScope.launch { app.settings.setSmsCapture(on) }
@@ -48,3 +53,6 @@ class AutoCaptureViewModel(private val app: AppContainer, monthStartDay: Int) : 
     /** The newest message not understood, for Teach. */
     suspend fun firstNotUnderstood(): Long? = app.capture.notUnderstood.first().firstOrNull()?.id
 }
+
+/** "AX-HDFCBK" → "HDFCBK", "VM-KOTAKB" → "KOTAKB": the sender without its operator prefix. */
+fun senderName(sender: String): String = sender.substringAfter('-', sender).ifBlank { sender }

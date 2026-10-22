@@ -139,6 +139,6 @@ fun TxnView.title(): String = txn.payee
 /** "−₹240" out, "+₹1,20,000" in, "₹8,120" for a transfer (docs/COPY.md: amounts never coloured). */
 fun MoneyFormat.forTxn(type: String, amount: Long): String = when (type) {
     TxnType.EXPENSE, TxnType.ADJUST_DOWN -> signed(-amount)
-    TxnType.INCOME, TxnType.ADJUST_UP -> signed(amount)
+    TxnType.INCOME, TxnType.ADJUST_UP, TxnType.REFUND -> signed(amount)
     else -> plain(amount)
 }

@@ -13,16 +13,17 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = sys.argv[1]
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "release", "phone-screenshots")
-FONT = os.path.join(ROOT, "app", "src", "main", "res", "font", "lexend_medium.ttf")
+os.makedirs(OUT, exist_ok=True)
+FONT = os.path.join(ROOT, "app", "src", "main", "res", "font", "lexend.ttf")
 
 shots = [
     ("today", "01-today.png", "Know what is left", "Your month at a glance, on one calm screen.", False),
-    ("capture", "02-capture.png", "Payments record themselves", "A bank message comes in. One tap saves it.", False),
+    ("capture", "02-capture.png", "Payments record themselves", "A payment message comes in. One tap saves it.", False),
     ("review", "03-review.png", "Check and save in seconds", "Amount, payee and account are read for you.", False),
     ("activity", "04-activity.png", "Every payment, easy to find", "Search and filter by account, category or date.", False),
     ("bills", "05-bills.png", "Never miss a bill", "Reminders before every bill, subscription and EMI.", False),
     ("insights", "06-insights.png", "See your patterns", "Charts, busiest days and a month heatmap.", False),
-    ("rules", "07-rules.png", "Works with your bank", "Teach any message format, in any language.", False),
+    ("rules", "07-rules.png", "Works with your bank", "Teach it a new message by tapping the amount.", False),
     ("today-dark", "08-today-dark.png", "Private. Offline. Yours.", "No internet permission. Nothing leaves your phone.", True),
 ]
 
@@ -67,13 +68,13 @@ def screen(raw):
 
 
 for raw, out, title, sub, dark in shots:
-    bg = (30, 26, 20) if dark else (240, 227, 200)
-    tc = (243, 237, 228) if dark else (30, 26, 21)
-    sc = (189, 179, 165) if dark else (92, 82, 69)
+    bg = (34, 24, 28) if dark else (250, 226, 233)   # Burrow rose, from the 345 seed
+    tc = (245, 233, 237) if dark else (46, 18, 28)
+    sc = (196, 176, 183) if dark else (112, 76, 88)
     img = Image.new("RGB", (W, H), bg)
     d = ImageDraw.Draw(img)
 
-    tf, sf = font(72, 600), font(38, 400)
+    tf, sf = font(72, 540), font(38, 400)   # Lexend drawn a step heavier, as in the app
     y = 186
     for line in wrap(d, title, tf, 960):
         d.text((W / 2, y), line, font=tf, fill=tc, anchor="mt")
@@ -87,12 +88,12 @@ for raw, out, title, sub, dark in shots:
     sh = Image.new("L", (W, H), 0)
     ImageDraw.Draw(sh).rounded_rectangle((FX, FY + 12, FX + FW, FY + FH + 12), OUTER_R, fill=90 if not dark else 160)
     sh = sh.filter(ImageFilter.GaussianBlur(28))
-    img.paste((0, 0, 0) if dark else (120, 100, 70), (0, 0), sh)
+    img.paste((0, 0, 0) if dark else (120, 60, 80), (0, 0), sh)
 
     d = ImageDraw.Draw(img)
     d.rounded_rectangle((FX, FY, FX + FW - 1, FY + FH - 1), OUTER_R, fill=(58, 54, 50) if dark else (22, 20, 18))
     if dark:  # a thin light rim so the dark phone reads on the dark page
-        d.rounded_rectangle((FX, FY, FX + FW - 1, FY + FH - 1), OUTER_R, outline=(70, 64, 56), width=2)
+        d.rounded_rectangle((FX, FY, FX + FW - 1, FY + FH - 1), OUTER_R, outline=(74, 60, 66), width=2)
         d.rounded_rectangle((FX + 2, FY + 2, FX + FW - 3, FY + FH - 3), OUTER_R - 2, fill=(14, 13, 12))
 
     scr = screen(f"{RAW}/{raw}.png")

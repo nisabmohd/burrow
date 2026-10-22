@@ -29,3 +29,10 @@ class BalancesTest {
         assertEquals(1_150L, b[1L])
     }
 }
+
+class RefundBalanceTest {
+    @org.junit.Test fun refundRaisesItsAccount() {
+        val b = balances(mapOf(1L to 1_000L), listOf(TypeSum(1, "EXPENSE", 300), TypeSum(1, "REFUND", 100)), emptyMap())
+        org.junit.Assert.assertEquals(800L, b[1])
+    }
+}

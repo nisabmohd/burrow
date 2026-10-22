@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small widget 2×2 (02): the next bill, its amount and when it's due; opens that bill. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_surface"
+    android:padding="@dimen/widget_padding">
+
+    <ImageView
+        android:layout_width="@dimen/widget_add_small"
+        android:layout_height="@dimen/widget_add_small"
+        android:layout_gravity="top|start"
+        android:background="@drawable/widget_circle_surface"
+        android:importantForAccessibility="no"
+        android:padding="9dp"
+        android:src="@drawable/ic_event_available_duotone"
+        android:tint="@color/widget_text_muted" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/next_bill"
+            android:textColor="@color/widget_text"
+            android:textSize="@dimen/widget_title" />
+
+        <TextView
+            android:id="@+id/widget_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_open_once"
+            android:textColor="@color/widget_text_muted"
+            android:textSize="@dimen/widget_body" />
+    </LinearLayout>
+</FrameLayout>

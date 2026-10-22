@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_hero">#602937</color>
+    <color name="widget_on_hero">#FDD8E1</color>
+    <color name="widget_on_hero_muted">#B3FDD8E1</color>
+    <color name="widget_track">#38FDD8E1</color>
+    <color name="widget_primary">#F9AABD</color>
+    <color name="widget_on_primary">#4A0F20</color>
+    <color name="widget_surface">#1F191B</color>
+    <color name="widget_circle">#2A2325</color>
+    <color name="widget_text">#EBE5E6</color>
+    <color name="widget_text_muted">#BCAEB2</color>
+</resources>

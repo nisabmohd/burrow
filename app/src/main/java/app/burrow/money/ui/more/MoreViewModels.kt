@@ -28,6 +28,8 @@ data class MoreState(
     val netWorth: Long,
     /** Currencies with a typed-in rate (Currency row: "₹ primary · 3 others"). */
     val otherCurrencies: Int,
+    /** "92% recorded by itself" on the Auto-capture tile (15). */
+    val trustPercent: Int? = null,
 )
 
 /** More (53, 54). */
@@ -35,12 +37,14 @@ data class MoreState(
 class MoreViewModel(private val app: AppContainer) : ViewModel() {
     val state: StateFlow<MoreState?> = combine(
         app.settings.settings,
-        app.settings.settings.flatMapLatest { app.capture.savedThisMonth(it.monthStartDay) },
+        app.settings.settings.flatMapLatest { st ->
+            combine(app.capture.savedThisMonth(st.monthStartDay), app.next.trust(BudgetPeriod.containing(LocalDate.now(), st.monthStartDay))) { a, b -> a to b.percent }
+        },
         app.money.categories,
         app.money.netWorth,
         app.money.rates,
-    ) { s, captured, cats, nw, rates ->
-        MoreState(s, captured, cats.count { it.kind == "EXPENSE" }, nw.count, nw.total, rates.count { it.currency != s.mainCurrency })
+    ) { s, (captured, trust), cats, nw, rates ->
+        MoreState(s, captured, cats.count { it.kind == "EXPENSE" }, nw.count, nw.total, rates.count { it.currency != s.mainCurrency }, trust)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setHideAmounts(on: Boolean) = viewModelScope.launch { app.settings.setHideAmounts(on) }
