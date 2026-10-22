@@ -71,7 +71,7 @@ data class Settings(
     val homeRecentCount: Int = 5,
     val homeShowReview: Boolean = true,
     // Customise › Expense (81)
-    val formExtras: Set<String> = ALL_FORM_EXTRAS,
+    val formExtras: Set<String> = DEFAULT_FORM_EXTRAS,
     val formDefaultType: String = TxnType.EXPENSE,
     val formDefaultAccount: Long? = null,
     // Customise › Transactions (82)
@@ -104,6 +104,13 @@ object FormExtra {
     const val FAVOURITE = "favourite"
 }
 val ALL_FORM_EXTRAS = setOf(FormExtra.NOTE, FormExtra.REPEAT, FormExtra.ATTACH, FormExtra.LEND, FormExtra.TIME, FormExtra.LAST_CATEGORY)
+
+/**
+ * The New expense extras before any customising. "Last category" starts off: it would pick a
+ * category on every new form, hiding Favourites (they show on an empty form) and letting Save
+ * through without a choice. It can be switched on in Customise › Expense.
+ */
+val DEFAULT_FORM_EXTRAS = ALL_FORM_EXTRAS - FormExtra.LAST_CATEGORY
 
 /** What a captured payment does (Customise › Transactions). */
 object PaymentFound { const val ASK = "ASK"; const val EDIT_FIRST = "EDIT_FIRST"; const val SAVE = "SAVE" }
@@ -141,7 +148,7 @@ class SettingsRepository(context: Context) {
     suspend fun setFormExtra(key: String, on: Boolean) = store.edit {
         // The Favourite chip came later: it is on unless switched off, also for forms customised before it.
         if (key == FormExtra.FAVOURITE) { it[FAVOURITE_OFF] = !on; return@edit }
-        val now = it[FORM_EXTRAS] ?: ALL_FORM_EXTRAS
+        val now = it[FORM_EXTRAS] ?: DEFAULT_FORM_EXTRAS
         it[FORM_EXTRAS] = if (on) now + key else now - key
     }
     suspend fun setFormDefaultType(t: String) = store.edit { it[FORM_TYPE] = t }
@@ -247,7 +254,7 @@ class SettingsRepository(context: Context) {
                 ?.let { saved -> saved + HOME_WIDGET_ORDER.filter { it !in saved } } ?: HOME_WIDGET_ORDER,
             homeRecentCount = this[RECENT_COUNT] ?: 5,
             homeShowReview = this[SHOW_REVIEW] ?: true,
-            formExtras = (this[FORM_EXTRAS] ?: ALL_FORM_EXTRAS).let { if (this[FAVOURITE_OFF] == true) it - FormExtra.FAVOURITE else it + FormExtra.FAVOURITE },
+            formExtras = (this[FORM_EXTRAS] ?: DEFAULT_FORM_EXTRAS).let { if (this[FAVOURITE_OFF] == true) it - FormExtra.FAVOURITE else it + FormExtra.FAVOURITE },
             formDefaultType = this[FORM_TYPE] ?: TxnType.EXPENSE,
             formDefaultAccount = this[FORM_ACCOUNT],
             onPaymentFound = this[PAYMENT_FOUND] ?: PaymentFound.ASK,

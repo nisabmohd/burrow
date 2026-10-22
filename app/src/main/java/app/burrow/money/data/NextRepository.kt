@@ -94,7 +94,11 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
     // Refunds (09)
     fun refundsOf(txnId: Long): Flow<List<TxnEntity>> = seeded { db.next().refundsOf(txnId) }
 
-    /** Money back for [original] into [accountId]: lowers its category's spending, never income. */
+    /**
+     * Money back for [original] into [accountId]: lowers its category's spending, never income.
+     * A refund of a sample payment is a sample too: as a real entry it would clear the sample month,
+     * the refunded payment with it ("This transaction was deleted" right after saving).
+     */
     suspend fun addRefund(original: TxnEntity, amount: Long, accountId: Long): suspend () -> Unit {
         val now = System.currentTimeMillis()
         val id = money.save(
@@ -103,7 +107,7 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
                 baseAmount = if (original.amount == 0L) amount else original.baseAmount * amount / original.amount,
                 accountId = accountId, categoryId = original.categoryId, payee = original.payee,
                 at = now.coerceAtLeast(original.at), source = "MANUAL", excludeFromStats = original.excludeFromStats,
-                createdAt = now, updatedAt = now, refundOf = original.id,
+                createdAt = now, updatedAt = now, refundOf = original.id, isSample = original.isSample,
             ),
         )
         return { money.delete(id) }

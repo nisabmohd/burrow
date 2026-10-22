@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """End-to-end smoke check of every Burrow feature on a connected emulator or phone.
 
@@ -359,7 +360,10 @@ def favourite_chip_saves_with_one_tap():
     d.back()  # keyboard down
     d.tap("Choose a category")
     d.tap("Food & drinks")
-    # The extras row scrolls sideways: Note, Repeat, Attach, Favourite, Lend or borrow.
+    # The extras sit under the rows (the form scrolls on shorter phones), in a row that scrolls
+    # sideways: Note, Repeat, Attach, Favourite, Lend or borrow.
+    if not d.exists("Note", timeout=1):
+        d.swipe(540, 1200, 540, 700)
     note = d.find("Note")
     if note and not d.exists("Favourite", timeout=1):
         d.swipe(900, note.center[1], 200, note.center[1])
@@ -568,7 +572,9 @@ def sms_capture_dedupes_and_reviews():
     time.sleep(3)
     recover()
     d.nav("Today")
-    assert d.exists("2 payments to review", timeout=5), "expected 2 to review (the 240 and one 180)"
+    if not d.exists("2 payments to review", timeout=5):
+        seen = [n.label for n in d.dump() if "to review" in n.label]
+        raise AssertionError(f"expected 2 to review (the 240 and one 180), saw {seen or 'none'}")
     d.tap("2 payments to review")
     save = [n for n in d.dump() if n.label == "Save 2 payments"]
     assert save, "no Save 2 payments button"
@@ -629,7 +635,11 @@ def sunday_review_notification_opens_review():
     assert has("to review", nodes), "notification doesn't say what waits"
     assert has("Takes 30 seconds", nodes), "notification line incomplete"
     tap_node(n)
-    assert d.exists("Sunday review", timeout=6), "notification did not open the Sunday review"
+    if not d.exists("Sunday review", timeout=10):
+        n = d.find("Your week:", contains=True, timeout=2)  # the shade may still be animating
+        if n:
+            tap_node(n)
+    assert d.exists("Sunday review", timeout=10), "notification did not open the Sunday review"
 
 
 @check
@@ -638,7 +648,8 @@ def sunday_review_save_and_finish():
         open_more_row("Notifications")
         d.tap("Sunday review")
     assert d.exists("Your week", contains=True, timeout=5), "review has no week header"
-    for label in ["to review", "bill", "Most on", "left in"]:
+    # "Most on" and the bills row only show when the week has them; these two always do.
+    for label in ["to review", "left in"]:
         assert d.scroll_to(label, contains=True), f"review row missing: {label}"
     save = d.find("and finish", contains=True)
     assert save, "no 'Save N and finish'"
@@ -708,7 +719,8 @@ def customise_drag_reorders_widgets():
     d.shell(f"input draganddrop 115 {y} 115 {y + 330} 1500")
     time.sleep(1.5)
     after = order()
-    assert after != before and after[1] == before[0], f"drag did not move {before[0]} ({before} → {after})"
+    # How many places a fixed drag moves a row depends on row heights: it only has to go down.
+    assert after != before and after.index(before[0]) > 0, f"drag did not move {before[0]} ({before} → {after})"
 
 
 @check
@@ -739,18 +751,17 @@ def import_cashew_matches_and_imports():
     push_file("cashew-export.csv", CASHEW)
     open_more_row("Import or export")
     assert d.exists("Bring your history", timeout=5), "Import or export has no header"
-    for label in ["Cashew", "Walnut", "Money Manager", "Any spreadsheet (CSV)", "Restore a backup", "Export to CSV"]:
+    for label in ["Cashew", "Walnut", "Money Manager", "Any spreadsheet (CSV)", "Restore a backup", "Export"]:
         assert d.scroll_to(label), f"Import or export missing: {label}"
     d.scroll_to_top()
     d.tap("Cashew")
     pick_file("cashew-export.csv")
     assert d.exists("Transactions from Cashew", timeout=8), "Check before import did not open"
     nodes = d.dump()
-    assert has("4 of 6 matched", nodes), "category matching off (expected 4 of 6)"
+    # Unmatched categories become new ones (no "choose a category" step since 2026-10-22).
+    assert has("4 matched · 2 new", nodes), "category matching off (expected 4 matched · 2 new)"
     assert has("“Dining” in Cashew", nodes), "Dining not mapped to a category"
-    d.tap("Choose a category")
-    d.tap("Entertainment")
-    assert d.exists("6 of 6 matched", timeout=3), "choosing a category didn't map the unmatched ones"
+    assert has("New category · 1 transaction", nodes), "unmatched categories not made new"
     d.scroll_to("Import 6 transactions")
     d.tap("Import 6 transactions")
     snack = [n.label for n in d.dump()]

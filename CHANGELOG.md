@@ -9,3 +9,6 @@
 - Notes, tags, repeating payments, receipts, lend or borrow, and future-dated (upcoming) payments.
 - Encrypted backups, CSV export and import, app lock with PIN or fingerprint, hide amounts.
 - English and Hindi. No internet permission: nothing leaves your phone.
+- Payment notification: pick one of two categories in one tap, or Edit to open it filled in.
+- Reads account numbers with any number of digits; learns each payee's usual category.
+- 60 category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.

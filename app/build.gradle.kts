@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.baselineprofile)
+
 }
 
 android {
@@ -17,7 +18,8 @@ android {
         applicationId = "app.burrow.money"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+
+        versionCode = 2
         versionName = "0.1.0"
         // About screen links. They open in the browser; the app itself never goes online.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")

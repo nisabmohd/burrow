@@ -150,9 +150,17 @@ private fun NavBackStackEntry.isTab() = destination.tab() != null
  * onboarding, so popping to it did nothing and every tab visited stayed on the stack (back walked
  * through them all, in a loop). No saved state either: a tab came back at an old scroll offset.
  */
-private fun NavHostController.openTab(route: Any) = navigate(route) {
-    popUpTo<TodayRoute>()
-    launchSingleTop = true
+private fun NavHostController.openTab(route: Any) {
+    // Navigating to a tab that is already on the stack swaps its back stack entry, and after a
+    // rotation that screen stopped getting new data (Today froze on old numbers until a restart).
+    // So: already there, stay; Today, pop back down to it.
+    if (currentDestination.tab()?.route == route) return
+    // Today is always at the bottom: go back down to it rather than navigating to it again.
+    if (route == TodayRoute && popBackStack<TodayRoute>(inclusive = false)) return
+    navigate(route) {
+        popUpTo<TodayRoute>()
+        launchSingleTop = true
+    }
 }
 
 /**
@@ -173,8 +181,9 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     // Today stays at the bottom of the stack, so it keeps its scroll; a tap on its tab brings it to the top.
     var todayToTop by remember { androidx.compose.runtime.mutableIntStateOf(0) }
     val selectTab = { i: Int ->
-        if (Tab.entries[i] == Tab.TODAY) todayToTop++
-        nav.openTab(Tab.entries[i].route)
+        val tab = Tab.entries[i]
+        if (tab == Tab.TODAY) todayToTop++
+        nav.openTab(tab.route)
     }
     var planSection by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(app.burrow.money.ui.plan.PlanSection.BILLS) }
     // First open: Welcome (01–03); afterwards Today. Read once, so finishing Welcome doesn't jump.

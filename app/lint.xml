@@ -8,4 +8,9 @@
     <issue id="UnusedResources">
         <ignore regexp="R\.drawable\.ic_" />
     </issue>
+    <!-- The adaptive launcher icon stays in mipmap-anydpi-v26: without "-v26" the release build
+         can't find @mipmap/ic_launcher (AAPT), even with minSdk 26. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
 </lint>
