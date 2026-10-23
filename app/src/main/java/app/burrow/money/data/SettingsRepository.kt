@@ -120,8 +120,26 @@ object NumberStyle { const val INDIAN = "INDIAN"; const val WESTERN = "WESTERN";
 object DateStyle { const val WRITTEN = "WRITTEN"; const val DMY = "DMY"; const val MDY = "MDY"; const val YMD = "YMD" }
 
 /** The phone region's currency, or INR when the region has none. */
+/**
+ * The phone's country from the SIM or mobile network ("IN"), set once at app start. Many phones in
+ * India run English (United States), so the language alone would suggest dollars.
+ */
+object Region {
+    @Volatile var simCountry: String? = null
+        private set
+
+    fun detect(context: android.content.Context) {
+        simCountry = runCatching {
+            val tm = context.getSystemService(android.telephony.TelephonyManager::class.java)
+            listOf(tm?.simCountryIso, tm?.networkCountryIso).firstOrNull { !it.isNullOrBlank() }?.uppercase(Locale.ROOT)
+        }.getOrNull()
+    }
+}
+
+/** The region's currency: the SIM or network country first, then the language's country. */
 fun defaultCurrency(locale: Locale = Locale.getDefault()): String =
-    runCatching { Currency.getInstance(locale).currencyCode }.getOrNull() ?: "INR"
+    Region.simCountry?.let { c -> runCatching { Currency.getInstance(Locale.Builder().setRegion(c).build()).currencyCode }.getOrNull() }
+        ?: runCatching { Currency.getInstance(locale).currencyCode }.getOrNull() ?: "INR"
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 

@@ -42,6 +42,10 @@ class Attachments(private val context: Context, private val db: BurrowDatabase) 
     }
 
     /** A new, empty file for the camera to write into, and its content Uri. */
+    /** A content uri for a kept receipt, for "open with" (read-only, through the app's FileProvider). */
+    fun uriFor(a: AttachmentEntity): Uri =
+        androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".files", File(context.filesDir, a.path))
+
     fun cameraTarget(): Pair<File, Uri> {
         val f = File(pendingDir, "camera-${System.nanoTime()}.jpg")
         f.createNewFile()

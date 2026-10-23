@@ -815,7 +815,6 @@
     <string name="payee_hint_short">दुकान, व्यक्ति या ऐप</string>
     <string name="note_hint_short">यह किसके लिए था?</string>
     <string name="optional">वैकल्पिक</string>
-    <string name="note_value">नोट · %1$s</string>
     <string name="every_week">हर हफ़्ते</string>
     <string name="every_year">हर साल</string>
     <string name="repeat_line">दोहराए जाने वाले भुगतान योजना › बिल में भी दिखते हैं</string>
@@ -840,8 +839,6 @@
     <string name="i_borrowed">मैंने लिया</string>
     <string name="lent_to">किसे दिया</string>
     <string name="borrowed_from">किससे लिया</string>
-    <string name="lent_to_name">%1$s को दिया</string>
-    <string name="borrowed_from_name">%1$s से लिया</string>
     <string name="remind_to_settle">हिसाब करने की याद दिलाएँ</string>
     <string name="in_two_weeks">2 हफ़्ते में</string>
     <string name="date_sheet_line">आगे की तारीख़ इसे आने वाला बना देती है</string>
@@ -1059,4 +1056,43 @@
     </plurals>
     <string name="emi">EMI</string>
     <string name="emi_label">EMI</string>
+    <string name="move_accounts_title">खाते %1$s में ले जाएँ?</string>
+    <plurals name="move_accounts_line">
+        <item quantity="one">%1$d खाता %2$s में है। उसे और उसके भुगतान %3$s में ले जाएँ, या %2$s में रखें और Customise › Currency में दर जोड़ें।</item>
+        <item quantity="other">%1$d खाते %2$s में हैं। उन्हें और उनके भुगतान %3$s में ले जाएँ, या %2$s में रखें और Customise › Currency में दर जोड़ें।</item>
+    </plurals>
+    <string name="move_to">%1$s में ले जाएँ</string>
+    <string name="keep_in">%1$s में रखें</string>
+    <string name="receipt_line">रसीद · %1$s</string>
+    <string name="tags">टैग</string>
+    <string name="already_here">जो पहले से है</string>
+    <string name="import_add">जो है उसमें जोड़ें</string>
+    <plurals name="import_add_line">
+        <item quantity="one">आपका %1$d लेन-देन रहेगा</item>
+        <item quantity="other">आपके %1$d लेन-देन रहेंगे</item>
+    </plurals>
+    <string name="import_replace">अपने लेन-देन बदलें</string>
+    <plurals name="import_replace_line">
+        <item quantity="one">पहले आपका %1$d लेन-देन हटेगा; खाते और श्रेणियाँ रहेंगी</item>
+        <item quantity="other">पहले आपके %1$d लेन-देन हटेंगे; खाते और श्रेणियाँ रहेंगी</item>
+    </plurals>
+    <plurals name="replace_title">
+        <item quantity="one">अपना %1$d लेन-देन हटाएँ?</item>
+        <item quantity="other">अपने %1$d लेन-देन हटाएँ?</item>
+    </plurals>
+    <string name="replace_text">इनकी जगह %1$s वाले आएँगे। यह वापस नहीं होगा; पहले बैकअप ले लें।</string>
+    <string name="not_included">शामिल नहीं</string>
+    <string name="opening_balance">शुरुआती बैलेंस</string>
+    <string name="opening_balance_line">%1$s · बैलेंस ठीक करें से बदलें</string>
+    <string name="archive_account">खाता संग्रहित करें</string>
+    <string name="account_archived">खाता संग्रहित हुआ</string>
+    <string name="once">एक बार</string>
+    <string name="lent">दिया</string>
+    <string name="borrowed">लिया</string>
+    <string name="pill_value">%1$s · %2$s</string>
+    <string name="tap_to_type">रकम लिखने के लिए टैप करें</string>
+    <string name="attach_receipt">रसीद जोड़ें</string>
+    <string name="receipt">रसीद</string>
+    <string name="close_keypad">कीपैड बंद करें</string>
+    <string name="made_by">mid apps ने बनाया</string>
 </resources>

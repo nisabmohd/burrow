@@ -324,7 +324,14 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         val r = e.toRoute<NewAccountRoute>()
                         val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) }
                         val saved = stringResource(R.string.saved)
-                        NewAccountScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
+                        NewAccountScreen(
+                            vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() },
+                            onArchived = { undo ->
+                                snackbar.show(context.getString(R.string.account_archived), undo)
+                                // Back to the list: the account's own screen has nothing to show now.
+                                if (!nav.popBackStack<AccountsRoute>(inclusive = false)) nav.popBackStack()
+                            },
+                        )
                     }
                     composable<GoalRoute> { e ->
                         val id = e.toRoute<GoalRoute>().id
@@ -387,7 +394,20 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         EditCategoryScreen(vm, onClose = { nav.popBackStack() })
                     }
                     composable<CurrencyRoute> {
-                        CurrencyScreen(settings.mainCurrency, onPick = { code -> container.appScope.launch { container.settings.setMainCurrency(code) }; nav.popBackStack() }, onBack = { nav.popBackStack() })
+                        CurrencyScreen(
+                            settings.mainCurrency,
+                            onPick = { code, move ->
+                                val old = settings.mainCurrency
+                                container.appScope.launch {
+                                    if (move) container.money.moveCurrency(old, code)
+                                    container.settings.setMainCurrency(code)
+                                    container.money.resampleIn(code) // an untouched sample month follows the new currency
+                                }
+                                nav.popBackStack()
+                            },
+                            onBack = { nav.popBackStack() },
+                            accountsIn = { container.money.accountsIn(it) },
+                        )
                     }
                     composable<AppearanceRoute> {
                         AppearanceScreen(settings, appearance, onBack = { nav.popBackStack() }, onFont = { nav.navigate(FontRoute) }, onLanguage = { nav.navigate(LanguageRoute) })

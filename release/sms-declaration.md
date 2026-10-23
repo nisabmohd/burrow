@@ -1,6 +1,6 @@
 # Play Console › Permissions declaration (SMS)
 
-**Permissions:** RECEIVE_SMS, READ_SMS (play flavour only after approval; foss/github builds include them).
+**Permissions:** RECEIVE_SMS, READ_SMS (in every build, the play flavour too since 0.1.0 code 3).
 
 **Core functionality:** Burrow is an expense tracker whose main feature is recording payments
 automatically from bank transaction SMS ("Rs.240 debited from A/c XX1234 to …"). Without SMS access the

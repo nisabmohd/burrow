@@ -48,15 +48,18 @@ investments with live prices, tax module, document vault, multiple ledgers.
 ## Stack
 minSdk 26, targetSdk 36, Kotlin 2.x, KSP, version catalog. Compose + Material 3. Room (Flow DAOs),
 DataStore Preferences, Navigation Compose (type-safe routes), ViewModel + StateFlow, kotlinx-serialization
-(rules files, backup JSON). Capture: `RECEIVE_SMS`/`READ_SMS` (foss/github; play after the declaration)
+(rules files, backup JSON). Capture: `RECEIVE_SMS`/`READ_SMS` (every flavour; Play needs the SMS permissions declaration)
 + `NotificationListenerService`. Reminders: AlarmManager + boot receiver. Backup: encrypted file via SAF.
 Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson, Space Grotesk:
 variable TTFs drawn a step heavier to match the PNGs (Lexend 440/540; see `docs/TOKENS.md`).
 Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/widget.xml`.
 
 ## Behaviour rules
-- New expense: amount, then a **Paid to** free-text field (any text; suggestion chips of frequent payees filter as you type and set the usual category), then Category, Account, Date + keypad; extras as chips (Note, Repeat, Attach, Favourite, Lend or borrow), chosen in
-  More › Customise › New expense form. Future date = upcoming. Repeat creates a bill. Attachments stay on the phone.
+- New expense (17, 108, 109): tap the amount to open the keypad (⌄ puts it away; the list fades above it); favourites;
+  a **Paid to** free-text field (suggestion chips of frequent payees filter as you type and set the usual category);
+  one list: Category, Account, Date, Add a note, Attach a receipt; type pills Once · Repeat · Subscription · Lent · Borrowed
+  (one choice; income has no Subscription). What shows follows More › Customise › New expense form. Future date = upcoming.
+  Repeat or Subscription creates a bill. Attachments stay on the phone.
 - **Customise** is one screen with tabs Today · Expense · Transactions · Region · Currency, built only from choice tiles,
   toggle tiles, ordered rows (show/hide + drag ⠿, never arrows) and switch rows. Every new customisation goes there.
 - Long-press any transaction row: one actions sheet (06). Favourites save with one tap on an empty New expense.

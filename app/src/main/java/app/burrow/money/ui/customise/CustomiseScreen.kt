@@ -283,6 +283,8 @@ private fun RegionTab(vm: CustomiseViewModel, settings: Settings, onLanguage: ()
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val dates = rememberDateText()
+    // Same gap under the tab chips as the tabs that open with a section header.
+    Spacer(Modifier.height(Space.sectionTop))
     ListGroup {
         ListRow(stringResource(R.string.language), 0, 1, supporting = AppLanguage.currentName(context), lead = { IconCircle(painterResource(R.drawable.ic_translate_duotone)) }, onClick = onLanguage)
     }
@@ -329,6 +331,8 @@ private fun CurrencyTab(vm: CustomiseViewModel, settings: Settings, s: Customise
     val dates = rememberDateText()
     val main = settings.mainCurrency
     val sym = MoneyFormat.symbolFor(main, locale)
+    // Same gap under the tab chips as the tabs that open with a section header.
+    Spacer(Modifier.height(Space.sectionTop))
     ListGroup {
         ListRow(
             "${currencyName(main, locale)} · $sym", 0, 1, supporting = stringResource(R.string.primary_currency_line),

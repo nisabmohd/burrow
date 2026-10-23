@@ -270,6 +270,31 @@ class MoneyRepository(
         seedLock.withLock { seeded = false }
     }
 
+    /**
+     * Welcome's currency step: the sample month again, sized for [currency], while nothing real has
+     * been added. It was made on first open in the region's currency (₹47 samples otherwise).
+     */
+    suspend fun resampleIn(currency: String) = db.withTransaction {
+        if (!samplesShown() || db.txns().realCount() > 0) return@withTransaction
+        removeSamplesInTransaction()
+        val s = settings.settings.first()
+        insertSamples(db.categories().idsInOrder(), currency, MoneyFormat.of(currency).digits, s.monthStartDay)
+    }
+
+    private suspend fun samplesShown() = db.txns().hasSamples().first()
+
+    /** Accounts of yours in [currency]: asked about when the main currency changes. */
+    suspend fun accountsIn(currency: String): Int = db.accounts().countIn(currency)
+
+    /** Moves accounts (and their transactions) from [from] to [to], for a new main currency. */
+    suspend fun moveCurrency(from: String, to: String) {
+        db.withTransaction {
+            db.accounts().moveCurrency(from, to)
+            db.txns().moveCurrency(from, to)
+        }
+        changed?.invoke()
+    }
+
     /** "Remove" on the sample note. */
     suspend fun removeSamples() = db.withTransaction { removeSamplesInTransaction() }
 

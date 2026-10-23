@@ -99,6 +99,9 @@ def open_add():
 
 
 def keypad(digits):
+    # The keypad opens on tapping the amount (17 → 108).
+    if not d.exists("00", timeout=1) and d.exists("Tap to type the amount", timeout=1):
+        d.tap("Tap to type the amount")
     for k in digits:
         d.tap(k)
 
@@ -360,13 +363,17 @@ def favourite_chip_saves_with_one_tap():
     d.back()  # keyboard down
     d.tap("Choose a category")
     d.tap("Food & drinks")
-    # The extras sit under the rows (the form scrolls on shorter phones), in a row that scrolls
-    # sideways: Note, Repeat, Attach, Favourite, Lend or borrow.
-    if not d.exists("Note", timeout=1):
-        d.swipe(540, 1200, 540, 700)
-    note = d.find("Note")
-    if note and not d.exists("Favourite", timeout=1):
-        d.swipe(900, note.center[1], 200, note.center[1])
+    # Favourite is the last chip of the type pills (109): Once · Repeat · Subscription · Lent ·
+    # Borrowed · Favourite, in a row that scrolls sideways under the list.
+    if d.exists("Close the keypad", timeout=1):
+        d.tap("Close the keypad")
+    if not d.exists("Once", timeout=1):
+        d.swipe(540, 1500, 540, 700)
+    once = d.find("Once")
+    for _ in range(3):
+        if d.exists("Favourite", timeout=1):
+            break
+        d.swipe(900, once.center[1], 150, once.center[1])
     d.tap("Favourite")
     d.tap("Save")
     snackbar()
@@ -770,7 +777,7 @@ def import_cashew_matches_and_imports():
 
 @check
 def import_same_file_skips_duplicates():
-    if not d.exists("Import or export", timeout=2):
+    if not d.exists("Bring your history", timeout=2):  # More has a row with the same title
         open_more_row("Import or export")
     d.tap("Cashew")
     pick_file("cashew-export.csv")
@@ -786,7 +793,7 @@ def import_same_file_skips_duplicates():
 def import_spreadsheet_columns_by_hand():
     # Any spreadsheet: names it can't guess; the user picks the columns once.
     push_file("odd-columns.csv", "when,what,how much\n2026-10-19,Chai,20\n2026-10-20,Metro,40\n")
-    if not d.exists("Import or export", timeout=2):
+    if not d.exists("Bring your history", timeout=2):  # More has a row with the same title
         open_more_row("Import or export")
     d.tap("Any spreadsheet (CSV)")
     pick_file("odd-columns.csv")
@@ -806,7 +813,7 @@ def import_spreadsheet_columns_by_hand():
 @check
 def import_bad_file_says_nothing_to_import():
     push_file("not-a-csv.csv", "hello\nthis is not an export\n")
-    if not d.exists("Import or export", timeout=2):
+    if not d.exists("Bring your history", timeout=2):  # More has a row with the same title
         open_more_row("Import or export")
     d.tap("Walnut")
     pick_file("not-a-csv.csv")

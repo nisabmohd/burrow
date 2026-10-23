@@ -86,3 +86,9 @@ enough) · confirm (save, Done). Long-press keeps the system long-press.
 One-of-many choice with 3+ options or long values (number format, date format). A `ListGroup` of rows:
 title = the example value (tabular figures), subtitle = what it is, trailing 24 dp round radio (filled primary + check when on).
 Use choice tiles only for 2–3 short options.
+
+## Swatch grid (`SwatchGrid.kt`)
+`SwatchGrid` lays round choices in six equal columns, rows filled from the start (12 colours = two
+full rows); `HuePicker` (the 12 category hues) and `IconPicker` are built on it. Used by Edit category
+(62) and Edit account (106/107). Never a FlowRow: on a large display size it wrapped to 5 and spread
+the last row to the edges.

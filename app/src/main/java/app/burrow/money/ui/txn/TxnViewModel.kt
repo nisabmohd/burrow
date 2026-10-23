@@ -37,6 +37,13 @@ data class TxnUiState(
     val allCategories: List<CategoryEntity> = emptyList(),
 )
 
+@androidx.compose.runtime.Immutable
+data class TxnExtras(
+    val attachments: List<app.burrow.money.data.AttachmentEntity> = emptyList(),
+    val tags: List<String> = emptyList(),
+    val person: String? = null,
+)
+
 /** Transaction detail (21): change the category or note in place, delete with Undo. */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class TxnViewModel(private val repo: MoneyRepository, private val id: Long, monthStartDay: Int, next: app.burrow.money.data.NextRepository) : ViewModel() {
@@ -49,6 +56,11 @@ class TxnViewModel(private val repo: MoneyRepository, private val id: Long, mont
         val kind = if (t?.txn?.type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
         TxnUiState(t, cats.filter { it.kind == kind }, spent, parts, refunds, orig, capture, cats)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** What was added while creating it: receipts, tags and who it was lent to or borrowed from. */
+    val extras: StateFlow<TxnExtras> = combine(repo.txn(id), repo.attachmentsDao.attachmentsFlow(id)) { t, files ->
+        TxnExtras(files, repo.tagsOf(id), t?.txn?.personId?.let { repo.attachmentsDao.person(it)?.name })
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TxnExtras())
 
     /** Applies [change] and hands back how to undo it. */
     private fun change(change: (TxnEntity) -> TxnEntity, onDone: (suspend () -> Unit) -> Unit) {

@@ -199,6 +199,32 @@ data class AccountForm(
     val rate: String = "",
     val maturity: LocalDate? = null,
     val tried: Boolean = false,
+    /** Look (106/107): colour and icon; the icon follows the kind until one is picked. */
+    val hue: Float = app.burrow.money.ui.theme.CategoryHues.all.random(),
+    val icon: String? = null,
+    /** Count in net worth; null = the kind's default (cards and loans off). */
+    val inNetWorth: Boolean? = null,
+    /** Edit only: the opening balance, shown with "fix it from Fix balance". */
+    val opening: Long = 0,
+) {
+    val shownIcon get() = icon ?: defaultAccountIcon(type)
+    val countsInNetWorth get() = inNetWorth ?: app.burrow.money.data.defaultInNetWorth(type)
+}
+
+/** The icon an account gets from its kind. */
+fun defaultAccountIcon(type: String) = when (type) {
+    AccountType.CASH -> "payments"
+    AccountType.WALLET -> "account_balance_wallet"
+    AccountType.CARD -> "credit_card"
+    AccountType.LOAN -> "real_estate_agent"
+    AccountType.SAVINGS -> "savings"
+    else -> "account_balance"
+}
+
+/** Icons an account can have (106), in picker order. */
+val ACCOUNT_ICONS = listOf(
+    "account_balance", "credit_card", "account_balance_wallet", "payments", "savings", "real_estate_agent",
+    "smartphone", "home", "shield", "flight", "school", "redeem",
 )
 
 /** New account / edit account: the fields that apply to its type. */
@@ -223,6 +249,7 @@ class NewAccountViewModel(
                 AccountForm(
                     it.type, it.name, "", it.number.orEmpty(), txt(it.creditLimit), it.statementDay ?: 5, it.dueDay ?: 25,
                     txt(it.emi), it.interestRate.orEmpty(), it.maturityDate?.day(),
+                    hue = it.colorHue, icon = it.icon, inNetWorth = it.includeInNetWorth, opening = it.openingBalance,
                 )
             } ?: AccountForm(type = startType ?: AccountType.BANK)
         }
@@ -231,6 +258,15 @@ class NewAccountViewModel(
     fun edit(change: (AccountForm) -> AccountForm) = form.update { it?.let(change) }
 
     fun canSave(f: AccountForm) = f.name.isNotBlank()
+
+    /** Archive account (107): gone from lists and pickers, its history kept; hands back how to undo. */
+    fun archive(onDone: (suspend () -> Unit) -> Unit) {
+        val a = original ?: return
+        viewModelScope.launch {
+            money.updateAccount(a.copy(archived = true))
+            onDone { money.updateAccount(a) }
+        }
+    }
 
     fun save(onSaved: () -> Unit) {
         val f = form.value ?: return
@@ -243,21 +279,13 @@ class NewAccountViewModel(
             val entered = TypedAmount.parse(f.balance, digits)
             // A card's and a loan's "balance" is what is owed: stored as a negative balance.
             val opening = if (f.type == AccountType.CARD || f.type == AccountType.LOAN) -entered else entered
-            val icon = when (f.type) {
-                AccountType.CASH -> "payments"
-                AccountType.WALLET -> "account_balance_wallet"
-                AccountType.CARD -> "credit_card"
-                AccountType.LOAN -> "real_estate_agent"
-                AccountType.SAVINGS -> "savings"
-                else -> "account_balance"
-            }
             val base = original ?: AccountEntity(
-                name = "", type = f.type, currency = currency, openingBalance = opening, colorHue = app.burrow.money.ui.theme.CategoryHues.all.random(),
-                icon = icon, createdAt = System.currentTimeMillis(), sortOrder = 50,
-                includeInNetWorth = app.burrow.money.data.defaultInNetWorth(f.type),
+                name = "", type = f.type, currency = currency, openingBalance = opening, colorHue = f.hue,
+                icon = f.shownIcon, createdAt = System.currentTimeMillis(), sortOrder = 50,
+                includeInNetWorth = f.countsInNetWorth,
             )
             val a = base.copy(
-                name = f.name.trim(), type = f.type, icon = if (original == null) icon else base.icon,
+                name = f.name.trim(), type = f.type, icon = f.shownIcon, colorHue = f.hue, includeInNetWorth = f.countsInNetWorth,
                 number = f.number.filter { it.isDigit() }.takeLast(MAX_DIGITS).ifEmpty { null },
                 creditLimit = if (f.type == AccountType.CARD) amt(f.limit) else null,
                 statementDay = if (f.type == AccountType.CARD) f.statementDay else null,

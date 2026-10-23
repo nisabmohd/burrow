@@ -278,7 +278,7 @@ fun LinkButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier)
  * [icon] shows when not selected ("More").
  */
 @Composable
-fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Painter? = null) {
+fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Painter? = null, trailing: Painter? = null) {
     val haptics = LocalHapticFeedback.current
     FilterChip(
         selected = selected,
@@ -291,6 +291,7 @@ fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifi
             icon != null -> { { Icon(icon, null, modifier = Modifier.size(Size.iconSmall)) } }
             else -> null
         },
+        trailingIcon = trailing?.let { { Icon(it, null, modifier = Modifier.size(Size.iconSmall)) } },
         colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,

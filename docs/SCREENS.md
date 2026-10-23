@@ -39,7 +39,7 @@ width, light and dark. "→" means what a tap opens.
 ### New expense extras (user, 2026-10-20: simple, but not missing features)
 | PNG | Screen | Layout |
 |---|---|---|
-| 79-expense-with-extras | extras set | chips under the amount show their value: "Every month", "1 file", "Lent to Rahul"; a future date shows "Upcoming · added that day" |
+| 79-expense-with-extras | New expense filled | payee chosen sets the category; "Lent · …" pill; note and Attach a receipt rows |
 | 87-payee-typing | Paid to | a **free-text field** right under the amount ("Paid to" / "Received from"): type anything. Up to 4 quiet outlined suggestion chips (frequent payees; payers for income) show below and filter as you type; tapping one fills the text and sets its usual category. Typing a known payee exactly also sets it. Clear with ✕ |
 | 74-expense-note-sheet | Note | Note · tag chips (#Work, #Trip, #Family, #Reimbursable) · Done |
 | 75-expense-repeat-sheet | Repeat | Never / Every week / Every month / Every year · "It is a subscription" · "Remind me a day before". A repeat creates a Bill in Plan |
@@ -116,3 +116,12 @@ wrong backup password · replace-data confirm · wrong PIN · review all caught 
 | 15 | Auto-capture | 112 dp ring "92% · Recorded by itself", "Teach it N messages it missed · From …"; More tile "92% recorded by itself" |
 | 16 | Customise › Today | drag to reorder widgets |
 | 17 | Notifications | Sunday review switch (row opens this week's review) |
+
+## 2026-10-23 design update (kit screens 105–109)
+| PNG | Screen | Layout |
+|---|---|---|
+| 105-brand-logos | Brand | Burrow icon (full, round, dark, themed, notification) and the developer mark "mid apps" |
+| 106-edit-account | Edit account | header preview (icon + colour), Name, Last digits (helps match SMS), Colour (12 hues), Icon (12), Count in net worth, Opening balance, Archive |
+| 107-edit-account-colour | Edit account (scrolled) | colour and icon pickers, same blocks as Edit category |
+| 108-new-expense-keypad-open | New expense, typing | keypad open, caret after the amount, list fades above it |
+| 109-expense-type-pills | New expense, type | pill row (single choice, like Cashew): Once · Repeat · Subscription · Lent · Borrowed (income: no Subscription). Choosing Repeat/Subscription opens the frequency sheet and the pill reads "Repeat · Monthly ▾"; Lent/Borrowed opens the person sheet and reads "Lent · Rahul ▾". No extra rows. |

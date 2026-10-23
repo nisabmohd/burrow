@@ -1,5 +1,6 @@
 package app.burrow.money.ui.more
 
+import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import android.content.Intent
 import android.net.Uri
@@ -155,25 +156,9 @@ fun EditCategoryScreen(vm: EditCategoryViewModel, onClose: () -> Unit) {
             PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.category_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))
         }
         SectionHeader(stringResource(R.string.colour))
-        Picker {
-            CategoryHues.all.forEach { hue ->
-                val on = hue == f.hue
-                Swatch(on, stringResource(R.string.colour), { vm.edit { it.copy(hue = hue) } }) {
-                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(categoryColors(hue).solid), contentAlignment = Alignment.Center) {
-                        if (on) Icon(painterResource(R.drawable.ic_check_regular), null, tint = c.surface, modifier = Modifier.size(Size.iconSmall))
-                    }
-                }
-            }
-        }
+        app.burrow.money.ui.components.HuePicker(f.hue, stringResource(R.string.colour), { hue -> vm.edit { it.copy(hue = hue) } })
         SectionHeader(stringResource(R.string.icon))
-        Picker {
-            CATEGORY_ICONS.forEach { icon ->
-                val on = icon == f.icon
-                Swatch(on, icon.replace('_', ' '), { vm.edit { it.copy(icon = icon) } }) {
-                    CategoryCircle(icon, if (on) f.hue else null)
-                }
-            }
-        }
+        app.burrow.money.ui.components.IconPicker(CATEGORY_ICONS, f.icon, f.hue, { icon -> vm.edit { it.copy(icon = icon) } })
         if (vm.id != 0L) {
             BurrowButton(stringResource(R.string.delete_category), { confirm = true }, Modifier.fillMaxWidth().padding(top = Space.block), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
         }
@@ -198,32 +183,19 @@ private fun androidx.compose.foundation.layout.ColumnScope.FormBody(content: @Co
     )
 }
 
-/** A card of round choices (colours, icons), six to a row. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun Picker(content: @Composable () -> Unit) {
-    FlowRow(
-        Modifier.fillMaxWidth().clip(Shapes.surface).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(Space.card),
-        horizontalArrangement = Arrangement.SpaceBetween, verticalArrangement = Arrangement.spacedBy(Space.block), maxItemsInEachRow = 6,
-    ) { content() }
-}
-
-@Composable
-private fun Swatch(on: Boolean, label: String, onClick: () -> Unit, content: @Composable () -> Unit) {
-    val c = MaterialTheme.colorScheme
-    Box(
-        Modifier.size(Size.button).clip(Shapes.pill)
-            .then(if (on) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
-            .clickable(role = Role.RadioButton, onClick = onClick)
-            .semantics { selected = on; contentDescription = label },
-        contentAlignment = Alignment.Center,
-    ) { content() }
-}
-
 /** Main currency (67): search, the region's first, every other currency on search. */
 @Composable
-fun CurrencyScreen(current: String, onPick: (String) -> Unit, onBack: () -> Unit) {
+fun CurrencyScreen(
+    current: String,
+    onPick: (code: String, moveAccounts: Boolean) -> Unit,
+    onBack: () -> Unit,
+    /** How many of the user's accounts are in a currency (the old main one gets asked about). */
+    accountsIn: suspend (String) -> Int = { 0 },
+) {
     val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    // A new main currency while accounts are still in the old one: move them too, or keep them.
+    var ask by remember { mutableStateOf<Pair<String, Int>?>(null) }
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     var query by rememberSaveable { mutableStateOf("") }
     val region = app.burrow.money.data.defaultCurrency(locale)
@@ -245,11 +217,30 @@ fun CurrencyScreen(current: String, onPick: (String) -> Unit, onBack: () -> Unit
                     selected = code == current,
                     lead = { IconCircle(painterResource(app.burrow.money.ui.components.currencyIcon(code))) },
                     trailing = { if (code == current) Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(Size.icon)) },
-                    onClick = { onPick(code) },
+                    onClick = {
+                        if (code == current) onBack() else scope.launch {
+                            val n = accountsIn(current)
+                            if (n > 0) ask = code to n else onPick(code, false)
+                        }
+                    },
                 )
             }
         }
         Text(stringResource(R.string.currency_note), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(Space.grid).padding(top = Space.block))
+    }
+    ask?.let { (code, n) ->
+        val from = app.burrow.money.domain.MoneyFormat.symbolFor(current, locale)
+        val to = app.burrow.money.domain.MoneyFormat.symbolFor(code, locale)
+        app.burrow.money.ui.components.BurrowSheet({ ask = null }) {
+            app.burrow.money.ui.components.SheetHeader(
+                stringResource(R.string.move_accounts_title, to), { ask = null },
+                androidx.compose.ui.res.pluralStringResource(R.plurals.move_accounts_line, n, n, from, to),
+            )
+            app.burrow.money.ui.components.SheetFooter {
+                app.burrow.money.ui.components.BurrowButton(stringResource(R.string.keep_in, from), { ask = null; onPick(code, false) }, Modifier.weight(1f), app.burrow.money.ui.components.ButtonKind.TONAL, height = Size.buttonBottom)
+                app.burrow.money.ui.components.BurrowButton(stringResource(R.string.move_to, to), { ask = null; onPick(code, true) }, Modifier.weight(1f), height = Size.buttonBottom)
+            }
+        }
     }
 }
 
@@ -265,6 +256,8 @@ fun AboutScreen(onBack: () -> Unit, onLicences: () -> Unit) {
             Spacer(Modifier.height(Space.card))
             Text(stringResource(R.string.app_name), style = BurrowType.headline, color = c.onSurface)
             Text(stringResource(R.string.version_build, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+            // The developer name on the Play Store (105).
+            Text(stringResource(R.string.made_by), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         val rows = buildList<Triple<Int, Int?, Pair<Int, (() -> Unit)?>>> {
             add(Triple(R.string.source_code, R.string.source_code_line, R.drawable.ic_code_duotone to { open(BuildConfig.REPO_URL) }))

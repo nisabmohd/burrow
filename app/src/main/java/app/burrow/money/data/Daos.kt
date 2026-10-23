@@ -128,12 +128,23 @@ interface AccountDao {
 
     @Query("DELETE FROM AccountEntity WHERE isSample = 1")
     suspend fun deleteSamples()
+
+    /** The user's own accounts in [currency], for "Move your accounts to …?". */
+    @Query("SELECT COUNT(*) FROM AccountEntity WHERE currency = :currency AND isSample = 0 AND archived = 0")
+    suspend fun countIn(currency: String): Int
+
+    @Query("UPDATE AccountEntity SET currency = :to WHERE currency = :from")
+    suspend fun moveCurrency(from: String, to: String)
 }
 
 @Dao
 interface CategoryDao {
     @Query("SELECT * FROM CategoryEntity WHERE archived = 0 ORDER BY sortOrder, id")
     fun all(): Flow<List<CategoryEntity>>
+
+    /** Every category id in default order (expense, then income), as the sample month expects. */
+    @Query("SELECT id FROM CategoryEntity ORDER BY sortOrder, id")
+    suspend fun idsInOrder(): List<Long>
 
     @Query("SELECT COUNT(*) FROM CategoryEntity")
     suspend fun count(): Int
@@ -248,6 +259,13 @@ interface TxnDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM TxnEntity WHERE isSample = 1)")
     fun hasSamples(): Flow<Boolean>
+
+    @Query("SELECT COUNT(*) FROM TxnEntity WHERE isSample = 0")
+    suspend fun realCount(): Int
+
+    /** Transactions of the accounts just moved to [to] follow them. */
+    @Query("UPDATE TxnEntity SET currency = :to WHERE currency = :from AND accountId IN (SELECT id FROM AccountEntity WHERE currency = :to)")
+    suspend fun moveCurrency(from: String, to: String)
 
     /** Transactions in [from, to), newest first, with names: filters, Insights, budgets, accounts. */
     @Query(
@@ -582,6 +600,13 @@ data class TxnKey(val at: Long, val amount: Long, val payee: String?)
 /** The next round (docs/IDEAS.md, burrow-next): split parts, refunds, favourites, import mappings, trust. */
 @Dao
 interface NextDao {
+    // Import › Replace: the user's own transactions and what hangs off them (samples are left alone).
+    @Query("DELETE FROM SplitEntity WHERE txnId IN (SELECT id FROM TxnEntity WHERE isSample = 0)") suspend fun clearRealSplits()
+    @Query("DELETE FROM TxnTagEntity WHERE txnId IN (SELECT id FROM TxnEntity WHERE isSample = 0)") suspend fun clearRealTags()
+    @Query("DELETE FROM AttachmentEntity WHERE txnId IN (SELECT id FROM TxnEntity WHERE isSample = 0)") suspend fun clearRealAttachments()
+    @Query("DELETE FROM TxnEntity WHERE isSample = 0") suspend fun clearRealTxns()
+    @Query("SELECT COUNT(*) FROM TxnEntity WHERE isSample = 0") suspend fun realTxnCount(): Int
+
     @Query(
         """
         SELECT s.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue

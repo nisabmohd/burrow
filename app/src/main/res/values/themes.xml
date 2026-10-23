@@ -3,7 +3,7 @@
     <!-- Splash: the logo on the page colour, then straight into Compose (no second splash). -->
     <style name="Theme.Burrow" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/page</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- No statusBarColor / navigationBarColor: deprecated in Android 15, and enableEdgeToEdge()
+             in MainActivity already makes both bars transparent on every version. -->
     </style>
 </resources>

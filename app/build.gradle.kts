@@ -19,7 +19,7 @@ android {
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 2
+        versionCode = 3
         versionName = "0.1.0"
         // About screen links. They open in the browser; the app itself never goes online.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
@@ -28,13 +28,13 @@ android {
 
     flavorDimensions += "distribution"
     productFlavors {
-        // Google Play. SMS capture ships here only after the Play SMS declaration is approved;
-        // until then SMS_CAPTURE is false and the app uses notification capture only.
+        // Google Play. Reads bank SMS like the other builds; needs the Play Console SMS permissions
+        // declaration (release/sms-declaration.md) before a release with it can go out.
         create("play") {
             dimension = "distribution"
             buildConfigField("boolean", "PLAY_STORE", "true")
             buildConfigField("boolean", "PLAY_LISTED", "false") // true once live: turns on "Rate on Play Store"
-            buildConfigField("boolean", "SMS_CAPTURE", "false")
+            buildConfigField("boolean", "SMS_CAPTURE", "true")
         }
         // F-Droid: no Google code at all.
         create("foss") {

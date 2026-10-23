@@ -2,6 +2,8 @@ Pay the way you always do. Burrow records it, reminds you of bills and shows wha
 
 RECORDS ITSELF
 • When your bank or payment app tells you about a payment, one tap saves it with the right category.
+• Not the right category? Tap Edit on the notification to open it filled in.
+• Learns the category you usually pick for each payee.
 • Payments that match a due bill mark it paid.
 • Message rules work for any bank, region and language; teach a new format by tapping the amount.
 
@@ -13,6 +15,7 @@ KNOW WHAT IS LEFT
 
 YOUR WAY
 • Customise Today, the New expense form and what happens when a payment is found.
+• Category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.
 • Notes, tags, repeating payments, receipts and lend or borrow, when you want them.
 • Your currency and number format; type in exchange rates for other currencies.
 • Light and dark themes, colours from your wallpaper, four fonts, English and Hindi.

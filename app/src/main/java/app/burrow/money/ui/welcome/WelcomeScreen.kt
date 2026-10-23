@@ -90,7 +90,10 @@ class WelcomeViewModel(private val app: AppContainer) : ViewModel() {
     val accounts: StateFlow<List<AccountWithBalance>> = app.money.accounts.map { l -> l.filter { !it.account.isSample } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun setCurrency(code: String) = viewModelScope.launch { app.settings.setMainCurrency(code) }
+    fun setCurrency(code: String) = viewModelScope.launch {
+        app.settings.setMainCurrency(code)
+        app.money.resampleIn(code)
+    }
 
     fun remove(a: AccountEntity) = viewModelScope.launch { app.money.updateAccount(a.copy(archived = true)) }
 

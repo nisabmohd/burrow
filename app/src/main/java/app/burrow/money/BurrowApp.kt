@@ -17,6 +17,8 @@ class BurrowApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Before anything reads the settings: the region's currency comes from the SIM country.
+        app.burrow.money.data.Region.detect(this)
         // Message text older than 30 days goes (docs/CAPTURE.md § Keep). Off the main thread.
         container.appScope.launch { container.capture.forgetOldText() }
         // Bill reminders: catch up on anything due and set the next alarm.

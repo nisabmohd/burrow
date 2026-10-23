@@ -151,8 +151,11 @@ sealed interface ImportState {
         val accounts: List<AccountWithBalance>,
         /** Spent this month by category, for the category sheet. */
         val spent: Map<Long, Long> = emptyMap(),
+        /** The user's own transactions already here, and whether the import replaces them. */
+        val here: Int = 0,
+        val replace: Boolean = false,
     ) : ImportState {
-        val toImport get() = parsed.rows.size - if (skip) duplicates else 0
+        val toImport get() = parsed.rows.size - if (skip && !replace) duplicates else 0
         val matched get() = categoryFor.count { it.value != null }
         /** Their names made as new categories, most used first (the order their colours are given in). */
         val newCategoryNames get() = parsed.categories.entries.sortedByDescending { it.value }.map { it.key }.filter { categoryFor[it] == null }
@@ -209,6 +212,7 @@ class ImportCheckViewModel(private val app: AppContainer, val source: ImportSour
         _state.value = ImportState.Ready(
             parsed, categoryFor, incomeNames, accountFor,
             before?.fallbackAccount ?: pay.firstOrNull()?.account?.id, before?.skip ?: true, dups, cats, real, spent,
+            here = app.next.realTxnCount(), replace = before?.replace ?: false,
         )
     }
 
@@ -218,6 +222,9 @@ class ImportCheckViewModel(private val app: AppContainer, val source: ImportSour
     fun setAccount(name: String, id: Long) = ready { r -> r.copy(accountFor = r.accountFor + (name to id)) }
     fun setFallback(id: Long) = ready { it.copy(fallbackAccount = id) }
     fun setSkip(on: Boolean) = ready { it.copy(skip = on) }
+
+    /** Add to what is here (default), or replace the user's transactions with the file's. */
+    fun setReplace(on: Boolean) = ready { it.copy(replace = on) }
 
     /** Any spreadsheet: the user says which column holds what; the file is read again. */
     fun setColumn(field: ImportField, index: Int?) {
@@ -240,7 +247,7 @@ class ImportCheckViewModel(private val app: AppContainer, val source: ImportSour
                     source.name, r.parsed.rows,
                     r.categoryFor.mapNotNull { (k, v) -> v?.let { k to it } }.toMap(),
                     r.accountFor.mapNotNull { (k, v) -> v?.let { k to it } }.toMap(),
-                    r.fallbackAccount, r.skip, newCats, newAccounts,
+                    r.fallbackAccount, r.skip, newCats, newAccounts, replace = r.replace,
                 ),
             )
             onDone(n)
@@ -300,6 +307,7 @@ fun ImportCheckScreen(vm: ImportCheckViewModel, onBack: () -> Unit, onDone: (Int
     val state by vm.state.collectAsStateWithLifecycle()
     val c = MaterialTheme.colorScheme
     var sheet by remember { mutableStateOf<CheckSheet?>(null) }
+    var confirmReplace by remember { mutableStateOf(false) }
     val from = sourceName(vm.source)
     val s = state
     DetailFrame(
@@ -307,7 +315,7 @@ fun ImportCheckScreen(vm: ImportCheckViewModel, onBack: () -> Unit, onDone: (Int
         bottom = if (s is ImportState.Ready) ({
             val ok = s.canRun
             BurrowButton(
-                pluralStringResource(R.plurals.import_n, s.toImport, s.toImport), { if (ok) vm.run(onDone) },
+                pluralStringResource(R.plurals.import_n, s.toImport, s.toImport), { if (ok) { if (s.replace) confirmReplace = true else vm.run(onDone) } },
                 Modifier.fillMaxWidth(), if (ok) ButtonKind.FILLED else ButtonKind.OFF, height = Size.buttonBottom,
             )
         }) else null,
@@ -403,18 +411,40 @@ fun ImportCheckScreen(vm: ImportCheckViewModel, onBack: () -> Unit, onDone: (Int
                         )
                     }
                 }
-                ListGroup(Modifier.padding(top = Space.block)) {
-                    ListRow(
-                        stringResource(R.string.skip_already_here), 0, 1,
-                        supporting = pluralStringResource(R.plurals.same_day_amount_payee, s.duplicates, s.duplicates),
-                        lead = { IconCircle(painterResource(R.drawable.ic_content_copy_duotone)) },
-                        trailing = { BurrowSwitch(s.skip, vm::setSkip) },
+                // What happens to what is already here: add (default) or replace the transactions.
+                if (s.here > 0) {
+                    SectionHeader(stringResource(R.string.already_here))
+                    app.burrow.money.ui.components.PickList(
+                        listOf(
+                            app.burrow.money.ui.components.Choice(false, stringResource(R.string.import_add), pluralStringResource(R.plurals.import_add_line, s.here, s.here)),
+                            app.burrow.money.ui.components.Choice(true, stringResource(R.string.import_replace), pluralStringResource(R.plurals.import_replace_line, s.here, s.here)),
+                        ),
+                        s.replace, vm::setReplace,
                     )
+                }
+                if (!s.replace) {
+                    ListGroup(Modifier.padding(top = Space.block)) {
+                        ListRow(
+                            stringResource(R.string.skip_already_here), 0, 1,
+                            supporting = pluralStringResource(R.plurals.same_day_amount_payee, s.duplicates, s.duplicates),
+                            lead = { IconCircle(painterResource(R.drawable.ic_content_copy_duotone)) },
+                            trailing = { BurrowSwitch(s.skip, vm::setSkip) },
+                        )
+                    }
                 }
             }
         }
     }
     val r = s as? ImportState.Ready ?: return
+    if (confirmReplace) {
+        app.burrow.money.ui.components.ConfirmDialog(
+            painterResource(R.drawable.ic_delete_regular),
+            pluralStringResource(R.plurals.replace_title, r.here, r.here),
+            stringResource(R.string.replace_text, from),
+            stringResource(R.string.replace), stringResource(R.string.cancel),
+            onConfirm = { confirmReplace = false; vm.run(onDone) }, onDismiss = { confirmReplace = false },
+        )
+    }
     when (val sh = sheet) {
         is CheckSheet.Category -> {
             val income = sh.names.all { it in r.incomeNames }

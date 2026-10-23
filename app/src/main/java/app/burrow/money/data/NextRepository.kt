@@ -55,6 +55,8 @@ data class ImportPlan(
     /** Their names with nothing to match: made as new categories / accounts first. */
     val newCategories: Map<String, CategoryEntity> = emptyMap(),
     val newAccounts: Map<String, AccountEntity> = emptyMap(),
+    /** Replace: the user's transactions go first (accounts, categories, budgets, bills and goals stay). */
+    val replace: Boolean = false,
 )
 
 /**
@@ -155,6 +157,9 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
     }
 
     // Import (10, 11)
+    /** How many of the user's own transactions there are, for Import's "Replace your N transactions". */
+    suspend fun realTxnCount(): Int = db.next().realTxnCount()
+
     suspend fun importMaps(source: String): List<ImportMapEntity> = db.next().importMaps(source)
 
     /** Rows of [rows] already here: same day, amount and payee. */
@@ -170,7 +175,7 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
 
     /** Adds the rows (skipping ones already here when asked), remembers the mappings. Returns how many were added. */
     suspend fun runImport(plan: ImportPlan): Int {
-        val skip = if (plan.skipDuplicates) duplicates(plan.rows) else emptySet()
+        val skip = if (plan.skipDuplicates && !plan.replace) duplicates(plan.rows) else emptySet()
         val now = System.currentTimeMillis()
         var added = 0
         // Read before the transaction: flows don't see rows it hasn't committed yet.
@@ -178,6 +183,12 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
         val kindOf = money.categories.first().associate { it.id to it.kind }.toMutableMap()
         val otherOf = money.categories.first().filter { it.icon == "category" }.associate { it.kind to it.id }
         db.withTransaction {
+            if (plan.replace) {
+                db.next().clearRealSplits()
+                db.next().clearRealTags()
+                db.next().clearRealAttachments()
+                db.next().clearRealTxns()
+            }
             // New categories and accounts first, so their rows can point at them.
             val categoryFor = plan.categoryFor + plan.newCategories.mapValues { (_, c) -> db.categories().upsert(c).also { kindOf[it] = c.kind } }
             val accountFor = plan.accountFor + plan.newAccounts.mapValues { (_, a) -> db.accounts().insert(a).also { currencyOf[it] = a.currency } }

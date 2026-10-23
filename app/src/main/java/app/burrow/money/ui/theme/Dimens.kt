@@ -30,6 +30,7 @@ object Space {
 object Size {
     val row = 72.dp
     val rowOneLine = 56.dp
+    val listFade = 32.dp       // the fade over a list where it scrolls under the keypad (108)
     val iconCircle = 40.dp
     val iconCircleBig = 64.dp
     val icon = 24.dp

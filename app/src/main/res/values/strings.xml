@@ -889,7 +889,6 @@
     <string name="payee_hint_short">Shop, person or app</string>
     <string name="note_hint_short">What was it for?</string>
     <string name="optional">Optional</string>
-    <string name="note_value">Note · %1$s</string>
     <string name="every_week">Every week</string>
     <string name="every_year">Every year</string>
     <string name="repeat_line">Repeating payments also show in Plan › Bills</string>
@@ -914,8 +913,6 @@
     <string name="i_borrowed">I borrowed</string>
     <string name="lent_to">Lent to</string>
     <string name="borrowed_from">Borrowed from</string>
-    <string name="lent_to_name">Lent to %1$s</string>
-    <string name="borrowed_from_name">Borrowed from %1$s</string>
     <string name="remind_to_settle">Remind me to settle</string>
     <string name="in_two_weeks">In 2 weeks</string>
     <string name="date_sheet_line">A future date makes it upcoming</string>
@@ -1142,4 +1139,43 @@
         <item quantity="one">Teach it %d message it missed</item>
         <item quantity="other">Teach it %d messages it missed</item>
     </plurals>
+    <string name="move_accounts_title">Move your accounts to %1$s?</string>
+    <plurals name="move_accounts_line">
+        <item quantity="one">%1$d account is in %2$s. Move it and its payments to %3$s, or keep it in %2$s and add a rate in Customise › Currency.</item>
+        <item quantity="other">%1$d accounts are in %2$s. Move them and their payments to %3$s, or keep them in %2$s and add a rate in Customise › Currency.</item>
+    </plurals>
+    <string name="move_to">Move to %1$s</string>
+    <string name="keep_in">Keep in %1$s</string>
+    <string name="receipt_line">Receipt · %1$s</string>
+    <string name="tags">Tags</string>
+    <string name="already_here">What is already here</string>
+    <string name="import_add">Add to what is here</string>
+    <plurals name="import_add_line">
+        <item quantity="one">Your %1$d transaction stays</item>
+        <item quantity="other">Your %1$d transactions stay</item>
+    </plurals>
+    <string name="import_replace">Replace your transactions</string>
+    <plurals name="import_replace_line">
+        <item quantity="one">Your %1$d transaction is deleted first; accounts and categories stay</item>
+        <item quantity="other">Your %1$d transactions are deleted first; accounts and categories stay</item>
+    </plurals>
+    <plurals name="replace_title">
+        <item quantity="one">Delete your %1$d transaction?</item>
+        <item quantity="other">Delete your %1$d transactions?</item>
+    </plurals>
+    <string name="replace_text">They are replaced by the ones from %1$s. This can\'t be undone; a backup first is a good idea.</string>
+    <string name="not_included">Not included</string>
+    <string name="opening_balance">Opening balance</string>
+    <string name="opening_balance_line">%1$s · fix it from Fix balance</string>
+    <string name="archive_account">Archive account</string>
+    <string name="account_archived">Account archived</string>
+    <string name="once">Once</string>
+    <string name="lent">Lent</string>
+    <string name="borrowed">Borrowed</string>
+    <string name="pill_value">%1$s · %2$s</string>
+    <string name="tap_to_type">Tap to type the amount</string>
+    <string name="attach_receipt">Attach a receipt</string>
+    <string name="receipt">Receipt</string>
+    <string name="close_keypad">Close the keypad</string>
+    <string name="made_by">Made by mid apps</string>
 </resources>

@@ -60,6 +60,7 @@ fun TxnScreen(
     onSplit: (Long) -> Unit = {},
     onOpenTxn: (Long) -> Unit = {},
 ) {
+    val extras by vm.extras.collectAsStateWithLifecycle()
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
@@ -117,6 +118,40 @@ fun TxnScreen(
                         t.txn.note ?: stringResource(R.string.add_note), i, n, supporting = stringResource(R.string.note),
                         lead = { IconCircle(painterResource(R.drawable.ic_notes_duotone)) }, onClick = { sheet = TxnSheet.NOTE },
                     )
+                }
+                // What was added while creating it (every type, transfers too).
+                extras.person?.let { who ->
+                    add { i, n ->
+                        ListRow(
+                            who, i, n, supporting = stringResource(if (t.txn.lend == app.burrow.money.data.Lend.BORROWED) R.string.borrowed_from else R.string.lent_to),
+                            lead = { IconCircle(painterResource(R.drawable.ic_handshake_duotone)) },
+                        )
+                    }
+                }
+                if (extras.tags.isNotEmpty()) {
+                    add { i, n ->
+                        ListRow(
+                            extras.tags.joinToString("  ") { "#$it" }, i, n, supporting = stringResource(R.string.tags),
+                            lead = { IconCircle(painterResource(R.drawable.ic_tag_duotone)) },
+                        )
+                    }
+                }
+                extras.attachments.forEach { a ->
+                    add { i, n ->
+                        ListRow(
+                            a.name, i, n, supporting = stringResource(R.string.receipt_line, android.text.format.Formatter.formatShortFileSize(context, a.bytes)),
+                            lead = { IconCircle(painterResource(R.drawable.ic_attach_file_duotone)) },
+                            onClick = {
+                                val uri = (context.applicationContext as app.burrow.money.BurrowApp).container.attachments.uriFor(a)
+                                runCatching {
+                                    context.startActivity(
+                                        android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri, a.mime)
+                                            .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                                    )
+                                }
+                            },
+                        )
+                    }
                 }
             }
             ListGroup { rows.forEachIndexed { i, r -> r(i, rows.size) } }

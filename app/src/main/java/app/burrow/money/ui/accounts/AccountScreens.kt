@@ -2,7 +2,10 @@ package app.burrow.money.ui.accounts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -356,7 +359,7 @@ private enum class FormSheet { STATEMENT, DUE, MATURITY }
 
 /** New account / edit account: type, name, balance, last digits, and the type's own details. */
 @Composable
-fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -> Unit) {
+fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -> Unit, onArchived: (suspend () -> Unit) -> Unit = {}) {
     val formState by vm.form.collectAsStateWithLifecycle()
     val f = formState ?: return
     val c = MaterialTheme.colorScheme
@@ -375,6 +378,16 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
+            // A preview of how it looks in lists (106): icon in its colour, name with the last digits, kind.
+            Column(Modifier.fillMaxWidth().padding(top = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
+                app.burrow.money.ui.pickers.CategoryCircle(f.shownIcon, f.hue, Size.iconCircleBig)
+                Spacer(Modifier.height(Space.block))
+                Text(
+                    listOfNotNull(f.name.ifBlank { stringResource(R.string.new_account) }, f.number.takeIf { it.isNotBlank() }?.let { "••$it" }).joinToString(" "),
+                    style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface,
+                )
+                Text(typeLabels.getValue(f.type), style = app.burrow.money.ui.theme.BurrowType.body, color = c.onSurfaceVariant)
+            }
             if (!vm.isEdit) {
                 LabeledField(stringResource(R.string.kind)) {
                     ChipWrap(TYPES, { typeLabels.getValue(it) }, { it == f.type }, { t -> vm.edit { it.copy(type = t) } })
@@ -421,6 +434,36 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
                         ListRow(f.maturity?.let { dates.fullDay(it) } ?: stringResource(R.string.no_date), 0, 1, supporting = stringResource(R.string.matures_on), lead = { IconCircle(painterResource(R.drawable.ic_calendar_view_month_duotone)) }, onClick = { sheet = FormSheet.MATURITY })
                     }
                 }
+            }
+            SectionHeader(stringResource(R.string.colour))
+            app.burrow.money.ui.components.HuePicker(f.hue, stringResource(R.string.colour), { h -> vm.edit { it.copy(hue = h) } })
+            SectionHeader(stringResource(R.string.icon))
+            app.burrow.money.ui.components.IconPicker(ACCOUNT_ICONS, f.shownIcon, f.hue, { i -> vm.edit { it.copy(icon = i) } })
+            ListGroup {
+                val rows = if (vm.isEdit) 2 else 1
+                ListRow(
+                    stringResource(R.string.count_in_net_worth), 0, rows,
+                    supporting = stringResource(
+                        when {
+                            f.type == AccountType.CARD && !f.countsInNetWorth -> R.string.net_worth_off_card
+                            f.type == AccountType.LOAN && !f.countsInNetWorth -> R.string.net_worth_off_loan
+                            f.countsInNetWorth -> R.string.included
+                            else -> R.string.not_included
+                        },
+                    ),
+                    lead = { IconCircle(painterResource(R.drawable.ic_account_balance_duotone)) },
+                    trailing = { app.burrow.money.ui.components.BurrowSwitch(f.countsInNetWorth, { on -> vm.edit { it.copy(inNetWorth = on) } }) },
+                )
+                if (vm.isEdit) {
+                    ListRow(
+                        stringResource(R.string.opening_balance), 1, rows,
+                        supporting = stringResource(R.string.opening_balance_line, money.plain(f.opening)),
+                        lead = { IconCircle(painterResource(R.drawable.ic_payments_duotone)) },
+                    )
+                }
+            }
+            if (vm.isEdit) {
+                BurrowButton(stringResource(R.string.archive_account), { vm.archive(onArchived) }, Modifier.fillMaxWidth(), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
             }
             if (f.tried && !vm.canSave(f)) Text(stringResource(R.string.account_cant_save), style = app.burrow.money.ui.theme.BurrowType.body, color = c.error)
         }
