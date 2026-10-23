@@ -22,7 +22,7 @@ class BaselineProfileGenerator {
     val rule = BaselineProfileRule()
 
     @Test
-    fun generate() = rule.collect(packageName = PACKAGE, includeInStartupProfile = true) {
+    fun generate() = rule.collect(packageName = PACKAGE, maxIterations = 3, stableIterations = 2, includeInStartupProfile = true) {
         pressHome()
         startActivityAndWait()
         device.visitTabs()
@@ -42,7 +42,7 @@ class BaselineProfileGenerator {
         // Add expense: the form, the keypad and the category sheet, then close without saving.
         tap(By.desc("Add expense"))
         tap(By.text("2"))
-        tap(By.text("Choose a category"))
+        tap(By.text("More")) // the category chips' More: the category sheet
         tap(By.desc("Close"))
         pressBack()
         waitForIdle()

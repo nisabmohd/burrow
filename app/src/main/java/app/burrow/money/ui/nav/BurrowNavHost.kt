@@ -259,12 +259,16 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBill = { nav.navigate(BillRoute(it)) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
                             onGoal = { nav.navigate(GoalRoute(it)) },
+                            onComingUp = { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) },
                             scrollToTop = todayToTop,
                         )
                     }
                     composable<ActivityRoute> {
-                        val vm = viewModel { ActivityViewModel(container.money, container.filters) }
-                        ActivityScreen(vm, onAdd = openAdd, onOpen = openTxn, onEdit = { nav.navigate(AddRoute(editId = it)) }, onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) }, focusSearch = container.filters.focusSearch)
+                        val vm = viewModel { ActivityViewModel(container.money, container.filters, container.plan) }
+                        ActivityScreen(
+                            vm, onAdd = openAdd, onOpen = openTxn, onEdit = { nav.navigate(AddRoute(editId = it)) }, onDuplicate = { nav.navigate(AddRoute(duplicateId = it)) }, focusSearch = container.filters.focusSearch,
+                            onComingUp = { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) },
+                        )
                     }
                     composable<PlanRoute> {
                         val vm = viewModel { PlanViewModel(container.plan, container.money, settings.monthStartDay, digits) }
@@ -477,7 +481,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         AutoCaptureScreen(
                             vm,
                             onBack = { nav.popBackStack() },
-                            onTeach = { nav.navigate(TeachRoute(captureId = it)) },
+                            onTeach = { nav.navigate(MissedRoute) },
                             onRules = { nav.navigate(RulesRoute) },
                             onHowItWorks = { nav.navigate(CaptureIntroRoute) },
                             paymentFound = settings.onPaymentFound,
@@ -490,9 +494,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             vm,
                             onBack = { nav.popBackStack() },
                             onOpen = { nav.navigate(RuleRoute(it)) },
-                            onTeach = { nav.navigate(TeachRoute(captureId = it)) },
+                            onTeach = { nav.navigate(MissedRoute) },
                             onTeachText = { sender, text -> nav.navigate(TeachRoute(sender = sender, text = text)) },
                         )
+                    }
+                    composable<MissedRoute> {
+                        val vm = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
+                        app.burrow.money.ui.teach.MissedScreen(vm, onBack = { nav.popBackStack() }, onTeach = { nav.navigate(TeachRoute(captureId = it)) })
                     }
                     composable<RuleRoute> { e ->
                         val id = e.toRoute<RuleRoute>().id

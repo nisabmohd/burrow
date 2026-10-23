@@ -55,11 +55,12 @@ variable TTFs drawn a step heavier to match the PNGs (Lexend 440/540; see `docs/
 Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/widget.xml`.
 
 ## Behaviour rules
-- New expense (17, 108, 109): tap the amount to open the keypad (⌄ puts it away; the list fades above it); favourites;
-  a **Paid to** free-text field (suggestion chips of frequent payees filter as you type and set the usual category);
-  one list: Category, Account, Date, Add a note, Attach a receipt; type pills Once · Repeat · Subscription · Lent · Borrowed
-  (one choice; income has no Subscription). What shows follows More › Customise › New expense form. Future date = upcoming.
-  Repeat or Subscription creates a bill. Attachments stay on the phone.
+- New expense (17, 111, 112): title "New expense ▾" opens the type sheet; amount with a blinking caret; **keypad always
+  docked** (hidden only while Paid to has the keyboard); Paid to (payee matches set the category); favourites chips on an
+  empty form (one tap saves); category chips (4 most used + More); one line "HDFC Savings · Today"; extras Note · Receipt ·
+  Repeat or lend (one sheet: Once, Repeat, Subscription, Lent, Borrowed). Everything fits without scrolling.
+  What shows follows More › Customise › New expense form. Future date = upcoming. Repeat or Subscription creates a bill.
+  Attachments stay on the phone.
 - **Customise** is one screen with tabs Today · Expense · Transactions · Region · Currency, built only from choice tiles,
   toggle tiles, ordered rows (show/hide + drag ⠿, never arrows) and switch rows. Every new customisation goes there.
 - Long-press any transaction row: one actions sheet (06). Favourites save with one tap on an empty New expense.
@@ -74,8 +75,11 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 - First run: Welcome → currency → monthly budget (skippable) → accounts → Today with sample data + note; samples go on the first real entry.
 - Nothing is drawn under a header until its data has loaded (no "₹0" flash).
 - Filters stay while the app is open, reset on restart.
-- Safe to spend today = (left this month + spent today) ÷ days left including today − spent today, never
-  below 0. Today's hero, the home-screen widget and the Sunday review show this same number.
+- Safe to spend today = (left this month − unpaid expenses still due this month + spent today) ÷ days left including
+  today − spent today, never below 0. "Coming up lowers safe to spend" (Customise › Transactions, on by default);
+  transfers like card bills and EMIs don't count. Today's hero, the home-screen widget and the Sunday review show this same number.
+- Plan's first tab is **Coming up**: unpaid bills and future-dated payments in one list (Overdue · This week · This month ·
+  Later). Swipe right Paid / Add now, left Skip / Delete. A future-dated payment is added on its day with a quiet notification.
 - Refunds lower their category's spending, never count as income. Split payments stay one row in
   Activity; each part counts in its own category and budget.
 - Notifications: app name + time, title, one line, no buttons (except the capture notification).

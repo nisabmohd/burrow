@@ -23,6 +23,11 @@ object AppLanguage {
     val LANGUAGES = listOf(
         Language("en", "English", "English"),
         Language("hi", "हिन्दी", "Hindi"),
+        Language("es", "Español", "Spanish"),
+        Language("de", "Deutsch", "German"),
+        Language("fr", "Français", "French"),
+        Language("pt-BR", "Português (Brasil)", "Portuguese"),
+        Language("ja", "日本語", "Japanese"),
     )
 
     private const val PREFS = "app_language"

@@ -25,8 +25,8 @@ class BurrowApp : Application() {
         container.appScope.launch { container.runBillReminders() }
         // Scheduled backups: set the next daily check.
         container.appScope.launch { container.backup.schedule(); container.runMonthlySummary() }
-        // Upcoming transactions whose day has come; attachment files of deleted transactions.
-        container.appScope.launch { container.money.postDue(); container.attachments.cleanOrphans(); container.next.cleanOrphans(); container.runSettleReminders() }
+        // Attachment files of deleted transactions (upcoming payments post in runBillReminders).
+        container.appScope.launch { container.attachments.cleanOrphans(); container.next.cleanOrphans(); container.runSettleReminders() }
         // Sunday review (13): the next Sunday 6 PM alarm. Home-screen widget and shortcuts: fresh numbers.
         container.appScope.launch { container.scheduleWeeklyReview(); app.burrow.money.home.HomeSurfaces.refresh(container) }
     }

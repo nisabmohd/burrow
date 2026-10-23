@@ -70,6 +70,8 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose, title = stringResource(R.string.teach_title)) {
+            // Skip this one: not a payment, or not worth a rule (Undo brings it back).
+            if (vm.canIgnore) BurrowButton(stringResource(R.string.ignore), { vm.ignore { undo -> snackbar.show(context.getString(R.string.ignored), undo); onClose() } }, kind = ButtonKind.TONAL)
             BurrowButton(stringResource(R.string.save), save, kind = if (s.canSave) ButtonKind.FILLED else ButtonKind.OFF)
         }
         Column(

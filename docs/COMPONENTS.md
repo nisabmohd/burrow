@@ -17,6 +17,9 @@ if something is missing, add a component here first.
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
 | `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing; optional long-press, and `lifted` while dragged | Lists.kt |
+| `BlockColumn` / `BlockGap` | a page body: blocks 12 dp apart; `SectionHeader`s inside keep 16 above / 8 below (they take the column gap off their own padding) | Lists.kt |
+| `ChipRow` | quick choices in ONE row of equal chips, label centred, no check (day stepper, amount stepper, Yesterday · Today · Tomorrow); never wraps | Controls.kt |
+| `MonthHeader` + `MonthCalendar` | "October 2026" ‹ › over seven equal columns of 38 dp day circles; the Dates sheet and the one `DateSheet` (never Material's DatePicker: its 48 dp cells overflow narrow phones) | ui/filters/FilterSheets.kt |
 | `IconCircle` | 40 dp (64 big), duotone icon at 55%; category colours or neutral | Lists.kt |
 | `SectionHeader` | `button` style title, meta or text button right, 16 above / 8 below | Lists.kt |
 | `TxnRow` / `TxnCircle` | the one transaction row (Today › Recent, Activity): category circle, payee, "Food & drinks · HDFC" (+ time today), amount | ui/txn/TxnRow.kt |
@@ -24,7 +27,6 @@ if something is missing, add a component here first.
 | `WavyProgress` / `rememberCountUp` | the hero's wavy bar; a number that counts up once per screen | Charts.kt / CountUp.kt |
 | `AmountTrailing` | `titleSmall` amount over `label` status ("in 6 days", "Paid") | Lists.kt |
 | `Widget` | half: 184 dp fixed; wide: wraps, text left + visual right | Blocks.kt |
-| Next-up card | `surfaceContainerLow` card: label, 64 dp icon circle + name/amount/when, one filled "Mark paid" | ui/plan/PlanScreen.kt |
 | Status tiles (More) | 2 equal columns (`minmax(0,1fr)`), 24 dp, icon top-left, status top-right, title, one line | screen code |
 | Category tiles | 3 columns, 56 dp circle + one-word name; dashed "New" tile | screen code |
 | `PillBarChart` | 16 dp pill bars, 104 dp tall (40 in widgets), labels, dots for empty, dashed average; one tap area over the chart picks the bar, TalkBack gets a summary and an action per bar | Charts.kt |
@@ -37,6 +39,8 @@ if something is missing, add a component here first.
 | `Chip` / `ChipWrap` | 36 dp pills; selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Bars.kt |
+| `TypeSheet` / `RepeatOrLendSheet` | from "New expense ▾" (111): Expense · Income · Transfer; Repeat or lend (112): Once · Repeat · Subscription · Lent · Borrowed, then How often or who, Done | ui/add/ExtrasSheets.kt |
+| `ComingRow` + `comingUp()` | Plan › Coming up (22): bills and future-dated payments in one list grouped Overdue · This week · This month · Later; circle · name · ↻/📅 "in 5 days · ICICI" · amount over date; swipe right Paid / Add now, left Skip / Delete | ui/plan/PlanScreen.kt, ComingUp.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet`, `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
 | `AmountStepperSheet` | − amount + with quick chips and an extra row (budget edit 32, Add money 35, Pay bill, Prepay) | StepperSheet.kt |
@@ -45,21 +49,20 @@ if something is missing, add a component here first.
 | `DayStepper` | − day +, quick chips, result line, Done — month start and bill due day | Controls.kt |
 | `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
 | `FilterSheet` / `ActiveFilterChips` | Type (Activity only) · Accounts · Categories chips · Reset / "Show 14 transactions"; removable chips + Clear all under the search | ui/filters/FilterSheets.kt |
-| `Keypad` | 4 × 4, 60 dp pill keys 8 dp apart; operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
+| `Keypad` | 4 × 4, 52 dp pill keys 6 dp apart, docked under New expense (17); operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
 | `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete, replace data, wrong password only | Dialogs.kt |
 | `BurrowSwitch` | Material 3 switch, primary track, toggle haptic | Controls.kt |
 | `Chevron` | trailing arrow of a row that opens a screen; mirrors in RTL (back/forward/chevron/backspace drawables are `autoMirrored`) | Controls.kt |
 | `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3× | Bars.kt (Material `NavigationBar`) |
-| `ExtraChip` / `ExtraChipRow` | New expense extras under the rows (Note, Repeat, Attach, Lend): outlined 36 dp chip, icon + label; set = `secondaryContainer` with the value ("Every month", "1 file"); the row scrolls sideways | PayeeField.kt |
-| `PayeeField` + `SuggestionChips` | Paid to: 56 dp pill under the amount, storefront or the category circle, 2 dp primary ring while typing, ✕ clears; up to 4 quiet outlined chips centred under it (with the category circle while typing) | PayeeField.kt |
+| `FormChip` / `FormChipRow` | New expense's one chip (17): 36 dp pill in a 48 dp target; outlined (a choice), selected (`secondaryContainer`), tonal (an extra: Note · Receipt · Repeat or lend); optional 24 dp category circle and a quieter trailing amount (favourites "Chai ₹20"); the row scrolls sideways | PayeeField.kt |
+| `PayeeField` | Paid to: 56 dp pill, storefront or the category circle, 2 dp primary ring while typing, ✕ clears; payee matches show as `FormChip`s under it | PayeeField.kt |
 | `ChoiceTiles` (`Choice`) | pick one: equal tiles (`columns` per row; a line shows big as the value, "₹1,240"), or full-width rows when options have icons; selected = `primaryContainer` + `CheckBadge` | Customise.kt |
 | `ToggleTiles` (`Toggle`) | pick many: 3-column 112 dp tiles, icon circle + name, check badge when on (empty ring when off), on = `secondaryContainer` | Customise.kt |
 | `OrderedRow` | ⠿ drag handle · 40 dp icon · name · switch, inside `DragColumn`; a hidden row's icon dims to 55%. No up/down arrows anywhere (16) | Customise.kt |
 | `DragColumn` | reorder by drag (16): hold the ⠿ handle, the row lifts (`surfaceContainerHigh` + shadow), the others slide to make room; saved on drop; TalkBack gets "Move … up / down" actions | DragList.kt |
 | `LetterCircle` | 40 dp neutral circle with one letter (Import: Cashew, Walnut, Money Manager; never brand logos) | Lists.kt |
-| `FavouriteChip` | New expense favourites (04): outlined 48 dp pill, 24 dp category circle, "Chai ₹20"; one tap saves | PayeeField.kt |
 | `AmountKeypadSheet` | type an exact amount in a sheet (split part, refund, Welcome budget): amount, keypad, ✓; optional maximum | StepperSheet.kt |
 | `TxnActions` + `TxnActionsHost` (`LocalTxnActions`) | long-press any `TxnRow` (06): one sheet (Change category, Duplicate to today, Split, Add a refund, Save as favourite, Delete in its own group) and the refund sheet (09), hosted once by the nav host | ui/txn/TxnActions.kt |
 | `PickList` | a grouped list with round radio marks on the right (top card 80, numbers and dates 85) | Customise.kt |
@@ -90,5 +93,5 @@ Use choice tiles only for 2–3 short options.
 ## Swatch grid (`SwatchGrid.kt`)
 `SwatchGrid` lays round choices in six equal columns, rows filled from the start (12 colours = two
 full rows); `HuePicker` (the 12 category hues) and `IconPicker` are built on it. Used by Edit category
-(62) and Edit account (106/107). Never a FlowRow: on a large display size it wrapped to 5 and spread
+(62), Edit account (106/107) and the accent colours on Appearance (seven columns). Never a FlowRow: on a large display size it wrapped to 5 and spread
 the last row to the edges.

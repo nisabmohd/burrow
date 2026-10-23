@@ -148,7 +148,7 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit
                         stringResource(R.string.from_not_understood), 1, 3,
                         supporting = if (s.waiting > 0) pluralStringResource(R.plurals.n_waiting, s.waiting, s.waiting) else stringResource(R.string.none_waiting),
                         lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
-                        onClick = if (s.waiting > 0) ({ sheet = null; scope.launch { vm.firstWaiting()?.let(onTeach) } }) else null,
+                        onClick = if (s.waiting > 0) ({ sheet = null; onTeach(0L) }) else null,
                     )
                     ListRow(
                         stringResource(R.string.import_rules), 2, 3, supporting = stringResource(R.string.import_rules_line),

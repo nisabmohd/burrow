@@ -325,6 +325,10 @@ interface TxnDao {
     @Query("DELETE FROM TxnEntity WHERE isSample = 1")
     suspend fun deleteSamples()
 
+    /** Upcoming transactions whose day has come, before they are posted (for the "added today" note). */
+    @Query("SELECT * FROM TxnEntity WHERE status = 'UPCOMING' AND at <= :now ORDER BY at")
+    suspend fun dueUpcoming(now: Long): List<TxnEntity>
+
     /** Upcoming transactions whose day has come become posted. */
     @Query("UPDATE TxnEntity SET status = 'POSTED' WHERE status = 'UPCOMING' AND at <= :now")
     suspend fun postDue(now: Long): Int

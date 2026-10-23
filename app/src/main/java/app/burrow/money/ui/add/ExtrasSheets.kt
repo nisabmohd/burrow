@@ -77,44 +77,9 @@ fun NoteSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
             LabeledField(stringResource(R.string.note)) {
                 PillTextField(f.note, vm::setNote, stringResource(R.string.note_hint_short), leading = painterResource(R.drawable.ic_notes_regular), clearLabel = stringResource(R.string.clear))
             }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-                (s.knownTags + STARTER_TAGS + f.tags).distinctBy { it.lowercase() }.forEach { t -> Chip("#$t", t in f.tags, { vm.toggleTag(t) }) }
-            }
-        }
-        DoneFooter(onDismiss)
-    }
-}
-
-/** Repeat (75): never, weekly, monthly, yearly; a subscription; a reminder. Creates a bill on save. */
-@Composable
-fun RepeatSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
-    val f = s.form
-    val options = listOf(Every.NEVER to R.string.never, Every.WEEK to R.string.every_week, Every.MONTH to R.string.every_month, Every.YEAR to R.string.every_year)
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.extra_repeat), onDismiss, stringResource(R.string.repeat_line))
-        SheetBody {
-            ListGroup {
-                options.forEachIndexed { i, (key, label) ->
-                    ListRow(
-                        stringResource(label), i, options.size, selected = f.repeat == key,
-                        lead = { IconCircle(painterResource(if (key == Every.NEVER) R.drawable.ic_block_duotone else R.drawable.ic_event_repeat_duotone)) },
-                        trailing = if (f.repeat == key) ({ androidx.compose.material3.Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary) }) else null,
-                        onClick = { vm.setRepeat(key) },
-                    )
-                }
-            }
-            if (f.repeat != Every.NEVER) {
-                ListGroup {
-                    ListRow(
-                        stringResource(R.string.is_subscription), 0, 2, supporting = stringResource(R.string.is_subscription_line),
-                        lead = { IconCircle(painterResource(R.drawable.ic_autorenew_duotone)) },
-                        trailing = { BurrowSwitch(f.subscription, vm::setSubscription) },
-                    )
-                    ListRow(
-                        stringResource(R.string.remind_day_before), 1, 2,
-                        lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
-                        trailing = { BurrowSwitch(f.repeatRemind, vm::setRepeatRemind) },
-                    )
+            LabeledField(stringResource(R.string.tags)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+                    (s.knownTags + STARTER_TAGS + f.tags).distinctBy { it.lowercase() }.forEach { t -> Chip(t, t in f.tags, { vm.toggleTag(t) }) }
                 }
             }
         }
@@ -172,25 +137,91 @@ fun AttachSheet(app: AppContainer, vm: AddViewModel, s: AddUiState, onDismiss: (
     }
 }
 
-/** Lend or borrow (77): none, I lent, I borrowed; who; a reminder to settle in 2 weeks. */
+/** A check at the end of the chosen row in a pick sheet. */
 @Composable
-fun LendSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
-    val f = s.form
-    val kinds = listOf<String?>(null, Lend.LENT, Lend.BORROWED)
+private fun RowCheck() = androidx.compose.material3.Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary)
+
+/** Type (111), from the title "New expense ▾": Expense · Income · Transfer. */
+@Composable
+fun TypeSheet(type: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+    val options = listOf(
+        Triple(TxnType.EXPENSE, R.string.money_out, R.drawable.ic_arrow_upward_duotone),
+        Triple(TxnType.INCOME, R.string.money_in, R.drawable.ic_arrow_downward_duotone),
+        Triple(TxnType.TRANSFER, R.string.type_transfer_line, R.drawable.ic_swap_horiz_duotone),
+    )
     BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.lend_or_borrow), onDismiss, stringResource(R.string.lend_line))
+        SheetHeader(stringResource(R.string.type), onDismiss)
         SheetBody {
-            ButtonGroup(kinds, f.lend, { stringResource(when (it) { Lend.LENT -> R.string.i_lent; Lend.BORROWED -> R.string.i_borrowed; else -> R.string.none }) }, vm::setLend, Modifier.fillMaxWidth())
-            if (f.lend != null) {
-                LabeledField(stringResource(if (f.lend == Lend.LENT) R.string.lent_to else R.string.borrowed_from)) {
-                    PillTextField(f.person, vm::setPerson, stringResource(R.string.name), leading = painterResource(R.drawable.ic_person_regular), clearLabel = stringResource(R.string.clear), capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words)
-                }
-                ListGroup {
+            ListGroup {
+                options.forEachIndexed { i, (key, line, icon) ->
                     ListRow(
-                        stringResource(R.string.remind_to_settle), 0, 1, supporting = stringResource(R.string.in_two_weeks),
-                        lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
-                        trailing = { BurrowSwitch(f.settleRemind, vm::setSettleRemind) },
+                        stringResource(typeLabel(key)), i, options.size, supporting = stringResource(line), selected = key == type,
+                        lead = { IconCircle(painterResource(icon)) },
+                        trailing = if (key == type) ({ RowCheck() }) else null,
+                        onClick = { onPick(key) },
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Repeat or lend (112): Once · Repeat · Subscription · Lent · Borrowed, one choice; then How often
+ * (Weekly / Monthly / Yearly) or who it was; Done. Repeat and Subscription make a bill on save;
+ * income has no Subscription; Customise › Expense decides whether repeat and lend show.
+ */
+@Composable
+fun RepeatOrLendSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
+    val f = s.form
+    val choice = when {
+        f.lend != null -> f.lend
+        f.repeat != Every.NEVER && f.subscription -> CHOICE_SUB
+        f.repeat != Every.NEVER -> CHOICE_REPEAT
+        else -> CHOICE_ONCE
+    }
+    val options = buildList {
+        add(Triple(CHOICE_ONCE, R.string.once to R.string.once_line, R.drawable.ic_block_duotone))
+        if (s.repeatOffered) {
+            add(Triple(CHOICE_REPEAT, R.string.extra_repeat to R.string.repeat_bill_line, R.drawable.ic_event_repeat_duotone))
+            if (f.type == TxnType.EXPENSE) add(Triple(CHOICE_SUB, R.string.subscription to R.string.is_subscription_line, R.drawable.ic_autorenew_duotone))
+        }
+        if (s.shows(app.burrow.money.data.FormExtra.LEND)) {
+            add(Triple(Lend.LENT, R.string.lent to R.string.lent_line, R.drawable.ic_handshake_duotone))
+            add(Triple(Lend.BORROWED, R.string.borrowed to R.string.borrowed_line, R.drawable.ic_handshake_duotone))
+        }
+    }
+    fun pick(key: String) {
+        when (key) {
+            CHOICE_ONCE -> { vm.setRepeat(Every.NEVER); vm.setSubscription(false); vm.setLend(null) }
+            CHOICE_REPEAT, CHOICE_SUB -> {
+                vm.setLend(null); vm.setSubscription(key == CHOICE_SUB)
+                if (f.repeat == Every.NEVER) vm.setRepeat(Every.MONTH)
+            }
+            else -> { vm.setRepeat(Every.NEVER); vm.setSubscription(false); vm.setLend(key) }
+        }
+    }
+    BurrowSheet(onDismiss) {
+        SheetHeader(stringResource(R.string.repeat_or_lend), onDismiss)
+        SheetBody {
+            ListGroup {
+                options.forEachIndexed { i, (key, text, icon) ->
+                    ListRow(
+                        stringResource(text.first), i, options.size, supporting = stringResource(text.second), selected = key == choice,
+                        lead = { IconCircle(painterResource(icon)) },
+                        trailing = if (key == choice) ({ RowCheck() }) else null,
+                        onClick = { pick(key) },
+                    )
+                }
+            }
+            when (choice) {
+                CHOICE_REPEAT, CHOICE_SUB -> LabeledField(stringResource(R.string.how_often)) {
+                    ButtonGroup(listOf(Every.WEEK, Every.MONTH, Every.YEAR), f.repeat, {
+                        stringResource(when (it) { Every.WEEK -> R.string.weekly; Every.YEAR -> R.string.yearly; else -> R.string.monthly })
+                    }, vm::setRepeat, Modifier.fillMaxWidth())
+                }
+                Lend.LENT, Lend.BORROWED -> LabeledField(stringResource(if (choice == Lend.LENT) R.string.lent_to else R.string.borrowed_from)) {
+                    PillTextField(f.person, vm::setPerson, stringResource(R.string.name), leading = painterResource(R.drawable.ic_person_regular), clearLabel = stringResource(R.string.clear), capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words)
                 }
             }
         }
@@ -198,48 +229,9 @@ fun LendSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
     }
 }
 
-/**
- * Date (78): yesterday, today, tomorrow, next Monday (same time) and "Pick a date and time". A
- * future date makes it upcoming: added on that day.
- */
-@Composable
-fun WhenSheet(at: Long, withTime: Boolean, onPick: (LocalDate) -> Unit, onPickOther: () -> Unit, onDismiss: () -> Unit) {
-    val dates = rememberDateText()
-    val zone = ZoneId.systemDefault()
-    val picked = Instant.ofEpochMilli(at).atZone(zone).toLocalDate()
-    val time = Instant.ofEpochMilli(at).atZone(zone).toLocalTime()
-    val today = LocalDate.now()
-    val days = listOf(today.minusDays(1), today, today.plusDays(1), today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))).distinct()
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.date), onDismiss, stringResource(R.string.date_sheet_line))
-        SheetBody {
-            ListGroup {
-                val n = days.size + 1
-                days.forEachIndexed { i, d ->
-                    val millis = d.atTime(time).atZone(zone).toInstant().toEpochMilli()
-                    val label = when (d) {
-                        today.plusDays(1) -> stringResource(R.string.tomorrow)
-                        today, today.minusDays(1) -> dates.day(d)
-                        else -> stringResource(R.string.next_weekday, dates.weekdayName(d))
-                    }
-                    val future = d.isAfter(today)
-                    ListRow(
-                        if (withTime) stringResource(R.string.day_time, label, dates.time(millis)) else label, i, n,
-                        supporting = if (future) stringResource(R.string.upcoming_added_that_day) else null,
-                        selected = d == picked,
-                        lead = { IconCircle(painterResource(if (future) R.drawable.ic_event_upcoming_duotone else R.drawable.ic_schedule_duotone)) },
-                        trailing = if (d == picked) ({ androidx.compose.material3.Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary) }) else null,
-                        onClick = { onPick(d) },
-                    )
-                }
-                ListRow(
-                    stringResource(if (withTime) R.string.pick_date_and_time else R.string.pick_a_date), days.size, n,
-                    lead = { IconCircle(painterResource(R.drawable.ic_calendar_month_duotone)) }, onClick = onPickOther,
-                )
-            }
-        }
-    }
-}
+private const val CHOICE_ONCE = "ONCE"
+private const val CHOICE_REPEAT = "REPEAT"
+private const val CHOICE_SUB = "SUBSCRIPTION"
 
 /** The time of a transaction (with Time on in Customise › Expense). */
 @OptIn(ExperimentalMaterial3Api::class)

@@ -87,7 +87,13 @@ Never set a size or weight in a screen. Long translations wrap; nav labels may s
 | `Space.row` | 2 | Between rows of one group |
 | `Space.sectionTop` / `sectionBottom` | 16 / 8 | Section header above / to its group |
 | `Space.card` | 16 | Padding inside cards, widgets, notes, rows (horizontal) |
-| `Space.sheet` | 24 | Sheet side padding |
+| `Space.sheet` | 24 | Where heading text starts: screen titles, sheet titles |
+| `Space.headingInset` | 8 | Section headers and field labels sit this far inside the 16 dp edge, so every heading starts at 24 dp |
+
+**One alignment rule (user, 2026-10-23):** cards, rows, chips and buttons start 16 dp from the screen edge
+(sheets too); every piece of heading text starts at 24 dp. A section header is 16 above / 8 to its group in
+every column: put page bodies in `BlockColumn` (or wrap a spaced lazy list in `BlockGap`) so the column's
+12 dp gap isn't added on top.
 
 ## Sizes
 Row 72 (56 one-line) · icon circle 40 (big 64) · icon 24 (22 in circles) · button 48 (56 at the bottom of a sheet/screen)

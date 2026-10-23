@@ -56,6 +56,7 @@ class CustomiseViewModel(private val app: AppContainer, monthStartDay: Int) : Vi
         when (key) {
             "time" -> s.setShowTime(on)
             "upcoming" -> s.setCountUpcoming(on)
+            "upcomingSafe" -> s.setUpcomingLowersSafe(on)
             "confirm" -> s.setConfirmDelete(on)
         }
     }

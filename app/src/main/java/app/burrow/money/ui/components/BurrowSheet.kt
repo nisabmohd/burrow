@@ -65,14 +65,14 @@ fun BurrowSheet(onDismissRequest: () -> Unit, content: @Composable ColumnScope.(
     val statusBar = with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     // While typing (e.g. searching icons) the keyboard takes half the screen, so the sheet may
     // grow to just under the status bar; otherwise it leaves the top 10% free.
-    val topGap = if (WindowInsets.isImeVisible) statusBar + 8.dp else screen * (1 - MAX_SHEET_FRACTION)
+    val topGap = if (WindowInsets.isImeVisible) statusBar + Space.small else screen * (1 - MAX_SHEET_FRACTION)
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         shape = Shapes.sheet,
         dragHandle = {
-            Box(Modifier.padding(top = Space.small).size(width = 32.dp, height = 4.dp).clip(Shapes.pill).background(MaterialTheme.colorScheme.outline))
+            Box(Modifier.padding(top = Space.small).size(width = app.burrow.money.ui.theme.Size.handle, height = Space.grid).clip(Shapes.pill).background(MaterialTheme.colorScheme.outline))
         },
     ) {
         BoxWithConstraints {
@@ -93,7 +93,7 @@ fun BurrowSheet(onDismissRequest: () -> Unit, content: @Composable ColumnScope.(
 fun SheetHeader(title: String, onClose: () -> Unit, line: String? = null) {
     val c = MaterialTheme.colorScheme
     Row(
-        Modifier.fillMaxWidth().padding(start = Space.sheet, end = Space.screen, top = Space.screen, bottom = Space.small),
+        Modifier.fillMaxWidth().padding(start = Space.sheet, end = Space.screen, top = Space.screen, bottom = Space.block),
         verticalAlignment = Alignment.Top,
     ) {
         Column(Modifier.weight(1f).padding(top = Space.small)) {

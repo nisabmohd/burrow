@@ -41,15 +41,17 @@ import app.burrow.money.ui.pickers.CategorySheet
 import app.burrow.money.ui.pickers.TextSheet
 import app.burrow.money.ui.rememberDateText
 import app.burrow.money.ui.theme.Size
+import androidx.compose.material3.MaterialTheme
 import app.burrow.money.ui.theme.Space
 import app.burrow.money.ui.title
 
-private enum class TxnSheet { CATEGORY, NOTE, DELETE }
+private enum class TxnSheet { CATEGORY, NOTE, DELETE, DATE }
 
 /**
- * Transaction (21): back · Duplicate; centred circle, payee, amount, date; Category, account and
- * Note rows (category and note change in place, with Undo); Delete (asks first, 73) and Edit.
- * The "Recorded from SMS" box comes with auto-capture (Day 7).
+ * Transaction (21): back · Duplicate · Edit; centred circle, payee, amount, date; Category, account
+ * and Note rows (category and note change in place, with Undo); a red Delete row at the bottom (asks
+ * first when Customise says so, 73). An upcoming payment (114) shows "Upcoming · added on …",
+ * Category, Account, Change date, Delete, and "Add now" at the bottom.
  */
 @Composable
 fun TxnScreen(
@@ -71,8 +73,12 @@ fun TxnScreen(
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         val t = s.txn
+        val upcoming = t?.txn?.status == app.burrow.money.data.TxnStatus.UPCOMING
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack) {
-            if (t != null && t.txn.type != TxnType.REFUND) TonalIconButton(painterResource(R.drawable.ic_content_copy_regular), stringResource(R.string.duplicate), { onDuplicate(t.txn.id) })
+            if (t != null && t.txn.type != TxnType.REFUND && !upcoming) {
+                TonalIconButton(painterResource(R.drawable.ic_content_copy_regular), stringResource(R.string.duplicate), { onDuplicate(t.txn.id) })
+                TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(t.txn.id) })
+            }
         }
         if (t == null) {
             EmptyState(
@@ -82,15 +88,14 @@ fun TxnScreen(
             )
             return@Column
         }
-        Column(
+        app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-            verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             CenterHeader(
                 icon = { TxnCircle(t, Size.iconCircleBig) },
                 title = t.title(),
                 value = money.forTxn(t.txn.type, t.txn.amount),
-                line = dates.dayTime(t.txn.at),
+                line = if (upcoming) stringResource(R.string.upcoming_added_on, dates.weekdayDay(dates.date(t.txn.at))) else dates.dayTime(t.txn.at),
             )
             val transfer = t.txn.type == TxnType.TRANSFER
             val rows = buildList<@Composable (Int, Int) -> Unit> {
@@ -113,7 +118,12 @@ fun TxnScreen(
                         )
                     }
                 }
-                add { i, n ->
+                if (upcoming) add { i, n ->
+                    ListRow(
+                        stringResource(R.string.change_date), i, n, supporting = dates.weekdayDay(dates.date(t.txn.at)),
+                        lead = { IconCircle(painterResource(R.drawable.ic_event_upcoming_duotone)) }, onClick = { sheet = TxnSheet.DATE },
+                    )
+                } else add { i, n ->
                     ListRow(
                         t.txn.note ?: stringResource(R.string.add_note), i, n, supporting = stringResource(R.string.note),
                         lead = { IconCircle(painterResource(R.drawable.ic_notes_duotone)) }, onClick = { sheet = TxnSheet.NOTE },
@@ -131,7 +141,7 @@ fun TxnScreen(
                 if (extras.tags.isNotEmpty()) {
                     add { i, n ->
                         ListRow(
-                            extras.tags.joinToString("  ") { "#$it" }, i, n, supporting = stringResource(R.string.tags),
+                            extras.tags.joinToString(", "), i, n, supporting = stringResource(R.string.tags),
                             lead = { IconCircle(painterResource(R.drawable.ic_tag_duotone)) },
                         )
                     }
@@ -157,7 +167,7 @@ fun TxnScreen(
             ListGroup { rows.forEachIndexed { i, r -> r(i, rows.size) } }
             // Split and refund (07): an expense can be shared across categories or get money back.
             val actions = LocalTxnActions.current
-            if (t.txn.type == TxnType.EXPENSE && t.txn.status == app.burrow.money.data.TxnStatus.POSTED) {
+            if (t.txn.type == TxnType.EXPENSE && !upcoming) {
                 ListGroup {
                     ListRow(
                         stringResource(R.string.split_across), 0, 2,
@@ -191,17 +201,27 @@ fun TxnScreen(
                     app.burrow.money.ui.components.MessageBox(stringResource(R.string.dot_join, m.sender, dates.time(m.receivedAt)), m.body, emptyList())
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
-                val askFirst = app.burrow.money.ui.LocalListPrefs.current.confirmDelete
-                BurrowButton(stringResource(R.string.delete), {
-                    // Customise › Transactions › Ask before delete; otherwise Undo is the safety net.
-                    if (askFirst) sheet = TxnSheet.DELETE else {
-                        // Leave only once the row is gone, so the screen's scope isn't cancelled before Undo shows.
-                        vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo); onBack() }
-                    }
-                }, Modifier.weight(1f), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
-                if (t.txn.type != TxnType.REFUND) BurrowButton(stringResource(R.string.edit), { onEdit(t.txn.id) }, Modifier.weight(1f), ButtonKind.FILLED, painterResource(R.drawable.ic_edit_regular))
+            // Delete is a red row at the bottom, never a button (21).
+            val askFirst = app.burrow.money.ui.LocalListPrefs.current.confirmDelete
+            ListGroup {
+                ListRow(
+                    stringResource(R.string.delete), 0, 1, headlineColor = MaterialTheme.colorScheme.error,
+                    lead = { IconCircle(painterResource(R.drawable.ic_delete_duotone), container = MaterialTheme.colorScheme.errorContainer, content = MaterialTheme.colorScheme.error) },
+                    onClick = {
+                        // Customise › Transactions › Ask before delete; otherwise Undo is the safety net.
+                        if (askFirst) sheet = TxnSheet.DELETE else {
+                            // Leave only once the row is gone, so the screen's scope isn't cancelled before Undo shows.
+                            vm.delete { undo -> snackbar.show(context.getString(R.string.txn_deleted), undo); onBack() }
+                        }
+                    },
+                )
             }
+        }
+        if (upcoming) {
+            BurrowButton(
+                stringResource(R.string.add_now), { vm.addNow { undo -> snackbar.show(context.getString(R.string.added_now), undo) } },
+                Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.block), ButtonKind.FILLED, painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom,
+            )
         }
         val txn = t
         when (sheet) {
@@ -225,6 +245,10 @@ fun TxnScreen(
                 },
                 onDismiss = { sheet = null },
             )
+            TxnSheet.DATE -> app.burrow.money.ui.pickers.DateSheet(dates.date(txn.txn.at), { d ->
+                sheet = null
+                vm.setDate(d) { undo -> snackbar.show(context.getString(R.string.saved), undo) }
+            }, { sheet = null }, future = true, title = stringResource(R.string.change_date))
             null -> Unit
         }
     }

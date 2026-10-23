@@ -32,7 +32,8 @@ import java.time.ZoneId
 data class CategoryShare(val category: CategoryEntity, val total: Long, val percent: Int)
 
 @Immutable
-data class TopPayee(val name: String, val total: Long, val times: Int, val circles: List<Pair<String?, Float?>>)
+/** Top payee (38) and the next two after it, with their totals ("Blinkit ₹2,110"). */
+data class TopPayee(val name: String, val total: Long, val times: Int, val next: List<Pair<String, Long>>)
 
 @Immutable
 data class InsightsState(
@@ -95,7 +96,8 @@ class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, 
         val busiest = weekdays.maxByOrNull { it.value }?.takeIf { it.value > 0 }
         val (noSpend, days) = noSpendDays(perDay, range, today)
         val income = matching.filter { it.txn.type == TxnType.INCOME && it.day() in range }.sumOf { it.txn.amount }
-        val payee = now.filter { it.txn.payee != null }.groupBy { it.txn.payee!! }.maxByOrNull { (_, l) -> l.sumOf { it.txn.amount } }
+        val payees = now.filter { it.txn.payee != null }.groupBy { it.txn.payee!! }.map { (n, l) -> Triple(n, l.sumOf { it.txn.amount }, l.size) }.sortedByDescending { it.second }
+        val payee = payees.firstOrNull()
         val heatMonth = YearMonth.from(range.end)
         val heatRange = DayRange(heatMonth.atDay(1), heatMonth.atEndOfMonth())
         val heat = spend.filter { it.day() in heatRange }.groupBy { it.day() }.mapValues { (_, l) -> l.sumOf { it.txn.amount } }
@@ -112,7 +114,7 @@ class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, 
             weekdays = DayOfWeek.entries.map { weekdays[it] ?: 0 },
             noSpend = noSpend, days = days,
             income = income, kept = keptPercent(income, spent),
-            topPayee = payee?.let { (name, l) -> TopPayee(name, l.sumOf { it.txn.amount }, l.size, l.take(3).map { it.categoryIcon to it.categoryHue }) },
+            topPayee = payee?.let { (name, total, times) -> TopPayee(name, total, times, payees.drop(1).take(2).map { it.first to it.second }) },
             heatMonth = heatMonth, heat = heat, monthTotal = heat.values.sum(),
         )
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

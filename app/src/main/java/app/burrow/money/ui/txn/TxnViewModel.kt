@@ -75,6 +75,18 @@ class TxnViewModel(private val repo: MoneyRepository, private val id: Long, mont
 
     fun setNote(note: String, onDone: (suspend () -> Unit) -> Unit) = change({ it.copy(note = note.ifBlank { null }) }, onDone)
 
+    /** An upcoming payment's new day, same time of day (114 "Change date"). */
+    fun setDate(date: LocalDate, onDone: (suspend () -> Unit) -> Unit) = change({ t ->
+        val z = java.time.ZoneId.systemDefault()
+        val time = java.time.Instant.ofEpochMilli(t.at).atZone(z).toLocalTime()
+        t.copy(at = date.atTime(time).atZone(z).toInstant().toEpochMilli())
+    }, onDone)
+
+    /** An upcoming payment, added now (114). */
+    fun addNow(onDone: (suspend () -> Unit) -> Unit) {
+        viewModelScope.launch { repo.addNow(id)?.let(onDone) }
+    }
+
     fun delete(onDeleted: (suspend () -> Unit) -> Unit) {
         viewModelScope.launch {
             val gone = repo.delete(id) ?: return@launch

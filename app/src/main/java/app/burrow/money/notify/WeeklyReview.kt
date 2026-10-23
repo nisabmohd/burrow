@@ -21,6 +21,7 @@ import app.burrow.money.domain.MoneyFormat
 import app.burrow.money.domain.nextReviewAt
 import app.burrow.money.domain.reviewWeek
 import app.burrow.money.domain.safeToSpendToday
+import app.burrow.money.ui.plan.comingUpDue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -65,6 +66,7 @@ fun weeklySummary(
     monthSpent: Long,
     spentToday: Long,
     digits: Int,
+    comingUp: Long = 0,
 ): WeeklySummary {
     val week = reviewWeek(today, weekStart)
     val before = DayRange(week.start.minusDays(7), week.start.minusDays(1))
@@ -87,7 +89,7 @@ fun weeklySummary(
         bills = due,
         budget = budget,
         left = left,
-        safeToday = if (budget == null) 0 else safeToSpendToday(left, spentToday, period.daysLeft(today), digits),
+        safeToday = if (budget == null) 0 else safeToSpendToday(left, spentToday, period.daysLeft(today), digits, comingUp),
         month = period.month,
         topCategory = topView?.let { CategoryEntity(it.txn.categoryId!!, it.categoryName.orEmpty(), kind = "EXPENSE", icon = it.categoryIcon.orEmpty(), colorHue = it.categoryHue ?: 0f) },
         topCategoryTotal = top?.value ?: 0,
@@ -108,6 +110,7 @@ fun AppContainer.weeklySummaryFlow(today: LocalDate = LocalDate.now()): Flow<Wee
         weeklySummary(
             today, runCatching { java.time.DayOfWeek.valueOf(s.weekStart) }.getOrDefault(java.time.DayOfWeek.MONDAY), s.monthStartDay,
             stats, review, occ, budget, monthSpent, spentToday, MoneyFormat.of(s.mainCurrency).digits,
+            comingUpDue(period, today),
         )
     }
 }

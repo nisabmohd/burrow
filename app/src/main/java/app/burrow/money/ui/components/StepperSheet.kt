@@ -51,9 +51,7 @@ fun AmountStepperSheet(
                 Text(money.plain(amount), style = BurrowType.display, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, maxLines = 1, modifier = Modifier.weight(1f))
                 TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); onAmount(amount + step) })
             }
-            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-                chips.forEach { v -> Chip(money.short(v), v == amount, { onAmount(v) }) }
-            }
+            ChipRow(chips, { money.short(it) }, { it == amount }, onAmount)
             extra?.invoke()
         }
         SheetFooter {
@@ -67,7 +65,7 @@ fun AmountStepperSheet(
 @Composable
 fun LabeledField(label: String, content: @Composable () -> Unit) {
     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
-        Text(label, style = BurrowType.label, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = Space.grid))
+        Text(label, style = BurrowType.label, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = Space.headingInset))
         content()
     }
 }

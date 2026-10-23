@@ -1,0 +1,7 @@
+- Calmer New expense: the keypad stays put, category chips, one screen.
+- Plan › Coming up: bills and future payments in one list; swipe to pay or skip.
+- Future payments are added on their day; Safe to spend counts what's due.
+- Reads money coming in from every big Indian bank.
+- Ignore or teach messages it didn't understand.
+- German, Spanish, French, Portuguese (Brazil) and Japanese.
+- Picks the rupee in India from your time zone.

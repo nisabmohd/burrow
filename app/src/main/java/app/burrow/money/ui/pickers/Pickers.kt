@@ -1,14 +1,11 @@
 package app.burrow.money.ui.pickers
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import app.burrow.money.ui.components.ChipRow
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,9 +38,7 @@ import app.burrow.money.ui.components.confirm
 import app.burrow.money.ui.components.duotoneIcon
 import app.burrow.money.ui.components.tick
 import app.burrow.money.ui.theme.Size
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 /*
  * The pickers every form shares (docs/DESIGN.md rule 8: every picker is a bottom sheet).
@@ -165,38 +160,43 @@ private fun PillTextFieldValue(value: TextFieldValue, onChange: (TextFieldValue)
     )
 }
 
-/** A day on or before today (transaction dates), or from today on with [future] (goal dates). */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * The one date sheet: an optional Yesterday · Today · Tomorrow row (New expense), a month calendar
+ * in equal columns, Done. Days on or before today (transaction dates), from today on with [future]
+ * (goal dates), or any day with [anyDay] (a future one makes a transaction upcoming).
+ */
 @Composable
-fun DateSheet(date: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit, future: Boolean = false, title: String? = null, anyDay: Boolean = false) {
+fun DateSheet(
+    date: LocalDate,
+    onPick: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+    future: Boolean = false,
+    title: String? = null,
+    anyDay: Boolean = false,
+    quick: Boolean = false,
+) {
     val today = remember { LocalDate.now() }
-    val state = rememberDatePickerState(
-        initialSelectedDateMillis = date.utcMillis(),
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = anyDay || if (future) utcTimeMillis >= today.utcMillis() else utcTimeMillis <= today.utcMillis()
-            override fun isSelectableYear(year: Int) = anyDay || if (future) year >= today.year else year <= today.year
-        },
-    )
+    var picked by remember { mutableStateOf(date) }
+    var month by remember { mutableStateOf(java.time.YearMonth.from(date)) }
     val haptics = LocalHapticFeedback.current
+    val selectable: (LocalDate) -> Boolean = { d -> anyDay || if (future) !d.isBefore(today) else !d.isAfter(today) }
     BurrowSheet(onDismiss) {
-        SheetHeader(title ?: stringResource(R.string.date), onDismiss)
+        SheetHeader(title ?: stringResource(R.string.date), onDismiss, if (anyDay) stringResource(R.string.date_sheet_line) else null)
         SheetBody {
-            DatePicker(
-                state = state,
-                title = null,
-                headline = null,
-                showModeToggle = false,
-                colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-            )
+            if (quick) {
+                ChipRow(
+                    listOf(R.string.yesterday to today.minusDays(1), R.string.today to today, R.string.tomorrow to today.plusDays(1)),
+                    { stringResource(it.first) }, { picked == it.second }, { haptics.confirm(); onPick(it.second) },
+                )
+            }
+            app.burrow.money.ui.filters.MonthHeader(month, { month = month.minusMonths(1) }, { month = month.plusMonths(1) })
+            app.burrow.money.ui.filters.MonthCalendar(month, today, app.burrow.money.domain.DayRange(picked, picked), selectable) { d ->
+                haptics.tick(); picked = d
+            }
         }
         SheetFooter {
-            BurrowButton(stringResource(R.string.done), {
-                haptics.confirm()
-                state.selectedDateMillis?.let { onPick(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) } ?: onDismiss()
-            }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+            BurrowButton(stringResource(R.string.done), { haptics.confirm(); onPick(picked) }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
         }
     }
 }
 
-/** Material's date picker counts days in UTC. */
-private fun LocalDate.utcMillis() = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()

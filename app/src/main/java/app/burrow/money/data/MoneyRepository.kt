@@ -156,6 +156,20 @@ class MoneyRepository(
     suspend fun rateFor(currency: String): String? = db.extras().rate(currency)?.perPrimary
 
     /** Upcoming transactions whose day has come become posted (app start, the daily check). */
+    /** An upcoming one-off, added now: posted with today's time. Returns its Undo. */
+    suspend fun addNow(id: Long): (suspend () -> Unit)? {
+        val before = db.txns().get(id) ?: return null
+        save(before.copy(status = TxnStatus.POSTED, at = System.currentTimeMillis(), updatedAt = System.currentTimeMillis()))
+        return { restore(before) }
+    }
+
+    /** Posts the upcoming ones whose day has come and returns them (115: "Rent ₹18,000 added today"). */
+    suspend fun postDueList(now: Long = System.currentTimeMillis()): List<TxnEntity> {
+        val due = db.txns().dueUpcoming(now)
+        if (due.isNotEmpty()) { db.txns().postDue(now); changed?.invoke() }
+        return due
+    }
+
     suspend fun postDue(now: Long = System.currentTimeMillis()): Int = db.txns().postDue(now)
 
     suspend fun nextUpcoming(): Long? = db.txns().nextUpcoming()
@@ -169,6 +183,9 @@ class MoneyRepository(
         db.txns().usualCategoriesFor(payee.trim(), raw.trim(), type, 1).firstOrNull()
 
     /** The category used last for [type], for "Last category" (Customise › Expense). */
+    /** Categories used most often for [type], most first (New expense's category chips, 17). */
+    suspend fun topCategories(type: String, limit: Int): List<Long> = db.txns().topCategories(type, limit)
+
     suspend fun lastCategory(type: String): Long? = db.txns().lastCategory(type)
 
     val attachmentsDao get() = db.extras()

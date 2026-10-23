@@ -67,3 +67,10 @@ note. Removed on the first real transaction or by "Remove".
   a normal overall `BudgetEntity` from this month on (not a DataStore key), so Budgets shows it.
 - The daily number: safe to spend today = (left this month + spent today) ÷ days left including
   today − spent today, never below 0 (`domain/Next.kt`). Today, the widget and the Sunday review.
+
+## Calm pass (2026-10-23)
+- Upcoming one-off = `txn` with `at` in the future and `status = UPCOMING`. `runBillReminders` (app open + the
+  bill alarm, which also wakes at the next upcoming time) posts the due ones and sends "Rent ₹18,000 added today" (115).
+  Repeating ones are `bill`s. Upcoming items never show in Activity's history or any total.
+- DataStore: `upcomingLowersSafe` (true): Safe to spend takes off unpaid expenses due before the period ends
+  (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.

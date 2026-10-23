@@ -176,9 +176,8 @@ fun EditCategoryScreen(vm: EditCategoryViewModel, onClose: () -> Unit) {
 /** The scrolling body under a form's top bar. */
 @Composable
 private fun androidx.compose.foundation.layout.ColumnScope.FormBody(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-    Column(
+    app.burrow.money.ui.components.BlockColumn(
         Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-        verticalArrangement = Arrangement.spacedBy(Space.block),
         content = content,
     )
 }

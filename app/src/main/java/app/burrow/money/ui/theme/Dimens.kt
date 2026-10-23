@@ -17,13 +17,20 @@ object Space {
     val sectionTop = 16.dp    // above a section header
     val sectionBottom = 8.dp  // header → its group
     val card = 16.dp          // inner padding of cards, widgets, notes
-    val sheet = 24.dp         // sheet side padding
+    val sheet = 24.dp         // where heading text starts: screen titles, sheet titles (= screen + headingInset)
+    /**
+     * Heading text (section headers, field labels) sits this far inside the 16 dp content edge, so
+     * every heading starts 24 dp from the screen edge while cards and controls start at 16.
+     */
+    val headingInset = 8.dp
     val inline = 8.dp         // between buttons or chips in one row (header buttons, chip rows)
     val barStart = 24.dp      // tab title's start inset in the top bar
     val group = 4.dp          // between the options of a connected button group
     val small = 8.dp          // icon → its label inside a widget, note or button row
     val hero = 20.dp          // inside Today's hero
     val amountTop = 20.dp     // above the keypad amount
+    val empty = 40.dp         // above and below an empty state
+    val keypad = 6.dp         // between keypad keys (17)
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
 }
 
@@ -39,7 +46,9 @@ object Size {
     val buttonBottom = 56.dp
     val iconButton = 48.dp
     val chip = 36.dp
-    val keypadKey = 60.dp
+    val keypadKey = 52.dp     // keypad keys (17: docked, 4 × 4)
+    val caretWidth = 3.dp     // the amount's blinking caret
+    val caretHeight = 40.dp
     val topBar = 64.dp
     val nav = 80.dp
     val search = 56.dp
@@ -56,6 +65,7 @@ object Size {
     val emptyShape = 128.dp
     val wavyHeight = 14.dp
     val thinBar = 8.dp
+    val handle = 32.dp        // a sheet's drag handle (4 dp high: Space.grid)
     val dot = 8.dp            // step dots (intro); the current step is a pill
     val lineChart = 140.dp    // Insights' running-total line
     val sparkline = 48.dp     // small lines in widgets

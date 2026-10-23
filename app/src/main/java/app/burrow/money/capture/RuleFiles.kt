@@ -20,7 +20,7 @@ object RuleFiles {
         json.encodeToString(RuleFile.serializer(), RuleFile(name = name, rules = rules.map { it.copy(example = null, enabled = true, userMade = false) }))
 }
 
-/** A built-in pack: [id] is the file name in assets/rules (country code), on by default only for India. */
-data class PackInfo(val id: String, val country: String, val onByDefault: Boolean)
+/** A built-in pack: [id] is the file name in assets/rules; on by default only in its [country]. */
+data class PackInfo(val id: String, val country: String)
 
-val BUILT_IN_PACKS = listOf(PackInfo("in", "IN", onByDefault = true))
+val BUILT_IN_PACKS = listOf(PackInfo("in", "IN"))

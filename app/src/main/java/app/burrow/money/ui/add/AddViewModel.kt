@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.burrow.money.AppContainer
+import app.burrow.money.notify.runBillReminders
 import app.burrow.money.data.AccountType
 import app.burrow.money.data.AccountWithBalance
 import app.burrow.money.data.AttachmentEntity
@@ -83,7 +84,17 @@ data class AddUiState(
     val knownTags: List<String>,
     /** One-tap favourites (04), shown while the amount is still empty. */
     val favourites: List<app.burrow.money.data.FavouriteView> = emptyList(),
+    /** Categories used most for this type, most first. */
+    val topCategoryIds: List<Long> = emptyList(),
 ) {
+    /** The category chips (17): the 4 most used (then the rest in order); the chosen one always shows. */
+    val quickCategories: List<CategoryEntity> get() {
+        val fits = categoriesForType
+        val ordered = (topCategoryIds.mapNotNull { id -> fits.firstOrNull { it.id == id } } + fits).distinctBy { it.id }.take(QUICK_CATEGORIES)
+        val chosen = category?.takeIf { c -> fits.any { it.id == c.id } && ordered.none { it.id == c.id } }
+        return listOfNotNull(chosen) + ordered.take(if (chosen != null) QUICK_CATEGORIES - 1 else QUICK_CATEGORIES)
+    }
+
     val category get() = categories.firstOrNull { it.id == form.categoryId }
     val account get() = accounts.firstOrNull { it.account.id == form.accountId }
     val toAccount get() = accounts.firstOrNull { it.account.id == form.toAccountId }
@@ -102,9 +113,13 @@ data class AddUiState(
     val accountsForType get() = if (form.type == TxnType.TRANSFER) accounts else accounts.filter { it.account.type != AccountType.LOAN && it.account.type != AccountType.SAVINGS }
 
     fun shows(extra: String) = extra in extras
+
+    /** Repeat (a bill) is offered on a new income or expense when Customise › Expense has it on. */
+    val repeatOffered get() = shows(FormExtra.REPEAT) && !isEdit && form.type != TxnType.TRANSFER
 }
 
 private const val UPCOMING_SLACK = 60_000L
+private const val QUICK_CATEGORIES = 4
 
 /** A finished save: what the snackbar says and how Undo puts things back. */
 class Saved(val type: String, val wasEdit: Boolean, val upcoming: Boolean = false, val label: String? = null, val undo: suspend () -> Unit)
@@ -128,6 +143,7 @@ class AddViewModel(
     private val repo = app.money
     private val form = MutableStateFlow<AddForm?>(null)
     private val suggestions = MutableStateFlow<List<PayeeSuggestion>>(emptyList())
+    private val topCategories = MutableStateFlow<List<Long>>(emptyList())
     private var original: TxnEntity? = null
     private val digits = MoneyFormat.of(currency).digits
     private var picked = false
@@ -139,9 +155,9 @@ class AddViewModel(
             val period = BudgetPeriod.containing(LocalDate.now(), monthStartDay)
             combine(
                 combine(repo.categories, repo.accounts, repo.spentByCategory(period)) { a, b, c -> Triple(a, b, c) },
-                app.settings.settings, suggestions, repo.tags, app.next.favourites,
-            ) { (cats, accs, spent), s, sug, tags, favs ->
-                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs)
+                combine(app.settings.settings, topCategories) { a, b -> a to b }, suggestions, repo.tags, app.next.favourites,
+            ) { (cats, accs, spent), (s, top), sug, tags, favs ->
+                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs, top)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -225,6 +241,7 @@ class AddViewModel(
 
     private fun refreshSuggestions() = viewModelScope.launch {
         val f = form.value ?: return@launch
+        if (f.type != TxnType.TRANSFER) topCategories.value = repo.topCategories(f.type, QUICK_CATEGORIES)
         if (f.type == TxnType.TRANSFER) { suggestions.value = emptyList(); return@launch }
         val names = repo.payeeSuggestions(f.type, f.payee).filter { !it.equals(f.payee.trim(), true) }
         val cats = repo.categories.first()
@@ -316,6 +333,8 @@ class AddViewModel(
             } else null
             if (personId != null && f.settleRemind) repo.setPersonReminder(personId, now + SETTLE_AFTER)
             if (captureId != 0L) app.capture.markSaved(captureId, id, txn.categoryId)
+            // An upcoming payment: the alarm wakes on its day to add it (115).
+            if (s.upcoming) with(app) { runBillReminders() }
             // The Favourite chip: "Chai ₹20 · Cash" for one tap next time.
             val favouriteId = if (f.favourite && f.type == TxnType.EXPENSE && txn.categoryId != null) {
                 app.next.addFavourite(txn.payee ?: s.category?.name.orEmpty(), txn.amount, txn.categoryId, txn.accountId)

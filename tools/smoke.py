@@ -212,8 +212,10 @@ def today_has_no_customise_button():
 def today_widgets_and_charts():
     recover()
     d.nav("Today")
-    for label in ["This week", "Next bill", "Net worth", "Top category", "Money in and out", "Goal"]:
-        assert d.scroll_to(label, contains=True), f"widget missing: {label}"
+    # Calm pass: two widgets by default (the rest in Customise › Today), and the coming-up row.
+    for label in ["coming up this week", "This week", "Top category"]:
+        assert d.scroll_to(label, contains=True), f"missing on Today: {label}"
+    assert not d.exists("Net worth", timeout=1), "Net worth widget on by default"
 
 
 # Plan, Accounts, Insights: before the first real entry, which clears the sample month.
@@ -221,17 +223,16 @@ def today_widgets_and_charts():
 
 @check
 def plan_overdue_mark_paid_and_undo():
+    # Coming up (22): the overdue group first; swipe the row right to mark it paid, Undo brings it back.
     recover()
     d.nav("Plan")
-    assert d.exists("is overdue", contains=True, timeout=5), "no overdue note on Plan (sample electricity bill)"
-    paid = [n for n in d.dump() if n.label == "Mark paid"][0]
-    tap_node(paid)
-    time.sleep(0.5)
-    nodes = d.dump()
-    undo = [n for n in nodes if n.label == "Undo"]
-    assert undo, "no Undo after Mark paid"
-    tap_node(undo[0])
-    assert d.exists("is overdue", contains=True, timeout=5), "Undo did not bring the overdue bill back"
+    assert d.exists("Overdue", timeout=5), "no Overdue group on Coming up (sample electricity bill)"
+    late = d.find("Was due", contains=True)
+    assert late, "overdue row has no 'Was due' line"
+    y = late.center[1]
+    d.swipe(150, y, 1000, y, 250)
+    snackbar("Marked paid", undo=True)
+    assert d.exists("Overdue", timeout=5), "Undo did not bring the overdue bill back"
 
 
 @check
@@ -291,7 +292,8 @@ def insights_long_range_and_category_chart():
     d.tap("Dates")
     d.tap("This year")
     d.tap("Show", contains=True)
-    assert d.exists("By category", timeout=5), "Insights broke with a year range"
+    d.scroll_to_top()  # the list keeps its place from the check before
+    assert d.scroll_to("By category"), "Insights broke with a year range"
     assert not crashed(), "crash with a year range"
     d.scroll_to("By category")
     rows = [n for n in d.dump() if re.search(r" · \d+%$", n.label)]
@@ -337,8 +339,7 @@ def add_expense_saves_and_undo():
     open_add()
     keypad("240")
     assert d.exists("Save"), "Save button missing"
-    d.tap("Choose a category")
-    d.tap("Food & drinks")
+    d.tap("Food & drinks")  # a category chip (17)
     d.tap("Save")
     assert d.exists("Undo", timeout=3), "no Undo snackbar after saving"
 
@@ -355,32 +356,22 @@ def new_expense_cant_save_without_category():
 
 @check
 def favourite_chip_saves_with_one_tap():
-    # The Favourite chip (04) keeps an expense for one tap; the chip on New expense saves it.
+    # Favourites (91): added by long-press › Save as favourite; on an empty New expense one tap saves.
     open_add()
     keypad("20")
     d.tap("Paid to")
     d.type_text("Chai")
     d.back()  # keyboard down
-    d.tap("Choose a category")
     d.tap("Food & drinks")
-    # Favourite is the last chip of the type pills (109): Once · Repeat · Subscription · Lent ·
-    # Borrowed · Favourite, in a row that scrolls sideways under the list.
-    if d.exists("Close the keypad", timeout=1):
-        d.tap("Close the keypad")
-    if not d.exists("Once", timeout=1):
-        d.swipe(540, 1500, 540, 700)
-    once = d.find("Once")
-    for _ in range(3):
-        if d.exists("Favourite", timeout=1):
-            break
-        d.swipe(900, once.center[1], 150, once.center[1])
-    d.tap("Favourite")
     d.tap("Save")
     snackbar()
+    d.nav("Activity")
+    d.long_press("Chai", contains=True)
+    d.tap("Save as favourite")
+    snackbar("Saved as a favourite")
     open_add()
-    assert d.exists("Favourites · one tap saves", timeout=5), "no favourites row on New expense"
-    chip = d.find("Chai", contains=True)
-    assert chip, "no Chai favourite chip"
+    chip = d.find("Chai", contains=True, timeout=5)
+    assert chip, "no Chai favourite chip on an empty New expense"
     tap_node(chip)
     nodes = snackbar("saved")
     assert has("Chai", nodes), "snackbar doesn't name the favourite"
@@ -390,20 +381,25 @@ def favourite_chip_saves_with_one_tap():
 @check
 def favourites_hide_while_typing_or_income():
     open_add()
-    assert d.exists("Favourites · one tap saves", timeout=5), "favourites missing on an empty form"
+    assert d.exists("Chai", contains=True, timeout=5), "favourites missing on an empty form"
     keypad("5")
-    assert not d.exists("Favourites · one tap saves", timeout=1), "favourites still shown with an amount typed"
+    assert not d.exists("Chai", contains=True, timeout=1), "favourites still shown with an amount typed"
     d.tap("Close")
     open_add()
+    d.tap("New expense")  # the title opens the type sheet (111)
     d.tap("Income")
-    assert not d.exists("Favourites · one tap saves", timeout=1), "favourites shown for income"
+    assert d.exists("New income", timeout=3), "type sheet didn't switch to income"
+    assert not d.exists("Chai", contains=True, timeout=1), "favourites shown for income"
     d.tap("Close")
 
 
 @check
 def favourites_screen_remove_undo_and_empty():
-    open_add()
-    d.tap("Edit")
+    recover()
+    d.nav("More")
+    d.tap("New expense form")
+    d.scroll_to("one tap saves", contains=True)
+    d.tap("one tap saves", contains=True)  # the Favourites row (its header has the same name)
     assert d.exists("One tap on New expense saves them", timeout=5), "Favourites screen header missing"
     d.tap("Remove Chai")
     snackbar("Favourite removed", undo=True)
@@ -412,7 +408,6 @@ def favourites_screen_remove_undo_and_empty():
     time.sleep(4.5)  # let the Undo go
     assert d.exists("No favourites yet", timeout=5), "no empty state without favourites"
     d.back()
-    d.tap("Close")
 
 
 @check
@@ -677,7 +672,12 @@ def not_understood_waits_for_teach():
     assert d.exists("Teach it 1 message it missed", timeout=5), "unreadable bank SMS not kept for Teach"
     assert d.exists("KOTAKB", contains=True), "Teach row doesn't say who sent it"
     d.tap("Teach it 1 message it missed")
+    # The list of messages not understood: Teach or Ignore each one.
+    assert d.exists("Messages not understood", timeout=5), "the list of missed messages did not open"
+    d.tap("Teach")
     assert d.exists("Teach a message", timeout=5), "Teach did not open"
+    assert d.exists("Ignore"), "no Ignore on Teach"
+    d.tap("Close")
     d.back()
 
 

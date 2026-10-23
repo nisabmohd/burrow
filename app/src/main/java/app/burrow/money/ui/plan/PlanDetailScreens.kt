@@ -308,9 +308,8 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
         ScreenTopBar(painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose, title = stringResource(R.string.new_goal)) {
             BurrowButton(stringResource(R.string.save), { vm.save(onSaved) }, kind = if (vm.canSave(f)) ButtonKind.FILLED else ButtonKind.OFF)
         }
-        Column(
+        app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-            verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             LabeledField(stringResource(R.string.name)) {
                 PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.goal_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))

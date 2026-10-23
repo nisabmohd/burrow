@@ -19,8 +19,8 @@ android {
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 3
-        versionName = "0.1.0"
+        versionCode = 4
+        versionName = "0.1.1"
         // About screen links. They open in the browser; the app itself never goes online.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
         buildConfigField("String", "PLAY_STORE_URL", "\"https://play.google.com/store/apps/details?id=app.burrow.money\"")
@@ -87,13 +87,13 @@ android {
 
     bundle {
         // The language can be changed inside the app (More › Language), so every Play install needs
-        // every language; split APKs would leave Hindi missing on an English phone. Two languages: tiny.
+        // every language; split APKs would leave a language missing on a phone set to another. Seven languages: still small.
         language { enableSplit = false }
     }
 
     androidResources {
         // Only the languages the app ships (keep in step with values-* folders).
-        localeFilters += listOf("en", "hi")
+        localeFilters += listOf("en", "de", "es", "fr", "hi", "ja", "pt-rBR")
         generateLocaleConfig = true
     }
 

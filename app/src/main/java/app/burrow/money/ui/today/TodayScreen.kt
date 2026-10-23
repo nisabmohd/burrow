@@ -54,11 +54,14 @@ fun TodayScreen(
     onBill: (Long) -> Unit,
     onCategory: (Long) -> Unit,
     onGoal: (Long) -> Unit,
+    /** Plan › Coming up. */
+    onComingUp: () -> Unit = {},
     /** Goes up by one each time the Today tab is tapped: scroll back to the top. */
     scrollToTop: Int = 0,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val dates = rememberDateText()
+    val money = app.burrow.money.ui.LocalMoney.current
     val today = remember { LocalDate.now() }
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
@@ -84,7 +87,7 @@ fun TodayScreen(
         val list = androidx.compose.foundation.lazy.rememberLazyListState()
         app.burrow.money.ui.components.KeepTopVisible(list, paused to s.hasSamples)
         androidx.compose.runtime.LaunchedEffect(scrollToTop) { if (scrollToTop > 0) list.scrollToItem(0) }
-        LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
+        app.burrow.money.ui.components.BlockGap { LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
             if (paused != null) {
                 item(key = "paused", contentType = "note") {
                     Note(
@@ -128,6 +131,20 @@ fun TodayScreen(
                     )
                 }
             }
+            // "₹35,449 coming up this week · 3 payments · Netflix today" (04): opens Coming up.
+            if (s.comingThisWeek.isNotEmpty()) item(key = "coming", contentType = "coming") {
+                val first = s.comingThisWeek.first()
+                val n = s.comingThisWeek.size
+                ListGroup(Modifier.animateItem()) {
+                    app.burrow.money.ui.components.ListRow(
+                        stringResource(R.string.coming_up_this_week, money.plain(s.comingThisWeek.filter { !it.income }.sumOf { it.amount })), 0, 1,
+                        supporting = stringResource(R.string.dot_join, pluralStringResource(R.plurals.n_payments, n, n), stringResource(R.string.name_due, first.name, dates.due(first.date, today).replaceFirstChar { it.lowercase() })),
+                        lead = { app.burrow.money.ui.components.IconCircle(painterResource(R.drawable.ic_event_upcoming_duotone)) },
+                        trailing = { app.burrow.money.ui.components.Chevron() },
+                        onClick = onComingUp,
+                    )
+                }
+            }
             if (s.shown.isNotEmpty()) item(key = "widgets", contentType = "widgets") {
                 TodayWidgets(
                     s.widgets, s.shown, s.order, s.hero,
@@ -147,6 +164,6 @@ fun TodayScreen(
                     }
                 }
             }
-        }
+        } }
     }
 }

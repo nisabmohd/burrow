@@ -48,6 +48,19 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
     val list = plan.occurrences(today.minusDays(7), today.plusDays(62)).first()
     val all = events(list, zone)
     val last = settings.billsCheckedAt()
+    // Upcoming one-offs whose day has come are added, with a quiet note each (115).
+    val posted = money.postDueList(now)
+    if (last != null && posted.isNotEmpty()) {
+        val st = settings.settings.first()
+        val fmt = MoneyFormat.of(st.mainCurrency).withHidden(st.hideInNotifications)
+        if (st.notifyBills) posted.forEach { t ->
+            val name = t.payee ?: money.categories.first().firstOrNull { it.id == t.categoryId }?.name.orEmpty()
+            val open = android.content.Intent(context, app.burrow.money.MainActivity::class.java)
+                .setAction(app.burrow.money.MainActivity.ACTION_OPEN_TXN).putExtra(app.burrow.money.MainActivity.EXTRA_ID, t.id)
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            planNotifier.show(30_000 + (t.id % 1_000_000).toInt(), string(R.string.upcoming_added_title, name, fmt.plain(t.amount)), string(R.string.upcoming_added_line), open)
+        }
+    }
     if (last != null) {
         val st = settings.settings.first()
         val money = MoneyFormat.of(st.mainCurrency).withHidden(st.hideInNotifications)
@@ -68,7 +81,8 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
         }
     }
     settings.setBillsCheckedAt(now)
-    scheduleNext(all.firstOrNull { it.at > now }?.at)
+    // The next bill event or the next upcoming payment's time, whichever comes first.
+    scheduleNext(listOfNotNull(all.firstOrNull { it.at > now }?.at, money.nextUpcoming()).minOrNull())
 }
 
 private fun AppContainer.string(id: Int, vararg args: Any) = strings(id, *args)

@@ -61,6 +61,46 @@ Power lives one level down, never on the main screens:
   primary currency, symbol/code, decimal places, typed-in exchange rates.
 - Every account has "Count in net worth" (cards and loans off by default).
 
+
+## Reasons to come back (user, 2026-10-23 — final)
+Every feature must **save taps or give a reason to open the app**, never add a screen people must learn.
+- **The daily number:** "Safe to spend today" = (left this month + spent today) ÷ days left incl. today − spent today, never below 0.
+  Same number on Today's hero line, the home-screen widget and Sunday review.
+- **Outside the app:** home-screen widget, app-icon shortcuts, quick-settings tile. Widgets use the system font.
+- **Favourites:** one tap saves (with Undo). Added by long-press › Save as favourite.
+- **Long-press any transaction** opens the action sheet; tap still opens the detail.
+- **Reorder is drag only:** ⠿ handle on the left, the row lifts; no up/down arrows.
+- **Sunday review** is the only weekly notification; one button finishes it.
+- **Customise stays optional:** defaults must already feel right; nothing on Today points to Customise.
+- **USP, say it everywhere:** It records itself · Private by design · Know what's left today · Works with any bank.
+- **Don't add:** cloud sync or accounts · AI chat · investments · shared ledgers · receipt OCR · streaks and badges · more charts.
+
+## Calm pass (user, 2026-10-23)
+Reference screens for the calm style: More, Appearance, Customise › Region, settings lists — flat lists, one idea per group, nothing repeated.
+- **New expense:** title "New expense ▾" opens the type sheet (Expense / Income / Transfer); amount alone with a blinking caret; **keypad always visible**;
+  Paid to; favourites chips (empty form only); **category chips** (4 most-used + More); one line "HDFC Savings · Today" (each part
+  tappable); one chip row: Note · Receipt · **Repeat or lend** (one chip → sheet: Once, Repeat, Subscription, Lent, Borrowed + how often / person).
+  Amount, payee and category stay visible with the keypad open, no scrolling.
+- **Plan › Coming up** (was Bills): one list grouped Overdue (red) · This week · This month · Later, each with its total. Bills and
+  one-off future payments together; a small icon tells repeating (↻) from one-off (📅). Swipe right = Paid / Add now, left = Skip / Delete.
+  No Next up card; Subscriptions and EMIs are two rows under "Every month" at the bottom.
+- **Insights** keeps its widgets with small graphs (user: "like old graph only", no list view): spent chart → A day (sparkline) ·
+  Biggest → By category → Patterns: Busiest day (bars) · No-spend days (ring) · You kept (ring) · Top payee (next two payees with
+  amounts, no repeated icons) → month heatmap (top day only, no repeated month total).
+- **Activity** opens on the list: the chart is one summary row ("₹13,738 spent · 28 transactions · last 14 days") that expands.
+  A folded "3 coming up" row sits on top; upcoming items never mix into the history.
+- **Today** shows 2 widgets by default (This week, Top category) and a "₹X coming up this week" row. No buttons in widgets.
+- **Transaction detail:** Duplicate and Edit in the app bar; Delete is a red row at the bottom.
+- **Kept from earlier the same day (user):** tags are plain words (never "#Work"); the date sheet is Yesterday · Today · Tomorrow chips over a month calendar (not the old list of rows).
+
+## Upcoming (user, 2026-10-23)
+- Anything with a future date is **upcoming**: saved to Coming up (snackbar "Saved · Upcoming on Sat, 24 Oct"), added on its day
+  with a quiet notification ("Rent ₹18,000 added today", Undo in the app). Upcoming income shows "+", never coloured.
+- **Safe to spend counts what is coming up** (option, on by default — Customise › Transactions › "Coming up lowers safe to spend"):
+  safe today = (left this month − unpaid upcoming expenses due by month end, excluding transfers like card bills and EMI principal
+  + spent today) ÷ days left − spent today.
+- Empty: "Nothing coming up. Bills and future-dated payments show here."
+
 ## Widgets (Today and Insights)
 Half-width widgets are exactly 184 dp tall so rows are even. A widget alone on a row switches to
 the wide layout (text left, 104 dp ring right, 16 dp padding) and wraps its content. Widgets show

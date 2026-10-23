@@ -30,12 +30,12 @@ import java.time.ZoneId
 
 /** The budget block: [budget] is null when none is set. */
 @Immutable
-data class HeroState(val period: BudgetPeriod, val daysLeft: Int, val spent: Long, val budget: Long?, val digits: Int = 2, val spentToday: Long = 0) {
+data class HeroState(val period: BudgetPeriod, val daysLeft: Int, val spent: Long, val budget: Long?, val digits: Int = 2, val spentToday: Long = 0, val comingUp: Long = 0) {
     val left get() = (budget ?: 0) - spent
     val over get() = budget != null && left < 0
     val perDay get() = perDay(left, daysLeft, digits)
     /** The daily number (NEXT.md): same on Today, the home-screen widget and the Sunday review. */
-    val safeToday get() = app.burrow.money.domain.safeToSpendToday(left, spentToday, daysLeft, digits)
+    val safeToday get() = app.burrow.money.domain.safeToSpendToday(left, spentToday, daysLeft, digits, comingUp)
     val progress get() = if (budget == null || budget <= 0) 0f else (spent.toFloat() / budget).coerceIn(0f, 1f)
 }
 
@@ -75,6 +75,8 @@ data class TodayUiState(
     /** For the Balance top card: net worth now. */
     val balance: Long,
     val showTime: Boolean,
+    /** "₹35,449 coming up this week · 3 payments · Netflix today" (04): this week's coming-up items. */
+    val comingThisWeek: List<app.burrow.money.ui.plan.ComingItem> = emptyList(),
 )
 
 /** Today (04–10): the budget hero, notes, widgets, Recent. */
@@ -138,21 +140,25 @@ class TodayViewModel(
         )
     }.flowOn(Dispatchers.Default)
 
+    /** Bills and future-dated payments (Plan › Coming up): the hero's daily number and the Today row. */
+    private val coming = combine(plan.occurrences(today.minusDays(62), today.plusDays(63)), repo.upcoming) { o, t -> app.burrow.money.ui.plan.comingUp(o, t, today, zone) }
+
     private val money = combine(
-        combine(repo.spent(period), next.spentToday(today)) { a, b -> a to b },
+        combine(repo.spent(period), next.spentToday(today), combine(coming, settings.settings) { c, s -> app.burrow.money.ui.plan.comingUpDue(c, period, s.upcomingLowersSafe) }) { a, b, c -> Triple(a, b, c) },
         plan.budgets(period),
         repo.latest(RECENT_MAX),
         repo.hasSamples,
         repo.txnCount,
-    ) { (spent, spentToday), (overall, _), recent, samples, count ->
-        Triple(HeroState(period, period.daysLeft(today), spent, overall?.amount, digits, spentToday), recent, samples to (count == 0))
+    ) { (spent, spentToday, due), (overall, _), recent, samples, count ->
+        Triple(HeroState(period, period.daysLeft(today), spent, overall?.amount, digits, spentToday, due), recent, samples to (count == 0))
     }
 
-    val state: StateFlow<TodayUiState?> = combine(money, capture.reviewCount, settings.settings, widgets) { (hero, recent, flags), review, s, w ->
+    val state: StateFlow<TodayUiState?> = combine(money, capture.reviewCount, settings.settings, widgets, coming) { (hero, recent, flags), review, s, w, c ->
         TodayUiState(
             hero, recent.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }.take(s.homeRecentCount), flags.first, flags.second,
             review, s.smsCapture, s.notificationCapture, s.homeWidgets, w,
             s.homeTopCard, s.homeWidgetOrder, s.homeShowReview, w.netWorth, s.showTime,
+            c.filter { it.group == app.burrow.money.ui.plan.ComingGroup.OVERDUE || it.group == app.burrow.money.ui.plan.ComingGroup.THIS_WEEK },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 

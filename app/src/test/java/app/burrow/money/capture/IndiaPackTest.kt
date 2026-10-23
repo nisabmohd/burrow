@@ -34,6 +34,18 @@ class IndiaPackTest {
         Case("in.phonepe.paid", "com.phonepe.app", 96_00, "Rapido Bike", null),
         Case("in.phonepe.received", "com.phonepe.app", 500_00, "Rahul Sharma", null, Direction.IN),
         Case("in.paytm.paid", "net.one97.paytm", 96_00, "Rapido Bike", "Paytm Wallet"),
+        // Money in: every bank's credit SMS, so income doesn't go missing (2026-10-23).
+        Case("in.hdfc.received", "AD-HDFCBK", 500_00, "rahul@okaxis", "1234", Direction.IN),
+        Case("in.icici.credit", "VK-ICICIB", 1_500_00, "ACME PVT LTD", "123", Direction.IN),
+        Case("in.sbi.credit", "JM-SBIINB", 500_00, "RAHUL SHARMA", "1234", Direction.IN),
+        Case("in.axis.credit", "AX-AXISBK", 500_00, "RAHUL SHARMA", "1234", Direction.IN),
+        Case("in.kotak.received", "AX-KOTAKB", 500_00, "rahul@okaxis", "4471", Direction.IN),
+        Case("in.idfc.credit", "BZ-IDFCFB", 500_00, "RAHUL SHARMA", "1234", Direction.IN),
+        Case("in.yes.credit", "VM-YESBNK", 500_00, "RAHUL SHARMA", "1234", Direction.IN),
+        Case("in.bob.credit", "BP-BOBTXN", 500_00, "rahul@okaxis", "1234", Direction.IN),
+        Case("in.pnb.credit", "AD-PNBSMS", 500_00, null, "1234", Direction.IN),
+        Case("in.canara.credit", "VM-CANBNK", 500_00, "RAHUL SHARMA", "1234", Direction.IN),
+        Case("in.any.credit", "AD-FEDBNK", 2_000_00, "ACME PVT LTD", "9012", Direction.IN),
     )
 
     @Test fun everyRuleHasACase() = assertEquals(pack.rules.map { it.id }.toSet(), cases.map { it.ruleId }.toSet())
@@ -80,6 +92,21 @@ class IndiaPackTest {
         assertNull(engine.parse("AX-HDFCBK", "OTP 482913 for Rs.240.00 debited from A/c XX1234 on 19-10-26 to VPA a@b. Do not share.", pack.rules))
         assertNull(engine.parse("AX-HDFCBK", "Rs.240.00 debited from A/c XX1234 on 19-10-26 to VPA a@b failed.", pack.rules))
         assertNull(engine.parse("VK-ICICIB", "Congratulations! You are pre-approved for a loan of Rs 5,00,000.", pack.rules))
+    }
+
+    /** SBI also sends credits without a name: "credited by Rs500 on 22Oct26 by (Ref no …)". */
+    @Test fun sbiCreditWithoutAName() {
+        val p = engine.parse("JM-SBIUPI", "Dear SBI UPI User, ur A/cX1234 credited by Rs500 on 22Oct26 by (Ref no 629184791)", pack.rules)!!
+        assertEquals(500_00L, p.amountMinor)
+        assertEquals(Direction.IN, p.direction)
+        assertEquals("1234", p.account)
+    }
+
+    /** A credit is never read as a debit, and the catch-all credit rule never reads a debit. */
+    @Test fun creditsAndDebitsStayApart() {
+        assertEquals(Direction.OUT, engine.parse("AX-HDFCBK", pack.rules.first { it.id == "in.hdfc.upi" }.example!!, pack.rules)!!.direction)
+        assertNull(engine.parse("AD-FEDBNK", "Rs.2,000.00 debited from your A/c XX9012 on 21-10-26 to ACME.", pack.rules))
+        assertNull(engine.parse("AD-FEDBNK", "OTP 4821 to receive Rs.2,000.00 credited to your A/c XX9012. Do not share.", pack.rules))
     }
 
     @Test fun otherSendersAreIgnored() {

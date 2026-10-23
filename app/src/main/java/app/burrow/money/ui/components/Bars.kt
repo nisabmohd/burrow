@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -110,6 +112,8 @@ fun ScreenTopBar(
     onNav: () -> Unit,
     modifier: Modifier = Modifier,
     title: String? = null,
+    /** Set: the title is a button with ▾ ("New expense ▾" opens the type sheet, 111). */
+    onTitle: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
@@ -119,7 +123,16 @@ fun ScreenTopBar(
     ) {
         TonalIconButton(navIcon, navLabel, onNav)
         Box(Modifier.weight(1f).padding(start = Space.inline)) {
-            if (title != null) {
+            if (title != null && onTitle != null) {
+                Row(
+                    Modifier.heightIn(min = Size.button).clip(Shapes.pill).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onTitle),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Space.grid),
+                ) {
+                    Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+                    androidx.compose.material3.Icon(painterResource(app.burrow.money.R.drawable.ic_expand_more_regular), null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(Size.icon))
+                }
+            } else if (title != null) {
                 Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
             }
         }

@@ -88,8 +88,11 @@ fun TodayWidgets(
                 Widget(
                     stringResource(R.string.next_bill), painterResource(R.drawable.ic_event_available_duotone), money.plain(o.amount),
                     stringResource(R.string.dot_join, o.name, if (due.isBefore(today)) stringResource(R.string.was_due, dates.shortDay(due)) else dates.due(due, today).replaceFirstChar { it.lowercase() }), m, wide, onClick = { onBill(o.occurrence.billId) },
+                    // No buttons in widgets: its circle; Mark paid is a swipe in Coming up.
                     visual = {
-                        BurrowButton(stringResource(R.string.mark_paid), { onMarkPaid(o.occurrence.id) }, if (wide) Modifier else Modifier.fillMaxWidth(), ButtonKind.TONAL, painterResource(R.drawable.ic_check_regular))
+                        androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                            app.burrow.money.ui.pickers.CategoryCircle(o.icon, o.hue, app.burrow.money.ui.theme.Size.iconCircle)
+                        }
                     },
                 )
             })

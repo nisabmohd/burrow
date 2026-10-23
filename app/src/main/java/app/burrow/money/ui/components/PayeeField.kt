@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,7 +64,7 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
         cursorBrush = SolidColor(c.primary), interactionSource = interaction,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
-        modifier = modifier.widthIn(max = Size.payeeMaxWidth).fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(), // same width as the rows under it
         decorationBox = { field ->
             Row(
                 Modifier.fillMaxWidth().heightIn(min = Size.payeeField).clip(Shapes.pill).background(c.surfaceContainerLow)
@@ -87,67 +88,50 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
     )
 }
 
-/** Paid to suggestions: up to 4 quiet chips, centred; while typing, each with its category circle. */
-@OptIn(ExperimentalLayoutApi::class)
+/** How a [FormChip] looks: outlined (a choice), selected (the choice made), tonal (an extra). */
+enum class FormChipStyle { OUTLINED, SELECTED, TONAL }
+
+/**
+ * The one chip on New expense (17): 36 dp pill inside a 48 dp touch target. Favourites ("Chai ₹20",
+ * the amount quieter), payee matches, category chips (24 dp circle + name) and the extras (Note ·
+ * Receipt · Repeat or lend, tonal with a small icon).
+ */
 @Composable
-fun <T> SuggestionChips(items: List<T>, label: (T) -> String, circle: (@Composable (T) -> Unit)?, onPick: (T) -> Unit, modifier: Modifier = Modifier) {
+fun FormChip(
+    label: String,
+    onClick: () -> Unit,
+    style: FormChipStyle = FormChipStyle.OUTLINED,
+    circle: (@Composable () -> Unit)? = null,
+    icon: Painter? = null,
+    trailing: String? = null,
+) {
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
-    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-        items.take(4).forEach { item ->
-            Row(
-                Modifier.heightIn(min = Size.suggestion).clip(Shapes.pill).border(Space.group / 4, c.outline, Shapes.pill)
-                    .clickable(role = Role.Button) { haptics.tick(); onPick(item) }
-                    .padding(start = if (circle != null) Space.grid else Space.card, end = Space.card),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Space.small),
-            ) {
-                circle?.invoke(item)
-                Text(label(item), style = BurrowType.button, color = c.onSurfaceVariant, maxLines = 1)
-            }
+    val fg = if (style == FormChipStyle.SELECTED) c.onSecondaryContainer else c.onSurface
+    Box(Modifier.minimumInteractiveComponentSize().clickable(role = Role.Button) { haptics.tick(); onClick() }, contentAlignment = Alignment.Center) {
+        Row(
+            Modifier.height(Size.chip).clip(Shapes.pill)
+                .then(
+                    when (style) {
+                        FormChipStyle.OUTLINED -> Modifier.border(Space.group / 4, c.outline, Shapes.pill)
+                        FormChipStyle.SELECTED -> Modifier.background(c.secondaryContainer)
+                        FormChipStyle.TONAL -> Modifier.background(c.surfaceContainer)
+                    },
+                )
+                .padding(start = if (circle != null) Space.grid else Space.block, end = Space.block),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Space.small),
+        ) {
+            circle?.invoke()
+            if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(Size.iconSmall))
+            Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = Size.payeeMaxWidth / 2))
+            if (trailing != null) Text(trailing, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1)
         }
     }
 }
 
-/** One extra under the rows (Note, Repeat, Attach, Lend): an outlined chip; [value] set = selected style. */
+/** A row of [FormChip]s that scrolls sideways when it doesn't fit; chips sit 8 dp apart. */
 @Composable
-fun ExtraChip(icon: Painter, label: String, value: String?, onClick: () -> Unit) {
-    val c = MaterialTheme.colorScheme
-    val set = value != null
-    Row(
-        Modifier.height(Size.chip).clip(Shapes.pill)
-            .then(if (set) Modifier.background(c.secondaryContainer) else Modifier.border(Space.group / 4, c.outline, Shapes.pill))
-            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = Space.block),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.small),
-    ) {
-        Icon(icon, null, tint = if (set) c.onSecondaryContainer else c.onSurfaceVariant, modifier = Modifier.size(Size.iconSmall))
-        Text(value ?: label, style = BurrowType.button, color = if (set) c.onSecondaryContainer else c.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = Size.payeeMaxWidth / 2))
-    }
-}
-
-/** A row of [ExtraChip]s that scrolls sideways when it doesn't fit. */
-@Composable
-fun ExtraChipRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Row(modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.small)) { content() }
-}
-
-/**
- * A one-tap favourite on New expense (04): 24 dp category circle, "Chai ₹20", outlined pill.
- * One tap saves it (the caller does that, with Undo).
- */
-@Composable
-fun FavouriteChip(label: String, circle: @Composable () -> Unit, onClick: () -> Unit) {
-    val c = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
-    Row(
-        Modifier.heightIn(min = Size.button).clip(Shapes.pill).border(Space.group / 4, c.outline, Shapes.pill)
-            .clickable(role = Role.Button) { haptics.confirm(); onClick() }
-            .padding(start = Space.small, end = Space.card),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.small),
-    ) {
-        circle()
-        Text(label, style = BurrowType.button, color = c.onSurface, maxLines = 1)
-    }
+fun FormChipRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Row(modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.small), verticalAlignment = Alignment.CenterVertically) { content() }
 }

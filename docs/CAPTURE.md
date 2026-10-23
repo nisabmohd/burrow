@@ -70,8 +70,9 @@ Shared by people for their bank or country (GitHub, chat). **Never contains mess
 }
 ```
 Built-in packs ship as `assets/rules/<country>.json` in the same format; the India pack covers the top
-banks and UPI apps (19 rules: HDFC, ICICI, SBI, Axis, Kotak, IDFC FIRST, YES, Bank of Baroda, PNB, Canara;
-Google Pay, PhonePe, Paytm). Each rule carries an anonymised `example`, and `IndiaPackTest` checks every one. Every pack has tests in `src/test/…/capture/` with real (anonymised) examples.
+banks and UPI apps (30 rules: money out and money in for HDFC, ICICI, SBI, Axis, Kotak, IDFC FIRST, YES, Bank of
+Baroda, PNB, Canara; Google Pay, PhonePe, Paytm; last, `in.any.credit` reads "credited to your A/c" from any bank's
+SMS header). On only when the phone is in India. Each rule carries an anonymised `example`, and `IndiaPackTest` checks every one. Every pack has tests in `src/test/…/capture/` with real (anonymised) examples.
 Import validates every regex (compile + a 50 ms timeout guard against catastrophic patterns) before saving.
 
 ## Privacy promises (say them in the intro, keep them in code)

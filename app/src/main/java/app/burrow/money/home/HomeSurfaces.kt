@@ -18,6 +18,7 @@ import app.burrow.money.data.OccurrenceStatus
 import app.burrow.money.domain.BudgetPeriod
 import app.burrow.money.domain.MoneyFormat
 import app.burrow.money.domain.safeToSpendToday
+import app.burrow.money.ui.plan.comingUpDue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -61,7 +62,7 @@ object HomeSurfaces {
             .filter { it.occurrence.status == OccurrenceStatus.UPCOMING }.minByOrNull { it.occurrence.dueDate }
         return HomeNumbers(
             budget = budget, spent = spent, left = left,
-            safeToday = if (budget == null) 0 else safeToSpendToday(left, spentToday, daysLeft, money.digits),
+            safeToday = if (budget == null) 0 else safeToSpendToday(left, spentToday, daysLeft, money.digits, app.comingUpDue(period, today)),
             daysLeft = daysLeft,
             month = period.month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale),
             progress = if (budget == null || budget <= 0) 0f else (spent.toFloat() / budget).coerceIn(0f, 1f),

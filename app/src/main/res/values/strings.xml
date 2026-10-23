@@ -194,6 +194,10 @@
     <string name="tap_to_teach">Tap to teach the app</string>
     <string name="message_rules">Message rules</string>
     <string name="rules_line">Built-in for India · %1$d of yours</string>
+    <plurals name="rules_line_yours">
+        <item quantity="one">%d of yours</item>
+        <item quantity="other">%d of yours</item>
+    </plurals>
     <string name="try_it">Try it</string>
     <string name="try_it_line">Sends a sample payment</string>
     <string name="how_it_works">How it works</string>
@@ -984,7 +988,7 @@
     <string name="favourite_added">Saved as a favourite</string>
     <string name="favourite_removed">Favourite removed</string>
     <string name="favourites_line">One tap on New expense saves them</string>
-    <string name="favourites_how">To add one, fill in New expense and turn on the Favourite chip before you save.</string>
+    <string name="favourites_how">To add one, long-press any transaction and pick Save as favourite.</string>
     <string name="no_favourites">No favourites yet</string>
     <string name="save_as_favourite">Save as favourite</string>
     <string name="save_as_favourite_line">One tap on New expense</string>
@@ -1178,4 +1182,53 @@
     <string name="receipt">Receipt</string>
     <string name="close_keypad">Close the keypad</string>
     <string name="made_by">Made by mid apps</string>
+    <!-- Calm pass (2026-10-23): New expense -->
+    <string name="type_transfer_line">Between your accounts · not spending</string>
+    <string name="repeat_or_lend">Repeat or lend</string>
+    <string name="once_line">Doesn\'t repeat</string>
+    <string name="repeat_bill_line">A bill in Plan › Coming up</string>
+    <string name="lent_line">You gave someone money</string>
+    <string name="borrowed_line">Someone gave you money</string>
+    <string name="how_often">How often</string>
+    <string name="pick_category_to_save">Pick a category to save</string>
+    <string name="upcoming_word">upcoming</string>
+    <!-- Calm pass: Plan › Coming up -->
+    <string name="coming_up">Coming up</string>
+    <string name="overdue">Overdue</string>
+    <string name="coming_total_in">%1$s · +%2$s in</string>
+    <string name="swipe_hint">Swipe right to mark paid, left to skip.</string>
+    <string name="nothing_coming_up">Nothing coming up</string>
+    <string name="nothing_coming_up_line">Bills and future-dated payments show here.</string>
+    <string name="emis_month_paid">%1$s a month · %2$d of %3$d paid</string>
+    <string name="add_now">Add now</string>
+    <string name="added_now">Added</string>
+    <string name="upcoming_added_title">%1$s %2$s added today</string>
+    <string name="upcoming_added_line">It was due today · open Burrow to undo</string>
+    <string name="upcoming_lowers_safe">Coming up lowers safe to spend</string>
+    <string name="coming_up_this_week">%1$s coming up this week</string>
+    <plurals name="n_payments">
+        <item quantity="one">%d payment</item>
+        <item quantity="other">%d payments</item>
+    </plurals>
+    <plurals name="n_coming_up">
+        <item quantity="one">%d coming up</item>
+        <item quantity="other">%d coming up</item>
+    </plurals>
+    <string name="amount_this_week">%1$s this week</string>
+    <string name="activity_summary">%1$s spent</string>
+    <plurals name="activity_summary_line">
+        <item quantity="one">%d transaction · last 14 days</item>
+        <item quantity="other">%d transactions · last 14 days</item>
+    </plurals>
+    <string name="came_in_amount">%1$s came in</string>
+    <string name="show_chart">Show the chart</string>
+    <string name="hide_chart">Hide the chart</string>
+    <string name="upcoming_added_on">Upcoming · added on %1$s</string>
+    <string name="change_date">Change date</string>
+    <string name="saved_upcoming_on">Saved · Upcoming on %1$s</string>
+    <string name="not_understood_title">Messages not understood</string>
+    <string name="not_understood_line">Teach the app a message once and it reads the rest from that bank. Not a payment? Ignore it.</string>
+    <string name="nothing_to_teach">Nothing to teach</string>
+    <string name="nothing_to_teach_line">Messages with money that no rule could read wait here.</string>
+    <string name="teach">Teach</string>
 </resources>

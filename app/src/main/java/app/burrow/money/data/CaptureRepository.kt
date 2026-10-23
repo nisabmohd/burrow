@@ -84,9 +84,9 @@ class CaptureRepository(
      * stored; a payment is stored for review (or merged into the same payment seen a moment ago);
      * a money message no rule reads waits for Teach.
      */
-    suspend fun handle(source: String, sender: String, body: String, at: Long): CaptureResult = withContext(Dispatchers.IO) {
+    suspend fun handle(source: String, sender: String, body: String, at: Long, extra: List<Rule> = emptyList()): CaptureResult = withContext(Dispatchers.IO) {
         if (engine.isNoise(body)) return@withContext CaptureResult.Ignored
-        val rules = activeRules.first()
+        val rules = activeRules.first() + extra
         val main = settings.settings.first().mainCurrency
         val parsed = engine.parse(sender, body, rules) { c -> minorDigits(c ?: main) }
         if (parsed == null) {

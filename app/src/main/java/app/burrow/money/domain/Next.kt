@@ -10,13 +10,14 @@ import java.time.temporal.TemporalAdjusters
  */
 
 /**
- * Safe to spend today = (left this month + spent today) ÷ days left including today − spent today,
- * never below zero (NEXT.md § The daily number). Today's hero, the home-screen widget and the Sunday
- * review all show this number. Rounded down to whole units ([digits] minor digits) so it never
- * promises more than is there.
+ * Safe to spend today = (left this month − [comingUpMinor] + spent today) ÷ days left including today
+ * − spent today, never below zero (docs/DESIGN.md § Upcoming). [comingUpMinor] is what is still due
+ * before the month ends (unpaid bills and upcoming expenses, not transfers), when that option is on.
+ * Today's hero, the home-screen widget and the Sunday review all show this number. Rounded down to
+ * whole units ([digits] minor digits) so it never promises more than is there.
  */
-fun safeToSpendToday(leftMinor: Long, spentTodayMinor: Long, daysLeft: Int, digits: Int = 2): Long {
-    val pool = leftMinor + spentTodayMinor.coerceAtLeast(0)
+fun safeToSpendToday(leftMinor: Long, spentTodayMinor: Long, daysLeft: Int, digits: Int = 2, comingUpMinor: Long = 0): Long {
+    val pool = leftMinor - comingUpMinor.coerceAtLeast(0) + spentTodayMinor.coerceAtLeast(0)
     if (pool <= 0) return 0
     val days = daysLeft.coerceAtLeast(1)
     val safe = pool / days - spentTodayMinor.coerceAtLeast(0)

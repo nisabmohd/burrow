@@ -374,9 +374,8 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
         ) {
             BurrowButton(stringResource(R.string.save), { vm.save(onSaved) }, kind = if (vm.canSave(f)) ButtonKind.FILLED else ButtonKind.OFF)
         }
-        Column(
+        app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-            verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             // A preview of how it looks in lists (106): icon in its colour, name with the last digits, kind.
             Column(Modifier.fillMaxWidth().padding(top = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {

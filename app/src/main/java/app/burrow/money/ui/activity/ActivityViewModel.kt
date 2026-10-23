@@ -58,13 +58,15 @@ data class ActivityUiState(
     val isEmpty: Boolean,
     val accounts: List<AccountWithBalance>,
     val categories: List<CategoryEntity>,
+    /** Overdue and this week's coming-up items: the folded "3 coming up" row (11). */
+    val comingThisWeek: List<app.burrow.money.ui.plan.ComingItem> = emptyList(),
 )
 
 /**
  * Activity (11–16): every transaction, newest first, grouped by day; search; the Filter and Dates
  * sheets; the chart card, where tapping a bar shows only that day. Work runs off the main thread.
  */
-class ActivityViewModel(private val repo: MoneyRepository, private val store: FilterStore) : ViewModel() {
+class ActivityViewModel(private val repo: MoneyRepository, private val store: FilterStore, plan: app.burrow.money.data.PlanRepository? = null) : ViewModel() {
     /** Swipe to delete (Customise › Transactions); Undo puts it back. */
     fun delete(id: Long, onDeleted: (suspend () -> Unit) -> Unit) {
         viewModelScope.launch { repo.delete(id)?.let { t -> onDeleted { repo.restore(t) } } }
@@ -76,9 +78,16 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
     private val selected = MutableStateFlow<Int?>(null)
     @Volatile private var all: List<TxnView> = emptyList()
 
+    private val coming = plan?.let { p ->
+        val today = LocalDate.now(zone)
+        combine(p.occurrences(today.minusDays(62), today.plusDays(63)), repo.upcoming) { o, t -> app.burrow.money.ui.plan.comingUp(o, t, today, zone) }
+    } ?: kotlinx.coroutines.flow.flowOf(emptyList())
+
     val state: StateFlow<ActivityUiState?> = combine(
-        repo.latest(), query, store.activity, selected, combine(repo.accounts, repo.categories) { a, c -> a to c },
-    ) { txns, q, f, sel, (accounts, categories) ->
+        combine(repo.latest(), coming) { a, b -> a to b }, query, store.activity, selected, combine(repo.accounts, repo.categories) { a, c -> a to c },
+    ) { (everything, comingUp), q, f, sel, (accounts, categories) ->
+        // Upcoming payments live in Coming up; they never mix into the history.
+        val txns = everything.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }
         all = txns
         val today = LocalDate.now(zone)
         val range = f.range ?: DayRange.lastDays(14, today)
@@ -112,6 +121,7 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
             isEmpty = txns.isEmpty(),
             accounts = accounts,
             categories = categories,
+            comingThisWeek = comingUp.filter { it.group == app.burrow.money.ui.plan.ComingGroup.OVERDUE || it.group == app.burrow.money.ui.plan.ComingGroup.THIS_WEEK },
         )
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 

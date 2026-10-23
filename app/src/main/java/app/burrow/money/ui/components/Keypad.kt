@@ -56,7 +56,7 @@ fun AmountInput.apply(key: Key): AmountInput = when (key) {
 }
 
 /**
- * The amount keypad (docs/COMPONENTS.md § Keypad): 4 × 4 of 60 dp pill keys, 8 dp apart.
+ * The amount keypad (docs/COMPONENTS.md § Keypad): 4 × 4 of 52 dp pill keys, 6 dp apart.
  * Digits on surfaceContainerLow, operators on secondaryContainer, ✓ primary (looks off until
  * [doneEnabled], but still taps). Hold ⌫ to clear. [showDot] is false for currencies without decimals.
  */
@@ -69,9 +69,9 @@ fun Keypad(onKey: (Key) -> Unit, doneEnabled: Boolean, modifier: Modifier = Modi
         listOf(Key.Digit('7'), Key.Digit('8'), Key.Digit('9'), Key.Minus),
         listOf(if (showDot) Key.Dot else null, Key.Digit('0'), Key.DoubleZero, Key.Done),
     )
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.keypad)) {
         rows.forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.keypad)) {
                 row.forEach { key ->
                     val mod = Modifier.weight(1f)
                     when (key) {

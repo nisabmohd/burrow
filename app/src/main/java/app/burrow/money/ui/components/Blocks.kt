@@ -62,15 +62,15 @@ fun CenterHeader(
     bad: Boolean = false,
 ) {
     val c = MaterialTheme.colorScheme
-    Column(modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier.fillMaxWidth().padding(vertical = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
         icon()
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Space.block))
         Text(title, style = BurrowType.titleSmall, color = c.onSurface)
         Text(value, style = BurrowType.display, color = if (bad) c.error else c.onSurface)
         if (line != null) Text(line, style = BurrowType.body, color = if (bad) c.error else c.onSurfaceVariant, textAlign = TextAlign.Center)
         if (progress != null) {
-            Spacer(Modifier.height(12.dp))
-            ThinBar(progress, if (bad) c.error else c.primary, Modifier.padding(horizontal = 4.dp))
+            Spacer(Modifier.height(Space.block))
+            ThinBar(progress, if (bad) c.error else c.primary, Modifier.padding(horizontal = Space.grid))
         }
     }
 }
@@ -78,8 +78,8 @@ fun CenterHeader(
 /** 8 dp rounded progress bar. */
 @Composable
 fun ThinBar(progress: Float, color: Color, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(8.dp).clip(Shapes.pill).background(MaterialTheme.colorScheme.secondaryContainer)) {
-        Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(8.dp).clip(Shapes.pill).background(color))
+    Box(modifier.fillMaxWidth().height(Size.thinBar).clip(Shapes.pill).background(MaterialTheme.colorScheme.secondaryContainer)) {
+        Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(Size.thinBar).clip(Shapes.pill).background(color))
     }
 }
 
@@ -113,11 +113,11 @@ fun Note(
     Column(
         modifier.fillMaxWidth().heightIn(min = Size.note).clip(Shapes.surface).background(bg)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = Space.card, vertical = 12.dp),
+            .padding(horizontal = Space.card, vertical = Space.block),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
             Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(circle), contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = onCircle, modifier = Modifier.size(22.dp))
+                Icon(icon, null, tint = onCircle, modifier = Modifier.size(Size.iconInCircle))
             }
             Column(Modifier.weight(1f)) {
                 Text(title, style = BurrowType.titleSmall, color = fg)
@@ -174,8 +174,8 @@ fun Widget(
 @Composable
 private fun ColumnScope.WidgetText(label: String, icon: Painter, value: String, line: String) {
     val c = MaterialTheme.colorScheme
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Icon(icon, null, tint = c.primary, modifier = Modifier.size(18.dp))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+        Icon(icon, null, tint = c.primary, modifier = Modifier.size(Size.iconSmall))
         Text(label, style = BurrowType.label, color = c.onSurfaceVariant)
     }
     if (value.isNotEmpty()) {
@@ -192,9 +192,9 @@ private fun ColumnScope.WidgetText(label: String, icon: Painter, value: String, 
 /** Empty state: 128 dp wavy "cookie" shape (primaryContainer) with the icon centred at 42%, title, one line, one tonal button. */
 @Composable
 fun EmptyState(shape: @Composable () -> Unit, title: String, line: String, button: (@Composable () -> Unit)? = null) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().padding(vertical = Space.empty, horizontal = Space.sheet), horizontalAlignment = Alignment.CenterHorizontally) {
         shape()
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(Space.screen))
         Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
         Text(line, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         if (button != null) { Spacer(Modifier.height(Space.hero)); button() }

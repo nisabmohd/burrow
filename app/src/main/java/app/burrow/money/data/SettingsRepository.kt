@@ -38,9 +38,9 @@ data class Settings(
     val smsCapture: Boolean = false,
     val notificationCapture: Boolean = false,
     /** Built-in rule packs that are on (ids from BUILT_IN_PACKS). */
-    val enabledPacks: Set<String> = setOf("in"),
+    val enabledPacks: Set<String> = defaultPacks(),
     /** Widgets Today shows (Edit home, 10), by key: week, bill, networth, topcat, goal, inout. */
-    val homeWidgets: Set<String> = ALL_HOME_WIDGETS,
+    val homeWidgets: Set<String> = DEFAULT_HOME_WIDGETS,
     /** False until Welcome → currency → accounts is done (01–03). */
     val onboarded: Boolean = false,
     /** More › Hide amounts: "₹ ••••" until tapped. */
@@ -78,6 +78,8 @@ data class Settings(
     val onPaymentFound: String = PaymentFound.ASK,
     val showTime: Boolean = true,
     val countUpcoming: Boolean = false,
+    /** Customise › Transactions: Coming up lowers Safe to spend (on by default). */
+    val upcomingLowersSafe: Boolean = true,
     val confirmDelete: Boolean = false,
     val swipeRight: String = SwipeRight.PAID,
     val swipeLeft: String = SwipeLeft.SKIP,
@@ -91,6 +93,9 @@ data class Settings(
 )
 
 val ALL_HOME_WIDGETS = setOf("week", "bill", "networth", "topcat", "goal", "inout")
+
+/** On at first: two widgets, so Today stays calm (calm pass, 2026-10-23); the rest in Customise › Today. */
+val DEFAULT_HOME_WIDGETS = setOf("week", "topcat")
 val HOME_WIDGET_ORDER = listOf("week", "bill", "networth", "topcat", "inout", "goal")
 
 /** Today's top card (Customise › Today). */
@@ -119,10 +124,10 @@ object SwipeLeft { const val SKIP = "SKIP"; const val DELETE = "DELETE" }
 object NumberStyle { const val INDIAN = "INDIAN"; const val WESTERN = "WESTERN"; const val DOT = "DOT"; const val SPACE = "SPACE" }
 object DateStyle { const val WRITTEN = "WRITTEN"; const val DMY = "DMY"; const val MDY = "MDY"; const val YMD = "YMD" }
 
-/** The phone region's currency, or INR when the region has none. */
 /**
- * The phone's country from the SIM or mobile network ("IN"), set once at app start. Many phones in
- * India run English (United States), so the language alone would suggest dollars.
+ * The phone's country ("IN"), worked out once at app start: the time zone first (Asia/Kolkata → IN;
+ * emulators and travel SIMs often report another country), then the SIM or mobile network. Many
+ * phones in India run English (United States), so the language alone would suggest dollars.
  */
 object Region {
     @Volatile var simCountry: String? = null
@@ -130,16 +135,25 @@ object Region {
 
     fun detect(context: android.content.Context) {
         simCountry = runCatching {
+            val zone = android.icu.util.TimeZone.getRegion(java.util.TimeZone.getDefault().id)
             val tm = context.getSystemService(android.telephony.TelephonyManager::class.java)
-            listOf(tm?.simCountryIso, tm?.networkCountryIso).firstOrNull { !it.isNullOrBlank() }?.uppercase(Locale.ROOT)
+            listOf(zone, tm?.simCountryIso, tm?.networkCountryIso)
+                .firstOrNull { !it.isNullOrBlank() && it.length == 2 && it.all(Char::isLetter) }?.uppercase(Locale.ROOT)
         }.getOrNull()
     }
+
+    /** The country: detected, else the language's country (may be blank). */
+    fun country(locale: Locale = Locale.getDefault()): String = simCountry ?: locale.country.uppercase(Locale.ROOT)
 }
 
-/** The region's currency: the SIM or network country first, then the language's country. */
+/** The region's currency, or INR when the region has none. */
 fun defaultCurrency(locale: Locale = Locale.getDefault()): String =
-    Region.simCountry?.let { c -> runCatching { Currency.getInstance(Locale.Builder().setRegion(c).build()).currencyCode }.getOrNull() }
+    Region.country(locale).takeIf { it.isNotBlank() }?.let { c -> runCatching { Currency.getInstance(Locale.Builder().setRegion(c).build()).currencyCode }.getOrNull() }
         ?: runCatching { Currency.getInstance(locale).currencyCode }.getOrNull() ?: "INR"
+
+/** Built-in rule packs on at first: only the phone's own country's (UPI rules mean nothing outside India). */
+fun defaultPacks(): Set<String> =
+    app.burrow.money.capture.BUILT_IN_PACKS.filter { it.country == Region.country() }.map { it.id }.toSet()
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -156,7 +170,7 @@ class SettingsRepository(context: Context) {
     suspend fun setMainCurrency(code: String) = store.edit { it[MAIN_CURRENCY] = code }
     suspend fun setMonthStartDay(day: Int) = store.edit { it[MONTH_START_DAY] = day.coerceIn(1, 28) }
     suspend fun setHomeWidget(key: String, on: Boolean) = store.edit {
-        val now = it[HOME_WIDGETS] ?: ALL_HOME_WIDGETS
+        val now = it[HOME_WIDGETS] ?: DEFAULT_HOME_WIDGETS
         it[HOME_WIDGETS] = if (on) now + key else now - key
     }
     suspend fun setTopCard(v: String) = store.edit { it[TOP_CARD] = v }
@@ -174,6 +188,7 @@ class SettingsRepository(context: Context) {
     suspend fun setPaymentFound(v: String) = store.edit { it[PAYMENT_FOUND] = v }
     suspend fun setShowTime(on: Boolean) = store.edit { it[SHOW_TIME] = on }
     suspend fun setCountUpcoming(on: Boolean) = store.edit { it[COUNT_UPCOMING] = on }
+    suspend fun setUpcomingLowersSafe(on: Boolean) = store.edit { it[UPCOMING_LOWERS_SAFE] = on }
     suspend fun setConfirmDelete(on: Boolean) = store.edit { it[CONFIRM_DELETE] = on }
     suspend fun setSwipeRight(v: String) = store.edit { it[SWIPE_RIGHT] = v }
     suspend fun setSwipeLeft(v: String) = store.edit { it[SWIPE_LEFT] = v }
@@ -224,7 +239,7 @@ class SettingsRepository(context: Context) {
     suspend fun setSmsCapture(on: Boolean) = store.edit { it[SMS_CAPTURE] = on }
     suspend fun setNotificationCapture(on: Boolean) = store.edit { it[NOTIFICATION_CAPTURE] = on }
     suspend fun setPackEnabled(id: String, on: Boolean) = store.edit {
-        val now = it[ENABLED_PACKS] ?: setOf("in")
+        val now = it[ENABLED_PACKS] ?: defaultPacks()
         it[ENABLED_PACKS] = if (on) now + id else now - id
     }
 
@@ -250,8 +265,8 @@ class SettingsRepository(context: Context) {
             monthStartDay = this[MONTH_START_DAY] ?: 1,
             smsCapture = this[SMS_CAPTURE] ?: false,
             notificationCapture = this[NOTIFICATION_CAPTURE] ?: false,
-            enabledPacks = this[ENABLED_PACKS] ?: setOf("in"),
-            homeWidgets = this[HOME_WIDGETS] ?: ALL_HOME_WIDGETS,
+            enabledPacks = this[ENABLED_PACKS] ?: defaultPacks(),
+            homeWidgets = this[HOME_WIDGETS] ?: DEFAULT_HOME_WIDGETS,
             onboarded = this[ONBOARDED] ?: false,
             hideAmounts = this[HIDE_AMOUNTS] ?: false,
             appLock = (this[APP_LOCK] ?: false) && this[PIN_HASH] != null,
@@ -278,6 +293,7 @@ class SettingsRepository(context: Context) {
             onPaymentFound = this[PAYMENT_FOUND] ?: PaymentFound.ASK,
             showTime = this[SHOW_TIME] ?: true,
             countUpcoming = this[COUNT_UPCOMING] ?: false,
+            upcomingLowersSafe = this[UPCOMING_LOWERS_SAFE] ?: true,
             confirmDelete = this[CONFIRM_DELETE] ?: false,
             swipeRight = this[SWIPE_RIGHT] ?: SwipeRight.PAID,
             swipeLeft = this[SWIPE_LEFT] ?: SwipeLeft.SKIP,
@@ -330,6 +346,7 @@ class SettingsRepository(context: Context) {
         val PAYMENT_FOUND = stringPreferencesKey("onPaymentFound")
         val SHOW_TIME = booleanPreferencesKey("showTime")
         val COUNT_UPCOMING = booleanPreferencesKey("countUpcoming")
+        val UPCOMING_LOWERS_SAFE = booleanPreferencesKey("upcomingLowersSafe")
         val CONFIRM_DELETE = booleanPreferencesKey("confirmDelete")
         val SWIPE_RIGHT = stringPreferencesKey("swipeRight")
         val SWIPE_LEFT = stringPreferencesKey("swipeLeft")

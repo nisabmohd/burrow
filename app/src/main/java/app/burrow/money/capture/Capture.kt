@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.first
  * One incoming message, from either source (docs/CAPTURE.md § Pipeline): store it, then ask with
  * the capture notification when it is a new payment.
  */
-suspend fun AppContainer.onMessage(source: String, sender: String, body: String, at: Long = System.currentTimeMillis()): CaptureResult {
-    val result = capture.handle(source, sender, body, at)
+suspend fun AppContainer.onMessage(
+    source: String, sender: String, body: String, at: Long = System.currentTimeMillis(), extra: List<Rule> = emptyList(),
+): CaptureResult {
+    val result = capture.handle(source, sender, body, at, extra)
     if (result is CaptureResult.Found) {
         val c = result.capture
         val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE

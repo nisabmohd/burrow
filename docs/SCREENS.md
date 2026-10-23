@@ -50,7 +50,7 @@ width, light and dark. "→" means what a tap opens.
 ## Plan
 | PNG | Screen | Layout |
 |---|---|---|
-| 22-plan-bills | Bills | Bills/Budgets/Goals group · overdue note (Mark paid) · Next up card · Subscriptions + EMIs widgets · This week / Later rows (amount over "in 6 days") · FAB Add bill |
+| 22-plan-bills | Plan › **Coming up** | tabs Coming up · Budgets · Goals; groups Overdue (red, "Late") · This week · This month · Later with totals; rows: circle, name, ↻/📅 + "in 5 days · ICICI", amount + date; swipe right Paid/Add now, left Skip/Delete |
 | 25 / 26 | Bill / overdue bill | centred header (amount, "Due today" / "Was due 17 Oct" in red) · rows Category / Paid from / Repeats / Ask me on the day (switch) · Paid before (account circle rows) · Skip / Mark paid |
 | 27 / 28 | New bill / due-day sheet | Bill/Subscription · Name · Amount · rows Category / Paid from / "Every month on the 1st" → DayStepper · When it is due (Ask me / Record it for me / Only remind me) |
 | 29-subscriptions | Subscriptions | suggestion note (Add) · centred "Every month ₹876 · ₹10,516 a year" · rows |
@@ -125,3 +125,14 @@ wrong backup password · replace-data confirm · wrong PIN · review all caught 
 | 107-edit-account-colour | Edit account (scrolled) | colour and icon pickers, same blocks as Edit category |
 | 108-new-expense-keypad-open | New expense, typing | keypad open, caret after the amount, list fades above it |
 | 109-expense-type-pills | New expense, type | pill row (single choice, like Cashew): Once · Repeat · Subscription · Lent · Borrowed (income: no Subscription). Choosing Repeat/Subscription opens the frequency sheet and the pill reads "Repeat · Monthly ▾"; Lent/Borrowed opens the person sheet and reads "Lent · Rahul ▾". No extra rows. |
+
+## Calm pass (2026-10-23) — PNGs from burrow-ui-changes
+| PNG | Screen | Layout |
+|---|---|---|
+| 110-activity-chart-open | Activity, chart open | the summary row expanded into the 14-day pill chart; ⌃ in its header folds it |
+| 111-type-sheet | Type sheet | from the title "New expense ▾": Expense (money out) · Income (money in) · Transfer |
+| 112-repeat-or-lend-sheet | Repeat or lend | rows Once · Repeat · Subscription · Lent · Borrowed; How often (Weekly/Monthly/Yearly) or a name field; Done |
+| 113-coming-up-later | Coming up (scrolled) | Later group, swipe hint, "Every month": Subscriptions and EMIs rows |
+| 114-upcoming-one-off | Upcoming payment | centred header "Upcoming · added on Saturday, 24 Oct"; Category, Account, Change date; Delete row; bottom "Add now" |
+| 115-upcoming-added-notification | Notification | "Rent ₹18,000 added today · It was due today · open Burrow to undo" |
+| 116 (no PNG yet) | Messages not understood | cards like To review: sender + time, ✕ ignore, the message, Teach chip; swipe right Teach, left Ignore (Undo). Teach has Ignore next to Save |

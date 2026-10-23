@@ -112,7 +112,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
                 )
                 return@Column
             }
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
+            app.burrow.money.ui.components.BlockGap { LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
                 item(key = "line") { SpendCard(s) }
                 item(key = "pair") {
                     Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
@@ -138,7 +138,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
                 item(key = "patterns-h") { SectionHeader(stringResource(R.string.patterns)) }
                 item(key = "patterns") { Patterns(s) }
                 item(key = "heat") { HeatmapCard(s) { d -> vm.showDayInActivity(d); onDayInActivity() } }
-            }
+            } }
         }
     }
     val s = state ?: return
@@ -247,13 +247,23 @@ private fun Patterns(s: InsightsState) {
             Widget(
                 stringResource(R.string.top_payee), painterResource(R.drawable.ic_storefront_duotone), top?.name ?: "–",
                 top?.let { pluralStringResource(R.plurals.times, it.times, money.plain(it.total), it.times) }.orEmpty(), Modifier.weight(1f),
-                visual = { Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) { top?.circles?.forEach { (icon, hue) -> CategoryCircle(icon, hue) } } },
+                // The next two payees with their amounts, instead of repeated icons (37).
+                visual = {
+                    Column(verticalArrangement = Arrangement.spacedBy(Space.grid)) {
+                        top?.next?.forEach { (name, total) ->
+                            Row(Modifier.fillMaxWidth()) {
+                                Text(name, style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(money.plain(total), style = BurrowType.label, color = c.onSurface)
+                            }
+                        }
+                    }
+                },
             )
         }
     }
 }
 
-/** The month by day (39): the top day and the month's total, then a circle per day in 5 tones. */
+/** The month by day (39): the top day, then a circle per day in 5 tones. */
 @Composable
 private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
     val money = LocalMoney.current
@@ -268,15 +278,10 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
         value = "",
         line = null,
     ) {
-        Row(Modifier.fillMaxWidth().padding(bottom = Space.card)) {
-            Column(Modifier.weight(1f)) {
-                Text(top?.let { dates.shortDay(it.key) } ?: "–", style = BurrowType.title, color = c.onSurface)
-                Text(stringResource(R.string.top_day, money.plain(top?.value ?: 0)), style = BurrowType.body, color = c.onSurfaceVariant)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(money.short(s.monthTotal), style = BurrowType.title, color = c.onSurface)
-                Text(stringResource(R.string.spent_this_month_plain), style = BurrowType.body, color = c.onSurfaceVariant)
-            }
+        // Only the top day: the month's total is already the big number at the top of Insights.
+        Column(Modifier.fillMaxWidth().padding(bottom = Space.card)) {
+            Text(top?.let { dates.shortDay(it.key) } ?: "–", style = BurrowType.title, color = c.onSurface)
+            Text(stringResource(R.string.top_day, money.plain(top?.value ?: 0)), style = BurrowType.body, color = c.onSurfaceVariant)
         }
         val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
         val lead = (s.heatMonth.atDay(1).dayOfWeek.value - first.value + 7) % 7

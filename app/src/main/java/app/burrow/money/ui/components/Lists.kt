@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,14 +56,47 @@ fun IconCircle(
     }
 }
 
-/** Section header: 14 Medium title left, meta (body, muted) or a text button right. */
+/**
+ * The gap the enclosing column already puts between its items (a page column spaced by
+ * [Space.block]). [SectionHeader] takes it off its own padding, so a header sits the same distance
+ * from the block above and from its group below on every screen. Provide it with [BlockGap].
+ */
+val LocalBlockGap = androidx.compose.runtime.staticCompositionLocalOf { 0.dp }
+
+/**
+ * A page body: blocks [Space.block] apart, and section headers inside it keep the standard gaps.
+ * Use it for every scrolling page column instead of a hand-spaced Column.
+ */
 @Composable
-fun SectionHeader(title: String, modifier: Modifier = Modifier, meta: String? = null, trailing: (@Composable RowScope.() -> Unit)? = null) {
+fun BlockColumn(modifier: Modifier = Modifier, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) = BlockGap {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.block), content = content)
+}
+
+/** Wrap a lazy list spaced by [Space.block] that holds [SectionHeader]s. */
+@Composable
+fun BlockGap(content: @Composable () -> Unit) =
+    androidx.compose.runtime.CompositionLocalProvider(LocalBlockGap provides Space.block, content = content)
+
+/**
+ * Section header: 14 Medium title left, meta (body, muted) or a text button right. Its text starts
+ * 24 dp from the screen edge like every title; [Space.sectionTop] above, [Space.sectionBottom] to
+ * its group, whatever column it sits in.
+ */
+@Composable
+fun SectionHeader(title: String, modifier: Modifier = Modifier, meta: String? = null, trailing: (@Composable RowScope.() -> Unit)? = null, titleColor: Color = MaterialTheme.colorScheme.onSurface) {
+    val gap = LocalBlockGap.current
     Row(
-        modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 4.dp, end = 4.dp, top = Space.sectionTop, bottom = Space.sectionBottom),
+        modifier.fillMaxWidth()
+            // The column adds `gap` below as well: report that much less height, so header → group stays sectionBottom.
+            .layout { m, c ->
+                val p = m.measure(c)
+                layout(p.width, (p.height - gap.roundToPx()).coerceAtLeast(0)) { p.place(0, 0) }
+            }
+            .padding(start = Space.headingInset, end = Space.headingInset, top = (Space.sectionTop - gap).coerceAtLeast(0.dp), bottom = Space.sectionBottom)
+            .heightIn(min = Size.chip),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = BurrowType.button, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        Text(title, style = BurrowType.button, color = titleColor, modifier = Modifier.weight(1f))
         when {
             trailing != null -> trailing()
             meta != null -> Text(meta, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -92,6 +126,8 @@ fun ListRow(
     /** Being dragged (16): it lifts onto surfaceContainerHigh with all corners round. */
     lifted: Boolean = false,
     headlineColor: Color = MaterialTheme.colorScheme.onSurface,
+    /** A small icon before the supporting line (Coming up: ↻ repeats, 📅 one-off). */
+    supportingIcon: androidx.compose.ui.graphics.painter.Painter? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -110,7 +146,7 @@ fun ListRow(
                     else -> Modifier
                 },
             )
-            .padding(horizontal = Space.card, vertical = 8.dp),
+            .padding(horizontal = Space.card, vertical = Space.small),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.card),
     ) {
@@ -119,7 +155,12 @@ fun ListRow(
             // Large text (Day 26): rows grow to two lines instead of cutting words off.
             val lines = if (LocalDensity.current.fontScale > LARGE_TEXT) 2 else 1
             Text(headline, style = BurrowType.bodyLarge, color = headlineColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
-            if (supporting != null) Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
+            if (supporting != null && supportingIcon != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.grid)) {
+                    androidx.compose.material3.Icon(supportingIcon, null, tint = supportingColor, modifier = Modifier.size(Size.iconSmall))
+                    Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
+                }
+            } else if (supporting != null) Text(supporting, style = BurrowType.body, color = supportingColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
         }
         trailing?.invoke()
     }
@@ -142,14 +183,18 @@ fun AmountTrailing(amount: String, status: String? = null, statusColor: Color = 
 
 
 /**
- * A note that appears at the very top of a list (overdue, paused) would land above the first
- * visible item, and a lazy list keeps that item in place, so the note would sit just off screen.
- * When [topKey] changes and the list is at (or next to) the top, scroll back to the top.
+ * A note or group that appears at the very top of a list (overdue, paused, an Undo that brings an
+ * overdue bill back) would land above the first visible item, and a lazy list keeps that item in
+ * place, so it would sit just off screen. When [topKey] changes while the list is at the very top,
+ * stay at the very top. Decided during composition, from the layout before the change.
  */
 @Composable
 fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey: Any?) {
-    androidx.compose.runtime.LaunchedEffect(topKey) {
-        if (state.firstVisibleItemIndex <= 1) state.scrollToItem(0)
+    // A plain holder, not state: noting the key mustn't cause another recomposition.
+    val last = androidx.compose.runtime.remember { arrayOf(topKey) }
+    if (last[0] != topKey) {
+        last[0] = topKey
+        if (state.firstVisibleItemIndex <= 1 && state.firstVisibleItemScrollOffset == 0) state.requestScrollToItem(0)
     }
 }
 

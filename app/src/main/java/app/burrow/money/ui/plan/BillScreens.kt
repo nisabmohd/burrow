@@ -96,9 +96,8 @@ fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack) {
             TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(b.id) })
         }
-        Column(
+        app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-            verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             val due = s.current?.occurrence?.dueDate?.toDate()
             CenterHeader(
@@ -197,9 +196,8 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
         ) {
             BurrowButton(stringResource(R.string.save), { vm.save(onSaved) }, kind = if (s.canSave) ButtonKind.FILLED else ButtonKind.OFF)
         }
-        Column(
+        app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
-            verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             if (f.kind == BillKind.BILL || f.kind == BillKind.SUBSCRIPTION) {
                 ButtonGroup(listOf(BillKind.BILL, BillKind.SUBSCRIPTION), f.kind, { kindLabel(it) }, { k -> vm.edit { it.copy(kind = k) } })

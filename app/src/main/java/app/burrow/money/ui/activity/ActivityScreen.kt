@@ -53,8 +53,10 @@ import java.time.LocalDate
  * Filters and the 14-day chart come on Day 16.
  */
 @Composable
-fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onEdit: (Long) -> Unit = {}, onDuplicate: (Long) -> Unit = {}, focusSearch: kotlinx.coroutines.flow.MutableStateFlow<Boolean>? = null) {
+fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> Unit, onEdit: (Long) -> Unit = {}, onDuplicate: (Long) -> Unit = {}, focusSearch: kotlinx.coroutines.flow.MutableStateFlow<Boolean>? = null, onComingUp: () -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
+    // Activity opens on the list: the chart is one row until tapped (11, 110).
+    var chartOpen by rememberSaveable { mutableStateOf(false) }
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
     val query by vm.searchText.collectAsStateWithLifecycle()
     val money = LocalMoney.current
@@ -120,7 +122,22 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
                     button = { BurrowButton(stringResource(R.string.clear_search), { vm.search("") }, kind = ButtonKind.TONAL) },
                 )
                 else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = padding) {
-                    if (query.isBlank()) item(key = "chart", contentType = "chart") { ActivityChartCard(s.chart, vm::select) }
+                    if (query.isBlank() && s.comingThisWeek.isNotEmpty()) item(key = "coming", contentType = "row") {
+                        val n = s.comingThisWeek.size
+                        app.burrow.money.ui.components.ListGroup(Modifier.padding(bottom = Space.small)) {
+                            app.burrow.money.ui.components.ListRow(
+                                pluralStringResource(R.plurals.n_coming_up, n, n), 0, 1,
+                                supporting = stringResource(R.string.amount_this_week, money.plain(s.comingThisWeek.filter { !it.income }.sumOf { it.amount })),
+                                lead = { app.burrow.money.ui.components.IconCircle(painterResource(R.drawable.ic_event_upcoming_duotone)) },
+                                trailing = { app.burrow.money.ui.components.Chevron() },
+                                onClick = onComingUp,
+                            )
+                        }
+                    }
+                    if (query.isBlank()) item(key = "chart", contentType = "chart") {
+                        if (chartOpen || s.chart.selected != null) ActivityChartCard(s.chart, vm::select, onFold = { vm.select(null); chartOpen = false })
+                        else ChartSummaryRow(s.chart) { chartOpen = true }
+                    }
                     s.groups.forEach { g ->
                         item(key = "day-${g.date}", contentType = "header") {
                             SectionHeader(
@@ -167,9 +184,27 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
     }
 }
 
+/** The folded chart (11): "₹13,738 spent" · "28 transactions · last 14 days" · ⌄ opens it (110). */
+@Composable
+private fun ChartSummaryRow(chart: ActivityChart, onOpen: () -> Unit) {
+    val money = LocalMoney.current
+    val dates = rememberDateText()
+    val c = androidx.compose.material3.MaterialTheme.colorScheme
+    app.burrow.money.ui.components.ListGroup(Modifier.padding(bottom = Space.small)) {
+        app.burrow.money.ui.components.ListRow(
+            stringResource(if (chart.income) R.string.came_in_amount else R.string.activity_summary, money.plain(chart.total)), 0, 1,
+            supporting = if (chart.lastDays) pluralStringResource(R.plurals.activity_summary_line, chart.count, chart.count)
+            else stringResource(R.string.dot_join, pluralStringResource(R.plurals.n_transactions, chart.count, chart.count), dates.range(chart.range)),
+            lead = { app.burrow.money.ui.components.IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
+            trailing = { androidx.compose.material3.Icon(painterResource(R.drawable.ic_expand_more_regular), stringResource(R.string.show_chart), tint = c.primary) },
+            onClick = onOpen,
+        )
+    }
+}
+
 /** The chart card (11): Last 14 days (or the picked dates), spent, the bars; tap a day for just that day (12). */
 @Composable
-private fun ActivityChartCard(chart: ActivityChart, onSelect: (Int?) -> Unit) {
+private fun ActivityChartCard(chart: ActivityChart, onSelect: (Int?) -> Unit, onFold: () -> Unit) {
     val money = LocalMoney.current
     val dates = rememberDateText()
     val selDay = chart.selected?.let { chart.bars.getOrNull(it)?.first }
@@ -184,8 +219,13 @@ private fun ActivityChartCard(chart: ActivityChart, onSelect: (Int?) -> Unit) {
         },
         modifier = Modifier.padding(bottom = Space.small),
         trailing = {
-            if (selDay != null) LinkButton(stringResource(R.string.all_days), { onSelect(null) })
-            else AverageLegend(stringResource(R.string.a_day, money.short(chart.perDay)))
+            androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                if (selDay != null) LinkButton(stringResource(R.string.all_days), { onSelect(null) })
+                else AverageLegend(stringResource(R.string.a_day, money.short(chart.perDay)))
+                androidx.compose.material3.IconButton(onClick = onFold) {
+                    androidx.compose.material3.Icon(painterResource(R.drawable.ic_expand_less_regular), stringResource(R.string.hide_chart), tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                }
+            }
         },
     ) {
         val labels = chart.bars.map { (d, _) ->

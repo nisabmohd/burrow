@@ -26,26 +26,21 @@ import java.time.ZoneId
 
 enum class PlanSection { BILLS, BUDGETS, GOALS }
 
+/** Plan › Coming up (22, 113): bills and future-dated payments in one list, and "Every month". */
 @Immutable
 data class BillsState(
-    val overdue: List<OccurrenceView>,
-    val nextUp: OccurrenceView?,
-    val thisWeek: List<OccurrenceView>,
-    val later: List<OccurrenceView>,
+    val items: List<ComingItem>,
     val subsMonthly: Long,
     val subsCount: Int,
     val emiMonthly: Long,
-    val loans: Int,
     val loanAccountId: Long?,
     val hasBills: Boolean,
-    /** The first three subscriptions' circles (icon, hue) for the widget (22). */
-    val subsCircles: List<Pair<String?, Float?>>,
-    /** EMIs paid of all, of the first loan (22: "41 of 240 paid"). */
+    /** EMIs paid of all, of the first loan ("41 of 240 paid"). */
     val emisPaid: Int,
     val emisTotal: Int,
-    /** Dated in the future: added on their day (78). */
-    val upcomingTxns: List<app.burrow.money.data.TxnView>,
-)
+) {
+    val isEmpty get() = items.isEmpty() && !hasBills
+}
 
 @Immutable
 data class BudgetsState(
@@ -68,7 +63,7 @@ data class GoalsState(val goals: List<GoalLine>) {
 data class PlanUiState(val bills: BillsState, val budgets: BudgetsState, val goals: GoalsState)
 
 /** The Plan tab (22, 23, 24). */
-class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, monthStartDay: Int, digits: Int) : ViewModel() {
+class PlanViewModel(private val plan: PlanRepository, private val money: MoneyRepository, monthStartDay: Int, digits: Int) : ViewModel() {
     private val zone = ZoneId.systemDefault()
     private val today = LocalDate.now(zone)
     private val period = BudgetPeriod.containing(today, monthStartDay)
@@ -82,14 +77,6 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
         plan.goals,
         combine(money.categories, money.accounts, money.upcoming) { c, a, l -> Triple(c, a, l) },
     ) { occ, bills, (overall, cats), goals, (categories, accounts, txns) ->
-        val upcoming = occ.filter { it.occurrence.status == OccurrenceStatus.UPCOMING }
-        val overdue = upcoming.filter { it.date().isBefore(today) }
-        val ahead = upcoming.filter { !it.date().isBefore(today) }
-        val week = occ.filter { val d = it.date(); !d.isBefore(today) && d.isBefore(today.plusDays(7)) && it.occurrence.status != OccurrenceStatus.SKIPPED }
-        val weekBills = week.map { it.occurrence.billId }.toSet()
-        // Later: each bill's next date after this week, once.
-        val later = ahead.filter { !it.date().isBefore(today.plusDays(7)) && it.occurrence.billId !in weekBills }
-            .distinctBy { it.occurrence.billId }
         val subs = bills.filter { it.kind == BillKind.SUBSCRIPTION }
         val monthly = { amount: Long, rule: String -> if (Repeat.parse(rule) is Repeat.Yearly) amount / 12 else amount }
         val emis = bills.filter { it.kind == BillKind.EMI }
@@ -98,20 +85,14 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
         val loan = loanAccount?.let { app.burrow.money.ui.accounts.loanInfo(it.account, it.balance, today) }
         PlanUiState(
             bills = BillsState(
-                overdue = overdue,
-                nextUp = ahead.firstOrNull(),
-                thisWeek = week,
-                later = later,
+                items = comingUp(occ, txns, today, zone),
                 subsMonthly = subs.sumOf { monthly(it.amount, it.repeatRule) },
                 subsCount = subs.size,
                 emiMonthly = emis.sumOf { it.amount },
-                loans = emis.mapNotNull { it.toAccountId }.distinct().size,
                 loanAccountId = emis.firstNotNullOfOrNull { it.toAccountId },
                 hasBills = bills.isNotEmpty(),
-                subsCircles = subs.take(3).map { b -> (b.icon ?: categories.firstOrNull { it.id == b.categoryId }?.icon) to (b.colorHue ?: categories.firstOrNull { it.id == b.categoryId }?.colorHue) },
                 emisPaid = loan?.paid ?: 0,
                 emisTotal = loan?.total ?: 0,
-                upcomingTxns = txns,
             ),
             budgets = BudgetsState(period, period.daysLeft(today), overall, cats, perDay(left, period.daysLeft(today), digits), categories.filter { it.kind == CategoryKind.EXPENSE }),
             goals = GoalsState(goals),
@@ -124,6 +105,16 @@ class PlanViewModel(private val plan: PlanRepository, money: MoneyRepository, mo
 
     fun skip(occurrenceId: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
         plan.skip(occurrenceId)?.let(onDone)
+    }
+
+    /** A one-off upcoming payment, added now (swipe right, 114 "Add now"). */
+    fun addNow(txnId: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        money.addNow(txnId)?.let(onDone)
+    }
+
+    /** A one-off upcoming payment, deleted (swipe left), with Undo. */
+    fun deleteOnce(txnId: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        money.delete(txnId)?.let { gone -> onDone { money.restore(gone) } }
     }
 
     fun setBudget(categoryId: Long?, amount: Long, carryOver: Boolean, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {

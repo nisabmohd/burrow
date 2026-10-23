@@ -92,6 +92,17 @@ class TeachViewModel(
     private fun name(sender: String): String =
         sender.substringAfterLast('-').trim().ifBlank { fallbackName }
 
+    /** A message from the inbox can be ignored instead (not a payment, or not worth a rule). */
+    val canIgnore get() = captureId != 0L
+
+    fun ignore(onDone: (suspend () -> Unit) -> Unit) {
+        if (captureId == 0L) return
+        viewModelScope.launch {
+            capture.setStatus(captureId, app.burrow.money.data.CaptureStatus.IGNORED)
+            onDone { capture.setStatus(captureId, app.burrow.money.data.CaptureStatus.UNREAD) }
+        }
+    }
+
     /** Saves the rule and tries it on every message waiting; returns how many moved to To review. */
     fun save(onDone: (Int) -> Unit) {
         val rule = _state.value?.rule ?: return

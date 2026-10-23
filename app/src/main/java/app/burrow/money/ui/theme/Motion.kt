@@ -6,6 +6,10 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.InfiniteRepeatableSpec
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -81,3 +85,13 @@ const val BAR_STAGGER_MS = 40
 /** Chart bars grow from the baseline once (longer for more bars, staggered feel). */
 fun barGrowSpec(bars: Int): FiniteAnimationSpec<Float> = tween(Duration.LONG + bars * BAR_STAGGER_MS / 2, easing = Easing.emphasizedDecelerate)
 
+
+/**
+ * The amount's caret on New expense (17, 108): on 500 ms, off 500 ms, like a system text cursor.
+ * The one thing that loops, because a caret that stands still reads as a stray bar.
+ */
+const val CARET_BLINK_MS = 1000
+fun caretBlinkSpec(): InfiniteRepeatableSpec<Float> = infiniteRepeatable(
+    keyframes { durationMillis = CARET_BLINK_MS; 1f at 0; 1f at CARET_BLINK_MS / 2 - 1; 0f at CARET_BLINK_MS / 2; 0f at CARET_BLINK_MS - 1 },
+    RepeatMode.Restart,
+)

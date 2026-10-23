@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,30 +63,18 @@ interface AppearanceActions {
 @Composable
 fun AppearanceScreen(settings: Settings, actions: AppearanceActions, onBack: () -> Unit, onFont: () -> Unit, onLanguage: () -> Unit) {
     val t = settings.theme
-    val context = LocalContext.current
     DetailFrame(onBack, stringResource(R.string.appearance)) {
         SectionHeader(stringResource(R.string.theme))
         ButtonGroup(listOf(ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK), t.mode, { themeLabel(it) }, actions::mode)
         SectionHeader(stringResource(R.string.colour))
         val dark = t.isDark()
-        Row(
-            Modifier.fillMaxWidth().clip(Shapes.surface).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(Space.block),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            AccentSeeds.forEach { (hue, _) ->
-                val on = !t.dynamicColor && hue == t.accentHue
-                val label = accentName(hue, false)
-                Box(
-                    Modifier.size(Size.button).clip(Shapes.pill)
-                        .then(if (on) Modifier.border(Space.group / 2, MaterialTheme.colorScheme.onSurface, Shapes.pill) else Modifier)
-                        .clickable(role = Role.RadioButton) { actions.accent(hue) }
-                        .semantics { selected = on; contentDescription = label },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val swatch = seedColorScheme(hue, dark)
-                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(swatch.primary), contentAlignment = Alignment.Center) {
-                        if (on) Icon(painterResource(R.drawable.ic_check_regular), null, tint = swatch.onPrimary, modifier = Modifier.size(Size.iconSmall))
-                    }
+        // Seven equal columns: every swatch fits the card on a narrow phone, none is cut off.
+        app.burrow.money.ui.components.SwatchGrid(AccentSeeds, columns = AccentSeeds.size) { (hue, _) ->
+            val on = !t.dynamicColor && hue == t.accentHue
+            app.burrow.money.ui.components.Swatch(on, accentName(hue, false), { actions.accent(hue) }) {
+                val swatch = seedColorScheme(hue, dark)
+                Box(Modifier.fillMaxSize().padding(Space.group).clip(Shapes.pill).background(swatch.primary), contentAlignment = Alignment.Center) {
+                    if (on) Icon(painterResource(R.drawable.ic_check_regular), null, tint = swatch.onPrimary, modifier = Modifier.size(Size.iconSmall))
                 }
             }
         }
@@ -98,10 +87,10 @@ fun AppearanceScreen(settings: Settings, actions: AppearanceActions, onBack: () 
                 )
             }
         }
-        SectionHeader(stringResource(R.string.text_and_language))
+        // Language lives in More › Customise › Language and region: one place for each setting.
+        SectionHeader(stringResource(R.string.font))
         ListGroup {
-            ListRow(stringResource(R.string.font_and_size), 0, 2, supporting = stringResource(R.string.dot_join, fontName(t.font), textSizeName(t.textSize)), lead = { IconCircle(painterResource(R.drawable.ic_text_fields_duotone)) }, trailing = { Chevron() }, onClick = onFont)
-            ListRow(stringResource(R.string.language), 1, 2, supporting = AppLanguage.currentName(context), lead = { IconCircle(painterResource(R.drawable.ic_translate_duotone)) }, trailing = { Chevron() }, onClick = onLanguage)
+            ListRow(stringResource(R.string.font_and_size), 0, 1, supporting = stringResource(R.string.dot_join, fontName(t.font), textSizeName(t.textSize)), lead = { IconCircle(painterResource(R.drawable.ic_text_fields_duotone)) }, trailing = { Chevron() }, onClick = onFont)
         }
     }
 }

@@ -263,6 +263,7 @@ private fun TransactionsTab(vm: CustomiseViewModel, settings: Settings, onRight:
         listOf(
             Toggle("time", stringResource(R.string.show_time), painterResource(R.drawable.ic_schedule_duotone), settings.showTime),
             Toggle("upcoming", stringResource(R.string.upcoming_in_balances), painterResource(R.drawable.ic_event_upcoming_duotone), settings.countUpcoming),
+            Toggle("upcomingSafe", stringResource(R.string.upcoming_lowers_safe), painterResource(R.drawable.ic_pie_chart_duotone), settings.upcomingLowersSafe),
             Toggle("confirm", stringResource(R.string.ask_before_delete), painterResource(R.drawable.ic_delete_duotone), settings.confirmDelete),
         ),
         vm::listOption, stringResource(R.string.on), stringResource(R.string.off),

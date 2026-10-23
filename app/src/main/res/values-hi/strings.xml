@@ -173,6 +173,10 @@
     <string name="tap_to_teach">ऐप को सिखाने के लिए टैप करें</string>
     <string name="message_rules">संदेश नियम</string>
     <string name="rules_line">भारत के लिए पहले से · आपके %1$d</string>
+    <plurals name="rules_line_yours">
+        <item quantity="one">आपका %d</item>
+        <item quantity="other">आपके %d</item>
+    </plurals>
     <string name="try_it">आज़माएँ</string>
     <string name="try_it_line">एक नमूना भुगतान भेजता है</string>
     <string name="how_it_works">यह कैसे काम करता है</string>
@@ -906,7 +910,7 @@
     <string name="favourite_added">पसंदीदा में सेव हुआ</string>
     <string name="favourite_removed">पसंदीदा हटाया</string>
     <string name="favourites_line">नए ख़र्च पर एक टैप से सेव होते हैं</string>
-    <string name="favourites_how">जोड़ने के लिए नया ख़र्च भरें और सेव से पहले पसंदीदा चिप चालू करें।</string>
+    <string name="favourites_how">जोड़ने के लिए किसी लेन-देन को दबाकर रखें और पसंदीदा के रूप में सेव करें चुनें।</string>
     <string name="no_favourites">अभी कोई पसंदीदा नहीं</string>
     <string name="save_as_favourite">पसंदीदा में सेव करें</string>
     <string name="save_as_favourite_line">नए ख़र्च पर एक टैप</string>
@@ -1095,4 +1099,52 @@
     <string name="receipt">रसीद</string>
     <string name="close_keypad">कीपैड बंद करें</string>
     <string name="made_by">mid apps ने बनाया</string>
+    <!-- Calm pass (2026-10-23) -->
+    <string name="type_transfer_line">आपके खातों के बीच · खर्च नहीं</string>
+    <string name="repeat_or_lend">दोहराएँ या उधार</string>
+    <string name="once_line">दोहराता नहीं</string>
+    <string name="repeat_bill_line">प्लान › आगे आने वाले में एक बिल</string>
+    <string name="lent_line">आपने किसी को पैसे दिए</string>
+    <string name="borrowed_line">किसी ने आपको पैसे दिए</string>
+    <string name="how_often">कितनी बार</string>
+    <string name="pick_category_to_save">सेव करने के लिए श्रेणी चुनें</string>
+    <string name="upcoming_word">आगामी</string>
+    <string name="coming_up">आगे आने वाले</string>
+    <string name="overdue">बकाया</string>
+    <string name="coming_total_in">%1$s · +%2$s आएँगे</string>
+    <string name="swipe_hint">भुगतान के लिए दाएँ स्वाइप करें, छोड़ने के लिए बाएँ।</string>
+    <string name="nothing_coming_up">आगे कुछ नहीं</string>
+    <string name="nothing_coming_up_line">बिल और आगे की तारीख़ वाले भुगतान यहाँ दिखते हैं।</string>
+    <string name="emis_month_paid">%1$s हर महीने · %3$d में से %2$d चुकाई</string>
+    <string name="add_now">अभी जोड़ें</string>
+    <string name="added_now">जोड़ा गया</string>
+    <string name="upcoming_added_title">%1$s %2$s आज जोड़ा गया</string>
+    <string name="upcoming_added_line">आज देय था · पूर्ववत करने के लिए Burrow खोलें</string>
+    <string name="upcoming_lowers_safe">आगे आने वाले खर्च सुरक्षित राशि घटाएँ</string>
+    <string name="coming_up_this_week">इस हफ़्ते %1$s आने वाला</string>
+    <string name="amount_this_week">इस हफ़्ते %1$s</string>
+    <string name="activity_summary">%1$s खर्च</string>
+    <string name="came_in_amount">%1$s आए</string>
+    <string name="show_chart">चार्ट दिखाएँ</string>
+    <string name="hide_chart">चार्ट छिपाएँ</string>
+    <string name="upcoming_added_on">आगामी · %1$s को जुड़ेगा</string>
+    <string name="change_date">तारीख़ बदलें</string>
+    <string name="saved_upcoming_on">सेव किया · %1$s को आगामी</string>
+    <plurals name="n_payments">
+        <item quantity="one">%d भुगतान</item>
+        <item quantity="other">%d भुगतान</item>
+    </plurals>
+    <plurals name="n_coming_up">
+        <item quantity="one">%d आने वाला</item>
+        <item quantity="other">%d आने वाले</item>
+    </plurals>
+    <plurals name="activity_summary_line">
+        <item quantity="one">%d लेन-देन · पिछले 14 दिन</item>
+        <item quantity="other">%d लेन-देन · पिछले 14 दिन</item>
+    </plurals>
+    <string name="not_understood_title">न समझे गए संदेश</string>
+    <string name="not_understood_line">ऐप को एक बार संदेश सिखाएँ, फिर वह उस बैंक के बाकी संदेश पढ़ लेगा। भुगतान नहीं है? अनदेखा करें।</string>
+    <string name="nothing_to_teach">सिखाने को कुछ नहीं</string>
+    <string name="nothing_to_teach_line">पैसे वाले जो संदेश कोई नियम नहीं पढ़ पाया, वे यहाँ रहते हैं।</string>
+    <string name="teach">सिखाएँ</string>
 </resources>

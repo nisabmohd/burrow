@@ -120,7 +120,7 @@ fun AutoCaptureScreen(
                         supporting = if (s.unreadFrom.isNotEmpty()) stringResource(R.string.from_senders, s.unreadFrom.joinToString(", ")) else stringResource(R.string.tap_to_teach),
                         lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
                         trailing = { Chevron() },
-                        onClick = { scope.launch { vm.firstNotUnderstood()?.let(onTeach) } },
+                        onClick = { onTeach(0L) }, // the list of messages not understood
                     )
                 }
             }
@@ -132,7 +132,7 @@ fun AutoCaptureScreen(
             }
             ListGroup {
                 ListRow(
-                    stringResource(R.string.message_rules), 0, 1, supporting = stringResource(R.string.rules_line, s.yourRules),
+                    stringResource(R.string.message_rules), 0, 1, supporting = if (s.indiaPack) stringResource(R.string.rules_line, s.yourRules) else pluralStringResource(R.plurals.rules_line_yours, s.yourRules, s.yourRules),
                     lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) }, trailing = { Chevron() }, onClick = onRules,
                 )
             }

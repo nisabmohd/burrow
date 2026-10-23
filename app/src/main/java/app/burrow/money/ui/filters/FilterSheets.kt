@@ -148,12 +148,7 @@ fun DatesSheet(start: DayRange?, onApply: (DayRange?) -> Unit, onDismiss: () -> 
             }
         }
         SheetBody {
-            Row(Modifier.fillMaxWidth().padding(top = Space.small), verticalAlignment = Alignment.CenterVertically) {
-                Text(dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.grid))
-                TonalIconButton(painterResource(R.drawable.ic_chevron_left_regular), stringResource(R.string.previous_month), { month = month.minusMonths(1) })
-                Box(Modifier.size(Space.small))
-                TonalIconButton(painterResource(R.drawable.ic_chevron_right_regular), stringResource(R.string.next_month), { if (month.isBefore(YearMonth.from(today))) month = month.plusMonths(1) })
-            }
+            MonthHeader(month, { month = month.minusMonths(1) }, { if (month.isBefore(YearMonth.from(today))) month = month.plusMonths(1) })
             MonthCalendar(month, today, picked) { d ->
                 haptics.tick()
                 when {
@@ -173,12 +168,31 @@ fun DatesSheet(start: DayRange?, onApply: (DayRange?) -> Unit, onDismiss: () -> 
     }
 }
 
+/** "October 2026" with ‹ › : the line above every [MonthCalendar]. */
+@Composable
+fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit) {
+    val dates = rememberDateText()
+    Row(Modifier.fillMaxWidth().padding(top = Space.small), verticalAlignment = Alignment.CenterVertically) {
+        Text(dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.small))
+        TonalIconButton(painterResource(R.drawable.ic_chevron_left_regular), stringResource(R.string.previous_month), onPrevious)
+        Box(Modifier.size(Space.small))
+        TonalIconButton(painterResource(R.drawable.ic_chevron_right_regular), stringResource(R.string.next_month), onNext)
+    }
+}
+
 /**
- * A month of 38 dp day circles, weeks starting on the locale's first day. The picked range is a
- * tonal band with primary ends; today is ringed; future days are muted and can't be tapped.
+ * A month of 38 dp day circles in seven equal columns (never wider than the sheet), weeks starting
+ * on the chosen first day. The picked range is a tonal band with primary ends; today is ringed; days
+ * that aren't [selectable] (by default, after today) are muted and can't be tapped.
  */
 @Composable
-fun MonthCalendar(month: YearMonth, today: LocalDate, picked: DayRange?, onPick: (LocalDate) -> Unit) {
+fun MonthCalendar(
+    month: YearMonth,
+    today: LocalDate,
+    picked: DayRange?,
+    selectable: (LocalDate) -> Boolean = { !it.isAfter(today) },
+    onPick: (LocalDate) -> Unit,
+) {
     val c = MaterialTheme.colorScheme
     val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
     val days = (0 until 7).map { first.plus(it.toLong()) }
@@ -196,7 +210,7 @@ fun MonthCalendar(month: YearMonth, today: LocalDate, picked: DayRange?, onPick:
                     val d = week.getOrNull(i)
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         if (d != null) {
-                            val future = d.isAfter(today)
+                            val future = !selectable(d)
                             val inRange = picked != null && d in picked
                             val end = picked != null && (d == picked.start || d == picked.end)
                             val label = d.dayOfMonth.toString()

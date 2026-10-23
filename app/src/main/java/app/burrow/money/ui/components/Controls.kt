@@ -84,9 +84,20 @@ fun TonalIconButton(icon: Painter, label: String, onClick: () -> Unit, active: B
  */
 @Composable
 fun FilterHeaderButtons(funnel: Painter, calendar: Painter, filterLabel: String, datesLabel: String, filterCount: Int, datesActive: Boolean, onFilter: () -> Unit, onDates: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
         TonalIconButton(funnel, filterLabel, onFilter, active = filterCount > 0, badge = filterCount)
         TonalIconButton(calendar, datesLabel, onDates, active = datesActive)
+    }
+}
+
+/**
+ * Quick choices in ONE row of equal chips (day stepper, amount stepper, Yesterday · Today ·
+ * Tomorrow): never wraps to a second line, same width each, same gap as every chip row.
+ */
+@Composable
+fun <T> ChipRow(items: List<T>, label: @Composable (T) -> String, selected: (T) -> Boolean, onClick: (T) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+        items.forEach { item -> Chip(label(item), selected(item), { onClick(item) }, Modifier.weight(1f), check = false) }
     }
 }
 
@@ -120,17 +131,15 @@ fun DayStepper(
     max: Int = 28,
 ) {
     val haptics = LocalHapticFeedback.current
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = Space.screen), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
             TonalIconButton(minus, minusLabel, { haptics.tick(); onDay((day - 1).coerceAtLeast(1)) })
             Text(ordinal(day), style = BurrowType.display, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
             TonalIconButton(plus, plusLabel, { haptics.tick(); onDay((day + 1).coerceAtMost(max)) })
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            quick.forEach { d -> Chip(ordinal(d), d == day, { onDay(d) }) }
-        }
-        Text(resultLine, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 12.dp))
-        Button(onClick = { haptics.confirm(); onDone() }, modifier = Modifier.fillMaxWidth().height(Size.buttonBottom), shape = Shapes.pill) { Text(doneLabel, style = BurrowType.button) }
+        ChipRow(quick, { ordinal(it) }, { it == day }, onDay)
+        Text(resultLine, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Space.block))
+        Button(onClick = { haptics.confirm(); onDone() }, modifier = Modifier.fillMaxWidth().padding(bottom = Space.block).height(Size.buttonBottom), shape = Shapes.pill) { Text(doneLabel, style = BurrowType.button) }
     }
 }
 
@@ -278,16 +287,28 @@ fun LinkButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier)
  * [icon] shows when not selected ("More").
  */
 @Composable
-fun Chip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Painter? = null, trailing: Painter? = null) {
+fun Chip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: Painter? = null,
+    trailing: Painter? = null,
+    /** False in [ChipRow]: equal chips show the choice by colour alone, label centred. */
+    check: Boolean = true,
+) {
     val haptics = LocalHapticFeedback.current
     FilterChip(
         selected = selected,
         onClick = { haptics.tick(); onClick() },
-        label = { Text(label, style = BurrowType.button, maxLines = 1) },
+        label = {
+            if (check) Text(label, style = BurrowType.button, maxLines = 1)
+            else Text(label, style = BurrowType.button, maxLines = 1, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        },
         modifier = modifier.height(Size.chip),
         shape = Shapes.pill,
         leadingIcon = when {
-            selected -> { { Icon(painterResource(R.drawable.ic_check_regular), null, modifier = Modifier.size(Size.iconSmall)) } }
+            selected && check -> { { Icon(painterResource(R.drawable.ic_check_regular), null, modifier = Modifier.size(Size.iconSmall)) } }
             icon != null -> { { Icon(icon, null, modifier = Modifier.size(Size.iconSmall)) } }
             else -> null
         },
