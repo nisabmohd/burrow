@@ -1,0 +1,6 @@
+- Check for updates in the GitHub download.
+- Auto-capture shows when it's off and how to allow access.
+- Haptics now work on more phones.
+- Same tab pills everywhere, labels centred.
+- Fixes: decimal tiles, goal icons, chart labels and small bars.
+- Slightly bigger app icon.

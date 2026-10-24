@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+- Check for updates: the GitHub download now finds, downloads and installs new versions itself (Play and F-Droid update it for you).
+- Auto-capture tells you when it's really off, and shows how to allow access when Android blocks it after installing from a file.
+- Haptics on every phone: taps, toggles and swipes now vibrate on phones that missed them before.
+- Same tab pills everywhere (Plan, Customise), with the label always centred.
+- Fixes: decimal tiles no longer cut off, goal icons fit every screen, "All days" on the chart is fully visible, small days show as dots.
+- A slightly bigger app icon.
+- Clearer privacy wording: Burrow never sends your data anywhere.
+
 ## 0.1.1
 - A calmer New expense: the keypad stays put, category chips, one "Account · Today" line, and Note, Receipt and Repeat or lend chips. Everything fits on one screen.
 - Plan › Coming up: bills and future-dated payments in one list. Swipe right to mark paid or add now, left to skip.
