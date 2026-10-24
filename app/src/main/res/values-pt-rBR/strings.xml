@@ -1252,4 +1252,6 @@
     <string name="allow_installs_hint">Permita que o Burrow instale apps e toque em Instalar</string>
     <string name="update_failed">O download não terminou</string>
     <string name="open_release_page">Abrir página da versão</string>
+    <string name="paused">Pausado</string>
+    <string name="needs_access">Precisa de acesso</string>
 </resources>

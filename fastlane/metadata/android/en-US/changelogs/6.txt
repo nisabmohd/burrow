@@ -1,0 +1,5 @@
+- Auto-capture says Paused when Android blocks it, everywhere.
+- No overlapping text at large font sizes; tighter note titles.
+- Taps show inside their chip or button, not a square.
+- Filter chips are easier to tap.
+- Licences open inside the app with their full text.

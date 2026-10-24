@@ -1,5 +1,7 @@
 package app.burrow.money.ui.welcome
 
+import app.burrow.money.ui.theme.Shapes
+import androidx.compose.ui.draw.clip
 import app.burrow.money.domain.BudgetPeriod
 import app.burrow.money.domain.budgetChips
 import androidx.activity.compose.BackHandler
@@ -159,7 +161,7 @@ fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String
                 Text(stringResource(R.string.welcome_footer) + " · ", style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     stringResource(R.string.restore_backup), style = BurrowType.button, color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickable(role = Role.Button) { pickFile.launch(arrayOf("*/*")) },
+                    modifier = Modifier.clip(Shapes.pill).clickable(role = Role.Button) { pickFile.launch(arrayOf("*/*")) },
                 )
             }
         }
@@ -292,7 +294,7 @@ private fun BudgetStep(currency: String, amount: Long, unit: Long, onAmount: (Lo
             TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { haptics.tick(); onAmount((amount - step).coerceAtLeast(step)) })
             Text(
                 money.plain(amount), style = BurrowType.display, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                modifier = Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { typing = true },
+                modifier = Modifier.weight(1f).clip(Shapes.pill).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { typing = true },
             )
             TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); onAmount(amount + step) })
         }

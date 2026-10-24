@@ -201,3 +201,22 @@ def small_targets(min_dp=48):
         if w < min_dp - 1.5 or h < min_dp - 1.5:
             out.append(f"{n.label or n.cls} {w:.0f}x{h:.0f}dp")
     return out
+
+
+def overlapping_text(min_px=3):
+    """Pairs of text on screen drawn on top of each other (the paused note's title over its line).
+    Only leaf text nodes: a row that contains its own text isn't an overlap."""
+    nodes = [n for n in dump() if n.package == PACKAGE and n.text]
+    out = []
+    for i, a in enumerate(nodes):
+        for b in nodes[i + 1:]:
+            ax1, ay1, ax2, ay2 = a.bounds
+            bx1, by1, bx2, by2 = b.bounds
+            inside = (ax1 <= bx1 and ay1 <= by1 and ax2 >= bx2 and ay2 >= by2) or (bx1 <= ax1 and by1 <= ay1 and bx2 >= ax2 and by2 >= ay2)
+            if inside:
+                continue
+            w = min(ax2, bx2) - max(ax1, bx1)
+            h = min(ay2, by2) - max(ay1, by1)
+            if w > min_px and h > min_px:
+                out.append(f"{a.text!r} over {b.text!r}")
+    return out

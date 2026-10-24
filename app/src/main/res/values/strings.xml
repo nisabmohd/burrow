@@ -1253,4 +1253,6 @@
     <string name="nothing_to_teach">Nothing to teach</string>
     <string name="nothing_to_teach_line">Messages with money that no rule could read wait here.</string>
     <string name="teach">Teach</string>
+    <string name="paused">Paused</string>
+    <string name="needs_access">Needs access</string>
 </resources>

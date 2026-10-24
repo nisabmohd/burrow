@@ -277,20 +277,63 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
     }
 }
 
-/** Everything bundled into the app, with its licence. Keep in step with the version catalog, res/font and the icons. */
-private val LICENCES = listOf(
-    "AndroidX (Compose, Material 3, Room, DataStore, Navigation, Lifecycle, Activity, Core)" to "Apache License 2.0",
-    "Kotlin standard library, kotlinx.coroutines, kotlinx.serialization" to "Apache License 2.0",
-    "Phosphor Icons" to "MIT License",
-    "Lexend font" to "SIL Open Font License 1.1",
-    "Outfit font" to "SIL Open Font License 1.1",
-    "Atkinson Hyperlegible font" to "SIL Open Font License 1.1",
-    "Space Grotesk font" to "SIL Open Font License 1.1",
+/** One thing in the app: its name, its licence, and the licence's full text (res/raw, read offline). */
+data class Licence(val name: String, val licence: String, val text: Int)
+
+/** Burrow itself, then everything bundled into it. Keep in step with the version catalog, res/font and the icons. */
+val LICENCES = listOf(
+    Licence("Burrow", "GNU General Public License v3.0", R.raw.licence_gpl3),
+    Licence("AndroidX (Compose, Material 3, Room, DataStore, Navigation, Lifecycle, Activity, Core)", "Apache License 2.0", R.raw.licence_apache2),
+    Licence("Kotlin standard library, kotlinx.coroutines, kotlinx.serialization", "Apache License 2.0", R.raw.licence_apache2),
+    Licence("Phosphor Icons", "MIT License", R.raw.licence_phosphor_mit),
+    Licence("Lexend font", "SIL Open Font License 1.1", R.raw.licence_ofl_lexend),
+    Licence("Outfit font", "SIL Open Font License 1.1", R.raw.licence_ofl_outfit),
+    Licence("Atkinson Hyperlegible Next font", "SIL Open Font License 1.1", R.raw.licence_ofl_atkinson),
+    Licence("Space Grotesk font", "SIL Open Font License 1.1", R.raw.licence_ofl_space_grotesk),
 )
 
+/** Licences (72): each row opens its full licence text inside the app. */
 @Composable
-fun LicencesScreen(onBack: () -> Unit) {
+fun LicencesScreen(onBack: () -> Unit, onOpen: (Int) -> Unit) {
     DetailFrame(onBack, stringResource(R.string.licences)) {
-        ListGroup { LICENCES.forEachIndexed { i, (name, licence) -> ListRow(name, i, LICENCES.size, supporting = licence) } }
+        ListGroup {
+            LICENCES.forEachIndexed { i, l ->
+                ListRow(l.name, i, LICENCES.size, supporting = l.licence, trailing = { app.burrow.money.ui.components.Chevron() }, onClick = { onOpen(i) })
+            }
+        }
+    }
+}
+
+/**
+ * Plain-text licence → paragraphs for a phone screen: split on blank lines, each paragraph's hard
+ * line breaks (licence files wrap at ~70 columns) joined with spaces, extra spaces collapsed.
+ */
+fun licenceParagraphs(text: String): List<String> =
+    text.replace("\r\n", "\n").split(Regex("\n\\s*\n"))
+        .map { p -> p.lines().joinToString(" ") { it.trim() }.replace(Regex(" {2,}"), " ").trim() }
+        .filter { it.isNotEmpty() }
+
+/** One licence's full text, read from res/raw off the main thread; long ones (GPL) scroll as a list. */
+@Composable
+fun LicenceTextScreen(index: Int, onBack: () -> Unit) {
+    val l = LICENCES.getOrNull(index) ?: LICENCES.first()
+    val context = LocalContext.current
+    val c = MaterialTheme.colorScheme
+    val paragraphs by androidx.compose.runtime.produceState<List<String>?>(null, l.text) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            licenceParagraphs(context.resources.openRawResource(l.text).bufferedReader().use { it.readText() })
+        }
+    }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = l.licence)
+        val list = paragraphs ?: return@Column // nothing drawn until the text is in
+        androidx.compose.foundation.lazy.LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = Space.screen, end = Space.screen, bottom = Space.screen),
+            verticalArrangement = Arrangement.spacedBy(Space.block),
+        ) {
+            item { Text(l.name, style = BurrowType.titleSmall, color = c.onSurface) }
+            items(list.size) { i -> Text(list[i], style = BurrowType.body, color = c.onSurfaceVariant) }
+        }
     }
 }

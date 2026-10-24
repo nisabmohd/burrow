@@ -18,8 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import app.burrow.money.ui.components.Note
 import app.burrow.money.ui.components.NoteKind
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,25 +61,22 @@ fun AutoCaptureScreen(
     val context = LocalContext.current
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
-    // What Android allows right now, checked again whenever the screen comes back from system settings.
-    var smsAccess by remember { mutableStateOf(CaptureAccess.smsGranted(context)) }
-    var appsAccess by remember { mutableStateOf(CaptureAccess.listenerEnabled(context)) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        smsAccess = CaptureAccess.smsGranted(context)
-        appsAccess = CaptureAccess.listenerEnabled(context)
-    }
+    // The same answer as the More tile and Today's note: saved switches against what Android allows.
+    val status = rememberCaptureStatus(s.sms, s.apps)
+    val smsAccess = status.smsAllowed
+    val appsAccess = status.appsAllowed
     // Set when a switch was turned on but Android still says no: on a downloaded APK that is
     // Restricted settings, and the note below shows the way out.
     var smsRefused by rememberSaveable { mutableStateOf(false) }
     val askSms = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        smsAccess = CaptureAccess.smsGranted(context)
-        smsRefused = !smsAccess
-        vm.setSms(smsAccess)
+        val granted = CaptureAccess.smsGranted(context)
+        smsRefused = !granted
+        vm.setSms(granted)
     }
     // A switch shows on only when it is on AND Android lets it read: never "on" with nothing recorded.
-    val smsOn = CaptureAccess.smsInThisBuild && s.sms && smsAccess
-    val appsOn = s.apps && appsAccess
-    val anyOn = smsOn || appsOn
+    val smsOn = status.smsOn
+    val appsOn = status.appsOn
+    val anyOn = status.anyOn
     val restricted = remember { CaptureAccess.restrictedSettingsLikely(context) }
     val blocked = restricted && ((smsRefused && !smsAccess) || (s.apps && !appsAccess))
 

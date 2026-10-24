@@ -1169,4 +1169,6 @@
     <string name="allow_installs_hint">Burrow को ऐप इंस्टॉल करने की अनुमति दें, फिर इंस्टॉल करें पर टैप करें</string>
     <string name="update_failed">डाउनलोड पूरा नहीं हुआ</string>
     <string name="open_release_page">रिलीज़ पेज खोलें</string>
+    <string name="paused">रुका है</string>
+    <string name="needs_access">ऐक्सेस चाहिए</string>
 </resources>

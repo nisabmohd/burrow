@@ -1,5 +1,6 @@
 package app.burrow.money.ui.components
 
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -108,9 +109,15 @@ fun FormChip(
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     val fg = if (style == FormChipStyle.SELECTED) c.onSecondaryContainer else c.onSurface
-    Box(Modifier.minimumInteractiveComponentSize().clickable(role = Role.Button) { haptics.tick(); onClick() }, contentAlignment = Alignment.Center) {
+    // 48 dp tap target, but the press ripple stays inside the 36 dp pill (never a square around it).
+    val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    Box(
+        Modifier.minimumInteractiveComponentSize()
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button) { haptics.tick(); onClick() },
+        contentAlignment = Alignment.Center,
+    ) {
         Row(
-            Modifier.height(Size.chip).clip(Shapes.pill)
+            Modifier.height(Size.chip).clip(Shapes.pill).indication(interaction, androidx.compose.material3.ripple())
                 .then(
                     when (style) {
                         FormChipStyle.OUTLINED -> Modifier.border(Space.group / 4, c.outline, Shapes.pill)

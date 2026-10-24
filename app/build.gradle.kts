@@ -21,6 +21,7 @@ android {
 
         versionCode = 5
         versionName = "0.2.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // About screen links. They open in the browser.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
         buildConfigField("String", "PLAY_STORE_URL", "\"https://play.google.com/store/apps/details?id=app.burrow.money\"")
@@ -165,4 +166,10 @@ dependencies {
     // Home-screen widgets come later (ROADMAP week 5): add glance-appwidget + glance-material3 then.
 
     testImplementation(libs.junit)
+
+    // Component behaviour tests on the emulator (app/src/androidTest): user, 2026-10-24.
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

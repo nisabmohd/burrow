@@ -1,5 +1,7 @@
 package app.burrow.money.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -60,4 +62,17 @@ fun AverageLegend(text: String) {
         Text("- - -", style = BurrowType.label, color = c.outline)
         Text(text, style = BurrowType.label, color = c.onSurfaceVariant)
     }
+}
+
+/**
+ * A text link for a [ChartCard] header ("All days"): plain text in primary, because the header row
+ * is 24 dp and a TextButton's padding clipped it. The 48 dp tap area still reaches past the row.
+ */
+@Composable
+fun ChartHeaderLink(text: String, onClick: () -> Unit) {
+    Text(
+        text, style = BurrowType.button, color = MaterialTheme.colorScheme.primary, maxLines = 1,
+        modifier = Modifier.minimumInteractiveComponentSize().clip(Shapes.pill)
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick).padding(horizontal = Space.small),
+    )
 }

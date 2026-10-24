@@ -30,7 +30,11 @@ if something is missing, add a component here first.
 | Status tiles (More) | 2 equal columns (`minmax(0,1fr)`), 24 dp, icon top-left, status top-right, title, one line | screen code |
 | Category tiles | 3 columns, 56 dp circle + one-word name; dashed "New" tile | screen code |
 | `PillBarChart` | 16 dp pill bars, 104 dp tall (40 in widgets), labels, dots for empty, dashed average; one tap area over the chart picks the bar, TalkBack gets a summary and an action per bar | Charts.kt |
-| `ChartCard` / `AverageLegend` | card with icon + label (+ legend or "All days"), the big number, one line, then the chart | ChartCard.kt |
+| `BurrowNavRail` | the bottom nav's tabs as a side rail on wide screens (tablets, unfolded) | Bars.kt |
+| `BurrowSnackbarHost` | where the Undo snackbar shows; the FAB moves up with it | Snackbar.kt |
+| `CappedFontScale` | caps font scaling (1.3×) for text inside fixed shapes only: nav labels, keypad digits, ring numbers | CappedFontScale.kt |
+| `ThinBar` | a thin progress bar (budget and goal rows) | Blocks.kt |
+| `ChartCard` / `AverageLegend` / `ChartHeaderLink` | card with icon + label (+ legend, or "All days" as a `ChartHeaderLink`: plain primary text, never a TextButton in the 24 dp row), the big number, one line, then the chart | ChartCard.kt |
 | `CumulativeLineChart` · `Sparkline` · `StackBar` · `DonutChart` · `SplitBar` · `heatColor` | the Insights line vs the period before; widget lines; By category bar; Top category ring; Money in and out; heatmap tones | Charts.kt |
 | `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |

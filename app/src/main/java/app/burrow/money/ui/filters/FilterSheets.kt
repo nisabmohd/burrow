@@ -1,5 +1,7 @@
 package app.burrow.money.ui.filters
 
+import androidx.compose.foundation.indication
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -259,15 +261,23 @@ fun ActiveFilterChips(f: Filters, accounts: List<AccountWithBalance>, categories
 private fun RemovableChip(label: String, close: androidx.compose.ui.graphics.painter.Painter, onRemove: () -> Unit) {
     val c = MaterialTheme.colorScheme
     val remove = stringResource(R.string.remove_filter, label)
+    // 48 dp tap target around the 36 dp pill (it was 36 dp to tap); the ripple stays on the pill.
+    val interaction = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    androidx.compose.foundation.layout.Box(
+        Modifier.minimumInteractiveComponentSize()
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClickLabel = remove, onClick = onRemove)
+            .semantics(mergeDescendants = true) { contentDescription = remove },
+        contentAlignment = Alignment.Center,
+    ) {
     Row(
-        Modifier.clip(Shapes.pill).background(c.secondaryContainer).clickable(role = Role.Button, onClickLabel = remove, onClick = onRemove)
-            .semantics { contentDescription = remove }
+        Modifier.clip(Shapes.pill).background(c.secondaryContainer).indication(interaction, androidx.compose.material3.ripple())
             .height(Size.chip).padding(start = Space.card, end = Space.small),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.small),
     ) {
         Text(label, style = BurrowType.button, color = c.onSecondaryContainer, maxLines = 1)
         androidx.compose.material3.Icon(close, null, tint = c.onSecondaryContainer, modifier = Modifier.size(Size.iconSmall))
+    }
     }
 }
 

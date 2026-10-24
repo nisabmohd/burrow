@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import app.burrow.money.R
 
@@ -47,14 +48,19 @@ fun BodyFont.family(): FontFamily = when (this) {
 
 fun burrowTypography(font: BodyFont, scale: Float): Typography {
     val f = font.family()
+    // Line height as a ratio (em), not sp: Android 14+ scales big sp values less than small ones
+    // (non-linear font scaling), so a 24 sp line under 16 sp text crowded wrapped lines into each
+    // other at large font sizes (the paused note's title over its line, 2026-10-24).
     fun s(size: Int, line: Int, w: FontWeight, tracking: Float = 0f) = TextStyle(
-        fontFamily = f, fontWeight = w, fontSize = (size * scale).sp, lineHeight = (line * scale).sp,
+        fontFamily = f, fontWeight = w, fontSize = (size * scale).sp, lineHeight = (line.toFloat() / size).em,
         letterSpacing = tracking.sp, fontFeatureSettings = "tnum",
     )
     val display = s(44, 52, FontWeight.Medium, -0.5f)
     val headline = s(28, 36, FontWeight.Medium)
     val title = s(22, 28, FontWeight.Medium)
-    val titleSmall = s(16, 24, FontWeight.Medium)
+    // 22, not 24: a wrapped title ("These are sample / transactions") had more space between its
+    // own lines than above its subtitle (user, 2026-10-24). 22 matches the gap to a 14 / 20 line.
+    val titleSmall = s(16, 22, FontWeight.Medium)
     val bodyLarge = s(16, 24, FontWeight.Normal)
     val body = s(14, 20, FontWeight.Normal)
     val label = s(12, 16, FontWeight.Medium)

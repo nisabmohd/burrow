@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+- Auto-capture shows what it really does: More says "Paused · Needs access" when Android blocks it, the same as Today and Auto-capture.
+- Text never runs into the next line at large font sizes, and wrapped note titles sit closer together.
+- Tapping a chip, an amount or a link shows the press inside its shape, not a square around it.
+- Filter chips under the search are easier to tap.
+- Licences open inside the app with their full text, and list Burrow's own licence (GPL-3.0).
+
 ## 0.2.0
 - Check for updates: the GitHub download now finds, downloads and installs new versions itself (Play and F-Droid update it for you).
 - Auto-capture tells you when it's really off, and shows how to allow access when Android blocks it after installing from a file.

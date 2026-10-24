@@ -1,5 +1,7 @@
 package app.burrow.money.ui.txn
 
+import app.burrow.money.ui.theme.Shapes
+import androidx.compose.ui.draw.clip
 import app.burrow.money.ui.LocalListPrefs
 import app.burrow.money.data.minorDigits
 import androidx.compose.foundation.layout.Arrangement
@@ -250,7 +252,7 @@ fun RefundSheet(app: AppContainer, t: TxnView, onSaved: (suspend () -> Unit) -> 
                     TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { haptics.tick(); amount = (amount - step).coerceAtLeast(unit.coerceAtMost(max)) })
                     Text(
                         money.plain(amount), style = BurrowType.display, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                        modifier = Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { picker = "amount" },
+                        modifier = Modifier.weight(1f).clip(Shapes.pill).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { picker = "amount" },
                     )
                     TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); amount = (amount + step).coerceAtMost(max) })
                 }

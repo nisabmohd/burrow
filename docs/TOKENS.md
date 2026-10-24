@@ -68,7 +68,7 @@ Numbers use tabular figures (`tnum`) so amounts line up.
 | `display` | 44 / 52, −0.5 tracking | 500 | Today hero amount, centred-header amount, keypad amount |
 | `headline` | 28 / 36 | 500 | Tab titles; welcome/intro headline uses 36 / 44 |
 | `title` | 22 / 28 | 500 | Widget values, sheet and top-bar titles, stats |
-| `titleSmall` | 16 / 24 | 500 | Row amounts, header title, note title, card titles |
+| `titleSmall` | 16 / 22 | 500 | Row amounts, header title, note title, card titles (22, not 24: a wrapped title stays one block above its subtitle) |
 | `bodyLarge` | 16 / 24 | 400 | Row headline, text fields |
 | `body` | 14 / 20 | 400 | Supporting line, descriptions |
 | `button` | 14 / 20 | 500 | Buttons, chips, section headers, text buttons |

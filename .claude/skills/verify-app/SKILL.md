@@ -9,6 +9,14 @@ description: Build the app and check every feature on an emulator with the smoke
    ```sh
    JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew :app:testFossDebugUnitTest :app:assemblePlayDebug :app:assembleFossDebug
    ```
+   Component tests (every shared component at 360 dp and at 320 dp with 1.3× and 2× text: taps,
+   selection, nothing clipped, truncated or overlapping) run on the emulator:
+   ```sh
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew :app:connectedFossDebugAndroidTest
+   ```
+   A changed or new component in `ui/components` gets a test in `app/src/androidTest/.../ui/components`
+   (helpers in `TestUi.kt`: `show`, `assertNotClipped`, `assertTextFits`, `assertNoOverlap`).
+   `ProjectRulesTest` (unit) fails on a clickable without a clip, raw colours/sizes, broken translations.
 2. Make sure an emulator or phone is connected (`adb devices`). If none: `~/Library/Android/sdk/emulator/emulator -avd <AVD name>` in the background, then `adb wait-for-device`.
 3. During development, check only the part you changed by hand. Before a release, run the whole smoke suite (installs a fresh debug build with sample data, one check per feature, fails on touch targets under 48 dp):
    ```sh

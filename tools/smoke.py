@@ -692,6 +692,120 @@ def auto_capture_shows_recorded_by_itself():
 
 
 @check
+def capture_status_follows_real_access():
+    # 2026-10-24: More said "On" while Android had notification access off. Take both accesses
+    # away: the tile says Paused, Today shows the paused note, Auto-capture's switches are off.
+    listener = f"{d.PACKAGE}/{d.PACKAGE}.capture.PaymentNotificationListener"
+    d.shell(f"cmd notification disallow_listener {listener}")
+    d.shell(f"pm revoke {d.PACKAGE} android.permission.RECEIVE_SMS")
+    d.shell(f"pm revoke {d.PACKAGE} android.permission.READ_SMS")
+    try:
+        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")  # revoking SMS restarts the app
+        time.sleep(2)
+        d.nav("More")
+        assert d.exists("Paused", timeout=5), "More tile doesn't say Paused without access"
+        assert d.exists("Needs access", timeout=2), "More tile line doesn't say Needs access"
+        assert not any(n.label == "On" and n.bounds[1] < 900 for n in d.dump()), "More tile still says On"
+        d.nav("Today")
+        assert d.exists("Auto-capture is paused", contains=True, timeout=5), "no paused note on Today"
+        open_more_row("Auto-capture")
+        switches = [n for n in d.dump() if n.checkable]
+        assert switches and not any(n.checked for n in switches), "a capture switch shows on without access"
+        assert d.exists("Android is blocking access", timeout=2) or d.exists("Auto-capture is off", timeout=2), "no note saying why"
+        assert not d.exists("Try it", timeout=1), "Try it shown while nothing can capture"
+        d.back()
+    finally:
+        d.shell(f"cmd notification allow_listener {listener}")
+        d.shell(f"pm grant {d.PACKAGE} android.permission.RECEIVE_SMS")
+        d.shell(f"pm grant {d.PACKAGE} android.permission.READ_SMS")
+    d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")
+    time.sleep(2)
+    d.nav("More")
+    assert d.exists("On", timeout=5), "More tile doesn't come back to On with access"
+
+
+@check
+def no_text_overlaps_at_large_font():
+    # Big font sizes on Android 14+ (non-linear scaling) crowded wrapped lines into each other.
+    problems = []
+    for scale in ("1.3", "2.0"):
+        d.shell(f"settings put system font_scale {scale}")
+        time.sleep(2)
+        try:
+            for tab in ["Today", "Activity", "Plan", "Insights", "More"]:
+                d.nav(tab)
+                problems += [f"{scale}x {tab}: {p}" for p in d.overlapping_text()]
+            open_more_row("Auto-capture")
+            problems += [f"{scale}x Auto-capture: {p}" for p in d.overlapping_text()]
+            d.back()
+            open_add()
+            problems += [f"{scale}x New expense: {p}" for p in d.overlapping_text()]
+            d.tap("Close")
+        finally:
+            d.shell("settings put system font_scale 1.0")
+            time.sleep(1)
+    assert not problems, "text drawn over other text: " + "; ".join(problems)
+
+
+@check
+def customise_tabs_and_decimal_tiles():
+    # Same pills as Plan; Currency's decimal tiles show the whole value.
+    open_more_row("Today screen")
+    for _ in range(4):
+        if d.exists("Currency", timeout=1):
+            break
+        d.swipe(900, 330, 200, 330)
+    d.tap("Currency")
+    assert d.exists("1,240.00", timeout=5) or d.exists("1.240,00", timeout=1), "Always tile doesn't show the full value"
+    assert not d.exists("1,240....", contains=True, timeout=1), "decimal value cut off"
+    d.back()
+
+
+@check
+def new_goal_shows_all_eight_icons():
+    d.nav("Plan")
+    d.tap("Goals")
+    d.tap("Add goal")
+    labels_now = {n.desc for n in d.dump()}
+    missing = [i for i in ["flight", "shield", "laptop mac", "home", "school", "redeem", "directions car", "flag"] if i not in labels_now]
+    assert not missing, f"goal icons not on screen: {missing}"
+    d.tap("Close")
+
+
+@check
+def activity_all_days_is_whole():
+    d.nav("Activity")
+    nodes = d.dump()
+    # The bars are one tap area (TalkBack reads "Last 14 days, ₹…"): tap near its left end to pick a day.
+    chart = next((n for n in nodes if n.desc and "Last 14 days" in n.desc), None)
+    if chart is None:
+        return  # chart folded on this phone; nothing to check
+    x1, y1, x2, y2 = chart.bounds
+    d.tap_xy(x1 + (x2 - x1) // 10, (y1 + y2) // 2)
+    n = d.find("All days", timeout=5)
+    assert n is not None, "All days not shown after picking a day"
+    h = (n.bounds[3] - n.bounds[1]) / d.density()
+    assert h >= 16, f"All days is cut off ({h:.0f} dp tall)"
+    d.tap("All days")
+
+
+@check
+def licences_open_their_text():
+    # Every licence row opens its full text inside the app (no browser, no network).
+    open_more_row("About Burrow")
+    d.scroll_to("Licences")
+    d.tap("Licences")
+    assert d.exists("GNU General Public License v3.0", timeout=5), "Burrow's own licence missing"
+    for row, words in [("Burrow", "GNU GENERAL PUBLIC LICENSE"), ("Phosphor Icons", "Permission is hereby granted"), ("Lexend font", "SIL Open Font License")]:
+        d.tap(row, contains=True)
+        assert d.exists(words, contains=True, timeout=5), f"{row}: licence text not shown in the app"
+        assert d.PACKAGE + "/" in d.shell("dumpsys window | grep mCurrentFocus"), f"{row}: left the app"
+        d.back()
+    d.back()
+    d.back()
+
+
+@check
 def activity_filter_badge():
     recover()
     d.nav("Activity")
@@ -885,6 +999,7 @@ def dark_mode_and_large_text_new_screens():
 
 @check
 def no_internet_permission():
+    # The smoke suite installs the foss build: it must not have INTERNET (only github does, for updates).
     perms = d.shell(f"dumpsys package {d.PACKAGE}")
     assert "android.permission.INTERNET" not in perms, "INTERNET permission is present"
 

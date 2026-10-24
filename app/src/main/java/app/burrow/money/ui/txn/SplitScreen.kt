@@ -1,5 +1,7 @@
 package app.burrow.money.ui.txn
 
+import app.burrow.money.ui.theme.Shapes
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -220,7 +222,7 @@ fun SplitScreen(vm: SplitViewModel, onClose: () -> Unit) {
                                 })
                                 Text(
                                     money.plain(p.amount), style = BurrowType.titleSmall, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                                    modifier = Modifier.widthIn(min = Size.iconButton * 1.5f).padding(horizontal = Space.small)
+                                    modifier = Modifier.widthIn(min = Size.iconButton * 1.5f).clip(Shapes.pill).padding(horizontal = Space.small)
                                         .clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { picker = SplitPicker.Amount(i) },
                                 )
                                 TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.more_for, cat?.name.orEmpty()), {

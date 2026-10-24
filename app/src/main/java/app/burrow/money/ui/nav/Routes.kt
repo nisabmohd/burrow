@@ -87,6 +87,8 @@ sealed interface OpenFromNotification {
 @Serializable data object SetPinRoute
 @Serializable data object AboutRoute
 @Serializable data object LicencesRoute
+/** One licence's full text ([index] into LICENCES). */
+@Serializable data class LicenceRoute(val index: Int)
 
 // Customise (design update 2026-10-20)
 /** Customise (80–85), opened on [tab] (a CustomiseTab name). */

@@ -452,7 +452,8 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         )
                     }
                     composable<AboutRoute> { AboutScreen(container.updates, onBack = { nav.popBackStack() }, onLicences = { nav.navigate(LicencesRoute) }) }
-                    composable<LicencesRoute> { LicencesScreen(onBack = { nav.popBackStack() }) }
+                    composable<LicencesRoute> { LicencesScreen(onBack = { nav.popBackStack() }, onOpen = { nav.navigate(LicenceRoute(it)) }) }
+                    composable<LicenceRoute> { e -> app.burrow.money.ui.more.LicenceTextScreen(e.toRoute<LicenceRoute>().index, onBack = { nav.popBackStack() }) }
                     composable<WelcomeRoute> {
                         val vm = viewModel { WelcomeViewModel(container) }
                         WelcomeScreen(

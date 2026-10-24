@@ -63,11 +63,21 @@ fun MoreScreen(vm: MoreViewModel, onOpen: (MoreDest) -> Unit) {
         val s = state ?: return@TabScreen
         val st = s.settings
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) {
-            val captureOn = st.smsCapture || st.notificationCapture
+            // What really records, not just the saved switches (On while Android blocks it was wrong).
+            val capture = app.burrow.money.ui.capture.rememberCaptureStatus(st.smsCapture, st.notificationCapture)
+            val captureOn = capture.anyOn
             Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
                 StatusTile(
-                    painterResource(R.drawable.ic_sms_duotone), 28f, stringResource(if (captureOn) R.string.on else R.string.off),
+                    painterResource(R.drawable.ic_sms_duotone), 28f,
+                    stringResource(
+                        when (capture.tile) {
+                            app.burrow.money.capture.CaptureStatus.Tile.ON -> R.string.on
+                            app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> R.string.paused
+                            app.burrow.money.capture.CaptureStatus.Tile.OFF -> R.string.off
+                        },
+                    ),
                     stringResource(R.string.auto_capture), when {
+                        capture.tile == app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> stringResource(R.string.needs_access)
                         !captureOn -> stringResource(R.string.not_set_up)
                         s.trustPercent != null && s.capturedThisMonth > 0 -> stringResource(R.string.percent_by_itself, s.trustPercent)
                         else -> stringResource(R.string.n_this_month, s.capturedThisMonth)

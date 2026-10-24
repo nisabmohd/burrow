@@ -69,7 +69,7 @@ fun PillBarChart(
     // One tap area over the whole chart (bars are too narrow to be 48 dp targets each): the tap's
     // x picks the bar. TalkBack gets the summary and one action per bar.
     val tapArea = if (onSelect == null || bars.isEmpty()) Modifier else Modifier
-        .pointerInput(bars) { detectTapGestures { pos -> onSelect((pos.x / size.width * bars.size).toInt().coerceIn(0, bars.lastIndex)) } }
+        .pointerInput(bars) { detectTapGestures { pos -> onSelect(barIndexAt(pos.x, size.width.toFloat(), bars.size)) } }
         .semantics {
             description?.let { contentDescription = it }
             customActions = bars.indices.map { i -> CustomAccessibilityAction(labelFor?.invoke(i) ?: bars[i].label) { onSelect(i); true } }
@@ -89,9 +89,7 @@ fun PillBarChart(
                             if (b.value <= 0L) {
                                 drawCircle(c.surfaceContainerHigh, radius = 3.dp.toPx(), center = Offset(size.width / 2, size.height - 3.dp.toPx()))
                             } else {
-                                // Never shorter than it is wide (a small day is a round dot, not a flat blob),
-                                // never taller than the chart (rounding on tiny charts).
-                                val h = maxOf(w, size.height * b.value / max * grow.value).coerceAtMost(size.height)
+                                val h = pillBarHeight(b.value, max, size.height, w, grow.value)
                                 drawRoundRect(
                                     if (i == selected) c.primary else soft,
                                     topLeft = Offset((size.width - w) / 2, size.height - h),
@@ -159,6 +157,18 @@ fun ProgressRing(progress: Float, color: Color, track: Color, size: Dp, stroke: 
  * The angle two round-capped arcs must leave between them so their caps don't touch: one stroke
  * width (half a cap at each end) plus [visible] of clear space, measured on the ring's radius.
  */
+/** Which of [count] equal bars a tap at [x] (of [width]) lands on; taps past either end pick the end bar. */
+internal fun barIndexAt(x: Float, width: Float, count: Int): Int =
+    if (count <= 0 || width <= 0f) 0 else (x / width * count).toInt().coerceIn(0, count - 1)
+
+/**
+ * A pill bar's height: never shorter than it is wide (a small day is a round dot, not a flat blob),
+ * never taller than the chart. 0 for days with nothing (those draw a small dot instead).
+ */
+internal fun pillBarHeight(value: Long, max: Long, chartHeight: Float, barWidth: Float, grow: Float = 1f): Float =
+    if (value <= 0L || max <= 0L) 0f
+    else maxOf(barWidth, chartHeight * value / max * grow).coerceAtMost(chartHeight)
+
 internal fun ringGapDegrees(stroke: Float, radius: Float, visible: Float): Float =
     if (radius <= 0f) 0f else Math.toDegrees(((stroke + visible) / radius).toDouble()).toFloat().coerceAtMost(60f)
 

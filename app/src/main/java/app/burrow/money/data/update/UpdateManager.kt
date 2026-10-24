@@ -165,29 +165,42 @@ class UpdateManager(private val context: Context, private val settings: Settings
 
     private fun latestRelease(): AppUpdate {
         val repo = BuildConfig.REPO_URL.removePrefix("https://github.com/").trimEnd('/')
-        val json = Json.parseToJsonElement(read("https://api.github.com/repos/$repo/releases/latest")).jsonObject
-        val assets = json["assets"]?.jsonArray.orEmpty().map { it.jsonObject }
-        fun name(a: kotlinx.serialization.json.JsonObject) = a["name"]?.jsonPrimitive?.content.orEmpty()
-        // This build's own APK first, then any APK that isn't the Play build.
-        val apk = assets.firstOrNull { name(it).endsWith("-github.apk") }
-            ?: assets.firstOrNull { name(it).endsWith(".apk") && !name(it).contains("-play") }
-        val sums = assets.firstOrNull { name(it).equals("SHA256SUMS.txt", ignoreCase = true) }
-        return AppUpdate(
-            version = json.getValue("tag_name").jsonPrimitive.content.removePrefix("v"),
-            notes = releaseHighlights(json["body"]?.jsonPrimitive?.content),
-            apkUrl = apk?.get("browser_download_url")?.jsonPrimitive?.content,
-            apkName = apk?.let(::name),
-            checksumsUrl = sums?.get("browser_download_url")?.jsonPrimitive?.content,
-            pageUrl = json["html_url"]?.jsonPrimitive?.content ?: "${BuildConfig.REPO_URL}/releases/latest",
-        )
+        return parseRelease(read("https://api.github.com/repos/$repo/releases/latest"), BuildConfig.REPO_URL)
     }
 
-    /** The hash listed for [apkName] in a SHA256SUMS.txt ("<hash>  <file>" lines), if listed. */
+    /** The hash listed for [apkName] in a SHA256SUMS.txt, if listed. */
     private fun expectedSha256(url: String, apkName: String?): String? {
         apkName ?: return null
-        return runCatching { read(url) }.getOrNull()?.lineSequence()
-            ?.map { it.trim().split(Regex("\\s+")) }
-            ?.firstOrNull { it.size >= 2 && it[1].removePrefix("*") == apkName }
+        return runCatching { read(url) }.getOrNull()?.let { sha256For(it, apkName) }
+    }
+
+    companion object {
+        private const val TIMEOUT_MS = 10_000L
+        private const val DAY_MS = 24 * 60 * 60 * 1000L
+
+        /** GitHub's "latest release" JSON → [AppUpdate]: this build's "-github.apk" first, never the Play APK. */
+        fun parseRelease(body: String, repoUrl: String): AppUpdate {
+            val json = Json.parseToJsonElement(body).jsonObject
+            val assets = json["assets"]?.jsonArray.orEmpty().map { it.jsonObject }
+            fun name(a: kotlinx.serialization.json.JsonObject) = a["name"]?.jsonPrimitive?.content.orEmpty()
+            // This build's own APK first, then any APK that isn't the Play build.
+            val apk = assets.firstOrNull { name(it).endsWith("-github.apk") }
+                ?: assets.firstOrNull { name(it).endsWith(".apk") && !name(it).contains("-play") }
+            val sums = assets.firstOrNull { name(it).equals("SHA256SUMS.txt", ignoreCase = true) }
+            return AppUpdate(
+                version = json.getValue("tag_name").jsonPrimitive.content.removePrefix("v"),
+                notes = releaseHighlights(json["body"]?.jsonPrimitive?.content),
+                apkUrl = apk?.get("browser_download_url")?.jsonPrimitive?.content,
+                apkName = apk?.let(::name),
+                checksumsUrl = sums?.get("browser_download_url")?.jsonPrimitive?.content,
+                pageUrl = json["html_url"]?.jsonPrimitive?.content ?: "$repoUrl/releases/latest",
+            )
+        }
+
+        /** The hash for [apkName] in a SHA256SUMS.txt ("<hash>  <file>" or "<hash> *<file>" lines). */
+        fun sha256For(sums: String, apkName: String): String? = sums.lineSequence()
+            .map { it.trim().split(Regex("\\s+")) }
+            .firstOrNull { it.size >= 2 && it[1].removePrefix("*") == apkName }
             ?.get(0)
     }
 
@@ -206,8 +219,4 @@ class UpdateManager(private val context: Context, private val settings: Settings
         return c
     }
 
-    companion object {
-        private const val TIMEOUT_MS = 10_000L
-        private const val DAY_MS = 24 * 60 * 60 * 1000L
-    }
 }

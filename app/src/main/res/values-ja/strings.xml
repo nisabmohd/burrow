@@ -1140,4 +1140,6 @@
     <string name="allow_installs_hint">Burrow にアプリのインストールを許可してから、インストールをタップしてください</string>
     <string name="update_failed">ダウンロードが完了しませんでした</string>
     <string name="open_release_page">リリースページを開く</string>
+    <string name="paused">一時停止中</string>
+    <string name="needs_access">アクセスが必要</string>
 </resources>
