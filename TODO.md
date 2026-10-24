@@ -148,7 +148,7 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
 - [ ] `playDebug` and `fossDebug` build; unit tests pass
 - [ ] Screen matches its PNG, light and dark, at 412 dp and on a small phone
 - [ ] No raw colour, size or string in screens; components only
-- [ ] Merged manifest has no INTERNET
+- [ ] play and foss merged manifests have no INTERNET (github: only the update check)
 - [ ] Committed with a clear message
 
 ## Next round (burrow-next, 2026-10-22) — `docs/NEXT.md`, PNGs in `design/next/`
@@ -169,3 +169,21 @@ light and dark, builds, and is committed. Screen numbers point to `design/screen
   - [x] Long-press any transaction row (06)
   - [x] Customise reorders by drag, no arrows (16); Customise Today button gone from Today (01)
 - [x] Smoke suite: a check per feature with edge cases (51 checks; crash log read after each)
+
+## 2026-10-24 — phone feedback round
+- [x] Same pills for every tab row: Plan and Customise use `ButtonGroup` / `ScrollingButtonGroup`, label centred, no check
+- [x] Choice tiles: check on the title line only; the value shrinks to fit ("1,240.00")
+- [x] Auto-capture: switches show on only with Android access; other options hidden while off; Restricted settings note with App info
+- [x] New goal icons in the shared swatch grid; Activity "All days" not clipped; small chart days are round dots
+- [x] Haptics fall back to classic types on phones without vibration primitives; tabs and swatches tick
+- [x] Launcher mark a step bigger (0.62 → 0.70)
+- [x] GitHub build: check for updates (About + once a day), download, verify SHA-256, install (as Sprout)
+- [x] Wording: "never sends your data anywhere", not "no internet" (app strings in all languages, docs, listing, store shot 08)
+- [x] Store shot 08 re-rendered with the new caption (`tools/store_shots.py` now skips raws it doesn't have)
+- [ ] **Google Drive backup**: encrypted backup to the user's own Drive, alongside the SAF folder backup. Decide the
+      approach first (needs INTERNET + Google sign-in in play; foss/F-Droid can't use Google code). Update PRIVACY.md,
+      data safety form and the About line when it lands.
+- [ ] **Rate on Play Store** (play flavour): turn on `PLAY_LISTED` once the listing is live; About row is already wired.
+      Consider a one-time gentle ask after a few weeks of use (one sheet, never again after "No thanks").
+- [ ] Play Protect / sideload blocking: register the app in Android developer verification and submit the github/foss
+      APKs to the Play Protect appeals form; point README install steps at F-Droid / Obtainium or Play.

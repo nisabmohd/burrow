@@ -171,12 +171,13 @@ data class NavItem(val label: String, @DrawableRes val icon: Int, @DrawableRes v
 @Composable
 fun BurrowNavBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     val c = MaterialTheme.colorScheme
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     NavigationBar(modifier, containerColor = c.surfaceContainerLow) {
         items.forEachIndexed { i, item ->
             val isSelected = i == selected
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onSelect(i) },
+                onClick = { if (!isSelected) haptics.tick(); onSelect(i) },
                 icon = {
                     Icon(
                         painterResource(if (isSelected) item.selectedIcon else item.icon),

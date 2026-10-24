@@ -45,6 +45,8 @@ class AppContainer(val context: Context) {
     val attachments by lazy { app.burrow.money.data.Attachments(context, database) }
     /** Splits, refunds, favourites, import and trust in capture (burrow-next). */
     val next by lazy { app.burrow.money.data.NextRepository(database, money) }
+    /** GitHub Releases update check; does nothing outside the github build. */
+    val updates by lazy { app.burrow.money.data.update.UpdateManager(context, settings) }
 
     /** Activity's and Insights' filters: kept while the app is open, gone on restart. */
     val filters = app.burrow.money.ui.filters.FilterStore()

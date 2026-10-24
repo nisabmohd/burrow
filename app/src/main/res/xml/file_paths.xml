@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Only the camera's pending photo is shared (with the camera app, write-only, while it shoots). -->
+<!-- Only the camera's pending photo is shared (with the camera app, write-only, while it shoots).
+     The github build overrides this file to add the update APK (src/github/res/xml/file_paths.xml). -->
 <paths>
     <cache-path name="pending" path="pending-attachments/" />
     <files-path name="attachments" path="attachments/" />

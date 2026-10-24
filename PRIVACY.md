@@ -1,12 +1,16 @@
 # Privacy policy — Burrow: Expense Tracker
 
-_Last updated: 20 October 2026_
+_Last updated: 24 October 2026_
 
 Burrow is built so your money stays yours.
 
-**What Burrow collects: nothing.** The app has no INTERNET permission, so it cannot send anything
-anywhere. There is no account, no sign-in, no sync, no analytics, no ads, no crash reporting and no
-third-party code that talks to a server.
+**What Burrow collects: nothing.** Burrow never sends your data anywhere: not to us, not to anyone.
+There is no account, no sign-in, no sync, no analytics, no ads, no crash reporting and no third-party
+code that talks to a server. The Google Play and F-Droid builds have no internet permission at all.
+
+**Update check (GitHub build only).** The APK from GitHub Releases asks GitHub once a day, and when you
+tap Check for updates, whether a newer version exists, and downloads it if you tap Update. The request
+carries nothing about you or your money; GitHub sees it like any visit to a web page.
 
 **What stays on your phone**
 - The transactions, accounts, bills, budgets, goals, people, tags and rates you enter or the app records.

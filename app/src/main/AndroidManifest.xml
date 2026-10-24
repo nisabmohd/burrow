@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Burrow never goes online: there is NO INTERNET permission. The tools:node="remove" lines below strip it
+  Burrow never sends data anywhere: there is NO INTERNET permission. The tools:node="remove" lines below strip it
   even if a library tries to merge it in; still check the merged manifest after adding any dependency.
+  One exception (user, 2026-10-24): the github build puts INTERNET back only to check GitHub Releases
+  for updates (src/github/AndroidManifest.xml, data/update/UpdateManager.kt).
   SMS permissions live in the foss/github flavor manifests; Play adds them only after approval.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"

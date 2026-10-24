@@ -327,17 +327,9 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
                 )
             }
             LabeledField(stringResource(R.string.icon)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    GOAL_LOOKS.forEach { (icon, hue) ->
-                        val on = f.icon == icon
-                        val label = icon.replace('_', ' ')
-                        Box(
-                            Modifier.clip(Shapes.pill)
-                                .then(if (on) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
-                                .clickable(role = Role.RadioButton) { vm.edit { it.copy(icon = icon, hue = hue) } }
-                                .semantics { selected = on; contentDescription = label },
-                        ) { CategoryCircle(icon, hue) }
-                    }
+                // The shared swatch grid (as in Edit account): spaced circles in rows of four, never clipped.
+                app.burrow.money.ui.components.SwatchGrid(GOAL_LOOKS, columns = 4) { (icon, hue) ->
+                    app.burrow.money.ui.components.Swatch(f.icon == icon, icon.replace('_', ' '), { vm.edit { it.copy(icon = icon, hue = hue) } }) { CategoryCircle(icon, hue) }
                 }
             }
             if (f.tried && !vm.canSave(f)) {

@@ -57,10 +57,11 @@ fun <T> SwatchGrid(items: List<T>, modifier: Modifier = Modifier, columns: Int =
 @Composable
 fun Swatch(on: Boolean, label: String, onClick: () -> Unit, content: @Composable () -> Unit) {
     val c = MaterialTheme.colorScheme
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     Box(
         Modifier.widthIn(max = Size.button).fillMaxWidth().aspectRatio(1f).clip(Shapes.pill)
             .then(if (on) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
-            .clickable(role = Role.RadioButton, onClick = onClick)
+            .clickable(role = Role.RadioButton) { if (!on) haptics.tick(); onClick() }
             .semantics { selected = on; contentDescription = label },
         contentAlignment = Alignment.Center,
     ) { content() }

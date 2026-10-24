@@ -1,7 +1,7 @@
 # Burrow — project rules
 
 Burrow is an open-source Android expense tracker. It records payments by itself from bank messages,
-reminds you of bills and shows what is left. **It never goes online.**
+reminds you of bills and shows what is left. **It never sends your data anywhere.**
 Package `app.burrow.money` · GNU GPL v3 · Play title "Burrow: Expense Tracker".
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
@@ -13,14 +13,17 @@ The PNGs are the source of truth for layout, sizes and colours. `design/prototyp
 ## What the app is (USP, in order)
 1. **It records itself.** A payment message asks for a category; one tap saves it; a payment matching a
    due bill marks it Paid. Message rules make it work for any bank, region and language.
-2. **Private by design.** No INTERNET permission. No account, no sync, no AI, no analytics.
+2. **Private by design.** Your data never leaves the phone for us or anyone else. No account, no sync,
+   no AI, no analytics. Say "never sends your data anywhere", not "no internet" (user, 2026-10-24).
 3. **One right way to do each thing.** Few settings, calm design, small and fast.
 
 Not in the app: email parsing, OCR, voice, AI, cloud sync, shared household, live exchange rates,
 investments with live prices, tax module, document vault, multiple ledgers.
 
 ## Hard rules
-- **No INTERNET permission**, ever. No library that needs one. Check the merged manifest after any dependency.
+- **No INTERNET permission** in `play` and `foss`. The `github` build alone has it, only for the GitHub Releases
+  update check (as Sprout; user, 2026-10-24). Google Drive backup is planned (TODO.md); nothing else goes online.
+  No library that needs the network. Check the merged manifests after any dependency.
 - **Ask before adding any dependency.** No DI framework (one `AppContainer`), no chart library (Canvas),
   no image library, no networking, no analytics, no WorkManager, no `material-icons-extended`.
 - **Money is `Long` minor units.** Never Float/Double. Interest maths in BigDecimal, round once, HALF_EVEN.

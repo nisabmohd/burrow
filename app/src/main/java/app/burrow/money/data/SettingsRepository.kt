@@ -163,6 +163,12 @@ class SettingsRepository(context: Context) {
     val settings: Flow<Settings> = store.data.map { it.toSettings() }.distinctUntilChanged()
 
     suspend fun setThemeMode(mode: ThemeMode) = store.edit { it[THEME] = mode.name }
+
+    // Update check (github build only), kept out of [Settings]: nothing on screen follows them.
+    suspend fun lastUpdateCheckAt(): Long? = store.data.first()[LAST_UPDATE_CHECK]
+    suspend fun dismissedUpdate(): String? = store.data.first()[DISMISSED_UPDATE]
+    suspend fun setUpdateCheck(at: Long) = store.edit { it[LAST_UPDATE_CHECK] = at }
+    suspend fun dismissUpdate(version: String) = store.edit { it[DISMISSED_UPDATE] = version }
     suspend fun setDynamicColor(enabled: Boolean) = store.edit { it[DYNAMIC_COLOR] = enabled }
     suspend fun setAccentHue(hue: Float) = store.edit { it[ACCENT_HUE] = hue }
     suspend fun setFont(font: BodyFont) = store.edit { it[FONT] = font.name }
@@ -306,6 +312,8 @@ class SettingsRepository(context: Context) {
     }
 
     private companion object {
+        val LAST_UPDATE_CHECK = longPreferencesKey("lastUpdateCheckAt")
+        val DISMISSED_UPDATE = stringPreferencesKey("dismissedUpdateVersion")
         val THEME = stringPreferencesKey("theme")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamicColor")
         val ACCENT_HUE = floatPreferencesKey("accentHue")

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Burrow mark: mound arch + doorway on a ground line. 108 dp adaptive canvas; the mark is scaled to
-     about a third of the canvas (as Sprout's seedling) and centred, so no launcher mask clips it. -->
+     about 0.36 of the canvas (a step bigger than Sprout's seedling) and centred, so no launcher mask clips it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="512" android:viewportHeight="512">
-    <group android:pivotX="256" android:pivotY="256" android:scaleX="0.62" android:scaleY="0.62" android:translateY="-1.2">
+    <group android:pivotX="256" android:pivotY="256" android:scaleX="0.70" android:scaleY="0.70" android:translateY="-1.2">
         <path android:strokeColor="#FF000000" android:strokeWidth="32" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M126,340 L386,340" />
         <path android:strokeColor="#FF000000" android:strokeWidth="32" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M156,340 C156,236 200,176 256,176 C312,176 356,236 356,340" />
         <path android:strokeColor="#FF000000" android:strokeWidth="32" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M220,340 L220,300 C220,280 236,264 256,264 C276,264 292,280 292,300 L292,340" />

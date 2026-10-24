@@ -182,38 +182,53 @@ fun BurrowButton(
 }
 
 /**
- * Connected button group (Expense / Income / Transfer, Bills / Budgets / Goals): 48 dp pills 4 dp
- * apart; the selected one is primary with a check.
+ * Connected button group (Expense / Income / Transfer, Coming up / Budgets / Goals): 48 dp pills 4 dp
+ * apart, label centred; the selected one is primary. No check: a check beside a centred label sat
+ * at a different spot in every pill.
  */
 @Composable
 fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
+        options.forEach { option -> SegmentPill(label(option), option == selected, { onSelect(option) }, Modifier.weight(1f)) }
+    }
+}
+
+/**
+ * [ButtonGroup] for more options than fit a row (Customise tabs): the same pills at their own width,
+ * scrolling sideways; the open one is brought into view.
+ */
+@Composable
+fun <T> ScrollingButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val state = androidx.compose.foundation.lazy.rememberLazyListState()
+    val index = options.indexOf(selected)
+    androidx.compose.runtime.LaunchedEffect(index) { state.animateScrollToItem((index - 1).coerceAtLeast(0)) }
+    androidx.compose.foundation.lazy.LazyRow(
+        modifier.fillMaxWidth().selectableGroup(), state = state,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = Space.screen),
+        horizontalArrangement = Arrangement.spacedBy(Space.group),
+    ) {
+        items(options.size) { i -> val o = options[i]; SegmentPill(label(o), o == selected, { onSelect(o) }, Modifier, Space.sheet) }
+    }
+}
+
+@Composable
+private fun SegmentPill(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier, inset: androidx.compose.ui.unit.Dp = Space.inline) {
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
-    Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
-        options.forEach { option ->
-            val on = option == selected
-            Row(
-                Modifier
-                    .weight(1f)
-                    .height(Size.button)
-                    .clip(Shapes.pill)
-                    .background(if (on) c.primary else c.surfaceContainer)
-                    .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onSelect(option) } },
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val fg = if (on) c.onPrimary else c.onSurfaceVariant
-                if (on) {
-                    Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
-                    Spacer(Modifier.width(Space.group))
-                }
-                // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
-                androidx.compose.foundation.text.BasicText(
-                    label(option), style = BurrowType.button.copy(color = fg), maxLines = 1,
-                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
-                )
-            }
-        }
+    Box(
+        modifier
+            .height(Size.button)
+            .clip(Shapes.pill)
+            .background(if (on) c.primary else c.surfaceContainer)
+            .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onClick() } }
+            .padding(horizontal = inset),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
+        androidx.compose.foundation.text.BasicText(
+            text, style = BurrowType.button.copy(color = if (on) c.onPrimary else c.onSurfaceVariant, textAlign = TextAlign.Center), maxLines = 1,
+            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+        )
     }
 }
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- github build: main's paths (keep in step with main/res/xml/file_paths.xml) plus the downloaded
+     update APK, shared read-only with Android's installer. -->
+<paths>
+    <cache-path name="pending" path="pending-attachments/" />
+    <files-path name="attachments" path="attachments/" />
+    <cache-path name="updates" path="updates/" />
+</paths>

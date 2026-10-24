@@ -1,6 +1,6 @@
 # Burrow design guidelines
 
-Burrow is a small, private, offline expense tracker for Android. It records payments by itself from
+Burrow is a small, private expense tracker for Android. It records payments by itself from
 bank messages, reminds you of bills, and shows what is left. These are the rules every screen follows.
 The live reference is the prototype (`design/prototype/burrow-prototype.html`, not in git) and the
 PNGs in `design/screens/` (light) and `design/screens/dark/`.

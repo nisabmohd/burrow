@@ -14,6 +14,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import app.burrow.money.ui.components.Note
+import app.burrow.money.ui.components.NoteKind
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +63,27 @@ fun AutoCaptureScreen(
     val context = LocalContext.current
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
-    val askSms = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { vm.setSms(CaptureAccess.smsGranted(context)) }
+    // What Android allows right now, checked again whenever the screen comes back from system settings.
+    var smsAccess by remember { mutableStateOf(CaptureAccess.smsGranted(context)) }
+    var appsAccess by remember { mutableStateOf(CaptureAccess.listenerEnabled(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        smsAccess = CaptureAccess.smsGranted(context)
+        appsAccess = CaptureAccess.listenerEnabled(context)
+    }
+    // Set when a switch was turned on but Android still says no: on a downloaded APK that is
+    // Restricted settings, and the note below shows the way out.
+    var smsRefused by rememberSaveable { mutableStateOf(false) }
+    val askSms = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        smsAccess = CaptureAccess.smsGranted(context)
+        smsRefused = !smsAccess
+        vm.setSms(smsAccess)
+    }
+    // A switch shows on only when it is on AND Android lets it read: never "on" with nothing recorded.
+    val smsOn = CaptureAccess.smsInThisBuild && s.sms && smsAccess
+    val appsOn = s.apps && appsAccess
+    val anyOn = smsOn || appsOn
+    val restricted = remember { CaptureAccess.restrictedSettingsLikely(context) }
+    val blocked = restricted && ((smsRefused && !smsAccess) || (s.apps && !appsAccess))
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.auto_capture))
@@ -64,6 +92,18 @@ fun AutoCaptureScreen(
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
             val percent = s.trust.percent
+            if (blocked) {
+                Note(
+                    NoteKind.WARN, painterResource(R.drawable.ic_info_regular), stringResource(R.string.restricted_title),
+                    line = stringResource(R.string.restricted_line),
+                    action = stringResource(R.string.app_info), onAction = { runCatching { context.startActivity(CaptureAccess.appInfo(context)) } },
+                )
+            } else if (!anyOn) {
+                Note(
+                    NoteKind.INFO, painterResource(R.drawable.ic_info_regular), stringResource(R.string.capture_off_title),
+                    line = stringResource(if (CaptureAccess.smsInThisBuild) R.string.capture_off_line else R.string.capture_off_line_apps),
+                )
+            }
             if (percent != null && s.trust.found > 0) {
                 // Trust in capture (15): how much of this month it recorded by itself.
                 androidx.compose.foundation.layout.Column(
@@ -93,8 +133,8 @@ fun AutoCaptureScreen(
                         supporting = if (s.smsBanks.isNotEmpty()) s.smsBanks.joinToString(", ") else stringResource(R.string.bank_sms_line),
                         lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
                         trailing = {
-                            BurrowSwitch(s.sms, { on ->
-                                if (on && !CaptureAccess.smsGranted(context)) askSms.launch(CaptureAccess.permissionsToAsk()) else vm.setSms(on)
+                            BurrowSwitch(smsOn, { on ->
+                                if (on && !smsAccess) askSms.launch(CaptureAccess.permissionsToAsk()) else vm.setSms(on)
                             })
                         },
                     )
@@ -104,8 +144,9 @@ fun AutoCaptureScreen(
                         stringResource(R.string.payment_apps), i, n, supporting = stringResource(R.string.payment_apps_line),
                         lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
                         trailing = {
-                            BurrowSwitch(s.apps, { on ->
-                                if (on && !CaptureAccess.listenerEnabled(context)) runCatching { context.startActivity(CaptureAccess.listenerSettings()) }
+                            BurrowSwitch(appsOn, { on ->
+                                // Saved as wanted; it shows on once access is given in system settings.
+                                if (on && !appsAccess) runCatching { context.startActivity(CaptureAccess.listenerSettings()) }
                                 vm.setApps(on)
                             })
                         },
@@ -113,7 +154,7 @@ fun AutoCaptureScreen(
                 }
             }
             ListGroup { switches.forEachIndexed { i, r -> r(i, switches.size) } }
-            if (s.notUnderstood > 0) {
+            if (anyOn && s.notUnderstood > 0) {
                 ListGroup {
                     ListRow(
                         pluralStringResource(R.plurals.teach_missed, s.notUnderstood, s.notUnderstood), 0, 1,
@@ -124,26 +165,29 @@ fun AutoCaptureScreen(
                     )
                 }
             }
-            ListGroup {
-                ListRow(
-                    stringResource(R.string.when_payment_found), 0, 1, supporting = stringResource(app.burrow.money.ui.more.paymentFoundLabel(paymentFound)),
-                    lead = { IconCircle(painterResource(R.drawable.ic_edit_note_duotone)) }, onClick = onPaymentFound,
-                )
+            if (anyOn) {
+                ListGroup {
+                    ListRow(
+                        stringResource(R.string.when_payment_found), 0, 1, supporting = stringResource(app.burrow.money.ui.more.paymentFoundLabel(paymentFound)),
+                        lead = { IconCircle(painterResource(R.drawable.ic_edit_note_duotone)) }, onClick = onPaymentFound,
+                    )
+                }
+                ListGroup {
+                    ListRow(
+                        stringResource(R.string.message_rules), 0, 1, supporting = if (s.indiaPack) stringResource(R.string.rules_line, s.yourRules) else pluralStringResource(R.plurals.rules_line_yours, s.yourRules, s.yourRules),
+                        lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) }, trailing = { Chevron() }, onClick = onRules,
+                    )
+                }
             }
             ListGroup {
-                ListRow(
-                    stringResource(R.string.message_rules), 0, 1, supporting = if (s.indiaPack) stringResource(R.string.rules_line, s.yourRules) else pluralStringResource(R.plurals.rules_line_yours, s.yourRules, s.yourRules),
-                    lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) }, trailing = { Chevron() }, onClick = onRules,
-                )
-            }
-            ListGroup {
-                ListRow(
-                    stringResource(R.string.try_it), 0, 2, supporting = stringResource(R.string.try_it_line),
+                val n = if (anyOn) 2 else 1
+                if (anyOn) ListRow(
+                    stringResource(R.string.try_it), 0, n, supporting = stringResource(R.string.try_it_line),
                     lead = { IconCircle(painterResource(R.drawable.ic_play_arrow_duotone)) },
                     onClick = { vm.tryIt(); snackbar.show(context.getString(R.string.sample_sent)) },
                 )
                 ListRow(
-                    stringResource(R.string.how_it_works), 1, 2,
+                    stringResource(R.string.how_it_works), n - 1, n,
                     lead = { IconCircle(painterResource(R.drawable.ic_info_duotone)) }, onClick = onHowItWorks,
                 )
             }

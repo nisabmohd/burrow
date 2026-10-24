@@ -25,7 +25,7 @@ shots = [
     ("bills", "05-bills.png", "Never miss a bill", "Reminders before every bill, subscription and EMI.", False),
     ("insights", "06-insights.png", "See your patterns", "Charts, busiest days and a month heatmap.", False),
     ("rules", "07-rules.png", "Works with your bank", "Teach it a new message by tapping the amount.", False),
-    ("today-dark", "08-today-dark.png", "Private. Offline. Yours.", "No internet permission. Nothing leaves your phone.", True),
+    ("today-dark", "08-today-dark.png", "Private. Yours.", "Burrow never sends your data anywhere.", True),
 ]
 
 W, H = 1080, 1920
@@ -95,6 +95,9 @@ FX = (W - FW) // 2
 SX, SY = FX + BEZEL, FY + BEZEL
 
 for raw, out, title, sub, dark in shots:
+    if not os.path.exists(os.path.join(RAW, raw + ".png")):
+        print(f"skip {out}: no {raw}.png")  # re-shoot one caption without the other seven
+        continue
     bg = (34, 24, 28) if dark else (250, 226, 233)   # Burrow rose, from the 345 seed
     tc = (245, 233, 237) if dark else (46, 18, 28)
     sc = (196, 176, 183) if dark else (112, 76, 88)

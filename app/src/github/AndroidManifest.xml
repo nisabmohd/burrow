@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- SMS capture is optional: tablets and Chromebooks without a SIM can still install Burrow. -->
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- GitHub build only (user, 2026-10-24): ask GitHub Releases for a newer Burrow, download it and
+         hand it to Android's installer (as Sprout). Nothing else ever uses the network: no data
+         leaves the phone. The play and foss builds have no INTERNET permission at all. -->
+    <!-- replace: main strips INTERNET for every build; this build alone puts it back. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="replace" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application>
         <receiver android:name="app.burrow.money.capture.SmsReceiver" android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter><action android:name="android.provider.Telephony.SMS_RECEIVED" /></intent-filter>
         </receiver>
+        <!-- The update APK goes to the installer through main's FileProvider (res/xml/file_paths.xml here). -->
     </application>
 </manifest>

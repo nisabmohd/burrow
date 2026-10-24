@@ -116,8 +116,10 @@ class MainActivity : ComponentActivity() {
                 app.burrow.money.ui.DatePrefs(current.dateFormat, runCatching { java.time.DayOfWeek.valueOf(current.weekStart) }.getOrDefault(java.time.DayOfWeek.MONDAY))
             }
             val isLocked by locked.collectAsStateWithLifecycle()
+            val view = androidx.compose.ui.platform.LocalView.current
+            val haptics = remember(view) { app.burrow.money.ui.components.BurrowHapticFeedback(view) }
             BurrowTheme(current.theme) {
-                CompositionLocalProvider(LocalMoney provides money, app.burrow.money.ui.LocalDatePrefs provides datePrefs, app.burrow.money.ui.LocalListPrefs provides listPrefs, LocalRevealAmounts provides (if (current.hideAmounts) ({ revealed = !revealed }) else null)) {
+                CompositionLocalProvider(androidx.compose.ui.platform.LocalHapticFeedback provides haptics, LocalMoney provides money, app.burrow.money.ui.LocalDatePrefs provides datePrefs, app.burrow.money.ui.LocalListPrefs provides listPrefs, LocalRevealAmounts provides (if (current.hideAmounts) ({ revealed = !revealed }) else null)) {
                     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                         val open by pending.collectAsStateWithLifecycle()
                         // The app stays composed under the PIN pad (so unlocking returns to the same place),
@@ -134,6 +136,8 @@ class MainActivity : ComponentActivity() {
                                     onPin = {},
                                     onClose = null,
                                 )
+                                // GitHub build: once a day, after first run and never over the PIN pad.
+                                if (isLocked == false && current.onboarded) app.burrow.money.ui.update.UpdatePrompt(container.updates)
                             }
                         }
                     }

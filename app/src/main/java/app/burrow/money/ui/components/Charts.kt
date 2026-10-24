@@ -89,8 +89,9 @@ fun PillBarChart(
                             if (b.value <= 0L) {
                                 drawCircle(c.surfaceContainerHigh, radius = 3.dp.toPx(), center = Offset(size.width / 2, size.height - 3.dp.toPx()))
                             } else {
-                                // Never shorter than 8 dp, never taller than the chart (rounding on tiny charts).
-                                val h = maxOf(8.dp.toPx(), size.height * b.value / max * grow.value).coerceAtMost(size.height)
+                                // Never shorter than it is wide (a small day is a round dot, not a flat blob),
+                                // never taller than the chart (rounding on tiny charts).
+                                val h = maxOf(w, size.height * b.value / max * grow.value).coerceAtMost(size.height)
                                 drawRoundRect(
                                     if (i == selected) c.primary else soft,
                                     topLeft = Offset((size.width - w) / 2, size.height - h),

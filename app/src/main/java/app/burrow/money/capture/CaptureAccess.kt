@@ -29,5 +29,22 @@ object CaptureAccess {
         if (android.os.Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
     }.toTypedArray()
 
+    /**
+     * Android 13+ "Restricted settings": an app installed from a downloaded APK (browser, WhatsApp,
+     * file manager) can't get SMS or notification access until the user allows it in App info ›
+     * ⋮ › Allow restricted settings. Store installs (Play, F-Droid's installer) aren't affected.
+     */
+    fun restrictedSettingsLikely(context: Context): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < 33) return false
+        val source = runCatching { context.packageManager.getInstallSourceInfo(context.packageName).packageSource }.getOrNull() ?: return false
+        return source == android.content.pm.PackageInstaller.PACKAGE_SOURCE_DOWNLOADED_FILE ||
+            source == android.content.pm.PackageInstaller.PACKAGE_SOURCE_LOCAL_FILE
+    }
+
+    /** Burrow's App info page, where "Allow restricted settings" lives (⋮ menu). */
+    fun appInfo(context: Context): Intent =
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", context.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
     fun listenerSettings(): Intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 }

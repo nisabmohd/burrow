@@ -9,6 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,7 +31,6 @@ import app.burrow.money.ui.components.AddFab
 import app.burrow.money.ui.components.AverageLegend
 import app.burrow.money.ui.components.Bar
 import app.burrow.money.ui.components.ChartCard
-import app.burrow.money.ui.components.LinkButton
 import app.burrow.money.ui.components.PillBarChart
 import app.burrow.money.ui.filters.ActiveFilterChips
 import app.burrow.money.ui.filters.DatesSheet
@@ -220,7 +222,13 @@ private fun ActivityChartCard(chart: ActivityChart, onSelect: (Int?) -> Unit, on
         modifier = Modifier.padding(bottom = Space.small),
         trailing = {
             androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                if (selDay != null) LinkButton(stringResource(R.string.all_days), { onSelect(null) })
+                // Plain text, not a TextButton: the header row is 24 dp and a button's padding clipped it.
+                // The 48 dp tap area still reaches past the row.
+                if (selDay != null) androidx.compose.material3.Text(
+                    stringResource(R.string.all_days), style = app.burrow.money.ui.theme.BurrowType.button, color = androidx.compose.material3.MaterialTheme.colorScheme.primary, maxLines = 1,
+                    modifier = Modifier.minimumInteractiveComponentSize().clip(app.burrow.money.ui.theme.Shapes.pill)
+                        .clickable(role = androidx.compose.ui.semantics.Role.Button) { onSelect(null) }.padding(horizontal = Space.small),
+                )
                 else AverageLegend(stringResource(R.string.a_day, money.short(chart.perDay)))
                 androidx.compose.material3.IconButton(onClick = onFold) {
                     androidx.compose.material3.Icon(painterResource(R.drawable.ic_expand_less_regular), stringResource(R.string.hide_chart), tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)

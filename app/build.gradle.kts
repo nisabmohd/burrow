@@ -21,7 +21,7 @@ android {
 
         versionCode = 4
         versionName = "0.1.1"
-        // About screen links. They open in the browser; the app itself never goes online.
+        // About screen links. They open in the browser.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
         buildConfigField("String", "PLAY_STORE_URL", "\"https://play.google.com/store/apps/details?id=app.burrow.money\"")
     }
@@ -35,6 +35,7 @@ android {
             buildConfigField("boolean", "PLAY_STORE", "true")
             buildConfigField("boolean", "PLAY_LISTED", "false") // true once live: turns on "Rate on Play Store"
             buildConfigField("boolean", "SMS_CAPTURE", "true")
+            buildConfigField("boolean", "GITHUB_UPDATES", "false") // Play updates it
         }
         // F-Droid: no Google code at all.
         create("foss") {
@@ -43,14 +44,17 @@ android {
             buildConfigField("boolean", "PLAY_STORE", "false")
             buildConfigField("boolean", "PLAY_LISTED", "false")
             buildConfigField("boolean", "SMS_CAPTURE", "true")
+            buildConfigField("boolean", "GITHUB_UPDATES", "false") // F-Droid updates it
         }
-        // The APK on GitHub Releases. Same as foss; there is no update checker (no internet).
+        // The APK on GitHub Releases. Same as foss, plus the update check (as Sprout): the only build
+        // with INTERNET, used for nothing but asking GitHub for the latest release.
         create("github") {
             dimension = "distribution"
             versionNameSuffix = "-github"
             buildConfigField("boolean", "PLAY_STORE", "false")
             buildConfigField("boolean", "PLAY_LISTED", "false")
             buildConfigField("boolean", "SMS_CAPTURE", "true")
+            buildConfigField("boolean", "GITHUB_UPDATES", "true")
         }
     }
 

@@ -23,3 +23,43 @@ fun HapticFeedback.stepTick() = performHapticFeedback(HapticFeedbackType.Segment
 fun HapticFeedback.threshold() = performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
 
 fun HapticFeedback.confirm() = performHapticFeedback(HapticFeedbackType.Confirm)
+
+/**
+ * The app's [HapticFeedback], provided at the root (MainActivity). Android 14's richer types
+ * (toggle on/off, segment tick, threshold) are built from vibration "primitives"; phones whose motor
+ * lacks them (many Vivo, Oppo, Realme, older Samsung) play nothing at all. There each type falls back
+ * to a classic constant every phone plays, so a tap always answers.
+ */
+class BurrowHapticFeedback(private val view: android.view.View) : HapticFeedback {
+    private val rich: Boolean = android.os.Build.VERSION.SDK_INT >= 34 && runCatching {
+        val vibrator = view.context.getSystemService(android.os.Vibrator::class.java)
+        vibrator.areAllPrimitivesSupported(
+            android.os.VibrationEffect.Composition.PRIMITIVE_TICK,
+            android.os.VibrationEffect.Composition.PRIMITIVE_CLICK,
+            android.os.VibrationEffect.Composition.PRIMITIVE_LOW_TICK,
+        )
+    }.getOrDefault(false)
+
+    override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
+        view.performHapticFeedback(constantFor(hapticFeedbackType))
+    }
+
+    @android.annotation.SuppressLint("InlinedApi")
+    private fun constantFor(type: HapticFeedbackType): Int {
+        val k = android.view.HapticFeedbackConstants.VIRTUAL_KEY
+        return when (type) {
+            HapticFeedbackType.ToggleOn -> if (rich) android.view.HapticFeedbackConstants.TOGGLE_ON else k
+            HapticFeedbackType.ToggleOff -> if (rich) android.view.HapticFeedbackConstants.TOGGLE_OFF else k
+            HapticFeedbackType.SegmentTick -> if (rich) android.view.HapticFeedbackConstants.SEGMENT_TICK else android.view.HapticFeedbackConstants.KEYBOARD_TAP
+            HapticFeedbackType.SegmentFrequentTick -> if (rich) android.view.HapticFeedbackConstants.SEGMENT_FREQUENT_TICK else android.view.HapticFeedbackConstants.CLOCK_TICK
+            HapticFeedbackType.GestureThresholdActivate -> if (rich) android.view.HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE else k
+            HapticFeedbackType.Confirm -> if (rich) android.view.HapticFeedbackConstants.CONFIRM else k
+            HapticFeedbackType.Reject -> if (rich) android.view.HapticFeedbackConstants.REJECT else android.view.HapticFeedbackConstants.LONG_PRESS
+            HapticFeedbackType.GestureEnd -> if (rich) android.view.HapticFeedbackConstants.GESTURE_END else android.view.HapticFeedbackConstants.CONTEXT_CLICK
+            HapticFeedbackType.LongPress -> android.view.HapticFeedbackConstants.LONG_PRESS
+            HapticFeedbackType.TextHandleMove -> android.view.HapticFeedbackConstants.TEXT_HANDLE_MOVE
+            HapticFeedbackType.ContextClick -> android.view.HapticFeedbackConstants.CONTEXT_CLICK
+            else -> k
+        }
+    }
+}

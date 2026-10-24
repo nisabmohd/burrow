@@ -1,1 +1,1 @@
-Money that tracks itself. Payments record from your bank SMS. Private, offline.
+Money that tracks itself. Payments record from your bank SMS. Your data stays.

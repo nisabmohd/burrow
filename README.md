@@ -1,7 +1,7 @@
 # Burrow
 
-A private, offline, open-source expense tracker for Android. It records payments by itself from
-bank messages, reminds you of bills and shows what is left. It never goes online.
+A private, open-source expense tracker for Android. It records payments by itself from bank
+messages, reminds you of bills and shows what is left. It never sends your data anywhere.
 
 - Rules for contributors and AI agents: [`CLAUDE.md`](CLAUDE.md)
 - Design: [`docs/DESIGN.md`](docs/DESIGN.md), screens in [`design/screens/`](design/screens/)

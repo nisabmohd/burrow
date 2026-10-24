@@ -35,7 +35,7 @@ if something is missing, add a component here first.
 | `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
-| `ButtonGroup` | 2–3 options, 48 dp pills 4 dp apart; selected = primary with a check | Controls.kt |
+| `ButtonGroup` / `ScrollingButtonGroup` | 2–3 options, 48 dp pills 4 dp apart, label centred; selected = primary (no check: it sat at a different spot in every pill). `ScrollingButtonGroup`: the same pills at their own width scrolling sideways, for more options than fit (Customise tabs) | Controls.kt |
 | `Chip` / `ChipWrap` | 36 dp pills; selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar | Bars.kt |

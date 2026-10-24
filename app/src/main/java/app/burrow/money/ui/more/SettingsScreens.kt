@@ -243,9 +243,9 @@ fun CurrencyScreen(
     }
 }
 
-/** About (72): the mark, the version, source, no internet, rate, report, licences. */
+/** About (72): the mark, the version, check for updates, source, private, rate, report, licences. */
 @Composable
-fun AboutScreen(onBack: () -> Unit, onLicences: () -> Unit) {
+fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () -> Unit, onLicences: () -> Unit) {
     val context = LocalContext.current
     val c = MaterialTheme.colorScheme
     fun open(url: String) = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
@@ -260,14 +260,18 @@ fun AboutScreen(onBack: () -> Unit, onLicences: () -> Unit) {
         }
         val rows = buildList<Triple<Int, Int?, Pair<Int, (() -> Unit)?>>> {
             add(Triple(R.string.source_code, R.string.source_code_line, R.drawable.ic_code_duotone to { open(BuildConfig.REPO_URL) }))
-            add(Triple(R.string.no_internet, R.string.no_internet_line, R.drawable.ic_wifi_off_duotone to null))
+            add(Triple(R.string.data_stays, R.string.data_stays_line, R.drawable.ic_shield_check_duotone to null))
             if (BuildConfig.PLAY_LISTED) add(Triple(R.string.rate, null, R.drawable.ic_star_duotone to { open(BuildConfig.PLAY_STORE_URL) }))
             add(Triple(R.string.report_problem, null, R.drawable.ic_bug_report_duotone to { open(BuildConfig.REPO_URL + "/issues") }))
             add(Triple(R.string.licences, null, R.drawable.ic_description_duotone to onLicences))
         }
+        val showUpdates = app.burrow.money.ui.update.updateRowShown(updates)
+        val n = rows.size + if (showUpdates) 1 else 0
         ListGroup {
+            if (showUpdates) app.burrow.money.ui.update.UpdateRow(updates, 0, n)
+            val first = n - rows.size
             rows.forEachIndexed { i, (title, line, action) ->
-                ListRow(stringResource(title), i, rows.size, supporting = line?.let { stringResource(it) }, lead = { IconCircle(painterResource(action.first)) }, onClick = action.second)
+                ListRow(stringResource(title), first + i, n, supporting = line?.let { stringResource(it) }, lead = { IconCircle(painterResource(action.first)) }, onClick = action.second)
             }
         }
     }

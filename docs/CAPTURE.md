@@ -1,6 +1,6 @@
 # Auto-capture and message rules
 
-The core feature: payments record themselves. All parsing is rules, on the phone, no AI, no internet.
+The core feature: payments record themselves. All parsing is rules, on the phone, no AI; messages never leave the phone.
 Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotificationListener`.
 
 ## Pipeline
@@ -76,5 +76,5 @@ SMS header). On only when the phone is in India. Each rule carries an anonymised
 Import validates every regex (compile + a 50 ms timeout guard against catastrophic patterns) before saving.
 
 ## Privacy promises (say them in the intro, keep them in code)
-No internet permission at all. Only financial senders/apps are read. OTPs and offers are skipped.
+Messages are never sent anywhere. Only financial senders/apps are read. OTPs and offers are skipped.
 The app keeps the amount and who you paid; message text is deleted after 30 days.

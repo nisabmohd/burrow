@@ -35,7 +35,7 @@ jobs:
           BURROW_KEYSTORE_PASSWORD: ${{ secrets.BURROW_KEYSTORE_PASSWORD }}
           BURROW_KEY_ALIAS: ${{ secrets.BURROW_KEY_ALIAS }}
           BURROW_KEY_PASSWORD: ${{ secrets.BURROW_KEY_PASSWORD }}
-        # github = the APK for GitHub Releases (no update checker: Burrow has no internet). F-Droid builds foss itself.
+        # github = the APK for GitHub Releases (with the update check; the only build with INTERNET). F-Droid builds foss itself.
         run: ./gradlew :app:assembleGithubRelease :app:assemblePlayRelease
 
       - name: Rename and verify

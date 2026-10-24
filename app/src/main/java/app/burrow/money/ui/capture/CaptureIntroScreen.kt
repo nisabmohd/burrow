@@ -143,7 +143,7 @@ private fun PanelPrivate() {
     val payee = SAMPLE_SMS.indexOf("thirdwave")
     SmsCard(listOf(Mark(amount until amount + 6, MarkStyle.SOFT), Mark(payee until SAMPLE_SMS.length, MarkStyle.SOFT)))
     Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
-        SmallIntroCard(R.drawable.ic_wifi_off_duotone, R.string.intro_no_internet, Modifier.weight(1f), -1f)
+        SmallIntroCard(R.drawable.ic_shield_check_duotone, R.string.intro_data_stays, Modifier.weight(1f), -1f)
         SmallIntroCard(R.drawable.ic_lock_duotone, R.string.intro_otps_skipped, Modifier.weight(1f), 1.5f)
     }
 }

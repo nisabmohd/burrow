@@ -451,7 +451,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onClose = { nav.popBackStack() },
                         )
                     }
-                    composable<AboutRoute> { AboutScreen(onBack = { nav.popBackStack() }, onLicences = { nav.navigate(LicencesRoute) }) }
+                    composable<AboutRoute> { AboutScreen(container.updates, onBack = { nav.popBackStack() }, onLicences = { nav.navigate(LicencesRoute) }) }
                     composable<LicencesRoute> { LicencesScreen(onBack = { nav.popBackStack() }) }
                     composable<WelcomeRoute> {
                         val vm = viewModel { WelcomeViewModel(container) }

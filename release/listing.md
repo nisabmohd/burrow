@@ -2,7 +2,7 @@
 
 **Title (≤ 30):** Burrow: Expense Tracker
 
-**Short description (≤ 80):** Money that tracks itself. Payments record from your bank SMS. Private, offline.
+**Short description (≤ 80):** Money that tracks itself. Payments record from your bank SMS. Your data stays.
 
 **Full description (≤ 4000):**
 
@@ -29,7 +29,7 @@ YOUR WAY
 • Light and dark themes, colours from your wallpaper, four fonts, English and Hindi.
 
 PRIVATE BY DESIGN
-• No internet permission: nothing can leave your phone.
+• Burrow never sends your data anywhere. Everything stays on your phone.
 • No account, no ads, no analytics.
 • Encrypted backups to a folder you choose. App lock with PIN or fingerprint.
 

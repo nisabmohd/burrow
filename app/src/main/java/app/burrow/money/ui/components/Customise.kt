@@ -102,12 +102,21 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
                             .clickable(role = Role.RadioButton) { haptics.tick(); onSelect(o.key) }
                             .padding(horizontal = Space.block, vertical = Space.block),
                     ) {
-                        Column(Modifier.align(Alignment.CenterStart)) {
-                            // Only the title shares its line with the check; the value gets the full width.
-                            Text(o.title, style = if (o.line != null) BurrowType.label else BurrowType.button, color = if (on) c.onPrimaryContainer else c.onSurface, maxLines = 1, modifier = Modifier.padding(end = if (on) Size.checkBadge else Space.grid))
-                            o.line?.let { Text(it, style = BurrowType.title, color = if (on) c.onPrimaryContainer else c.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        val fg = if (on) c.onPrimaryContainer else c.onSurface
+                        Column(Modifier.align(Alignment.CenterStart).fillMaxWidth()) {
+                            // The check sits on the title's line only; the value below gets the full
+                            // width and shrinks to fit instead of clipping ("1,240.00" in a third).
+                            Row(Modifier.fillMaxWidth().heightIn(min = Size.checkBadge), verticalAlignment = Alignment.CenterVertically) {
+                                Text(o.title, style = if (o.line != null) BurrowType.label else BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                CheckBadge(on)
+                            }
+                            o.line?.let {
+                                androidx.compose.foundation.text.BasicText(
+                                    it, style = BurrowType.title.copy(color = fg), maxLines = 1,
+                                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = BurrowType.label.fontSize, maxFontSize = BurrowType.title.fontSize),
+                                )
+                            }
                         }
-                        CheckBadge(on, Modifier.align(if (o.line != null) Alignment.TopEnd else Alignment.CenterEnd))
                     }
                 }
                 repeat(columns - row.size) { Box(Modifier.weight(1f)) }

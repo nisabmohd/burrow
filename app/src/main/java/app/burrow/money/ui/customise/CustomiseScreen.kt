@@ -58,7 +58,6 @@ import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Choice
 import app.burrow.money.ui.components.ChoiceTiles
-import app.burrow.money.ui.components.Chip
 import app.burrow.money.ui.components.DayStepper
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.ListGroup
@@ -117,16 +116,10 @@ fun CustomiseScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.customise))
-        // The tab chips scroll; the open tab is always brought into view.
-        val tabsState = androidx.compose.foundation.lazy.rememberLazyListState()
-        androidx.compose.runtime.LaunchedEffect(tab) { tabsState.animateScrollToItem((tab.ordinal - 1).coerceAtLeast(0)) }
-        androidx.compose.foundation.lazy.LazyRow(
-            Modifier.fillMaxWidth().padding(vertical = Space.small), state = tabsState,
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = Space.screen),
-            horizontalArrangement = Arrangement.spacedBy(Space.inline),
-        ) {
-            items(CustomiseTab.entries.size) { i -> val t = CustomiseTab.entries[i]; Chip(stringResource(t.label), t == tab, { tab = t }) }
-        }
+        // Same pills as Plan's tabs, scrolling: five don't fit one row.
+        app.burrow.money.ui.components.ScrollingButtonGroup(
+            CustomiseTab.entries, tab, { stringResource(it.label) }, { tab = it }, Modifier.padding(vertical = Space.small),
+        )
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { fadeThrough() }, label = "customiseTab") { t ->
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen)) {
                 val s = state ?: return@Column
