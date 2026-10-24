@@ -27,7 +27,6 @@ import app.burrow.money.ui.components.BurrowSheet
 import app.burrow.money.ui.components.BurrowSwitch
 import app.burrow.money.ui.components.Chevron
 import app.burrow.money.ui.components.ConfirmDialog
-import app.burrow.money.ui.components.DayStepper
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.ListGroup
 import app.burrow.money.ui.components.ListRow
@@ -66,40 +65,44 @@ fun MoreScreen(vm: MoreViewModel, onOpen: (MoreDest) -> Unit) {
             // What really records, not just the saved switches (On while Android blocks it was wrong).
             val capture = app.burrow.money.ui.capture.rememberCaptureStatus(st.smsCapture, st.notificationCapture)
             val captureOn = capture.anyOn
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+            // Tiles pair up; at large text each takes a row (157).
+            app.burrow.money.ui.components.PairRow(first = { m ->
                 StatusTile(
                     painterResource(R.drawable.ic_sms_duotone), 28f,
+                    // 53 / 147 / 148: On · "92% by itself", Needs access · "Tap to fix", Not set up · "Tap to turn on".
                     stringResource(
                         when (capture.tile) {
                             app.burrow.money.capture.CaptureStatus.Tile.ON -> R.string.on
-                            app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> R.string.paused
-                            app.burrow.money.capture.CaptureStatus.Tile.OFF -> R.string.off
+                            app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> R.string.needs_access
+                            app.burrow.money.capture.CaptureStatus.Tile.OFF -> R.string.not_set_up
                         },
                     ),
-                    stringResource(R.string.auto_capture), when {
-                        capture.tile == app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> stringResource(R.string.needs_access)
-                        !captureOn -> stringResource(R.string.not_set_up)
-                        s.trustPercent != null && s.capturedThisMonth > 0 -> stringResource(R.string.percent_by_itself, s.trustPercent)
-                        else -> stringResource(R.string.n_this_month, s.capturedThisMonth)
+                    stringResource(R.string.auto_capture), when (capture.tile) {
+                        app.burrow.money.capture.CaptureStatus.Tile.PAUSED -> stringResource(R.string.tap_to_fix)
+                        app.burrow.money.capture.CaptureStatus.Tile.OFF -> stringResource(R.string.tap_to_turn_on)
+                        else -> if (s.trustPercent != null && s.capturedThisMonth > 0) stringResource(R.string.percent_by_itself, s.trustPercent)
+                            else stringResource(R.string.n_this_month, s.capturedThisMonth)
                     },
-                    captureOn, { onOpen(MoreDest.CAPTURE) }, Modifier.weight(1f),
+                    captureOn, { onOpen(MoreDest.CAPTURE) }, m,
                 )
+            }) { m ->
                 StatusTile(
                     painterResource(R.drawable.ic_cloud_done_duotone), 215f, st.lastBackupAt?.let { dates.time(it) },
                     stringResource(R.string.backup), backupLine(st.backupSchedule, st.lastBackupAt),
-                    false, { onOpen(MoreDest.BACKUP) }, Modifier.weight(1f),
+                    false, { onOpen(MoreDest.BACKUP) }, m,
                 )
             }
-            Row(Modifier.padding(top = Space.block), horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+            app.burrow.money.ui.components.PairRow(Modifier.padding(top = Space.block), first = { m ->
                 StatusTile(
                     painterResource(R.drawable.ic_fingerprint_duotone), 140f, stringResource(if (st.appLock) R.string.on else R.string.off),
                     stringResource(R.string.app_lock), stringResource(if (st.appLock) R.string.pin_and_fingerprint else R.string.lock_off_line),
-                    st.appLock, { onOpen(MoreDest.LOCK) }, Modifier.weight(1f),
+                    st.appLock, { onOpen(MoreDest.LOCK) }, m,
                 )
+            }) { m ->
                 StatusTile(
                     painterResource(R.drawable.ic_palette_duotone), 275f, themeLabel(st.theme.mode),
                     stringResource(R.string.appearance), stringResource(R.string.dot_join, accentName(st.theme.accentHue, st.theme.dynamicColor), fontName(st.theme.font)),
-                    false, { onOpen(MoreDest.APPEARANCE) }, Modifier.weight(1f),
+                    false, { onOpen(MoreDest.APPEARANCE) }, m,
                 )
             }
             SectionHeader(stringResource(R.string.money))

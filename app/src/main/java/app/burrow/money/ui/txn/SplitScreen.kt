@@ -43,7 +43,6 @@ import app.burrow.money.domain.BudgetPeriod
 import app.burrow.money.domain.canSaveSplit
 import app.burrow.money.domain.splitRemaining
 import app.burrow.money.ui.LocalMoney
-import app.burrow.money.ui.components.AmountKeypadSheet
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
@@ -179,7 +178,6 @@ fun SplitScreen(vm: SplitViewModel, onClose: () -> Unit) {
     val digits = minorDigits(s.txn.txn.currency)
     var unit = 1L
     repeat(digits) { unit *= 10 }
-    val step = (s.total / 20 / unit * unit).coerceAtLeast(unit)
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose, title = stringResource(R.string.split_payment)) {
             BurrowButton(stringResource(R.string.save), {
@@ -214,22 +212,8 @@ fun SplitScreen(vm: SplitViewModel, onClose: () -> Unit) {
                         cat?.name.orEmpty(), i, n, supporting = stringResource(R.string.tap_to_change),
                         lead = { CategoryCircle(cat?.icon, cat?.colorHue) },
                         onClick = { picker = SplitPicker.Category(i) },
-                        trailing = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.less_for, cat?.name.orEmpty()), {
-                                    haptics.tick()
-                                    if (p.amount == 0L && s.parts.size > 1) vm.remove(i) else vm.setAmount(i, p.amount - step)
-                                })
-                                Text(
-                                    money.plain(p.amount), style = BurrowType.titleSmall, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                                    modifier = Modifier.widthIn(min = Size.iconButton * 1.5f).clip(Shapes.pill).padding(horizontal = Space.small)
-                                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { picker = SplitPicker.Amount(i) },
-                                )
-                                TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.more_for, cat?.name.orEmpty()), {
-                                    haptics.tick(); vm.setAmount(i, p.amount + step)
-                                })
-                            }
-                        },
+                        // The part's amount: a tappable value that opens the value sheet (95, no − / +).
+                        trailing = { app.burrow.money.ui.components.ValuePill(money.plain(p.amount), { picker = SplitPicker.Amount(i) }, stringResource(R.string.type_amount)) },
                     )
                 }
                 ListRow(
@@ -255,7 +239,13 @@ fun SplitScreen(vm: SplitViewModel, onClose: () -> Unit) {
         is SplitPicker.Category -> CategorySheet(s.categories, s.spentByCategory, s.parts.getOrNull(p.index)?.categoryId, { vm.setCategory(p.index, it.id); picker = null }, { picker = null })
         SplitPicker.NewPart -> CategorySheet(s.categories.filter { cat -> s.parts.none { it.categoryId == cat.id } }, s.spentByCategory, null, { vm.addPart(it.id, unit); picker = null }, { picker = null })
         is SplitPicker.Amount -> s.parts.getOrNull(p.index)?.let { part ->
-            AmountKeypadSheet(s.category(part.categoryId)?.name.orEmpty(), part.amount, digits, { vm.setAmount(p.index, it); picker = null }, { picker = null }, max = s.total)
+            app.burrow.money.ui.components.AmountSheet(
+                title = s.category(part.categoryId)?.name.orEmpty(), line = stringResource(R.string.split_part_line, money.plain(s.total)),
+                amount = part.amount, digits = digits, max = s.total,
+                onDone = { vm.setAmount(p.index, it); picker = null }, onDismiss = { picker = null },
+                // Removing a part lives here now that there is no − to take it to zero.
+                secondary = if (s.parts.size > 1) stringResource(R.string.remove_part) to { vm.remove(p.index); picker = null } else null,
+            )
         }
         null -> Unit
     }

@@ -208,3 +208,10 @@ fun LetterCircle(letter: String, modifier: Modifier = Modifier) {
         Text(letter, style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/** A currency as a circle with its symbol ("$", "€", "AE" for AED): Add a currency (139), other currencies (83). */
+@Composable
+fun CurrencyCircle(code: String, modifier: Modifier = Modifier) {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    LetterCircle(app.burrow.money.domain.MoneyFormat.symbolFor(code, locale).take(2), modifier)
+}

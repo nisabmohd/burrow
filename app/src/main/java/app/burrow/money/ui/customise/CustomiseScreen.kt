@@ -58,7 +58,6 @@ import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Choice
 import app.burrow.money.ui.components.ChoiceTiles
-import app.burrow.money.ui.components.DayStepper
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.ListGroup
 import app.burrow.money.ui.components.ListRow
@@ -116,9 +115,9 @@ fun CustomiseScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.customise))
-        // Same pills as Plan's tabs, scrolling: five don't fit one row.
-        app.burrow.money.ui.components.ScrollingButtonGroup(
-            CustomiseTab.entries, tab, { stringResource(it.label) }, { tab = it }, Modifier.padding(vertical = Space.small),
+        // Pill tabs like Plan's, scrolling: five don't fit one row (80).
+        app.burrow.money.ui.components.PillTabs(
+            CustomiseTab.entries, tab, { stringResource(it.label) }, { tab = it }, Modifier.padding(vertical = Space.small), scrolling = true,
         )
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { fadeThrough() }, label = "customiseTab") { t ->
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen)) {
@@ -359,7 +358,7 @@ private fun CurrencyTab(vm: CustomiseViewModel, settings: Settings, s: Customise
                 stringResource(R.string.rate_row, r.currency, mainFmt.symbolOnly() + r.perPrimary.toBigDecimal().setScale(2, java.math.RoundingMode.HALF_EVEN).toPlainString()),
                 i, rates.size + 1,
                 supporting = stringResource(R.string.dot_join, currencyName(r.currency, locale), stringResource(R.string.set_on, dates.shortDay(dates.date(r.setAt)))),
-                lead = { IconCircle(painterResource(currencyIcon(r.currency))) },
+                lead = { app.burrow.money.ui.components.CurrencyCircle(r.currency) },
                 onClick = { onRate(r.currency) },
             )
         }
@@ -372,22 +371,18 @@ private fun MoneyFormat.symbolOnly() = plain(0).filter { !it.isDigit() && it != 
 fun currencyName(code: String, locale: java.util.Locale) =
     runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(code).replaceFirstChar { it.uppercase() }
 
-/** Month starts on: the DayStepper sheet (68), moved here from More. */
+/** Month starts on (68): the day value sheet, quick days, the period it makes. */
 @Composable
 private fun MonthStartSheet(day0: Int, onDone: (Int) -> Unit, onDismiss: () -> Unit) {
     val dates = rememberDateText()
-    var day by rememberSaveable { mutableIntStateOf(day0) }
-    val period = app.burrow.money.domain.BudgetPeriod.containing(LocalDate.now(), day)
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.month_starts_on), onDismiss, stringResource(R.string.month_starts_line))
-        DayStepper(
-            day = day, onDay = { day = it }, quick = listOf(1, 5, 7, 25),
-            resultLine = "${dates.shortDay(period.start)} – ${dates.shortDay(period.endExclusive.minusDays(1))}",
-            minus = painterResource(R.drawable.ic_remove_regular), minusLabel = stringResource(R.string.key_minus),
-            plus = painterResource(R.drawable.ic_add_regular), plusLabel = stringResource(R.string.key_plus),
-            onDone = { onDone(day) }, doneLabel = stringResource(R.string.done), ordinal = dates::ordinal,
-        )
-    }
+    app.burrow.money.ui.components.DaySheet(
+        title = stringResource(R.string.month_starts_on), line = stringResource(R.string.month_starts_line),
+        day = day0, onDone = onDone, onDismiss = onDismiss, ordinal = dates::ordinal, quick = listOf(1, 5, 7, 25),
+        result = { d ->
+            val period = app.burrow.money.domain.BudgetPeriod.containing(LocalDate.now(), d)
+            "${dates.shortDay(period.start)} – ${dates.shortDay(period.endExclusive.minusDays(1))}"
+        },
+    )
 }
 
 /** A plain pick-one sheet (swipe actions). */
@@ -398,32 +393,35 @@ private fun OptionSheet(title: String, options: List<Pair<String, Int>>, selecte
         SheetBody {
             ListGroup {
                 options.forEachIndexed { i, (key, label) ->
-                    ListRow(stringResource(label), i, options.size, selected = key == selected, onClick = { onPick(key) })
+                    app.burrow.money.ui.components.PickRow(stringResource(label), i, options.size, key == selected, { onPick(key) })
                 }
             }
         }
     }
 }
 
-/** Add a currency: every currency but the main one and those with a rate, searchable. */
+/**
+ * Add a currency (139): search, then every currency (common ones first) with its symbol in a circle;
+ * the ones you already have a rate for show the round check. A tap opens its rate (84).
+ */
 @Composable
 private fun AddCurrencySheet(main: String, have: Set<String>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     var query by rememberSaveable { mutableStateOf("") }
-    val common = listOf("USD", "EUR", "GBP", "AED", "SGD", "INR", "JPY", "AUD", "CAD", "CHF", "SAR", "CNY")
-    val all = (common + java.util.Currency.getAvailableCurrencies().map { it.currencyCode }.sorted()).distinct()
-        .filter { it != main && it !in have }
+    val common = listOf("USD", "EUR", "GBP", "AED", "SGD", "JPY", "AUD", "CAD", "CHF", "SAR", "CNY", "INR")
+    val all = (have.sorted() + common + java.util.Currency.getAvailableCurrencies().map { it.currencyCode }.sorted()).distinct()
+        .filter { it != main }
         .filter { query.isBlank() || it.contains(query, true) || currencyName(it, locale).contains(query, true) }
         .take(40)
     BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.add_currency), onDismiss)
+        SheetHeader(stringResource(R.string.add_currency), onDismiss, stringResource(R.string.add_currency_line))
         SheetBody {
             PillTextField(query, { query = it }, stringResource(R.string.search_currencies), leading = painterResource(R.drawable.ic_search_regular), clearLabel = stringResource(R.string.clear))
             ListGroup {
                 all.forEachIndexed { i, code ->
-                    ListRow(
-                        currencyName(code, locale), i, all.size, supporting = "$code · ${MoneyFormat.symbolFor(code, locale)}",
-                        lead = { IconCircle(painterResource(currencyIcon(code))) }, onClick = { onPick(code) },
+                    app.burrow.money.ui.components.PickRow(
+                        currencyName(code, locale), i, all.size, code in have, { onPick(code) }, supporting = code,
+                        lead = { app.burrow.money.ui.components.CurrencyCircle(code) },
                     )
                 }
             }
@@ -431,40 +429,22 @@ private fun AddCurrencySheet(main: String, have: Set<String>, onPick: (String) -
     }
 }
 
-/** 1 USD in ₹ (84): − / + by 0.10, or type it. Saved per currency; each transaction keeps its own. */
+/** 1 USD in ₹ (84): the value sheet, typed. Saved per currency; each transaction keeps its own. */
 @Composable
 private fun RateSheet(code: String, main: String, current: app.burrow.money.data.RateEntity?, onSave: (String) -> Unit, onRemove: () -> Unit, onDismiss: () -> Unit) {
-    val c = MaterialTheme.colorScheme
     val locale = LocalConfiguration.current.locales[0]
     val dates = rememberDateText()
     var text by rememberSaveable { mutableStateOf(current?.perPrimary?.toBigDecimal()?.setScale(2, java.math.RoundingMode.HALF_EVEN)?.toPlainString() ?: "1.00") }
+    var fresh by rememberSaveable { mutableStateOf(true) }
     val sym = MoneyFormat.symbolFor(main, locale)
     val valid = Fx.parseRate(text)
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.rate_title, code, sym), onDismiss, stringResource(R.string.rate_sheet_line))
-        SheetBody {
-            Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
-                TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { text = Fx.step(text, up = false) })
-                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Text(sym, style = BurrowType.display, color = c.onSurface)
-                    BasicTextField(
-                        text, { t -> text = t.filter { it.isDigit() || it == '.' || it == ',' }.take(12) },
-                        textStyle = BurrowType.display.copy(color = c.onSurface, textAlign = TextAlign.Start),
-                        singleLine = true, cursorBrush = SolidColor(c.primary),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.width(IntrinsicSize.Min),
-                    )
-                }
-                TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { text = Fx.step(text, up = true) })
-            }
-            Text(
-                current?.let { stringResource(R.string.rate_note, dates.shortDay(dates.date(it.setAt))) } ?: stringResource(R.string.rate_note_new),
-                style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        SheetFooter {
-            if (current != null) BurrowButton(stringResource(R.string.remove), onRemove, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
-            BurrowButton(stringResource(R.string.save), { valid?.let(onSave) }, Modifier.weight(1f), if (valid != null) ButtonKind.FILLED else ButtonKind.OFF, height = Size.buttonBottom)
-        }
-    }
+    app.burrow.money.ui.components.ValueSheet(
+        title = stringResource(R.string.rate_title, code, sym), line = stringResource(R.string.rate_sheet_line),
+        value = sym + text.ifEmpty { "0" },
+        onKey = { key -> text = app.burrow.money.ui.components.typeRate(if (fresh && key != app.burrow.money.ui.components.Key.Backspace) "" else text, key); fresh = false },
+        below = current?.let { stringResource(R.string.rate_note, dates.shortDay(dates.date(it.setAt))) } ?: stringResource(R.string.rate_note_new),
+        confirm = stringResource(R.string.save), confirmEnabled = valid != null,
+        onConfirm = { valid?.let(onSave) }, onDismiss = onDismiss,
+        secondary = if (current != null) stringResource(R.string.remove) to onRemove else null,
+    )
 }

@@ -1,5 +1,6 @@
 package app.burrow.money.ui.teach
 
+import app.burrow.money.ui.components.MessageCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -72,8 +70,8 @@ class MissedViewModel(private val capture: CaptureRepository) : ViewModel() {
 }
 
 /**
- * Messages not understood: the same cards as To review (44), one per message — who sent it and
- * when, ✕ to ignore, the message, and a Teach chip. Swipe right teaches, left ignores (Undo).
+ * Not understood (116, 117): the same card as To review (44) — who sent it and when, ✕ to ignore
+ * (Undo), the message, a full-width tonal Teach button. No swipe (C2). Empty: Nothing to teach.
  */
 @Composable
 fun MissedScreen(vm: MissedViewModel, onBack: () -> Unit, onTeach: (Long) -> Unit) {
@@ -102,59 +100,22 @@ fun MissedScreen(vm: MissedViewModel, onBack: () -> Unit, onTeach: (Long) -> Uni
             }
             items(items, key = { it.id }) { m ->
                 val ignore = { vm.ignore(m.id) { undo -> snackbar.show(context.getString(R.string.ignored), undo) } }
-                val swipe = rememberSwipeToDismissBoxState(confirmValueChange = { v ->
-                    when (v) {
-                        SwipeToDismissBoxValue.StartToEnd -> { haptics.confirm(); onTeach(m.id); false }
-                        SwipeToDismissBoxValue.EndToStart -> { haptics.threshold(); ignore(); true }
-                        else -> false
-                    }
-                })
-                SwipeToDismissBox(swipe, modifier = Modifier.animateItem(), backgroundContent = { SwipeHint(swipe.dismissDirection) }) {
-                    MissedCard(m, onTeach = { onTeach(m.id) }, onIgnore = { ignore() })
-                }
+                MissedCard(m, Modifier.animateItem(), onTeach = { onTeach(m.id) }, onIgnore = { ignore() })
             }
         }
     }
 }
 
 @Composable
-private fun MissedCard(m: CaptureEntity, onTeach: () -> Unit, onIgnore: () -> Unit) {
-    val c = MaterialTheme.colorScheme
+private fun MissedCard(m: CaptureEntity, modifier: Modifier, onTeach: () -> Unit, onIgnore: () -> Unit) {
     val dates = rememberDateText()
-    val teach = stringResource(R.string.teach)
-    val ignore = stringResource(R.string.ignore)
     val from = if (m.source == "SMS") senderName(m.sender) else m.sender.substringAfterLast('.')
     val day = dates.day(dates.date(m.receivedAt)).let { d -> if (d == stringResource(R.string.today)) dates.time(m.receivedAt) else d }
-    Column(
-        Modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(Space.card)
-            .semantics { customActions = listOf(CustomAccessibilityAction(teach) { onTeach(); true }, CustomAccessibilityAction(ignore) { onIgnore(); true }) },
-        verticalArrangement = Arrangement.spacedBy(Space.block),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
-            IconCircle(painterResource(if (m.source == "SMS") R.drawable.ic_sms_duotone else R.drawable.ic_notifications_duotone))
-            Column(Modifier.weight(1f)) {
-                Text(from, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(day, style = BurrowType.body, color = c.onSurfaceVariant)
-            }
-            TonalIconButton(painterResource(R.drawable.ic_close_regular), ignore, onIgnore)
-        }
-        MessageBox(from, m.body, emptyList())
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
-            Chip(teach, false, onTeach, icon = painterResource(R.drawable.ic_school_regular))
-        }
-    }
-}
-
-/** Under a card being swiped: teach (right) or ignore (left). */
-@Composable
-private fun SwipeHint(direction: SwipeToDismissBoxValue) {
-    if (direction == SwipeToDismissBoxValue.Settled) return
-    val c = MaterialTheme.colorScheme
-    val teaching = direction == SwipeToDismissBoxValue.StartToEnd
-    Box(
-        Modifier.fillMaxSize().clip(Shapes.surface).background(if (teaching) c.primaryContainer else c.surfaceContainerHigh).padding(horizontal = Space.sheet),
-        contentAlignment = if (teaching) Alignment.CenterStart else Alignment.CenterEnd,
-    ) {
-        Icon(painterResource(if (teaching) R.drawable.ic_school_regular else R.drawable.ic_close_regular), null, tint = if (teaching) c.onPrimaryContainer else c.onSurfaceVariant)
-    }
+    MessageCard(
+        lead = { IconCircle(painterResource(if (m.source == "SMS") R.drawable.ic_sms_duotone else R.drawable.ic_notifications_duotone)) },
+        title = m.sender.ifBlank { from }, line = day,
+        ignoreLabel = stringResource(R.string.ignore), onIgnore = onIgnore,
+        button = stringResource(R.string.teach), buttonIcon = painterResource(R.drawable.ic_hand_tap_regular), onButton = onTeach,
+        modifier = modifier,
+    ) { MessageBox(null, m.body, emptyList()) }
 }

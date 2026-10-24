@@ -14,7 +14,9 @@ three weights each: `ic_<name>_regular.xml`, `ic_<name>_fill.xml`, `ic_<name>_du
 
 Tint every icon (`tint =`): the files are white so one drawable serves every colour.
 Never mix icon sets. Never draw an icon with emoji. A new icon: take it from Phosphor, convert the same way
-(paths only, viewport 256, `fillAlpha` for duotone opacity), name it by meaning (`ic_<meaning>_<weight>`).
+(paths only, viewport 256, `fillAlpha` for duotone opacity), name it by meaning (`ic_<meaning>_<weight>`):
+`python3 tools/phosphor_icon.py <meaning> <PhosphorName> <path to @phosphor-icons/react>` writes all three weights.
+Added 2026-10-24: `ic_hand_tap_*` (Phosphor HandTap) — the Teach button on Not understood (116).
 
 ## Names (design name → Phosphor icon)
 | Name in the design | Phosphor |

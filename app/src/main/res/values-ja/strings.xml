@@ -199,7 +199,7 @@
     <string name="add_a_rule">ルールを追加</string>
     <string name="add_a_rule_line">新しいメッセージ形式をアプリに教えます</string>
     <string name="paste_message">メッセージを貼り付け</string>
-    <string name="paste_message_line">次に金額と支払先をタップ</string>
+    <string name="paste_message_line">その中の金額と支払先をタップします</string>
     <string name="from_not_understood">読み取れなかったメッセージから</string>
     <plurals name="n_waiting">
         <item quantity="other">%d 件待機中</item>
@@ -215,8 +215,8 @@
     <string name="rules_bad_file">このファイルには使えないルールが含まれています</string>
     <string name="rules_shared">ルールファイルを保存しました</string>
     <string name="message">メッセージ</string>
-    <string name="message_hint">銀行のメッセージを貼り付け</string>
-    <string name="sender_hint">送信元（例: AX-KOTAKB）</string>
+    <string name="message_hint">銀行のメッセージをここに貼り付け</string>
+    <string name="sender_hint">HDFCBK、VM-DBSBNK…</string>
     <string name="continue_">続ける</string>
 
     <string name="rule_from">送信元: %1$s</string>
@@ -233,7 +233,7 @@
     <string name="message_language">メッセージの言語</string>
     <string name="number_style">数字の書式</string>
     <string name="test_it">テスト</string>
-    <string name="test_hint">任意のメッセージを貼り付け</string>
+    <string name="test_hint">テストするメッセージを貼り付け</string>
     <string name="test_reads">%1$s を読み取りました</string>
     <string name="test_reads_to">%2$s への %1$s を読み取りました</string>
     <string name="test_no">このルールでは読み取れません</string>
@@ -245,9 +245,9 @@
 
     <string name="teach_title">メッセージを教える</string>
     <string name="teach_amount">メッセージ内の&lt;b&gt;金額&lt;/b&gt;をタップしてください。</string>
-    <string name="teach_payee">&lt;b&gt;支払先&lt;/b&gt;をタップするか、スキップしてください。</string>
-    <string name="teach_account">&lt;b&gt;口座&lt;/b&gt;をタップするか、スキップしてください。</string>
-    <string name="teach_done">よろしければルールを保存してください。</string>
+    <string name="teach_payee">&lt;b&gt;支払先&lt;/b&gt;をタップするか、&lt;a href="skip"&gt;スキップ&lt;/a&gt;してください。</string>
+    <string name="teach_account">&lt;b&gt;口座&lt;/b&gt;をタップするか、&lt;a href="skip"&gt;スキップ&lt;/a&gt;してください。</string>
+    <string name="teach_done">完了です。今後、このようなメッセージは読み取られます。</string>
     <string name="not_picked">未選択</string>
     <string name="not_an_amount">金額ではありません</string>
     <string name="skip">スキップ</string>
@@ -389,12 +389,12 @@
     <string name="delete_goal_title">この目標を削除しますか？</string>
     <string name="delete_goal_text">入金したお金は口座の履歴に残ります。</string>
     <string name="new_goal">新しい目標</string>
-    <string name="goal_name_hint">日本旅行、新しいパソコン…</string>
+    <string name="goal_name_hint">旅行、ノートPC、緊急資金…</string>
     <string name="target">目標額</string>
     <string name="by_when">期限</string>
     <string name="no_date">期限なし</string>
     <string name="icon">アイコン</string>
-    <string name="goal_cant_save">保存するには名前と目標額を入力してください。</string>
+    <string name="goal_cant_save">保存するには名前と目標額を入力</string>
 
     <string name="add_account">口座を追加</string>
     <string name="net_worth">純資産</string>
@@ -686,15 +686,13 @@
     <string name="restore_from_file">別のファイルから復元</string>
     <string name="backup_explain">バックアップはパスワードで暗号化され、選んだフォルダー（クラウドアプリが同期するフォルダーなど）に保存されます。Burrow が何かをアップロードすることはありません。</string>
     <string name="backup_password">バックアップのパスワード</string>
-    <string name="backup_password_line">6 文字以上。これがないとバックアップは開けません。私たちにも開けません。</string>
+    <string name="backup_password_line">復元に必要です。忘れると取り戻せません。</string>
     <string name="password">パスワード</string>
     <string name="password_again">パスワード（確認）</string>
     <string name="passwords_differ">パスワードが一致しません</string>
     <string name="password_short">6 文字以上</string>
     <string name="password_saved">パスワードを保存しました</string>
-    <string name="enter_backup_password">バックアップのパスワードを入力</string>
-    <string name="wrong_password_title">パスワードが違います</string>
-    <string name="wrong_password_text">このパスワードではバックアップを開けません。</string>
+    <string name="enter_backup_password">バックアップ用に設定したパスワード</string>
     <string name="try_again">再試行</string>
     <string name="not_a_backup">このファイルは Burrow のバックアップではありません</string>
     <string name="replace_title">すべて置き換えますか？</string>
@@ -712,12 +710,12 @@
         <item quantity="other">%1$d 件の取引を追加しました</item>
     </plurals>
 
-    <string name="version_build">バージョン %1$s (%2$d)</string>
+    <string name="version_build">バージョン %1$s · ビルド %2$d</string>
     <string name="source_code">ソースコード</string>
-    <string name="source_code_line">無料・オープンソース、GPL-3.0</string>
+    <string name="source_code_line">無料・オープンソース · GPL v3</string>
     <string name="data_stays">データはあなたのもの</string>
-    <string name="data_stays_line">Burrow はデータをどこにも送りません</string>
-    <string name="rate">Google Play で評価</string>
+    <string name="data_stays_line">Burrow はどこにも送りません</string>
+    <string name="rate">Play ストアで評価</string>
     <string name="report_problem">問題を報告</string>
     <string name="licences">ライセンス</string>
 
@@ -1033,7 +1031,7 @@
     <plurals name="trust_line">
         <item quantity="other">今月の支払い %2$d 件中 %1$d 件 · 手入力 %3$d 件</item>
     </plurals>
-    <string name="percent_by_itself">%1$d%% を自動で記録</string>
+    <string name="percent_by_itself">%1$d%% 自動</string>
     <string name="from_senders">%1$s から</string>
     <plurals name="teach_missed">
         <item quantity="other">見逃したメッセージ %d 件を教える</item>
@@ -1072,7 +1070,6 @@
     <string name="attach_receipt">レシートを添付</string>
     <string name="receipt">レシート</string>
     <string name="close_keypad">キーパッドを閉じる</string>
-    <string name="made_by">制作: mid apps</string>
     <!-- Calm pass (2026-10-23) -->
     <string name="type_transfer_line">口座間の移動 · 支出ではありません</string>
     <string name="repeat_or_lend">繰り返し・貸し借り</string>
@@ -1113,10 +1110,10 @@
     <plurals name="activity_summary_line">
         <item quantity="other">%d 件の取引 · 過去 14 日</item>
     </plurals>
-    <string name="not_understood_title">読み取れなかったメッセージ</string>
-    <string name="not_understood_line">一度教えれば、その銀行の他のメッセージも読み取れます。支払いでなければ無視してください。</string>
+    <string name="not_understood_title">読み取れなかったもの</string>
+    <string name="not_understood_line">支払いのようですが、どのルールでも読み取れませんでした。一度教えれば、似たメッセージはそれ以降読み取られます。</string>
     <string name="nothing_to_teach">教えるものはありません</string>
-    <string name="nothing_to_teach_line">金額があるのにルールで読み取れなかったメッセージがここに表示されます。</string>
+    <string name="nothing_to_teach_line">アプリが読み取れないメッセージがここに表示されます。</string>
     <string name="teach">教える</string>
     <string name="capture_off_title">自動記録はオフです</string>
     <string name="capture_off_line">銀行 SMS か支払いアプリをオンにすると支払いが自動で記録されます</string>
@@ -1137,9 +1134,47 @@
     <string name="install">インストール</string>
     <string name="downloading">ダウンロード中…</string>
     <string name="downloading_percent">ダウンロード中… %1$d%%</string>
-    <string name="allow_installs_hint">Burrow にアプリのインストールを許可してから、インストールをタップしてください</string>
-    <string name="update_failed">ダウンロードが完了しませんでした</string>
+    <string name="allow_installs_hint">Burrow にアプリのインストールを許可してから、インストールをタップしてください。</string>
+    <string name="update_failed">ダウンロードが完了しませんでした。</string>
     <string name="open_release_page">リリースページを開く</string>
     <string name="paused">一時停止中</string>
     <string name="needs_access">アクセスが必要</string>
+    <string name="built_in_pack_line">ルール · 組み込み · 閲覧のみ</string>
+    <string name="use_this_pack">このパックを使う</string>
+    <string name="rules_in_pack">このパックのルール</string>
+    <string name="rename_rule">ルール名を変更</string>
+    <string name="rule_name_hint">HDFC カード、給与…</string>
+    <string name="money_in_or_out">入金か出金か</string>
+    <string name="teach_direction">&lt;b&gt;入金か出金か&lt;/b&gt;を示す語（入金、引き落とし）をタップするか、&lt;a href="skip"&gt;スキップ&lt;/a&gt;します。</string>
+    <string name="when_you_paid">支払った時刻</string>
+    <string name="am">午前</string>
+    <string name="pm">午後</string>
+    <string name="type_an_amount">金額を入力</string>
+    <string name="fix_balance_shows">%1$s · アプリの表示 %2$s</string>
+    <string name="your_bank_shows">銀行の表示</string>
+    <string name="fix_less">アプリより %1$s 少ない · %2$s の調整を1件</string>
+    <string name="fix_more">アプリより %1$s 多い · %2$s の調整を1件</string>
+    <string name="fix_same">アプリと同じ</string>
+    <string name="pay_card_bill">カードの請求を支払う</string>
+    <string name="pay_card_line">%1$s · 明細 %2$s</string>
+    <string name="statement_chip">明細 %1$s</string>
+    <string name="emi_line">%1$s · 返済 %2$d / %3$d 回</string>
+    <string name="emi_chip">返済額 %1$s</string>
+    <string name="split_part_line">合計 %1$s のうち</string>
+    <string name="remove_part">この分を削除</string>
+    <string name="tap_to_fix">タップして修正</string>
+    <string name="tap_to_turn_on">タップしてオン</string>
+    <string name="who_sent_it">送信者</string>
+    <string name="rename_rule_line">ルール一覧に表示されます</string>
+    <string name="teach_fix">もう一度金額をタップしてください。</string>
+    <string name="category_for_payment">この支払いのカテゴリ</string>
+    <string name="use_for_messages_like_this">同様のメッセージに使う</string>
+    <string name="test_help">%1$s からのメッセージを貼り付けると、読み取る部分が強調されます。</string>
+    <string name="licences_line">Burrow と使用しているもの</string>
+    <string name="licences_app">アプリ</string>
+    <string name="licences_libraries">ライブラリ</string>
+    <string name="licences_icons_fonts">アイコンとフォント</string>
+    <string name="enter_backup_password_title">バックアップのパスワードを入力</string>
+    <string name="wrong_password_again">パスワードが違います。もう一度お試しください。</string>
+    <string name="add_currency_line">レートは自分で入力します。Burrow が調べることはありません</string>
 </resources>

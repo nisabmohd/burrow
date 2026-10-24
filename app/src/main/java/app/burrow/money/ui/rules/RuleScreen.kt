@@ -1,5 +1,12 @@
 package app.burrow.money.ui.rules
 
+import app.burrow.money.ui.components.BurrowSheet
+import app.burrow.money.ui.components.SheetFooter
+import app.burrow.money.ui.components.SheetHeader
+import app.burrow.money.ui.components.SheetBody
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,9 +62,13 @@ fun RuleScreen(vm: RuleViewModel, onBack: () -> Unit) {
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val example = rule.example?.let { vm.read(rule, it) }
+    var renaming by rememberSaveable { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack)
+        ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack) {
+            // Your rules can be named ("HDFC card", "Salary"); built-in ones keep the pack's names.
+            if (rule.userMade) app.burrow.money.ui.components.TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.rename_rule), { renaming = true })
+        }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
         ) {
@@ -82,7 +93,8 @@ fun RuleScreen(vm: RuleViewModel, onBack: () -> Unit) {
             }
             SectionHeader(stringResource(R.string.test_it))
             Column(verticalArrangement = Arrangement.spacedBy(Space.block)) {
-                PillTextField(test, vm::setTest, stringResource(R.string.test_hint), clearLabel = stringResource(R.string.clear))
+                PillTextField(test, vm::setTest, stringResource(R.string.test_hint), leading = painterResource(R.drawable.ic_content_paste_regular), clearLabel = stringResource(R.string.clear))
+                if (test.isBlank()) Text(stringResource(R.string.test_help, senderLabel(rule)), style = BurrowType.body, color = c.onSurfaceVariant, modifier = Modifier.padding(horizontal = Space.grid))
                 if (test.isNotBlank()) {
                     val p = vm.read(rule, test)
                     MessageBox(stringResource(R.string.message), test, marksFor(p?.spans.orEmpty()))
@@ -112,10 +124,34 @@ fun RuleScreen(vm: RuleViewModel, onBack: () -> Unit) {
             } else {
                 Text(
                     stringResource(R.string.built_in_rule, stringResource(R.string.pack_india)),
-                    style = BurrowType.body, color = c.onSurfaceVariant,
-                    modifier = Modifier.padding(top = Space.sectionTop, start = Space.grid),
+                    style = BurrowType.body, color = c.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = Space.sectionTop),
                 )
             }
+        }
+    }
+    if (renaming) RenameRuleSheet(rule.name, onDismiss = { renaming = false }) { vm.rename(it); renaming = false }
+}
+
+/** Rename one of your rules: one field, Save (off while blank). */
+@Composable
+private fun RenameRuleSheet(current: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    var name by rememberSaveable { mutableStateOf(current) }
+    val ok = name.isNotBlank()
+    app.burrow.money.ui.components.BurrowSheet(onDismiss) {
+        SheetHeader(stringResource(R.string.rename_rule), onDismiss, stringResource(R.string.rename_rule_line))
+        SheetBody {
+            PillTextField(
+                name, { name = it.take(app.burrow.money.data.RULE_NAME_MAX) }, stringResource(R.string.rule_name_hint),
+                leading = painterResource(R.drawable.ic_edit_regular), clearLabel = stringResource(R.string.clear),
+                onDone = { if (ok) onSave(name) },
+            )
+        }
+        app.burrow.money.ui.components.SheetFooter {
+            BurrowButton(
+                stringResource(R.string.save), { if (ok) onSave(name) }, Modifier.fillMaxWidth(),
+                kind = if (ok) ButtonKind.FILLED else ButtonKind.OFF, height = app.burrow.money.ui.theme.Size.buttonBottom,
+            )
         }
     }
 }

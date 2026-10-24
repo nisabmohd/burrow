@@ -30,6 +30,10 @@ class RulesViewModel(private val capture: CaptureRepository, private val setting
         RulesState(mine, uses, BUILT_IN_PACKS.map { PackRow(it.id, capture.pack(it.id)?.rules?.size ?: 0, it.id in s.enabledPacks) }, waiting)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** A built-in pack's rules and how many payments each has read (the pack screen). */
+    val packUses: StateFlow<Map<String, Int>> = capture.packRuleUses.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+    fun packRules(id: String): List<Rule> = capture.pack(id)?.rules.orEmpty()
+
     fun setEnabled(id: String, on: Boolean) = viewModelScope.launch { capture.setRuleEnabled(id, on) }
     fun setPack(id: String, on: Boolean) = viewModelScope.launch { settings.setPackEnabled(id, on) }
 

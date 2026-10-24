@@ -168,13 +168,16 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
     }
 
     /** Card Pay bill / loan Prepay: a transfer from [from] into this account. */
-    fun payIn(from: Long, amount: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+    /** A transfer into this card or loan from [from], on [day] (now, if today). */
+    fun payIn(from: Long, amount: Long, day: java.time.LocalDate = java.time.LocalDate.now(), onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
         val s = state.value ?: return@launch
         val now = System.currentTimeMillis()
+        val at = if (day == java.time.LocalDate.now()) now
+            else day.atTime(java.time.LocalTime.NOON).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
         val txnId = money.save(
             TxnEntity(
                 type = TxnType.TRANSFER, amount = amount, currency = s.account.currency, baseAmount = amount, accountId = from, toAccountId = id,
-                isSample = s.account.isSample, at = now, createdAt = now, updatedAt = now,
+                isSample = s.account.isSample, at = at, createdAt = now, updatedAt = now,
             ),
         )
         onDone { money.delete(txnId) }

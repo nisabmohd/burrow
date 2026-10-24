@@ -215,7 +215,7 @@
     <string name="add_a_rule">Adicionar uma regra</string>
     <string name="add_a_rule_line">Ensine ao app um novo formato de mensagem</string>
     <string name="paste_message">Colar uma mensagem</string>
-    <string name="paste_message_line">Depois toque no valor e no favorecido</string>
+    <string name="paste_message_line">Depois toque no valor e no destinatário</string>
     <string name="from_not_understood">De mensagens não entendidas</string>
     <plurals name="n_waiting">
         <item quantity="one">%d esperando</item>
@@ -235,8 +235,8 @@
     <string name="rules_bad_file">Este arquivo tem uma regra que não pode ser usada</string>
     <string name="rules_shared">Arquivo de regras salvo</string>
     <string name="message">Mensagem</string>
-    <string name="message_hint">Cole a mensagem do banco</string>
-    <string name="sender_hint">Quem enviou, como AX-KOTAKB</string>
+    <string name="message_hint">Cole aqui a mensagem do banco</string>
+    <string name="sender_hint">HDFCBK, VM-DBSBNK…</string>
     <string name="continue_">Continuar</string>
 
     <string name="rule_from">De %1$s</string>
@@ -253,7 +253,7 @@
     <string name="message_language">Idioma da mensagem</string>
     <string name="number_style">Formato dos números</string>
     <string name="test_it">Testar</string>
-    <string name="test_hint">Cole qualquer mensagem</string>
+    <string name="test_hint">Cole uma mensagem para testar</string>
     <string name="test_reads">Lê %1$s</string>
     <string name="test_reads_to">Lê %1$s para %2$s</string>
     <string name="test_no">Esta regra não lê</string>
@@ -265,9 +265,9 @@
 
     <string name="teach_title">Ensinar uma mensagem</string>
     <string name="teach_amount">Toque no &lt;b&gt;valor&lt;/b&gt; na mensagem.</string>
-    <string name="teach_payee">Toque em &lt;b&gt;para quem você pagou&lt;/b&gt;, ou pule.</string>
-    <string name="teach_account">Toque na &lt;b&gt;conta&lt;/b&gt;, ou pule.</string>
-    <string name="teach_done">Parece certo? Salve a regra.</string>
+    <string name="teach_payee">Toque em &lt;b&gt;para quem você pagou&lt;/b&gt;, ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
+    <string name="teach_account">Toque na &lt;b&gt;conta&lt;/b&gt;, ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
+    <string name="teach_done">Pronto. Mensagens como esta serão lidas a partir de agora.</string>
     <string name="not_picked">Ainda não escolhido</string>
     <string name="not_an_amount">Isso não é um valor</string>
     <string name="skip">Pular</string>
@@ -427,12 +427,12 @@
     <string name="delete_goal_title">Excluir esta meta?</string>
     <string name="delete_goal_text">O dinheiro que você adicionou fica no histórico das suas contas.</string>
     <string name="new_goal">Nova meta</string>
-    <string name="goal_name_hint">Viagem ao Japão, notebook novo…</string>
+    <string name="goal_name_hint">Viagem, notebook, reserva de emergência…</string>
     <string name="target">Objetivo</string>
     <string name="by_when">Até quando</string>
     <string name="no_date">Sem data</string>
     <string name="icon">Ícone</string>
-    <string name="goal_cant_save">Adicione um nome e um objetivo para salvar.</string>
+    <string name="goal_cant_save">Adicione um nome e uma meta para salvar</string>
 
     <string name="add_account">Adicionar conta</string>
     <string name="net_worth">Patrimônio</string>
@@ -665,7 +665,7 @@
     <string name="delete_category_title">Excluir esta categoria?</string>
     <string name="delete_category_text">As transações e contas dela vão para Outros. O orçamento dela é removido.</string>
 
-    <string name="search_currencies">Buscar moedas</string>
+    <string name="search_currencies">Buscar moeda</string>
     <string name="your_region">da sua região</string>
     <string name="from_your_region">%1$s · da sua região</string>
     <string name="currency_note">Totais e orçamentos usam esta. As contas mantêm a própria moeda.</string>
@@ -748,15 +748,13 @@
     <string name="restore_from_file">Restaurar de outro arquivo</string>
     <string name="backup_explain">Os backups são criptografados com sua senha e salvos na pasta que você escolher, como uma sincronizada pelo seu app de nuvem. O Burrow nunca envia nada.</string>
     <string name="backup_password">Senha do backup</string>
-    <string name="backup_password_line">Pelo menos 6 caracteres. Sem ela, um backup não pode ser aberto, nem por nós.</string>
+    <string name="backup_password_line">Você precisa dela para restaurar. Ela não pode ser recuperada.</string>
     <string name="password">Senha</string>
     <string name="password_again">Repita a senha</string>
     <string name="passwords_differ">As senhas não coincidem</string>
     <string name="password_short">Pelo menos 6 caracteres</string>
     <string name="password_saved">Senha salva</string>
-    <string name="enter_backup_password">Digite a senha do backup</string>
-    <string name="wrong_password_title">Senha incorreta</string>
-    <string name="wrong_password_text">Essa senha não abre este backup.</string>
+    <string name="enter_backup_password">A senha que você definiu para os backups</string>
     <string name="try_again">Tentar de novo</string>
     <string name="not_a_backup">Esse arquivo não é um backup do Burrow</string>
     <string name="replace_title">Substituir tudo?</string>
@@ -778,12 +776,12 @@
         <item quantity="other">%1$d transações adicionadas</item>
     </plurals>
 
-    <string name="version_build">Versão %1$s (%2$d)</string>
+    <string name="version_build">Versão %1$s · build %2$d</string>
     <string name="source_code">Código-fonte</string>
-    <string name="source_code_line">Gratuito e de código aberto, GPL-3.0</string>
+    <string name="source_code_line">Gratuito e de código aberto · GPL v3</string>
     <string name="data_stays">Seus dados são seus</string>
-    <string name="data_stays_line">O Burrow nunca envia seus dados para lugar nenhum</string>
-    <string name="rate">Avaliar no Google Play</string>
+    <string name="data_stays_line">O Burrow nunca os envia para lugar nenhum</string>
+    <string name="rate">Avaliar na Play Store</string>
     <string name="report_problem">Informar um problema</string>
     <string name="licences">Licenças</string>
 
@@ -1129,7 +1127,7 @@
         <item quantity="many">%1$d de %2$d pagamentos neste mês · você digitou %3$d</item>
         <item quantity="other">%1$d de %2$d pagamentos neste mês · você digitou %3$d</item>
     </plurals>
-    <string name="percent_by_itself">%1$d%% registrado sozinho</string>
+    <string name="percent_by_itself">%1$d%% sozinho</string>
     <string name="from_senders">De %1$s</string>
     <plurals name="teach_missed">
         <item quantity="one">Ensine %d mensagem que ele perdeu</item>
@@ -1178,7 +1176,6 @@
     <string name="attach_receipt">Anexar um recibo</string>
     <string name="receipt">Recibo</string>
     <string name="close_keypad">Fechar o teclado</string>
-    <string name="made_by">Feito por mid apps</string>
     <!-- Calm pass (2026-10-23) -->
     <string name="type_transfer_line">Entre suas contas · não é gasto</string>
     <string name="repeat_or_lend">Repetir ou emprestar</string>
@@ -1225,10 +1222,10 @@
         <item quantity="many">%d transações · últimos 14 dias</item>
         <item quantity="other">%d transações · últimos 14 dias</item>
     </plurals>
-    <string name="not_understood_title">Mensagens não entendidas</string>
-    <string name="not_understood_line">Ensine uma mensagem uma vez e o app lê as outras desse banco. Não é um pagamento? Ignore.</string>
+    <string name="not_understood_title">Não entendidas</string>
+    <string name="not_understood_line">Pareciam pagamentos, mas nenhuma regra conseguiu ler. Ensine uma vez e mensagens parecidas serão lidas daí em diante.</string>
     <string name="nothing_to_teach">Nada para ensinar</string>
-    <string name="nothing_to_teach_line">Mensagens com valores que nenhuma regra conseguiu ler esperam aqui.</string>
+    <string name="nothing_to_teach_line">As mensagens que o app não consegue ler aparecem aqui.</string>
     <string name="teach">Ensinar</string>
     <string name="capture_off_title">A captura automática está desligada</string>
     <string name="capture_off_line">Ligue SMS do banco ou Apps de pagamento para os pagamentos se registrarem sozinhos</string>
@@ -1249,9 +1246,47 @@
     <string name="install">Instalar</string>
     <string name="downloading">Baixando…</string>
     <string name="downloading_percent">Baixando… %1$d%%</string>
-    <string name="allow_installs_hint">Permita que o Burrow instale apps e toque em Instalar</string>
-    <string name="update_failed">O download não terminou</string>
+    <string name="allow_installs_hint">Permita que o Burrow instale apps e toque em Instalar.</string>
+    <string name="update_failed">O download não terminou.</string>
     <string name="open_release_page">Abrir página da versão</string>
     <string name="paused">Pausado</string>
     <string name="needs_access">Precisa de acesso</string>
+    <string name="built_in_pack_line">regras · integradas · somente leitura</string>
+    <string name="use_this_pack">Usar este pacote</string>
+    <string name="rules_in_pack">Regras deste pacote</string>
+    <string name="rename_rule">Renomear regra</string>
+    <string name="rule_name_hint">Cartão HDFC, salário…</string>
+    <string name="money_in_or_out">Entrada ou saída</string>
+    <string name="teach_direction">Toque na palavra que indica &lt;b&gt;entrada ou saída&lt;/b&gt; (creditado, debitado), ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
+    <string name="when_you_paid">Quando você pagou</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="type_an_amount">Digite um valor</string>
+    <string name="fix_balance_shows">%1$s · o app mostra %2$s</string>
+    <string name="your_bank_shows">Seu banco mostra</string>
+    <string name="fix_less">%1$s a menos que o app · um ajuste de %2$s</string>
+    <string name="fix_more">%1$s a mais que o app · um ajuste de %2$s</string>
+    <string name="fix_same">Igual ao app</string>
+    <string name="pay_card_bill">Pagar fatura</string>
+    <string name="pay_card_line">%1$s · fatura %2$s</string>
+    <string name="statement_chip">Fatura %1$s</string>
+    <string name="emi_line">%1$s · parcela %2$d de %3$d</string>
+    <string name="emi_chip">Parcela %1$s</string>
+    <string name="split_part_line">De %1$s no total</string>
+    <string name="remove_part">Remover parte</string>
+    <string name="tap_to_fix">Toque para corrigir</string>
+    <string name="tap_to_turn_on">Toque para ativar</string>
+    <string name="who_sent_it">Quem enviou</string>
+    <string name="rename_rule_line">Aparece na sua lista de regras</string>
+    <string name="teach_fix">Toque no valor de novo.</string>
+    <string name="category_for_payment">Categoria deste pagamento</string>
+    <string name="use_for_messages_like_this">Usar em mensagens como esta</string>
+    <string name="test_help">Cole uma mensagem de %1$s; as partes lidas ficam destacadas.</string>
+    <string name="licences_line">O Burrow e o que ele usa</string>
+    <string name="licences_app">App</string>
+    <string name="licences_libraries">Bibliotecas</string>
+    <string name="licences_icons_fonts">Ícones e fontes</string>
+    <string name="enter_backup_password_title">Digite a senha do backup</string>
+    <string name="wrong_password_again">Senha incorreta. Tente de novo.</string>
+    <string name="add_currency_line">Você digita a cotação; o Burrow nunca a busca</string>
 </resources>

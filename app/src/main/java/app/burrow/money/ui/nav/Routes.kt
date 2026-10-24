@@ -24,6 +24,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object AutoCaptureRoute
 @Serializable data object RulesRoute
 @Serializable data class RuleRoute(val id: String)
+/** A built-in pack's rules ([id] = pack id, "in"). */
+@Serializable data class PackRulesRoute(val id: String)
 
 /** Teach a waiting message ([captureId]) or a pasted one ([sender], [text]). */
 @Serializable data object MissedRoute

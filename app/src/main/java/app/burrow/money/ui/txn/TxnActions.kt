@@ -1,5 +1,6 @@
 package app.burrow.money.ui.txn
 
+import app.burrow.money.ui.components.AmountSheet
 import app.burrow.money.ui.theme.Shapes
 import androidx.compose.ui.draw.clip
 import app.burrow.money.ui.LocalListPrefs
@@ -43,7 +44,6 @@ import app.burrow.money.domain.BudgetPeriod
 import app.burrow.money.domain.halfOf
 import app.burrow.money.domain.refundable
 import app.burrow.money.ui.LocalMoney
-import app.burrow.money.ui.components.AmountKeypadSheet
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
 import app.burrow.money.ui.components.ButtonKind
@@ -218,15 +218,12 @@ private fun TxnMenuSheet(
 }
 
 /**
- * Refund (09): how much came back (− amount +, All of it / Half, tap the amount to type it), the
- * account it went into; it lowers the category's spending and is never income.
+ * Refund (96): the value sheet — the amount (at most what is left to refund), All of it / Half, the
+ * account it goes back into (it lowers the category, never counts as income), Cancel / Save refund.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RefundSheet(app: AppContainer, t: TxnView, onSaved: (suspend () -> Unit) -> Unit, onDismiss: () -> Unit) {
     val money = LocalMoney.current
-    val c = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val refunds by remember(t.txn.id) { app.next.refundsOf(t.txn.id) }.collectAsStateWithLifecycle(null)
     val accounts by app.money.accounts.collectAsStateWithLifecycle(emptyList())
@@ -235,57 +232,30 @@ fun RefundSheet(app: AppContainer, t: TxnView, onSaved: (suspend () -> Unit) -> 
     var amount by rememberSaveable { mutableLongStateOf(-1L) }
     if (amount < 0) amount = max
     var accountId by rememberSaveable { mutableLongStateOf(t.txn.accountId) }
-    var picker by rememberSaveable { mutableStateOf<String?>(null) }
+    var picking by rememberSaveable { mutableStateOf(false) }
     val digits = minorDigits(t.txn.currency)
-    var unit = 1L
-    repeat(digits) { unit *= 10 }
-    val step = (max / 20 / unit * unit).coerceAtLeast(unit)
     val account = accounts.firstOrNull { it.account.id == accountId }?.account
-    val ok = amount in 1..max
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.refund), onDismiss, stringResource(R.string.dot_join, t.title(), money.plain(t.txn.amount)))
-        SheetBody {
-            if (max == 0L) {
-                Text(stringResource(R.string.refunded_in_full), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-            } else {
-                Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
-                    TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { haptics.tick(); amount = (amount - step).coerceAtLeast(unit.coerceAtMost(max)) })
-                    Text(
-                        money.plain(amount), style = BurrowType.display, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                        modifier = Modifier.weight(1f).clip(Shapes.pill).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { picker = "amount" },
-                    )
-                    TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); amount = (amount + step).coerceAtMost(max) })
-                }
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-                    Chip(stringResource(R.string.all_of_it), amount == max, { amount = max })
-                    val half = halfOf(max, digits)
-                    Chip(stringResource(R.string.half), amount == half, { amount = half })
-                }
-            }
+    if (picking) {
+        AccountSheet(accounts.filter { it.account.type != AccountType.LOAN && it.account.type != AccountType.SAVINGS }, accountId, { accountId = it.account.id; picking = false }, { picking = false })
+        return
+    }
+    val half = halfOf(max, digits)
+    AmountSheet(
+        title = stringResource(R.string.refund), line = stringResource(R.string.dot_join, t.title(), money.plain(t.txn.amount)),
+        amount = amount, onChange = { amount = it }, digits = digits, min = 1, max = max,
+        chips = if (max > 0) listOf(stringResource(R.string.all_of_it) to max, stringResource(R.string.half) to half) else emptyList(),
+        below = { if (max == 0L) stringResource(R.string.refunded_in_full) else if (done.isNotEmpty()) stringResource(R.string.refunded_so_far, money.plain(done.sumOf { it.amount })) else null },
+        confirm = stringResource(R.string.save_refund), cancel = true,
+        onDone = { a -> scope.launch { onSaved(app.next.addRefund(t.txn, a, accountId)) } }, onDismiss = onDismiss,
+        rows = {
             ListGroup {
                 ListRow(
                     stringResource(R.string.back_into, account?.name.orEmpty()), 0, 1,
                     supporting = stringResource(R.string.refund_lowers, t.categoryName.orEmpty()),
                     lead = { CategoryCircle(account?.icon, account?.colorHue) },
-                    onClick = { picker = "account" },
+                    onClick = { picking = true },
                 )
             }
-            if (done.isNotEmpty()) Text(
-                stringResource(R.string.refunded_so_far, money.plain(done.sumOf { it.amount })),
-                style = BurrowType.body, color = c.onSurfaceVariant, modifier = Modifier.padding(horizontal = Space.small),
-            )
-        }
-        SheetFooter {
-            BurrowButton(stringResource(R.string.cancel), onDismiss, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
-            BurrowButton(stringResource(R.string.save_refund), {
-                if (!ok) return@BurrowButton
-                haptics.confirm()
-                scope.launch { onSaved(app.next.addRefund(t.txn, amount, accountId)) }
-            }, Modifier.weight(1f), if (ok) ButtonKind.FILLED else ButtonKind.OFF, height = Size.buttonBottom)
-        }
-    }
-    when (picker) {
-        "amount" -> AmountKeypadSheet(stringResource(R.string.refund), amount, digits, { amount = it; picker = null }, { picker = null }, max = max)
-        "account" -> AccountSheet(accounts.filter { it.account.type != AccountType.LOAN && it.account.type != AccountType.SAVINGS }, accountId, { accountId = it.account.id; picker = null }, { picker = null })
-    }
+        },
+    )
 }

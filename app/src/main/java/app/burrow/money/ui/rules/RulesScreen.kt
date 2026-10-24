@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -54,7 +55,7 @@ private enum class RulesSheet { ADD, PASTE }
  * Built-in packs, Import / Share. FAB Add rule → Add a rule sheet (51).
  */
 @Composable
-fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit, onTeach: (Long) -> Unit, onTeachText: (String, String) -> Unit) {
+fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit, onTeach: (Long) -> Unit, onTeachText: (String, String) -> Unit, onOpenPack: (String) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val context = LocalContext.current
@@ -112,6 +113,7 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit
                             supporting = pluralStringResource(R.plurals.pack_rules, p.ruleCount, p.ruleCount),
                             lead = { IconCircle(painterResource(R.drawable.ic_public_duotone)) },
                             trailing = { BurrowSwitch(p.on, { vm.setPack(p.id, it) }) },
+                            onClick = { onOpenPack(p.id) }, // its rules, listed like yours
                         )
                     }
                 }
@@ -163,7 +165,50 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit
     }
 }
 
-/** Paste a message and who sent it, then teach it. */
+/**
+ * A built-in pack's rules, listed the way your own are: name, who sends it, how many payments it
+ * read; tap one for the same rule screen (read-only for built-ins). The pack's switch sits on top.
+ */
+@Composable
+fun PackRulesScreen(vm: RulesViewModel, packId: String, onBack: () -> Unit, onOpen: (String) -> Unit) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    val uses by vm.packUses.collectAsStateWithLifecycle()
+    val s = state ?: return
+    val pack = s.packs.firstOrNull { it.id == packId } ?: return
+    val rules = remember(packId) { vm.packRules(packId) }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack)
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen)) {
+            CenterHeader(
+                icon = { HeaderIcon(painterResource(R.drawable.ic_public_regular), neutral = true) },
+                title = stringResource(R.string.pack_india),
+                value = rules.size.toString(),
+                line = stringResource(R.string.built_in_pack_line),
+            )
+            ListGroup {
+                ListRow(
+                    stringResource(R.string.use_this_pack), 0, 1,
+                    lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) },
+                    trailing = { BurrowSwitch(pack.on, { vm.setPack(pack.id, it) }) },
+                )
+            }
+            SectionHeader(stringResource(R.string.rules_in_pack))
+            ListGroup {
+                rules.forEachIndexed { i, r ->
+                    ListRow(
+                        r.name, i, rules.size,
+                        supporting = (uses[r.id] ?: 0).let { n -> pluralStringResource(R.plurals.rule_line, n, senderLabel(r), n) },
+                        lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
+                        trailing = { app.burrow.money.ui.components.Chevron() },
+                        onClick = { onOpen(r.id) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Paste a message (121): the message in a tall field, who sent it, Continue (off until there is text). */
 @Composable
 private fun PasteSheet(onDismiss: () -> Unit, onContinue: (String, String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
@@ -171,8 +216,12 @@ private fun PasteSheet(onDismiss: () -> Unit, onContinue: (String, String) -> Un
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.paste_message), onDismiss, stringResource(R.string.paste_message_line))
         SheetBody {
-            PillTextField(text, { text = it }, stringResource(R.string.message_hint), clearLabel = stringResource(R.string.clear))
-            PillTextField(sender, { sender = it }, stringResource(R.string.sender_hint), clearLabel = stringResource(R.string.clear))
+            app.burrow.money.ui.components.LabeledField(stringResource(R.string.message)) {
+                PillTextField(text, { text = it }, stringResource(R.string.message_hint), leading = painterResource(R.drawable.ic_content_paste_regular), clearLabel = stringResource(R.string.clear), lines = 3)
+            }
+            app.burrow.money.ui.components.LabeledField(stringResource(R.string.who_sent_it)) {
+                PillTextField(sender, { sender = it }, stringResource(R.string.sender_hint), leading = painterResource(R.drawable.ic_sms_regular), clearLabel = stringResource(R.string.clear))
+            }
         }
         SheetFooter {
             BurrowButton(

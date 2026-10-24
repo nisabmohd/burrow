@@ -5,7 +5,7 @@ description: Build one Burrow screen from its design PNG so it matches exactly. 
 
 # Build a screen from its PNG
 
-1. Open the PNG (`design/screens/NN-name.png`, and `dark/` if present) and its row in `docs/SCREENS.md`. List the blocks top to bottom.
+1. Open the PNG (`design/screens/NN-name.png`, light; check dark in the app) and its row in `docs/SCREENS.md`. List the blocks top to bottom.
 2. Map every block to a component in `docs/COMPONENTS.md`. Typical shapes:
    - tab screen: top bar (headline + TonalIconButtons) → Note? → content → FAB
    - list/summary screen: CenterHeader → SectionHeader + ListGroup(ListRow…) → FAB

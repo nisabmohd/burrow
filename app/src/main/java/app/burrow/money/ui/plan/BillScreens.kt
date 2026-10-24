@@ -39,7 +39,6 @@ import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.ConfirmDialog
-import app.burrow.money.ui.components.DayStepper
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.LabeledField
 import app.burrow.money.ui.components.ListGroup
@@ -243,11 +242,9 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
             )
             ListGroup {
                 options.forEachIndexed { i, (value, line, icon) ->
-                    ListRow(
-                        onDueTitle(value), i, options.size, supporting = stringResource(line), selected = f.onDue == value,
-                        lead = { IconCircle(painterResource(icon)) },
-                        trailing = { if (f.onDue == value) Icon(painterResource(R.drawable.ic_check_regular), null, tint = c.primary, modifier = Modifier.size(Size.icon)) },
-                        onClick = { vm.edit { it.copy(onDue = value) } },
+                    app.burrow.money.ui.components.PickRow(
+                        onDueTitle(value), i, options.size, f.onDue == value, { vm.edit { it.copy(onDue = value) } },
+                        supporting = stringResource(line), lead = { IconCircle(painterResource(icon)) },
                     )
                 }
             }
@@ -264,19 +261,12 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
     }
 }
 
-/** Due every month on (28): − day +, quick days, "Next due 1 Nov", Done. */
+/** Due every month on (28): the day value sheet, quick days, "Next due 1 Nov", Done. */
 @Composable
 private fun DueDaySheet(start: Int, dates: DateText, onDone: (Int) -> Unit, onDismiss: () -> Unit) {
-    var day by rememberSaveable { mutableIntStateOf(start) }
-    val next = Repeat.Monthly(day).nextOnOrAfter(LocalDate.now())
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.due_every_month_on), onDismiss)
-        DayStepper(
-            day = day, onDay = { day = it }, quick = listOf(1, 5, 10, 15, 25),
-            resultLine = stringResource(R.string.next_due, dates.shortDay(next)),
-            minus = painterResource(R.drawable.ic_remove_regular), minusLabel = stringResource(R.string.key_minus),
-            plus = painterResource(R.drawable.ic_add_regular), plusLabel = stringResource(R.string.key_plus),
-            onDone = { onDone(day) }, doneLabel = stringResource(R.string.done), ordinal = dates::ordinal, max = 31,
-        )
-    }
+    app.burrow.money.ui.components.DaySheet(
+        title = stringResource(R.string.due_every_month_on), day = start, onDone = onDone, onDismiss = onDismiss,
+        ordinal = dates::ordinal, quick = listOf(1, 5, 10, 15, 25), max = 31,
+        result = { d -> stringResource(R.string.next_due, dates.shortDay(Repeat.Monthly(d).nextOnOrAfter(LocalDate.now()))) },
+    )
 }

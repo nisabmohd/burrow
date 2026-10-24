@@ -1,5 +1,8 @@
-- Auto-capture says Paused when Android blocks it, everywhere.
-- No overlapping text at large font sizes; tighter note titles.
-- Taps show inside their chip or button, not a square.
-- Filter chips are easier to tap.
-- Licences open inside the app with their full text.
+- One sheet with a keypad for every number; no − / + buttons.
+- Round check in every pick list; same tabs everywhere.
+- Auto-capture says Paused when Android blocks it.
+- See built-in rules, rename yours; Teach money in or out.
+- To review and Not understood: one button per card.
+- Large text: no overlaps, cleaner nav and widgets.
+- Favourites right under the amount; time has its own chip.
+- Licences open in the app.

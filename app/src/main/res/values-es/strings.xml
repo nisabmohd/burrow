@@ -235,8 +235,8 @@
     <string name="rules_bad_file">Este archivo tiene una regla que no se puede usar</string>
     <string name="rules_shared">Archivo de reglas guardado</string>
     <string name="message">Mensaje</string>
-    <string name="message_hint">Pega el mensaje del banco</string>
-    <string name="sender_hint">Quién lo envió, p. ej. AX-KOTAKB</string>
+    <string name="message_hint">Pega aquí el mensaje del banco</string>
+    <string name="sender_hint">HDFCBK, VM-DBSBNK…</string>
     <string name="continue_">Continuar</string>
 
     <string name="rule_from">De %1$s</string>
@@ -253,7 +253,7 @@
     <string name="message_language">Idioma del mensaje</string>
     <string name="number_style">Formato de números</string>
     <string name="test_it">Probar</string>
-    <string name="test_hint">Pega cualquier mensaje</string>
+    <string name="test_hint">Pega un mensaje para probar</string>
     <string name="test_reads">Lee %1$s</string>
     <string name="test_reads_to">Lee %1$s a %2$s</string>
     <string name="test_no">Esta regla no lo lee</string>
@@ -265,9 +265,9 @@
 
     <string name="teach_title">Enseñar un mensaje</string>
     <string name="teach_amount">Toca el &lt;b&gt;importe&lt;/b&gt; en el mensaje.</string>
-    <string name="teach_payee">Toca &lt;b&gt;a quién pagaste&lt;/b&gt;, u omítelo.</string>
-    <string name="teach_account">Toca la &lt;b&gt;cuenta&lt;/b&gt;, u omítela.</string>
-    <string name="teach_done">¿Se ve bien? Guarda la regla.</string>
+    <string name="teach_payee">Toca &lt;b&gt;a quién pagaste&lt;/b&gt;, u &lt;a href="skip"&gt;omítelo&lt;/a&gt;.</string>
+    <string name="teach_account">Toca la &lt;b&gt;cuenta&lt;/b&gt;, u &lt;a href="skip"&gt;omítela&lt;/a&gt;.</string>
+    <string name="teach_done">Listo. Los mensajes como este se leerán a partir de ahora.</string>
     <string name="not_picked">Aún no elegido</string>
     <string name="not_an_amount">Eso no es un importe</string>
     <string name="skip">Omitir</string>
@@ -427,12 +427,12 @@
     <string name="delete_goal_title">¿Eliminar esta meta?</string>
     <string name="delete_goal_text">El dinero que añadiste se queda en el historial de tus cuentas.</string>
     <string name="new_goal">Nueva meta</string>
-    <string name="goal_name_hint">Viaje a Japón, portátil nuevo…</string>
+    <string name="goal_name_hint">Viaje, portátil, fondo de emergencia…</string>
     <string name="target">Objetivo</string>
     <string name="by_when">Para cuándo</string>
     <string name="no_date">Sin fecha</string>
     <string name="icon">Icono</string>
-    <string name="goal_cant_save">Añade un nombre y un objetivo para guardar.</string>
+    <string name="goal_cant_save">Añade un nombre y un objetivo para guardar</string>
 
     <string name="add_account">Añadir cuenta</string>
     <string name="net_worth">Patrimonio</string>
@@ -665,7 +665,7 @@
     <string name="delete_category_title">¿Eliminar esta categoría?</string>
     <string name="delete_category_text">Sus movimientos y facturas pasan a Otros. Su presupuesto se elimina.</string>
 
-    <string name="search_currencies">Buscar monedas</string>
+    <string name="search_currencies">Buscar moneda</string>
     <string name="your_region">de tu región</string>
     <string name="from_your_region">%1$s · de tu región</string>
     <string name="currency_note">Los totales y presupuestos usan esta. Las cuentas mantienen su propia moneda.</string>
@@ -748,15 +748,13 @@
     <string name="restore_from_file">Restaurar desde otro archivo</string>
     <string name="backup_explain">Las copias se cifran con tu contraseña y se guardan en la carpeta que elijas, por ejemplo una que sincronice tu app de nube. Burrow nunca sube nada.</string>
     <string name="backup_password">Contraseña de la copia</string>
-    <string name="backup_password_line">Al menos 6 caracteres. Sin ella no se puede abrir una copia, ni siquiera nosotros.</string>
+    <string name="backup_password_line">La necesitas para restaurar. No se puede recuperar.</string>
     <string name="password">Contraseña</string>
     <string name="password_again">Repite la contraseña</string>
     <string name="passwords_differ">Las contraseñas no coinciden</string>
     <string name="password_short">Al menos 6 caracteres</string>
     <string name="password_saved">Contraseña guardada</string>
-    <string name="enter_backup_password">Introduce la contraseña de la copia</string>
-    <string name="wrong_password_title">Contraseña incorrecta</string>
-    <string name="wrong_password_text">Esa contraseña no abre esta copia.</string>
+    <string name="enter_backup_password">La contraseña que pusiste para las copias</string>
     <string name="try_again">Reintentar</string>
     <string name="not_a_backup">Ese archivo no es una copia de Burrow</string>
     <string name="replace_title">¿Reemplazarlo todo?</string>
@@ -778,12 +776,12 @@
         <item quantity="other">%1$d movimientos añadidos</item>
     </plurals>
 
-    <string name="version_build">Versión %1$s (%2$d)</string>
+    <string name="version_build">Versión %1$s · compilación %2$d</string>
     <string name="source_code">Código fuente</string>
-    <string name="source_code_line">Gratis y de código abierto, GPL-3.0</string>
+    <string name="source_code_line">Gratis y de código abierto · GPL v3</string>
     <string name="data_stays">Tus datos son tuyos</string>
-    <string name="data_stays_line">Burrow nunca envía tus datos a ningún sitio</string>
-    <string name="rate">Valorar en Google Play</string>
+    <string name="data_stays_line">Burrow nunca los envía a ningún sitio</string>
+    <string name="rate">Valorar en Play Store</string>
     <string name="report_problem">Informar de un problema</string>
     <string name="licences">Licencias</string>
 
@@ -1129,7 +1127,7 @@
         <item quantity="many">%1$d de %2$d pagos este mes · escribiste %3$d</item>
         <item quantity="other">%1$d de %2$d pagos este mes · escribiste %3$d</item>
     </plurals>
-    <string name="percent_by_itself">%1$d %% registrado solo</string>
+    <string name="percent_by_itself">%1$d %% por sí sola</string>
     <string name="from_senders">De %1$s</string>
     <plurals name="teach_missed">
         <item quantity="one">Enséñale %d mensaje que se le escapó</item>
@@ -1178,7 +1176,6 @@
     <string name="attach_receipt">Adjuntar un recibo</string>
     <string name="receipt">Recibo</string>
     <string name="close_keypad">Cerrar el teclado</string>
-    <string name="made_by">Hecho por mid apps</string>
     <!-- Calm pass (2026-10-23) -->
     <string name="type_transfer_line">Entre tus cuentas · no es un gasto</string>
     <string name="repeat_or_lend">Repetir o prestar</string>
@@ -1225,10 +1222,10 @@
         <item quantity="many">%d movimientos · últimos 14 días</item>
         <item quantity="other">%d movimientos · últimos 14 días</item>
     </plurals>
-    <string name="not_understood_title">Mensajes no entendidos</string>
-    <string name="not_understood_line">Enseña un mensaje una vez y la app leerá el resto de ese banco. ¿No es un pago? Ignóralo.</string>
+    <string name="not_understood_title">No entendidos</string>
+    <string name="not_understood_line">Parecían pagos, pero ninguna regla pudo leerlos. Enseña una vez y los mensajes parecidos se leerán desde entonces.</string>
     <string name="nothing_to_teach">Nada que enseñar</string>
-    <string name="nothing_to_teach_line">Aquí esperan los mensajes con dinero que ninguna regla pudo leer.</string>
+    <string name="nothing_to_teach_line">Aquí aparecen los mensajes que la app no puede leer.</string>
     <string name="teach">Enseñar</string>
     <string name="capture_off_title">La captura automática está desactivada</string>
     <string name="capture_off_line">Activa SMS del banco o Apps de pago para que los pagos se registren solos</string>
@@ -1249,9 +1246,47 @@
     <string name="install">Instalar</string>
     <string name="downloading">Descargando…</string>
     <string name="downloading_percent">Descargando… %1$d %%</string>
-    <string name="allow_installs_hint">Permite que Burrow instale apps y luego toca Instalar</string>
-    <string name="update_failed">La descarga no terminó</string>
+    <string name="allow_installs_hint">Permite que Burrow instale apps y luego toca Instalar.</string>
+    <string name="update_failed">La descarga no terminó.</string>
     <string name="open_release_page">Abrir la página de la versión</string>
     <string name="paused">En pausa</string>
     <string name="needs_access">Necesita acceso</string>
+    <string name="built_in_pack_line">reglas · integradas · solo lectura</string>
+    <string name="use_this_pack">Usar este paquete</string>
+    <string name="rules_in_pack">Reglas de este paquete</string>
+    <string name="rename_rule">Cambiar nombre</string>
+    <string name="rule_name_hint">Tarjeta HDFC, nómina…</string>
+    <string name="money_in_or_out">Entra o sale dinero</string>
+    <string name="teach_direction">Toca la palabra que indica &lt;b&gt;si entra o sale dinero&lt;/b&gt; (abonado, cargado), u &lt;a href="skip"&gt;omítelo&lt;/a&gt;.</string>
+    <string name="when_you_paid">Cuándo pagaste</string>
+    <string name="am">a. m.</string>
+    <string name="pm">p. m.</string>
+    <string name="type_an_amount">Escribe un importe</string>
+    <string name="fix_balance_shows">%1$s · la app muestra %2$s</string>
+    <string name="your_bank_shows">Tu banco muestra</string>
+    <string name="fix_less">%1$s menos que la app · un ajuste de %2$s</string>
+    <string name="fix_more">%1$s más que la app · un ajuste de %2$s</string>
+    <string name="fix_same">Igual que la app</string>
+    <string name="pay_card_bill">Pagar la tarjeta</string>
+    <string name="pay_card_line">%1$s · extracto %2$s</string>
+    <string name="statement_chip">Extracto %1$s</string>
+    <string name="emi_line">%1$s · cuota %2$d de %3$d</string>
+    <string name="emi_chip">Cuota %1$s</string>
+    <string name="split_part_line">De %1$s en total</string>
+    <string name="remove_part">Quitar parte</string>
+    <string name="tap_to_fix">Toca para arreglar</string>
+    <string name="tap_to_turn_on">Toca para activar</string>
+    <string name="who_sent_it">Quién lo envió</string>
+    <string name="rename_rule_line">Se muestra en tu lista de reglas</string>
+    <string name="teach_fix">Vuelve a tocar el importe.</string>
+    <string name="category_for_payment">Categoría de este pago</string>
+    <string name="use_for_messages_like_this">Usar en mensajes como este</string>
+    <string name="test_help">Pega un mensaje de %1$s; se resaltan las partes que lee.</string>
+    <string name="licences_line">Burrow y lo que usa</string>
+    <string name="licences_app">App</string>
+    <string name="licences_libraries">Bibliotecas</string>
+    <string name="licences_icons_fonts">Iconos y fuentes</string>
+    <string name="enter_backup_password_title">Escribe la contraseña de la copia</string>
+    <string name="wrong_password_again">Contraseña incorrecta. Inténtalo de nuevo.</string>
+    <string name="add_currency_line">Tú escribes el tipo; Burrow nunca lo busca</string>
 </resources>

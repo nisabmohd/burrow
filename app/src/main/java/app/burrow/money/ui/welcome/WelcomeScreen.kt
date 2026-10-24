@@ -232,13 +232,10 @@ private fun CurrencyStep(vm: WelcomeViewModel) {
             options.forEachIndexed { i, code ->
                 val name = runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(code).replaceFirstChar { it.uppercase() }
                 val symbol = MoneyFormat.symbolFor(code, locale)
-                ListRow(
-                    name, i, options.size,
+                app.burrow.money.ui.components.PickRow(
+                    name, i, options.size, code == current, { vm.setCurrency(code) },
                     supporting = if (code == region) stringResource(R.string.from_your_region, symbol) else symbol,
-                    selected = code == current,
                     lead = { IconCircle(painterResource(currencyIcon(code))) },
-                    trailing = if (code == current) ({ Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary) }) else null,
-                    onClick = { vm.setCurrency(code) },
                 )
             }
         }
@@ -283,23 +280,15 @@ private fun AccountsStep(vm: WelcomeViewModel, onAdd: (String) -> Unit) {
 private fun BudgetStep(currency: String, amount: Long, unit: Long, onAmount: (Long) -> Unit) {
     val money = LocalMoney.current
     val c = MaterialTheme.colorScheme
-    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val chips = app.burrow.money.domain.budgetChips(currency).map { it * unit }
-    val step = app.burrow.money.domain.budgetStep(currency) * unit
     var typing by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val days = java.time.YearMonth.now().lengthOfMonth()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.screen)) {
         StepHeading(2, R.string.welcome_budget_title, R.string.welcome_budget_line)
-        Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
-            TonalIconButton(painterResource(R.drawable.ic_remove_regular), stringResource(R.string.key_minus), { haptics.tick(); onAmount((amount - step).coerceAtLeast(step)) })
-            Text(
-                money.plain(amount), style = BurrowType.display, color = c.onSurface, textAlign = TextAlign.Center, maxLines = 1,
-                modifier = Modifier.weight(1f).clip(Shapes.pill).clickable(role = Role.Button, onClickLabel = stringResource(R.string.type_amount)) { typing = true },
-            )
-            TonalIconButton(painterResource(R.drawable.ic_add_regular), stringResource(R.string.key_plus), { haptics.tick(); onAmount(amount + step) })
-        }
+        // The amount opens the value sheet (99 / 136): no − / + steppers.
+        app.burrow.money.ui.components.ValueText(money.plain(amount), { typing = true }, stringResource(R.string.type_amount))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.small, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-            chips.forEach { v -> Chip(money.short(v), v == amount, { onAmount(v) }) }
+            chips.forEach { v -> app.burrow.money.ui.components.ValueChip(money.short(v), v == amount) { onAmount(v) } }
         }
         Spacer(Modifier.height(Space.block))
         ListGroup {
@@ -310,8 +299,9 @@ private fun BudgetStep(currency: String, amount: Long, unit: Long, onAmount: (Lo
             )
         }
     }
-    if (typing) app.burrow.money.ui.components.AmountKeypadSheet(
-        stringResource(R.string.welcome_budget_title), amount, MoneyFormat.of(currency).digits,
-        { if (it > 0) onAmount(it); typing = false }, { typing = false },
+    if (typing) app.burrow.money.ui.components.AmountSheet(
+        title = stringResource(R.string.type_an_amount), line = stringResource(R.string.monthly_budget),
+        amount = amount, digits = MoneyFormat.of(currency).digits, min = 1,
+        onDone = { onAmount(it); typing = false }, onDismiss = { typing = false },
     )
 }

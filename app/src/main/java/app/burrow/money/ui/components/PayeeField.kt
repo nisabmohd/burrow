@@ -90,7 +90,11 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
 }
 
 /** How a [FormChip] looks: outlined (a choice), selected (the choice made), tonal (an extra). */
-enum class FormChipStyle { OUTLINED, SELECTED, TONAL }
+/**
+ * OUTLINED a choice · SELECTED the chosen one · TONAL an extra (Note, Time, Receipt…) · FILLED a
+ * favourite quick-add pill on `surfaceContainerHigh` ("₹20 Chai": amount first, bold).
+ */
+enum class FormChipStyle { OUTLINED, SELECTED, TONAL, FILLED }
 
 /**
  * The one chip on New expense (17): 36 dp pill inside a 48 dp touch target. Favourites ("Chai ₹20",
@@ -123,6 +127,7 @@ fun FormChip(
                         FormChipStyle.OUTLINED -> Modifier.border(Space.group / 4, c.outline, Shapes.pill)
                         FormChipStyle.SELECTED -> Modifier.background(c.secondaryContainer)
                         FormChipStyle.TONAL -> Modifier.background(c.surfaceContainer)
+                        FormChipStyle.FILLED -> Modifier.background(c.surfaceContainerHigh)
                     },
                 )
                 .padding(start = if (circle != null) Space.grid else Space.block, end = Space.block),

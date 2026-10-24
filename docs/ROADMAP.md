@@ -1,7 +1,7 @@
 # Roadmap: day by day
 
 Six weeks to a Play Store beta, about 4–5 focused hours a day. Each day ends with a build that runs,
-a commit, and the day's screens checked against their PNGs in light and dark. `TODO.md` is the same
+a commit, and the day's screens checked against their PNGs (light) and in dark mode. `TODO.md` is the same
 plan as tick boxes.
 
 ## Week 0 — setup (1 day)
@@ -38,7 +38,7 @@ plan as tick boxes.
 - **Day 11. Bills data.** Bill + occurrence generation for repeat rules, reminders (AlarmManager, boot
   receiver), Ask me / Record / Remind on the due day.
 - **Day 12. Bills tab.** Overdue note, Next up card, This week / Later rows, swipe Paid/Skip, bill
-  detail, new bill + DayStepper (22, 25–28).
+  detail, new bill + day value sheet (22, 25–28).
 - **Day 13. Subscriptions + EMIs.** Subscriptions screen + suggestion note, loan account with EMI
   schedule (`emi()`), prepay (29, 58).
 - **Day 14. Budgets.** Monthly budgets (custom month start), category rows with rings, budget detail,

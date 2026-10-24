@@ -58,6 +58,9 @@ class CaptureRepository(
         mine.firstOrNull { it.id == id } ?: packs.values.firstNotNullOfOrNull { f -> f.rules.firstOrNull { it.id == id } }
     }
 
+    /** How many payments each built-in rule has read, from the messages it read. */
+    val packRuleUses: Flow<Map<String, Int>> = db.captures().ruleIds().map { ids -> ids.groupingBy { it }.eachCount() }
+
     /** Uses of each of your rules. */
     val ruleUses: Flow<Map<String, Int>> = db.rules().all().map { l -> l.associate { it.id to it.uses } }
 
@@ -181,6 +184,13 @@ class CaptureRepository(
 
     suspend fun setRuleEnabled(id: String, on: Boolean) = db.rules().setEnabled(id, on)
 
+    /** Gives one of your rules a new name; blank names are ignored. */
+    suspend fun renameRule(rule: Rule, name: String) {
+        val clean = name.trim().take(RULE_NAME_MAX)
+        if (clean.isEmpty() || !rule.userMade) return
+        db.rules().setJson(rule.id, RuleFiles.encodeRule(rule.copy(name = clean, userMade = true)))
+    }
+
     suspend fun deleteRule(id: String) = db.rules().delete(id)
 
     /**
@@ -213,3 +223,6 @@ class CaptureRepository(
 fun tidyPayee(raw: String): String =
     if (raw.contains('@') || raw.any { it.isLowerCase() }) raw.trim()
     else raw.trim().lowercase().split(' ').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+
+/** Longest rule name kept (it shows as a row title and a header). */
+const val RULE_NAME_MAX = 40

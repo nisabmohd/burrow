@@ -147,12 +147,13 @@ fun TodayWidgets(
         })
     }.filter { it.key in shown }.sortedBy { order.indexOf(it.key) }
 
+    val pair = app.burrow.money.ui.components.halvesPairUp()
     Column(verticalArrangement = Arrangement.spacedBy(Space.block)) {
         var i = 0
         while (i < slots.size) {
             val a = slots[i]
             val b = slots.getOrNull(i + 1)
-            if (!a.wide && b != null && !b.wide) {
+            if (pair && !a.wide && b != null && !b.wide) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
                     a.content(Modifier.weight(1f), false)
                     b.content(Modifier.weight(1f), false)

@@ -2,10 +2,10 @@
 
 Burrow is an open-source Android expense tracker. It records payments by itself from bank messages,
 reminds you of bills and shows what is left. **It never sends your data anywhere.**
-Package `app.burrow.money` · GNU GPL v3 · Play title "Burrow: Expense Tracker".
+Package `app.burrow.money` · by **mid apps** (developer mark in `design/logo/mid-apps/`) · GNU GPL v3 · Play title "Burrow: Expense Tracker".
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
-`docs/SCREENS.md` (with `design/screens/*.png` and `design/next/*.png`), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
+`docs/SCREENS.md` (with `design/screens/*.png`, light only; 89–104 are the burrow-next round), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
 `docs/CAPTURE.md`, `docs/DATA.md`, `docs/COPY.md`, `docs/ICONS.md`. Today's work: `TODO.md`.
 The PNGs are the source of truth for layout, sizes and colours. `design/prototype/burrow-prototype.html`
 (not in git) is the clickable version.
@@ -30,7 +30,7 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - All user-facing text in `strings.xml` (plurals for counts). No raw colour outside `Color.kt`, no raw
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first.
-- Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete, replace data, wrong password.
+- Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete and replace data; a wrong password shows in its sheet (144).
 - Icons: Phosphor vector drawables only (`ic_<name>_<regular|fill|duotone>`), see `docs/ICONS.md`.
 - Release: R8 full, minify + shrink resources, baseline profile committed. APK < 5 MB.
 - Build and run after every change; one commit per working step. Never `./gradlew clean` bare: use `:app:clean`.
@@ -42,9 +42,13 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - **One hero** (Today). Everything else opens with the **centred header**.
 - **One signal per number.** **No buttons inside cards.** **Notes go first**, one `Note` component.
 - **Filters** = funnel + calendar header buttons → one chip Filter sheet (fits a screen) + Dates sheet.
-- Every day choice is the **DayStepper** sheet. Settings screens are plain lists.
+- Every number is the **value sheet** (day, amount, time, rate; no − / + steppers). Settings screens are plain lists.
 - Charts: pill bars + dashed average, rings with a gap, circle heatmap. Insights keeps everything on one page.
 - Half widgets 184 dp fixed; a lone widget goes wide (text left, 104 dp ring right).
+- **Pick one** = the round check (24 dp ring → primary ✓) on the right, in every list, sheet and screen; rows never tint.
+- **Tabs** = `PillTabs` (Plan equal widths, Customise scrolling); settings choices stay a button group with a check.
+- **Swipe** only on Coming up rows (and Activity rows if set in Customise); To review and Not understood cards have one full-width tonal button.
+- **Wide (≥ 840 dp):** nav rail, widgets three across. **Large text:** nav shows only the selected label, widgets and tiles one per row, rows wrap, the FAB goes icon-only.
 - Amounts never coloured except "₹X over" in red. Red only for overdue / over budget / errors.
 - Motion: shared axis X for push/pop, fade through for tabs, predictive back, count-up once. See MOTION.md.
 
@@ -91,4 +95,4 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 ## Working with Claude
 - Start each session with `TODO.md`: pick the next unticked day, build it screen by screen against its PNGs.
 - Skills in `.claude/skills/`: `build-screen`, `add-feature`, `capture-rules`, `verify-app`, `release`.
-- After each screen: run, compare with the PNG (light + dark), fix, commit, tick the box.
+- After each screen: run, compare with the PNG (light), check dark mode in the app, fix, commit, tick the box.

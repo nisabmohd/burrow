@@ -198,7 +198,7 @@
     <string name="add_a_rule">नियम जोड़ें</string>
     <string name="add_a_rule_line">ऐप को संदेश का नया रूप सिखाएँ</string>
     <string name="paste_message">संदेश चिपकाएँ</string>
-    <string name="paste_message_line">फिर रक़म और नाम पर टैप करें</string>
+    <string name="paste_message_line">फिर उसमें रक़म और पाने वाले पर टैप करें</string>
     <string name="from_not_understood">न समझे गए संदेशों से</string>
     <plurals name="n_waiting">
         <item quantity="one">%d इंतज़ार में</item>
@@ -216,8 +216,8 @@
     <string name="rules_bad_file">इस फ़ाइल में ऐसा नियम है जो इस्तेमाल नहीं हो सकता</string>
     <string name="rules_shared">नियम फ़ाइल सेव हुई</string>
     <string name="message">संदेश</string>
-    <string name="message_hint">बैंक का संदेश चिपकाएँ</string>
-    <string name="sender_hint">किसने भेजा, जैसे AX-KOTAKB</string>
+    <string name="message_hint">बैंक का संदेश यहाँ पेस्ट करें</string>
+    <string name="sender_hint">HDFCBK, VM-DBSBNK…</string>
     <string name="continue_">आगे बढ़ें</string>
     <string name="rule_from">%1$s से</string>
     <string name="any_sender">कोई भी भेजने वाला</string>
@@ -233,7 +233,7 @@
     <string name="message_language">संदेश की भाषा</string>
     <string name="number_style">अंकों का तरीका</string>
     <string name="test_it">जाँचें</string>
-    <string name="test_hint">कोई भी संदेश चिपकाएँ</string>
+    <string name="test_hint">जाँचने के लिए संदेश पेस्ट करें</string>
     <string name="test_reads">%1$s पढ़ता है</string>
     <string name="test_reads_to">%1$s, %2$s को, पढ़ता है</string>
     <string name="test_no">यह नियम इसे नहीं पढ़ता</string>
@@ -244,9 +244,9 @@
     <string name="built_in_rule">पहले से बना · %1$s</string>
     <string name="teach_title">संदेश सिखाएँ</string>
     <string name="teach_amount">संदेश में &lt;b&gt;रक़म&lt;/b&gt; पर टैप करें।</string>
-    <string name="teach_payee">&lt;b&gt;जिसे दिया&lt;/b&gt; उस पर टैप करें, या छोड़ें।</string>
-    <string name="teach_account">&lt;b&gt;खाते&lt;/b&gt; पर टैप करें, या छोड़ें।</string>
-    <string name="teach_done">सही लग रहा है? नियम सेव करें।</string>
+    <string name="teach_payee">&lt;b&gt;जिसे दिया&lt;/b&gt; उस पर टैप करें, या &lt;a href="skip"&gt;छोड़ें&lt;/a&gt;।</string>
+    <string name="teach_account">&lt;b&gt;खाते&lt;/b&gt; पर टैप करें, या &lt;a href="skip"&gt;छोड़ें&lt;/a&gt;।</string>
+    <string name="teach_done">हो गया। ऐसे संदेश अब से पढ़े जाएँगे।</string>
     <string name="not_picked">अभी नहीं चुना</string>
     <string name="not_an_amount">यह रक़म नहीं है</string>
     <string name="skip">छोड़ें</string>
@@ -392,12 +392,12 @@
     <string name="delete_goal_title">यह लक्ष्य मिटाएँ?</string>
     <string name="delete_goal_text">आपने जो पैसा जोड़ा, वह आपके खातों के इतिहास में रहेगा।</string>
     <string name="new_goal">नया लक्ष्य</string>
-    <string name="goal_name_hint">जापान यात्रा, नया लैपटॉप…</string>
+    <string name="goal_name_hint">यात्रा, लैपटॉप, इमरजेंसी फ़ंड…</string>
     <string name="target">लक्ष्य रक़म</string>
     <string name="by_when">कब तक</string>
     <string name="no_date">कोई तारीख़ नहीं</string>
     <string name="icon">आइकन</string>
-    <string name="goal_cant_save">सेव करने के लिए नाम और लक्ष्य रक़म जोड़ें।</string>
+    <string name="goal_cant_save">सेव करने के लिए नाम और लक्ष्य डालें</string>
     <string name="add_account">खाता जोड़ें</string>
     <string name="net_worth">कुल संपत्ति</string>
     <plurals name="across_accounts">
@@ -690,15 +690,13 @@
     <string name="restore_from_file">किसी और फ़ाइल से रीस्टोर करें</string>
     <string name="backup_explain">बैकअप आपके पासवर्ड से एन्क्रिप्ट होकर आपके चुने फ़ोल्डर में सेव होते हैं, जैसे वह फ़ोल्डर जिसे आपका क्लाउड ऐप सिंक करता है। Burrow कभी कुछ अपलोड नहीं करता।</string>
     <string name="backup_password">बैकअप पासवर्ड</string>
-    <string name="backup_password_line">कम से कम 6 अक्षर। इसके बिना बैकअप नहीं खुल सकता, हमसे भी नहीं।</string>
+    <string name="backup_password_line">वापस लाने के लिए यही चाहिए। इसे वापस नहीं पाया जा सकता।</string>
     <string name="password">पासवर्ड</string>
     <string name="password_again">पासवर्ड फिर से</string>
     <string name="passwords_differ">पासवर्ड मेल नहीं खाते</string>
     <string name="password_short">कम से कम 6 अक्षर</string>
     <string name="password_saved">पासवर्ड सेव हुआ</string>
-    <string name="enter_backup_password">बैकअप पासवर्ड डालें</string>
-    <string name="wrong_password_title">गलत पासवर्ड</string>
-    <string name="wrong_password_text">यह पासवर्ड इस बैकअप को नहीं खोलता।</string>
+    <string name="enter_backup_password">बैकअप के लिए आपका रखा पासवर्ड</string>
     <string name="try_again">फिर कोशिश करें</string>
     <string name="not_a_backup">यह फ़ाइल Burrow बैकअप नहीं है</string>
     <string name="replace_title">सब कुछ बदलें?</string>
@@ -716,12 +714,12 @@
         <item quantity="one">%1$d लेन-देन जोड़ा गया</item>
         <item quantity="other">%1$d लेन-देन जोड़े गए</item>
     </plurals>
-    <string name="version_build">वर्ज़न %1$s (%2$d)</string>
+    <string name="version_build">वर्ज़न %1$s · बिल्ड %2$d</string>
     <string name="source_code">सोर्स कोड</string>
-    <string name="source_code_line">मुफ़्त और ओपन सोर्स, GPL-3.0</string>
+    <string name="source_code_line">मुफ़्त और ओपन सोर्स · GPL v3</string>
     <string name="data_stays">आपका डेटा आपका ही रहता है</string>
-    <string name="data_stays_line">Burrow आपका डेटा कभी कहीं नहीं भेजता</string>
-    <string name="rate">Google Play पर रेटिंग दें</string>
+    <string name="data_stays_line">Burrow इसे कभी कहीं नहीं भेजता</string>
+    <string name="rate">Play Store पर रेटिंग दें</string>
     <string name="report_problem">समस्या बताएँ</string>
     <string name="licences">लाइसेंस</string>
     <string name="welcome_left">%1$s बचा</string>
@@ -1052,7 +1050,7 @@
         <item quantity="one">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</item>
         <item quantity="other">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</item>
     </plurals>
-    <string name="percent_by_itself">%1$d%% अपने-आप दर्ज</string>
+    <string name="percent_by_itself">%1$d%% अपने-आप</string>
     <string name="from_senders">%1$s से</string>
     <plurals name="teach_missed">
         <item quantity="one">छूटा %d संदेश सिखाएँ</item>
@@ -1098,7 +1096,6 @@
     <string name="attach_receipt">रसीद जोड़ें</string>
     <string name="receipt">रसीद</string>
     <string name="close_keypad">कीपैड बंद करें</string>
-    <string name="made_by">mid apps ने बनाया</string>
     <!-- Calm pass (2026-10-23) -->
     <string name="type_transfer_line">आपके खातों के बीच · खर्च नहीं</string>
     <string name="repeat_or_lend">दोहराएँ या उधार</string>
@@ -1142,10 +1139,10 @@
         <item quantity="one">%d लेन-देन · पिछले 14 दिन</item>
         <item quantity="other">%d लेन-देन · पिछले 14 दिन</item>
     </plurals>
-    <string name="not_understood_title">न समझे गए संदेश</string>
-    <string name="not_understood_line">ऐप को एक बार संदेश सिखाएँ, फिर वह उस बैंक के बाकी संदेश पढ़ लेगा। भुगतान नहीं है? अनदेखा करें।</string>
+    <string name="not_understood_title">समझ नहीं आए</string>
+    <string name="not_understood_line">ये भुगतान जैसे लगे, पर कोई नियम इन्हें पढ़ नहीं पाया। एक बार सिखाएँ, फिर ऐसे संदेश पढ़े जाएँगे।</string>
     <string name="nothing_to_teach">सिखाने को कुछ नहीं</string>
-    <string name="nothing_to_teach_line">पैसे वाले जो संदेश कोई नियम नहीं पढ़ पाया, वे यहाँ रहते हैं।</string>
+    <string name="nothing_to_teach_line">जो संदेश ऐप नहीं पढ़ पाता, वे यहाँ दिखते हैं।</string>
     <string name="teach">सिखाएँ</string>
     <string name="capture_off_title">ऑटो-कैप्चर बंद है</string>
     <string name="capture_off_line">पेमेंट अपने-आप दर्ज हों, इसके लिए बैंक SMS या पेमेंट ऐप चालू करें</string>
@@ -1166,9 +1163,47 @@
     <string name="install">इंस्टॉल करें</string>
     <string name="downloading">डाउनलोड हो रहा है…</string>
     <string name="downloading_percent">डाउनलोड हो रहा है… %1$d%%</string>
-    <string name="allow_installs_hint">Burrow को ऐप इंस्टॉल करने की अनुमति दें, फिर इंस्टॉल करें पर टैप करें</string>
-    <string name="update_failed">डाउनलोड पूरा नहीं हुआ</string>
+    <string name="allow_installs_hint">Burrow को ऐप इंस्टॉल करने की अनुमति दें, फिर इंस्टॉल करें पर टैप करें।</string>
+    <string name="update_failed">डाउनलोड पूरा नहीं हुआ।</string>
     <string name="open_release_page">रिलीज़ पेज खोलें</string>
     <string name="paused">रुका है</string>
     <string name="needs_access">ऐक्सेस चाहिए</string>
+    <string name="built_in_pack_line">नियम · बिल्ट-इन · सिर्फ़ देखने के लिए</string>
+    <string name="use_this_pack">यह पैक इस्तेमाल करें</string>
+    <string name="rules_in_pack">इस पैक के नियम</string>
+    <string name="rename_rule">नियम का नाम बदलें</string>
+    <string name="rule_name_hint">HDFC कार्ड, सैलरी…</string>
+    <string name="money_in_or_out">पैसा आया या गया</string>
+    <string name="teach_direction">वह शब्द टैप करें जो बताए &lt;b&gt;पैसा आया या गया&lt;/b&gt; (credited, debited), या &lt;a href="skip"&gt;छोड़ दें&lt;/a&gt;।</string>
+    <string name="when_you_paid">आपने कब भुगतान किया</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="type_an_amount">रक़म लिखें</string>
+    <string name="fix_balance_shows">%1$s · ऐप में %2$s है</string>
+    <string name="your_bank_shows">आपका बैंक दिखाता है</string>
+    <string name="fix_less">ऐप से %1$s कम · %2$s का एक समायोजन</string>
+    <string name="fix_more">ऐप से %1$s ज़्यादा · %2$s का एक समायोजन</string>
+    <string name="fix_same">ऐप जैसा ही</string>
+    <string name="pay_card_bill">कार्ड बिल चुकाएँ</string>
+    <string name="pay_card_line">%1$s · स्टेटमेंट %2$s</string>
+    <string name="statement_chip">स्टेटमेंट %1$s</string>
+    <string name="emi_line">%1$s · EMI %2$d / %3$d</string>
+    <string name="emi_chip">EMI %1$s</string>
+    <string name="split_part_line">कुल %1$s में से</string>
+    <string name="remove_part">हिस्सा हटाएँ</string>
+    <string name="tap_to_fix">ठीक करने के लिए टैप करें</string>
+    <string name="tap_to_turn_on">चालू करने के लिए टैप करें</string>
+    <string name="who_sent_it">किसने भेजा</string>
+    <string name="rename_rule_line">आपकी नियम सूची में यही दिखेगा</string>
+    <string name="teach_fix">रक़म पर फिर से टैप करें।</string>
+    <string name="category_for_payment">इस भुगतान की श्रेणी</string>
+    <string name="use_for_messages_like_this">ऐसे संदेशों के लिए इस्तेमाल करें</string>
+    <string name="test_help">%1$s का कोई संदेश पेस्ट करें; जो हिस्से पढ़े जाते हैं वे हाइलाइट होंगे।</string>
+    <string name="licences_line">Burrow और जो यह इस्तेमाल करता है</string>
+    <string name="licences_app">ऐप</string>
+    <string name="licences_libraries">लाइब्रेरी</string>
+    <string name="licences_icons_fonts">आइकन और फ़ॉन्ट</string>
+    <string name="enter_backup_password_title">बैकअप पासवर्ड डालें</string>
+    <string name="wrong_password_again">गलत पासवर्ड। फिर से कोशिश करें।</string>
+    <string name="add_currency_line">दर आप डालते हैं; Burrow उसे कभी खोजता नहीं</string>
 </resources>

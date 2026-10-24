@@ -210,12 +210,10 @@ fun CurrencyScreen(
             list.forEachIndexed { i, code ->
                 val name = runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(code).replaceFirstChar { it.uppercase() }
                 val sym = app.burrow.money.domain.MoneyFormat.symbolFor(code, locale)
-                ListRow(
-                    name, i, list.size,
+                app.burrow.money.ui.components.PickRow(
+                    name, i, list.size, code == current,
                     supporting = listOfNotNull(code, sym.takeIf { it != code }, if (code == region) stringResource(R.string.your_region) else null).joinToString(" · "),
-                    selected = code == current,
                     lead = { IconCircle(painterResource(app.burrow.money.ui.components.currencyIcon(code))) },
-                    trailing = { if (code == current) Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(Size.icon)) },
                     onClick = {
                         if (code == current) onBack() else scope.launch {
                             val n = accountsIn(current)
@@ -254,16 +252,15 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
             app.burrow.money.ui.components.BurrowLogo(Size.logo)
             Spacer(Modifier.height(Space.card))
             Text(stringResource(R.string.app_name), style = BurrowType.headline, color = c.onSurface)
-            Text(stringResource(R.string.version_build, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
-            // The developer name on the Play Store (105).
-            Text(stringResource(R.string.made_by), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+            // "Version 0.2.1 · build 6" (72): the version without the build's suffix ("-github").
+            Text(stringResource(R.string.version_build, BuildConfig.VERSION_NAME.substringBefore('-'), BuildConfig.VERSION_CODE), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         val rows = buildList<Triple<Int, Int?, Pair<Int, (() -> Unit)?>>> {
             add(Triple(R.string.source_code, R.string.source_code_line, R.drawable.ic_code_duotone to { open(BuildConfig.REPO_URL) }))
             add(Triple(R.string.data_stays, R.string.data_stays_line, R.drawable.ic_shield_check_duotone to null))
             if (BuildConfig.PLAY_LISTED) add(Triple(R.string.rate, null, R.drawable.ic_star_duotone to { open(BuildConfig.PLAY_STORE_URL) }))
             add(Triple(R.string.report_problem, null, R.drawable.ic_bug_report_duotone to { open(BuildConfig.REPO_URL + "/issues") }))
-            add(Triple(R.string.licences, null, R.drawable.ic_description_duotone to onLicences))
+            add(Triple(R.string.licences, R.string.licences_line, R.drawable.ic_description_duotone to onLicences))
         }
         val showUpdates = app.burrow.money.ui.update.updateRowShown(updates)
         val n = rows.size + if (showUpdates) 1 else 0
@@ -277,28 +274,39 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
     }
 }
 
+/** Where a licence sits on the Licences screen (122). */
+enum class LicenceGroup(val title: Int) { APP(R.string.licences_app), LIBRARIES(R.string.licences_libraries), ICONS_FONTS(R.string.licences_icons_fonts) }
+
 /** One thing in the app: its name, its licence, and the licence's full text (res/raw, read offline). */
-data class Licence(val name: String, val licence: String, val text: Int)
+data class Licence(val name: String, val licence: String, val text: Int, val group: LicenceGroup)
 
 /** Burrow itself, then everything bundled into it. Keep in step with the version catalog, res/font and the icons. */
 val LICENCES = listOf(
-    Licence("Burrow", "GNU General Public License v3.0", R.raw.licence_gpl3),
-    Licence("AndroidX (Compose, Material 3, Room, DataStore, Navigation, Lifecycle, Activity, Core)", "Apache License 2.0", R.raw.licence_apache2),
-    Licence("Kotlin standard library, kotlinx.coroutines, kotlinx.serialization", "Apache License 2.0", R.raw.licence_apache2),
-    Licence("Phosphor Icons", "MIT License", R.raw.licence_phosphor_mit),
-    Licence("Lexend font", "SIL Open Font License 1.1", R.raw.licence_ofl_lexend),
-    Licence("Outfit font", "SIL Open Font License 1.1", R.raw.licence_ofl_outfit),
-    Licence("Atkinson Hyperlegible Next font", "SIL Open Font License 1.1", R.raw.licence_ofl_atkinson),
-    Licence("Space Grotesk font", "SIL Open Font License 1.1", R.raw.licence_ofl_space_grotesk),
+    Licence("Burrow", "GNU General Public License v3.0", R.raw.licence_gpl3, LicenceGroup.APP),
+    Licence("AndroidX (Compose, Material 3, Room, DataStore, Navigation, Lifecycle, Activity, Core)", "Apache License 2.0", R.raw.licence_apache2, LicenceGroup.LIBRARIES),
+    Licence("Kotlin, kotlinx.coroutines and kotlinx.serialization", "Apache License 2.0", R.raw.licence_apache2, LicenceGroup.LIBRARIES),
+    Licence("Phosphor Icons", "MIT License", R.raw.licence_phosphor_mit, LicenceGroup.ICONS_FONTS),
+    Licence("Lexend font", "SIL Open Font License 1.1", R.raw.licence_ofl_lexend, LicenceGroup.ICONS_FONTS),
+    Licence("Outfit font", "SIL Open Font License 1.1", R.raw.licence_ofl_outfit, LicenceGroup.ICONS_FONTS),
+    Licence("Atkinson Hyperlegible Next font", "SIL Open Font License 1.1", R.raw.licence_ofl_atkinson, LicenceGroup.ICONS_FONTS),
+    Licence("Space Grotesk font", "SIL Open Font License 1.1", R.raw.licence_ofl_space_grotesk, LicenceGroup.ICONS_FONTS),
 )
 
-/** Licences (72): each row opens its full licence text inside the app. */
+/** Licences (122): App · Libraries · Icons and fonts; each row opens its full text inside the app (123). */
 @Composable
 fun LicencesScreen(onBack: () -> Unit, onOpen: (Int) -> Unit) {
     DetailFrame(onBack, stringResource(R.string.licences)) {
-        ListGroup {
-            LICENCES.forEachIndexed { i, l ->
-                ListRow(l.name, i, LICENCES.size, supporting = l.licence, trailing = { app.burrow.money.ui.components.Chevron() }, onClick = { onOpen(i) })
+        LicenceGroup.entries.forEach { group ->
+            val items = LICENCES.withIndex().filter { it.value.group == group }
+            SectionHeader(stringResource(group.title))
+            ListGroup {
+                items.forEachIndexed { i, (index, l) ->
+                    ListRow(
+                        l.name, i, items.size, supporting = l.licence,
+                        lead = { IconCircle(painterResource(R.drawable.ic_description_duotone)) },
+                        trailing = { app.burrow.money.ui.components.Chevron() }, onClick = { onOpen(index) },
+                    )
+                }
             }
         }
     }

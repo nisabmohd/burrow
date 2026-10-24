@@ -1,7 +1,7 @@
 # Screens
 
 Every screen, top to bottom, with its PNG (`design/screens/`). Build each to match its PNG at 412 dp
-width, light and dark. "→" means what a tap opens.
+width, light (dark mode is checked in the app). "→" means what a tap opens.
 
 ## First open
 | PNG | Screen | Layout |
@@ -17,7 +17,6 @@ width, light and dark. "→" means what a tap opens.
 | 04-today | normal | title "Today" + date · accounts + add buttons · hero (October budget · days left · ₹13,644 · "left of ₹30,000 · ₹1,050 a day" · wavy progress) · review note "3 payments to review" → Review · widgets |
 | 05-today-widgets | scrolled | This week (bars) · Next bill (Mark paid) · Net worth (line) · Top category (donut) · Goal (wide: ring right) · Money in and out (3 figures + split bar) · Recent (See all) |
 | 06 / 07 / 08 / 09 | sample data / capture paused / over budget / empty | note first; over budget turns the hero red-toned with "₹6,300 over"; empty = empty state with "Record payments for you" |
-| 10-edit-home-sheet | Edit home | switch per widget |
 
 ## Activity
 | PNG | State | Layout |
@@ -42,17 +41,15 @@ width, light and dark. "→" means what a tap opens.
 | 79-expense-with-extras | New expense filled | payee chosen sets the category; "Lent · …" pill; note and Attach a receipt rows |
 | 87-payee-typing | Paid to | a **free-text field** right under the amount ("Paid to" / "Received from"): type anything. Up to 4 quiet outlined suggestion chips (frequent payees; payers for income) show below and filter as you type; tapping one fills the text and sets its usual category. Typing a known payee exactly also sets it. Clear with ✕ |
 | 74-expense-note-sheet | Note | Note · tag chips (#Work, #Trip, #Family, #Reimbursable) · Done |
-| 75-expense-repeat-sheet | Repeat | Never / Every week / Every month / Every year · "It is a subscription" · "Remind me a day before". A repeat creates a Bill in Plan |
 | 76-expense-attach-sheet | Attach | Take a photo / Choose a photo / Choose a file · attached files with remove. Files stay in app storage, included in backups |
-| 77-expense-lend-sheet | Lend or borrow | None / I lent / I borrowed · name · "Remind me to settle". Shows under Accounts › Lent and borrowed |
-| 78-expense-date-sheet | Date | Yesterday / Today / Tomorrow / Next Monday · Pick a date and time. Future = **upcoming**: listed in Plan, added to Activity on the day |
+| Date sheet (no PNG) | Date | Yesterday · Today · Tomorrow chips over a month calendar (`DateSheet`), Done. Future = **upcoming**: listed in Plan, added to Activity on the day |
 
 ## Plan
 | PNG | Screen | Layout |
 |---|---|---|
 | 22-plan-bills | Plan › **Coming up** | tabs Coming up · Budgets · Goals; groups Overdue (red, "Late") · This week · This month · Later with totals; rows: circle, name, ↻/📅 + "in 5 days · ICICI", amount + date; swipe right Paid/Add now, left Skip/Delete |
 | 25 / 26 | Bill / overdue bill | centred header (amount, "Due today" / "Was due 17 Oct" in red) · rows Category / Paid from / Repeats / Ask me on the day (switch) · Paid before (account circle rows) · Skip / Mark paid |
-| 27 / 28 | New bill / due-day sheet | Bill/Subscription · Name · Amount · rows Category / Paid from / "Every month on the 1st" → DayStepper · When it is due (Ask me / Record it for me / Only remind me) |
+| 27 / 28 | New bill / due-day sheet | Bill/Subscription · Name · Amount · rows Category / Paid from / "Every month on the 1st" → day value sheet (28) · When it is due (Ask me / Record it for me / Only remind me) |
 | 29-subscriptions | Subscriptions | suggestion note (Add) · centred "Every month ₹876 · ₹10,516 a year" · rows |
 | 23-plan-budgets | Budgets | centred header (₹13,644 left · of ₹30,000 · a day · bar) · Categories rows (circle · name · "₹710 over"/"₹5,310 left" · ring %) |
 | 30 / 31 / 32 | Budget / category budget / edit sheet | centred header (red when over) · rows or that category's transactions · edit button → sheet with − amount + and chips |
@@ -71,10 +68,10 @@ width, light and dark. "→" means what a tap opens.
 | PNG | Screen | Layout |
 |---|---|---|
 | 43-capture-notification | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
-| 44-review | To review | cards: payee, account, time, amount, ✕ · SMS with amount/payee/account highlighted · category chips + More · bottom "Save 3 payments". Empty: "All caught up" |
-| 48-auto-capture | Auto-capture | centred status (142 payments recorded) · Bank SMS / Payment apps switches · "2 messages not understood" → Teach · Message rules · Try it / How it works |
-| 49 / 50 / 51 | Message rules / Rule / Add rule sheet | see `docs/CAPTURE.md` |
-| 52-teach-message | Teach | "Tap the amount in the message" · SMS with tappable parts · Amount / Paid to / Account rows fill as you tap · Save |
+| 44-review | To review | cards (no swipe): payee, account, time, amount, ✕ · SMS with amount/payee/account highlighted · category chips + More · a Save button on each card (user, 2026-10-24) · bottom "Save 3 payments". Empty: "All caught up" |
+| 48-auto-capture | Auto-capture | centred status (142 payments recorded) · Bank SMS ("Reads messages from banks", always) / Payment apps switches · "2 messages not understood" → Teach · Message rules · Try it / How it works |
+| 49 / 50 / 51 | Message rules / Rule / Add rule sheet | see `docs/CAPTURE.md`. A built-in pack row opens its rules listed like yours (name · sender · payments read) → the same Rule screen, read-only. Your rules have a pencil in the top bar: Rename rule sheet |
+| 52-teach-message | Teach | "Tap the amount in the message" · SMS with tappable parts · Amount / Paid to / Account / Money in or out rows fill as you tap (tap "credited" or "debited" like the payee; skip to guess) · picked rows show a check · Save |
 
 ## More and settings
 | PNG | Screen | Layout |
@@ -83,39 +80,42 @@ width, light and dark. "→" means what a tap opens.
 | 55–59 | Accounts / bank / card / loan / deposit | centred headers; card: statement amount, due date, Since statement / Available rows, Pay bill; loan: left to pay, EMIs paid, Next EMIs, Prepay; deposit: maturity amount, reminder |
 | 60 / 61 / 62 | Categories list / grid / edit | centred header (13 · spent this month) · list sorted by spend with % (or 3-column tiles via header toggle) · FAB "New category" · edit: name, colour circles, icon circles in a card, Delete |
 | 63 / 64 / 65 | Appearance / Font / Language | Light/Dark group, colour swatches, Dynamic colour switch · font rows with preview card + Text size group · language rows with native names |
-| 66 / 67 / 68 | Notifications / Main currency / Month start sheet | switches with a live notification preview · searchable currency rows · DayStepper |
-| 80–85 | **Customise** (one screen; tabs as a `ScrollingButtonGroup`, the same pills as Plan's tabs: Today · Expense · Transactions · Region · Currency) | Same four blocks on every tab: **choice tiles** (pick one, selected = primaryContainer + check), **toggle tiles** (pick many, 3 columns, check badge), **pick lists** (one-of-many rows with a round radio), **ordered rows** (icon · name · ↑ ↓ · switch) and switch/plain rows. Today: top card pick list (Budget left / Spent / Balance, value as subtitle) · widgets as ordered rows · recent 3/5/10 · review switch. Expense: extras toggle tiles (Note, Repeat, Attach, Lend, Time, Last category) · opens as Expense/Income/Transfer · default account. Transactions: "When a payment is found" as 3 wide choice tiles (Ask on the notification / Open it to edit first / Save it for me) · list toggles · swipe rows |
+| 66 / 67 / 68 | Notifications / Main currency / Month start sheet | switches with a live notification preview · searchable currency rows · day value sheet (68) |
+| 80–85 | **Customise** (one screen; tabs as scrolling `PillTabs` (40 dp, own widths): Today · Expense · Transactions · Region · Currency) | Same four blocks on every tab: **choice tiles** (pick one, selected = primaryContainer + check), **toggle tiles** (pick many, 3 columns, check badge), **pick lists** (one-of-many rows with the round check), **ordered rows** (icon · name · ↑ ↓ · switch) and switch/plain rows. Today: top card pick list (Budget left / Spent / Balance, value as subtitle) · widgets as ordered rows · recent 3/5/10 · review switch. Expense: extras toggle tiles (Note, Repeat, Attach, Lend, Time, Last category) · opens as Expense/Income/Transfer · default account. Transactions: "When a payment is found" as 3 wide choice tiles (Ask on the notification / Open it to edit first / Save it for me) · list toggles · swipe rows |
 | 83 / 84 | Customise › Currency / rate sheet | primary currency row · Show amounts as: choice tiles Symbol ₹1,240 / Code INR 1,240 · Decimal places: Auto 1,240.5 / None 1,240 / Always 1,240.00 · Other currencies rows ("1 USD = ₹84.10 · set 12 Oct") + Add · rate stepper sheet |
-| 85-language-region | Customise › Region | Language row · Numbers: pick list (example as title, region as subtitle, round radio right) · Dates: pick list (Written out / Day first / Month first / Year first) · Week: connected button group Monday / Sunday / Saturday · Month starts on row → DayStepper |
+| 85-language-region | Customise › Region | Language row · Numbers: pick list (example as title, region as subtitle, round radio right) · Dates: pick list (Written out / Day first / Month first / Year first) · Week: connected button group Monday / Sunday / Saturday · Month starts on row → day value sheet (68) |
 | 86-account-card-net-worth | Card detail | "Count in net worth" switch (off by default for cards and loans); Accounts header says what is excluded; "Lent and borrowed" section lists people |
 | 69 / 70 / 71 / 72 | Backup / App lock / PIN / About | plain lists; PIN keypad with wavy lock shape; About with the logo, version, source, licences |
 
-## Edge cases that must exist (each has a design)
-no data · sample data · auto-capture paused · permission denied · can't save yet · foreign currency ·
-split not balanced · search no results · filter shows nothing · after delete (Undo) · no bills · no
-budget · over budget · overdue bill · not enough data for insights · empty range · backup failed ·
-wrong backup password · replace-data confirm · wrong PIN · review all caught up · goal reached.
-
-## Next round (burrow-next, 2026-10-22) — PNGs in `design/next/`, spec in `docs/NEXT.md`
-| # | Screen | What |
+## Retention features (88–105)
+| PNG | Screen | Notes |
 |---|---|---|
-| 01 | Today | hero line "left of ₹30,000 · ₹608 safe to spend today"; no Customise Today button |
-| 02 | Home screen | widget 4×2 Safe to spend today (+ opens New expense); 2×2 Add expense, Next bill; long-press shortcuts New expense · New income · Review N (only when some wait) · Search |
-| 03 | Quick settings | "Add expense · Burrow" tile |
-| 04 | New expense | "★ Favourites · one tap saves" + Edit, chips; Favourite chip in the extras (Customise › Expense) |
-| 05 | Favourites | centred header with the count, drag rows with ✕, how to add one; empty state |
-| 06 | Long-press a row | actions sheet, Delete in its own group |
-| 07 | Transaction | Split across categories · Add a refund rows; Recorded from SMS box; a refund links its expense |
-| 08 | Split payment | parts with − amount + (tap to type), Add a part, "Put ₹X in …" chip, Save when they add up |
-| 09 | Refund sheet | − amount +, All of it / Half, Back into account, Save refund |
-| 10 | Import or export | Cashew, Walnut, Money Manager (letter circles), Any spreadsheet; Restore a backup; Export to CSV |
-| 11 | Check before import | count + range, Columns (spreadsheet), Categories (unmatched in red), Accounts, Skip ones already here, Import N |
-| 12 | Welcome 2 of 3 | How much a month? − amount +, chips, "₹968 a day", Skip for now / Continue |
-| 13 | Sunday review notification | Sunday 6 PM: "Your week: ₹X spent" · "N to review · 2 bills due · ₹X left. Takes 30 seconds." |
-| 14 | Sunday review | week header vs the week before, four rows, "Save N and finish" |
-| 15 | Auto-capture | 112 dp ring "92% · Recorded by itself", "Teach it N messages it missed · From …"; More tile "92% recorded by itself" |
-| 16 | Customise › Today | drag to reorder widgets |
-| 17 | Notifications | Sunday review switch (row opens this week's review) |
+| 04-today (was 88) | Today | hero line ends "₹X safe to spend today"; no Customise button on Today (Customise stays optional, in More) |
+| 89-home-screen-widget | Launcher | Glance widget 4×2: mark + "Safe to spend today", 44 sp amount, "₹13.6k left in October · 13 days", thin bar, 56 dp + (New expense); 2×2 Add expense and Next bill widgets; icon long-press shortcuts: New expense, New income, Review N payments, Search |
+| 90-quick-settings-tile | Quick settings | "Add expense · Burrow" tile opens New expense; Sunday review + capture notifications below |
+| 17-new-expense (was 91) | New expense | final layout (burrow-new-expense, 24 Oct): amount · **favourites as filled quick-add pills right under it** (surfaceContainerHigh, "₹20 Chai" amount first in bold, no icon; empty form only; one tap saves with Undo) · Paid to (payee matches under it while typing) · category chips · "HDFC Savings · Today" · extras Note · **Time ("9:30 AM")** · Receipt · Repeat or lend · docked keypad |
+| 92-favourites | Favourites | centred header (count), rows: ⠿ drag handle, category circle, "Chai · ₹20", category · account, remove |
+| 93-long-press-sheet | Transaction long-press | 450 ms on any transaction row: Change category, Duplicate to today, Split, Add a refund, Save as favourite; Delete in its own group |
+| 94-transaction-split-refund | Transaction | rows "Split across categories" and "Add a refund" / "Refunded ₹X · counts as ₹Y spent"; split parts listed when split |
+| 95-split-payment | Split payment | header "₹X still to put in a category"; part rows (category, − amount +), Add a part, chip "Put ₹X in …"; Save only when balanced with 2+ parts |
+| 96-refund-sheet | Refund | stepper, All of it / Half, "Back into <account>" — lowers the category, not income |
+| 97-import | Import or export | Cashew, Walnut, Money Manager (letter circles, no brand logos), Any spreadsheet (CSV); Restore a backup; Export to CSV |
+| 98-import-check | Check before import | count + range, category matches (unmatched in red), account matches, "Skip ones already here", one button |
+| 99-welcome-budget-step | Welcome step 2 of 3 | "How much a month?" stepper, 20k/30k/50k/75k chips, "₹X a day" row, Skip for now / Continue |
+| 100-sunday-review-notification | Notification | Sunday 6 PM: "Your week: ₹X spent" · "N to review · 2 bills due · ₹X left. Takes 30 seconds." |
+| 101-sunday-review | Sunday review | header week total vs last week; rows: to review, bills this week, budget left + safe today, top category; "Save N and finish" |
+| 102-auto-capture-trust | Auto-capture | 112 dp ring "92%", "Recorded by itself", "131 of 142 payments this month · you typed 11"; "Teach it N messages it missed" |
+| 37-insights-widgets | Insights widgets | A day with a sparkline, Biggest; Top payee lists the next two payees with amounts instead of three identical icons |
+| 103-customise-drag-reorder | Customise › Today | widgets: ⠿ handle (drag to reorder, row lifts) · icon · name · switch. No arrows anywhere |
+| 104-notifications-settings | Notifications | adds "Sunday review" switch (on) |
+| 106-edit-account | Edit account | header preview (icon + colour), Name, Last digits (helps match SMS), Colour (12 hues), Icon (12), Count in net worth, Opening balance, Archive |
+| 107-edit-account-colour | Edit account (scrolled) | colour and icon pickers, same blocks as Edit category |
+| 110-activity-chart-open | Activity, chart open | the summary row expanded into the 14-day pill chart; ⌃ in its header folds it |
+| 111-type-sheet | Type sheet | from the title "New expense ▾": Expense (money out) · Income (money in) · Transfer |
+| 112-repeat-or-lend-sheet | Repeat or lend | rows Once · Repeat · Subscription · Lent · Borrowed; How often (Weekly/Monthly/Yearly) or a name field; Done |
+| 113-coming-up-later | Coming up (scrolled) | Later group, swipe hint, "Every month": Subscriptions and EMIs rows |
+| 114-upcoming-one-off | Upcoming payment | centred header "Upcoming · added on Saturday, 24 Oct"; Category, Account, Change date; Delete row; bottom "Add now" |
+| 115-upcoming-added-notification | Notification | "Rent ₹18,000 added today · It was due today · open Burrow to undo" |
 
 ## 2026-10-23 design update (kit screens 105–109)
 | PNG | Screen | Layout |
@@ -124,7 +124,6 @@ wrong backup password · replace-data confirm · wrong PIN · review all caught 
 | 106-edit-account | Edit account | header preview (icon + colour), Name, Last digits (helps match SMS), Colour (12 hues), Icon (12), Count in net worth, Opening balance, Archive |
 | 107-edit-account-colour | Edit account (scrolled) | colour and icon pickers, same blocks as Edit category |
 | 108-new-expense-keypad-open | New expense, typing | keypad open, caret after the amount, list fades above it |
-| 109-expense-type-pills | New expense, type | pill row (single choice, like Cashew): Once · Repeat · Subscription · Lent · Borrowed (income: no Subscription). Choosing Repeat/Subscription opens the frequency sheet and the pill reads "Repeat · Monthly ▾"; Lent/Borrowed opens the person sheet and reads "Lent · Rahul ▾". No extra rows. |
 
 ## Calm pass (2026-10-23) — PNGs from burrow-ui-changes
 | PNG | Screen | Layout |
@@ -135,4 +134,36 @@ wrong backup password · replace-data confirm · wrong PIN · review all caught 
 | 113-coming-up-later | Coming up (scrolled) | Later group, swipe hint, "Every month": Subscriptions and EMIs rows |
 | 114-upcoming-one-off | Upcoming payment | centred header "Upcoming · added on Saturday, 24 Oct"; Category, Account, Change date; Delete row; bottom "Add now" |
 | 115-upcoming-added-notification | Notification | "Rent ₹18,000 added today · It was due today · open Burrow to undo" |
-| 116 (no PNG yet) | Messages not understood | cards like To review: sender + time, ✕ ignore, the message, Teach chip; swipe right Teach, left Ignore (Undo). Teach has Ignore next to Save |
+
+## Design requests (24 Oct) — 116–159 (light, in screens/)
+| PNG | Screen | Notes |
+|---|---|---|
+| 116 / 117 | Messages not understood | cards like To review: sender + time, ✕ ignore, message, full-width tonal **Teach** button (no swipe, C2); empty "Nothing to teach" |
+| 118-builtin-pack | Built-in pack (India) | centred header (globe, count, "rules · built in · read-only"), "Use this pack" switch, "Rules in this pack" rows (sender · N payments · chevron) |
+| 50-rule / 120-rule-builtin | Rule yours / built-in | yours: pencil in the bar (→ 119), "Use this rule", Delete rule; built-in: no pencil, no switch, footer "Built-in · India" |
+| 119-rename-rule-sheet | Rename rule | one pill field (pencil, ✕ clear), Save off while empty |
+| 121-paste-message-sheet | Paste a message | message field (tall pill) + "Who sent it" field, Continue off until text |
+| 122 / 123 | Licences / licence text | grouped rows App · Libraries · Icons and fonts (name · licence · chevron); text screen: name as small title, paragraphs body muted |
+| 72, 124–127 | About + update row | order: Check for updates · Source code · Your data stays yours (shield) · Rate (Play) · Report a problem · Licences; row line: From GitHub Releases / Checking… / You're on the latest version / Couldn't check (error) / Updates come from F-Droid |
+| 128–132 | Update sheet | ready · downloading (wavy + "Downloading… 42%", Update off) · needs permission (Install) · downloaded (Install) · failed (error line, "Open release page"); What's new block with primary dots; Later + main button |
+| 133 / 134 | New goal | Name, Target, By when (sheet), Icon card 2×4 coloured circles, chosen = primary ring; error "Add a name and a target to save" |
+| 135–144 | Sheets | all value sheets are one **ValueSheet** (value + caret, chips, same 3×4 keypad): Time (HH:MM typed, AM/PM chips) · Type an amount · Text (one field) · Option (pick one, round checks) · Add a currency (search + list) · Fix balance (− amount +, difference line) · Pay card bill / Pay EMI (amount, chips, From, Date) · Backup password set / wrong |
+| 48, 145, 146 | Auto-capture on / off / blocked | switches on only when Android allows; off: info note + the two switches + How it works only; blocked: warning note "Android is blocking access …" + App info |
+| 53, 147, 148 | More tile | On "92% by itself" · Needs access "Tap to fix" · Not set up "Tap to turn on" |
+| 44-review | To review | full-width tonal **Save** on each card (the one card with a button) + bottom "Save 3 payments" |
+| 52 / 149 | Teach | 4 rows incl. **Money in or out** ("debited · Money out"); "or skip it"; round check on each picked row |
+| 22, 23, 80, 83 | Tabs | **pill tabs**: Plan equal width, centred, no check, selected = primary; Customise same pills, own width, scroll |
+| 83-currencies | Decimal tiles | check on the title line only; value full width, never "1,240…." |
+| 12 / 110 | Activity day | "All days" plain primary text in the header next to ⌃; small days are round dots |
+| 46 | Capture intro 2 | "Nothing sent" (shield); "Burrow never sends your data anywhere…" |
+| 06, 07, 150–152 | Large text (1.3× / 2×) | wrapped note titles stay one tight block above their line; nav shows only the selected label; widgets and tiles go one per row; rows wrap; the FAB goes icon-only; display amounts shrink to fit |
+| 158 / 159 | Wide 840 dp | side **nav rail** (same five tabs, same pill), widgets three across |
+
+**C1 decision:** every pick-one list (sheets and Customise) uses the **round check badge** on the right (empty ring → filled primary with ✓); no plain ticks.
+**C2 decision:** swipe only on Coming up rows (right = Paid / Add now on primaryContainer, left = Skip / Delete); To review and Not understood use buttons.
+
+## Edge cases that must exist (each has a design)
+no data · sample data · auto-capture paused · permission denied · can't save yet · foreign currency ·
+split not balanced · refund larger than payment · nothing to import · search no results · filter shows nothing · after delete (Undo) · no bills · no
+budget · over budget · overdue bill · not enough data for insights · empty range · backup failed ·
+wrong backup password · replace-data confirm · wrong PIN · review all caught up · goal reached.

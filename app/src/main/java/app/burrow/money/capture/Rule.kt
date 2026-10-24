@@ -49,8 +49,11 @@ data class Rule(
     val example: String? = null,
 )
 
-/** The parts of a message a rule picked out, for highlighting (Review, Rule, Teach). */
-enum class Part { AMOUNT, PAYEE, ACCOUNT }
+/**
+ * The parts of a message a rule picked out, for highlighting (Review, Rule, Teach). [DIRECTION] is
+ * only picked while teaching: the word that says money in or out ("credited", "debited").
+ */
+enum class Part { AMOUNT, PAYEE, ACCOUNT, DIRECTION }
 
 data class Parsed(
     val amountMinor: Long,

@@ -53,7 +53,6 @@ import app.burrow.money.ui.components.ScreenTopBar
 import app.burrow.money.ui.components.SectionHeader
 import app.burrow.money.ui.components.TonalIconButton
 import app.burrow.money.ui.components.AmountTrailing
-import app.burrow.money.ui.components.AmountStepperSheet
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.currencyIcon
 import app.burrow.money.ui.pickers.AccountSheet
@@ -255,7 +254,7 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
     }
 }
 
-/** Add money (35): − amount +, chips, From account (a transfer, not spending), Cancel / Add. */
+/** Add money (35): the value sheet with chips, From account (a transfer, not spending), Cancel / Add. */
 @Composable
 private fun AddMoneySheet(s: GoalState, goalName: String, onDismiss: () -> Unit, onAdd: (Long, Long) -> Unit) {
     val money = LocalMoney.current
@@ -269,17 +268,16 @@ private fun AddMoneySheet(s: GoalState, goalName: String, onDismiss: () -> Unit,
         AccountSheet(pay, from, { from = it.account.id; picking = false }, { picking = false })
         return
     }
-    AmountStepperSheet(
+    app.burrow.money.ui.components.AmountSheet(
         title = stringResource(R.string.add_money),
         line = goalName,
         amount = amount,
-        onAmount = { amount = it },
-        step = 1_000 * unit,
-        chips = listOf(2_000, 5_000, 10_000, 20_000).map { it * unit },
-        confirm = stringResource(R.string.add),
-        onConfirm = { from?.let { onAdd(it, amount) } },
+        onChange = { amount = it },
+        chips = listOf(2_000, 5_000, 10_000, 20_000).map { money.plain(it * unit) to it * unit },
+        confirm = stringResource(R.string.add), cancel = true, min = 1,
+        onDone = { a -> from?.let { onAdd(it, a) } },
         onDismiss = onDismiss,
-        extra = {
+        rows = {
             ListGroup {
                 ListRow(
                     stringResource(R.string.from_account, account?.account?.name.orEmpty()), 0, 1,
@@ -311,29 +309,36 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
         app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
         ) {
+            // The goal as it will look (133): its circle and name.
+            androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth(), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.block)) {
+                CategoryCircle(f.icon, f.hue, size = app.burrow.money.ui.theme.Size.iconCircleBig)
+                androidx.compose.material3.Text(f.name.ifBlank { stringResource(R.string.new_goal) }, style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
+            }
             LabeledField(stringResource(R.string.name)) {
                 PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.goal_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))
             }
             LabeledField(stringResource(R.string.target)) {
                 PillTextField(
-                    f.target, { v -> vm.edit { it.copy(target = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0",
+                    f.target, { v -> vm.edit { it.copy(target = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, money.plain(50_000L * money.digitsUnit()).filter { it.isDigit() || it == ',' || it == '.' },
                     leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal,
                 )
+            }
+            // Under the fields it is about (134), not at the bottom of the form.
+            if (f.tried && !vm.canSave(f)) {
+                androidx.compose.material3.Text(stringResource(R.string.goal_cant_save), style = app.burrow.money.ui.theme.BurrowType.body, color = c.error, modifier = Modifier.padding(start = Space.headingInset))
             }
             ListGroup {
                 ListRow(
                     f.by?.let { dates.monthYear(it) } ?: stringResource(R.string.no_date), 0, 1, supporting = stringResource(R.string.by_when),
-                    lead = { IconCircle(painterResource(R.drawable.ic_calendar_view_month_duotone)) }, onClick = { pickDate = true },
+                    lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) }, onClick = { pickDate = true },
                 )
             }
-            LabeledField(stringResource(R.string.icon)) {
+            app.burrow.money.ui.components.SectionHeader(stringResource(R.string.icon))
+            run {
                 // The shared swatch grid (as in Edit account): spaced circles in rows of four, never clipped.
                 app.burrow.money.ui.components.SwatchGrid(GOAL_LOOKS, columns = 4) { (icon, hue) ->
                     app.burrow.money.ui.components.Swatch(f.icon == icon, icon.replace('_', ' '), { vm.edit { it.copy(icon = icon, hue = hue) } }) { CategoryCircle(icon, hue) }
                 }
-            }
-            if (f.tried && !vm.canSave(f)) {
-                androidx.compose.material3.Text(stringResource(R.string.goal_cant_save), style = app.burrow.money.ui.theme.BurrowType.body, color = c.error)
             }
         }
     }

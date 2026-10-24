@@ -89,17 +89,18 @@ fun AutoCaptureScreen(
             val percent = s.trust.percent
             if (blocked) {
                 Note(
-                    NoteKind.WARN, painterResource(R.drawable.ic_info_regular), stringResource(R.string.restricted_title),
+                    NoteKind.WARN, painterResource(R.drawable.ic_error_regular), stringResource(R.string.restricted_title),
                     line = stringResource(R.string.restricted_line),
                     action = stringResource(R.string.app_info), onAction = { runCatching { context.startActivity(CaptureAccess.appInfo(context)) } },
                 )
             } else if (!anyOn) {
                 Note(
-                    NoteKind.INFO, painterResource(R.drawable.ic_info_regular), stringResource(R.string.capture_off_title),
+                    NoteKind.INFO, painterResource(R.drawable.ic_sms_regular), stringResource(R.string.capture_off_title),
                     line = stringResource(if (CaptureAccess.smsInThisBuild) R.string.capture_off_line else R.string.capture_off_line_apps),
                 )
             }
-            if (percent != null && s.trust.found > 0) {
+            // Off or blocked (145, 146): the note, the two switches and How it works only; no header.
+            if (!anyOn) Unit else if (percent != null && s.trust.found > 0) {
                 // Trust in capture (15): how much of this month it recorded by itself.
                 androidx.compose.foundation.layout.Column(
                     Modifier.fillMaxWidth().padding(vertical = Space.small),
@@ -125,7 +126,7 @@ fun AutoCaptureScreen(
                 if (CaptureAccess.smsInThisBuild) add { i, n ->
                     ListRow(
                         stringResource(R.string.bank_sms), i, n,
-                        supporting = if (s.smsBanks.isNotEmpty()) s.smsBanks.joinToString(", ") else stringResource(R.string.bank_sms_line),
+                        supporting = stringResource(R.string.bank_sms_line), // one fixed line: the list of banks seen changed and got cut off
                         lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
                         trailing = {
                             BurrowSwitch(smsOn, { on ->

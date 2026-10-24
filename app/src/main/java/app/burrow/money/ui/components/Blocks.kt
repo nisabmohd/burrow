@@ -231,9 +231,11 @@ private const val COOKIE_AMP = 0.075
 
 /** The 64 dp icon circle that opens a centred header (primaryContainer). */
 @Composable
-fun HeaderIcon(icon: Painter) {
+fun HeaderIcon(icon: Painter, neutral: Boolean = false) {
     val c = MaterialTheme.colorScheme
-    IconCircle(icon, size = Size.iconCircleBig, container = c.primaryContainer, content = c.onPrimaryContainer)
+    // Neutral for something that isn't yours (a built-in pack, 118); primaryContainer otherwise.
+    if (neutral) IconCircle(icon, size = Size.iconCircleBig)
+    else IconCircle(icon, size = Size.iconCircleBig, container = c.primaryContainer, content = c.onPrimaryContainer)
 }
 
 /**
@@ -270,5 +272,22 @@ fun StatusTile(icon: Painter, hue: Float, status: String?, title: String, line: 
         Spacer(Modifier.height(Space.small))
         Text(title, style = BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
         Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+    }
+}
+
+/**
+ * Half widgets and tiles pair up two to a row — except at large text (153–157), where each takes
+ * its own row so nothing is squeezed.
+ */
+@Composable
+fun halvesPairUp(): Boolean = androidx.compose.ui.platform.LocalDensity.current.fontScale <= LARGE_TEXT
+
+/** Two halves (Insights' A day + Biggest, More's tiles): side by side, or stacked at large text. */
+@Composable
+fun PairRow(modifier: Modifier = Modifier, first: @Composable (Modifier) -> Unit, second: @Composable (Modifier) -> Unit) {
+    if (halvesPairUp()) {
+        Row(modifier, horizontalArrangement = Arrangement.spacedBy(Space.block)) { first(Modifier.weight(1f)); second(Modifier.weight(1f)) }
+    } else {
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.block)) { first(Modifier.fillMaxWidth()); second(Modifier.fillMaxWidth()) }
     }
 }

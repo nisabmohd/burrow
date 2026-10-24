@@ -87,7 +87,7 @@ fun UpdateSheet(update: AppUpdate, updates: UpdateManager, onLater: () -> Unit, 
                     Text(stringResource(R.string.whats_new), style = BurrowType.titleSmall, color = c.onSurface)
                     update.notes.forEach { line ->
                         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
-                            Box(Modifier.padding(top = Space.small).size(Space.small).clip(Shapes.pill).background(c.primary))
+                            Box(Modifier.padding(top = Space.small).size(Size.bulletDot).clip(Shapes.pill).background(c.primary))
                             Text(line, style = BurrowType.body, color = c.onSurface)
                         }
                     }

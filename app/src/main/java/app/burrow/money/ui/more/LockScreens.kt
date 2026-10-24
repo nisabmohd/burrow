@@ -237,7 +237,7 @@ fun AppLockScreen(
                 val opts = listOf(0, 60, 300, 900)
                 ListGroup {
                     opts.forEachIndexed { i, sec ->
-                        ListRow(lockAfterLabel(sec), i, opts.size, selected = sec == settings.lockAfterSeconds, onClick = { onLockAfter(sec); lockAfter = false })
+                        app.burrow.money.ui.components.PickRow(lockAfterLabel(sec), i, opts.size, sec == settings.lockAfterSeconds, { onLockAfter(sec); lockAfter = false })
                     }
                 }
             }

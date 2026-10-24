@@ -1,5 +1,6 @@
 package app.burrow.money.ui.teach
 
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,6 +57,7 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
+    var pickCategory by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val save = {
         if (s.canSave) {
             haptics.confirm()
@@ -70,23 +72,20 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose, title = stringResource(R.string.teach_title)) {
-            // Skip this one: not a payment, or not worth a rule (Undo brings it back).
-            if (vm.canIgnore) BurrowButton(stringResource(R.string.ignore), { vm.ignore { undo -> snackbar.show(context.getString(R.string.ignored), undo); onClose() } }, kind = ButtonKind.TONAL)
+            // Save only (52): ignoring a message is the ✕ on its card in Not understood (116).
             BurrowButton(stringResource(R.string.save), save, kind = if (s.canSave) ButtonKind.FILLED else ButtonKind.OFF)
         }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
-            Row(Modifier.fillMaxWidth().padding(start = Space.grid), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    instruction(s),
-                    style = BurrowType.body,
-                    color = if (s.notAmount) c.error else c.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                if (s.step == Part.PAYEE || s.step == Part.ACCOUNT) LinkButton(stringResource(R.string.skip), vm::skip)
-            }
+            // One line; "skip it" is a link inside it (52), not a separate button.
+            Text(
+                instruction(s, onSkip = vm::skip),
+                style = BurrowType.body,
+                color = if (s.notAmount) c.error else c.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(start = Space.grid),
+            )
             val header = listOfNotNull(s.sender.ifBlank { null }, s.receivedAt?.let { dates.day(dates.date(it)) }).joinToString(" · ")
             MessageBox(header.ifBlank { stringResource(R.string.message) }, s.text, marks(s), onTap = { offset -> haptics.tick(); vm.tap(offset) })
             if (s.picks[Part.AMOUNT] != null && s.rule == null) {
@@ -95,14 +94,43 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
             ListGroup {
                 PARTS.forEachIndexed { i, (part, label, icon) ->
                     val pick = s.picks[part]
+                    val word = pick?.let { s.text.substring(it) }
                     ListRow(
-                        pick?.let { s.text.substring(it) } ?: stringResource(R.string.not_picked), i, PARTS.size,
+                        when {
+                            word == null -> stringResource(R.string.not_picked)
+                            // "debited · Money out": what the tapped word means.
+                            part == Part.DIRECTION -> word + " · " + stringResource(if (app.burrow.money.capture.RuleBuilder.directionOf(word) == app.burrow.money.capture.Direction.IN) R.string.money_in else R.string.money_out)
+                            else -> word
+                        },
+                        i, PARTS.size,
                         supporting = stringResource(label),
                         selected = s.step == part,
                         lead = { IconCircle(painterResource(icon)) },
+                        // Picked parts show a check, the rest an empty ring, like every other list that picks.
+                        trailing = { app.burrow.money.ui.components.CheckBadge(pick != null, ring = true) },
                         onClick = { vm.choose(part) },
                     )
                 }
+            }
+            // All set (149): this payment's category and whether the rule keeps reading the next ones.
+            if (s.canSave) {
+                val categories by vm.categories.collectAsStateWithLifecycle()
+                val cat = categories.firstOrNull { it.id == s.categoryId }
+                val rows = if (vm.hasPayment) 2 else 1
+                ListGroup {
+                    if (vm.hasPayment) ListRow(
+                        cat?.name ?: stringResource(R.string.choose_category), 0, rows, supporting = stringResource(R.string.category_for_payment),
+                        lead = { app.burrow.money.ui.pickers.CategoryCircle(cat?.icon, cat?.colorHue) },
+                        onClick = { pickCategory = true },
+                    )
+                    ListRow(
+                        stringResource(R.string.use_for_messages_like_this), rows - 1, rows,
+                        supporting = s.sender.ifBlank { null }?.let { stringResource(R.string.rule_from, it) },
+                        lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) },
+                        trailing = { app.burrow.money.ui.components.BurrowSwitch(s.useRule, vm::setUseRule) },
+                    )
+                }
+                if (pickCategory) app.burrow.money.ui.pickers.CategorySheet(categories, emptyMap(), s.categoryId, { vm.setCategory(it.id); pickCategory = false }, { pickCategory = false })
             }
         }
     }
@@ -112,19 +140,27 @@ private val PARTS = listOf(
     Triple(Part.AMOUNT, R.string.amount, R.drawable.ic_payments_duotone),
     Triple(Part.PAYEE, R.string.paid_to, R.drawable.ic_storefront_duotone),
     Triple(Part.ACCOUNT, R.string.account, R.drawable.ic_account_balance_duotone),
+    Triple(Part.DIRECTION, R.string.money_in_or_out, R.drawable.ic_swap_vert_duotone),
 )
 
-/** The step's instruction, with its key word in bold. */
+/** The step's instruction: its key word bold, "skip it" a link that skips the step. */
 @Composable
-private fun instruction(s: TeachState): AnnotatedString {
+private fun instruction(s: TeachState, onSkip: () -> Unit): AnnotatedString {
     if (s.notAmount) return AnnotatedString(stringResource(R.string.not_an_amount))
     val html = when (s.step) {
         Part.AMOUNT -> R.string.teach_amount
         Part.PAYEE -> R.string.teach_payee
         Part.ACCOUNT -> R.string.teach_account
-        null -> R.string.teach_done
+        Part.DIRECTION -> R.string.teach_direction
+        null -> if (s.canSave) R.string.teach_done else R.string.teach_fix
     }
-    return AnnotatedString.fromHtml(stringResource(html))
+    val link = androidx.compose.ui.text.TextLinkStyles(
+        androidx.compose.ui.text.SpanStyle(
+            color = MaterialTheme.colorScheme.primary, fontWeight = BurrowType.button.fontWeight,
+            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+        ),
+    )
+    return AnnotatedString.fromHtml(stringResource(html), linkStyles = link, linkInteractionListener = { onSkip() })
 }
 
 /** Picked parts: the amount strong, others soft; the part being picked is ringed when already chosen. */

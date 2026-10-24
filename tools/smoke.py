@@ -436,11 +436,18 @@ def split_needs_parts_that_add_up():
     d.tap("Add a part")
     d.tap("Groceries")
     assert d.exists("The parts add up", timeout=3), "new part didn't take half"
-    d.tap("More for Groceries")
-    assert d.exists("more than the payment", contains=True, timeout=3), "too much isn't shown"
-    take = d.find("Take ", contains=True)
-    assert take, "no 'Take … from' chip"
-    tap_node(take)
+    # A part's amount is a pill that opens the value sheet (95): type ₹1, Done.
+    pills = [n for n in d.dump() if n.clickable and n.text.startswith("₹")]
+    assert pills, "no amount pill on the split parts"
+    tap_node(pills[-1])
+    assert d.exists("Done", timeout=3), "the amount pill didn't open the value sheet"
+    assert not d.exists("Fewer", contains=True, timeout=1), "− / + stepper still there"
+    d.tap("1")
+    d.tap("Done")
+    assert d.exists("still to put in a category", contains=True, timeout=3), "what's left isn't shown"
+    put = d.find("Put ", contains=True)
+    assert put, "no 'Put ₹X in …' chip"
+    tap_node(put)
     assert d.exists("The parts add up", timeout=3), "chip didn't settle the parts"
     d.tap("Save")
     snackbar("Split saved")
@@ -802,6 +809,61 @@ def licences_open_their_text():
         assert d.PACKAGE + "/" in d.shell("dumpsys window | grep mCurrentFocus"), f"{row}: left the app"
         d.back()
     d.back()
+    d.back()
+
+
+@check
+def review_cards_save_one_by_one():
+    # 2026-10-24: To review cards don't swipe; each has its own Save button.
+    d.adb("emu", "sms", "send", "HDFCBK", "Rs.75.00 debited from A/c XX1234 to VPA tea@okaxis. UPI Ref 7001.")
+    time.sleep(3)
+    recover()
+    d.nav("Today")
+    n = d.find("to review", contains=True, timeout=6)
+    assert n is not None, "no payments to review"
+    tap_node(n)
+    before = [x for x in d.dump() if x.label == "Save"]
+    assert before, "a review card has no Save button"
+    y = before[0].center[1]
+    d.swipe(150, y - 200, 1000, y - 200, 250)  # a swipe must not save or ignore anything
+    time.sleep(1)
+    assert len([x for x in d.dump() if x.label == "Save"]) == len(before), "swiping a review card changed it"
+    tap_node(before[0])
+    time.sleep(0.5)
+    assert d.exists("Saved", timeout=3), "Save on the card didn't save"
+    d.back()
+
+
+@check
+def builtin_rules_list_like_yours_and_rename():
+    open_more_row("Auto-capture")
+    assert d.exists("Reads messages from banks", timeout=5), "Bank SMS line isn't the fixed one"
+    d.scroll_to("Message rules")
+    d.tap("Message rules")
+    d.scroll_to("India")
+    d.tap("India")
+    assert d.exists("Rules in this pack", timeout=5), "the India pack doesn't list its rules"
+    rows = [n for n in d.dump() if n.clickable and "payment" in n.label]
+    assert rows, "pack rules aren't listed like your own (name · sender · payments)"
+    tap_node(rows[0])
+    assert d.exists("Built in", contains=True, timeout=5) or d.exists("India", contains=True, timeout=3), "built-in rule didn't open"
+    assert not d.exists("Rename rule", timeout=1), "built-in rules can't be renamed"
+    d.back(); d.back(); d.back(); d.back()
+
+
+@check
+def teach_has_money_in_or_out_and_checks():
+    open_more_row("Auto-capture")
+    d.scroll_to("Message rules")
+    d.tap("Message rules")
+    d.tap("Add rule")
+    d.tap("Paste a message")
+    nodes = [n for n in d.dump() if n.cls.endswith("EditText")]
+    tap_node(nodes[0]); d.type_text("Rs.99.00 debited from A/c XX1111")
+    tap_node(nodes[1]); d.type_text("TESTBK")
+    d.tap("Continue")
+    assert d.exists("Money in or out", timeout=5), "Teach has no Money in or out part"
+    d.tap("Close")
     d.back()
 
 

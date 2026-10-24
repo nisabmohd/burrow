@@ -152,7 +152,7 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
         AddSheet.CATEGORY -> CategorySheet(s.categoriesForType, s.spentByCategory, f.categoryId, { vm.setCategory(it.id); sheet = null }, { sheet = null })
         AddSheet.ACCOUNT -> AccountSheet(s.accountsForType, f.accountId, { vm.setAccount(it.account.id); sheet = null }, { sheet = null })
         AddSheet.TO_ACCOUNT -> AccountSheet(s.accounts.filter { it.account.id != f.accountId }, f.toAccountId, { vm.setToAccount(it.account.id); sheet = null }, { sheet = null })
-        AddSheet.DATE -> DateSheet(dates.date(f.at), { vm.setDate(it); sheet = if (s.shows(FormExtra.TIME)) AddSheet.TIME else null }, { sheet = null }, anyDay = true, quick = true)
+        AddSheet.DATE -> DateSheet(dates.date(f.at), { vm.setDate(it); sheet = null }, { sheet = null }, anyDay = true, quick = true)
         AddSheet.TIME -> TimeSheet(java.time.Instant.ofEpochMilli(f.at).atZone(java.time.ZoneId.systemDefault()).toLocalTime(), { vm.setTime(it); sheet = null }, { sheet = null })
         AddSheet.NOTE -> NoteSheet(vm, s) { sheet = null }
         AddSheet.REPEAT_OR_LEND -> RepeatOrLendSheet(vm, s) { sheet = null }
@@ -188,7 +188,7 @@ private fun Form(
                     maxLines = 1,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
-                if (caret) Caret()
+                if (caret) app.burrow.money.ui.components.Caret()
             }
             val below = when {
                 f.input.hasOperator -> f.input.text
@@ -197,6 +197,16 @@ private fun Form(
             }
             if (below != null) Text(below, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
         }
+        // Favourites, only while the form is empty (01): quick-add pills under the amount, "₹20 Chai";
+        // one tap saves the expense straight away (Undo).
+        val favouritesShow = f.type == TxnType.EXPENSE && !s.isEdit && s.amount == 0L && f.payee.isBlank() &&
+            s.favourites.isNotEmpty() && s.shows(FormExtra.FAVOURITE)
+        if (favouritesShow) FormChipRow(Modifier.padding(bottom = Space.small)) {
+            s.favourites.forEach { fav ->
+                val saved = stringResource(R.string.favourite_saved, fav.favourite.name, money.plain(fav.favourite.amount))
+                FormChip(money.plain(fav.favourite.amount), { vm.spendFavourite(fav, saved, onSaved) }, FormChipStyle.FILLED, trailing = fav.favourite.name)
+            }
+        }
         if (!transfer) {
             val cat = s.category
             val known = f.payee.isNotBlank() && cat != null
@@ -204,22 +214,10 @@ private fun Form(
                 f.payee, vm::setPayee, stringResource(payeeLabel(f.type)), stringResource(R.string.clear),
                 lead = { if (known) CategoryCircle(cat!!.icon, cat.colorHue) else IconCircle(painterResource(R.drawable.ic_storefront_duotone)) },
             )
-            // Favourites while the form is empty (91, one tap saves), payee matches while typing (87).
-            val favouritesShow = f.type == TxnType.EXPENSE && !s.isEdit && s.amount == 0L && f.payee.isBlank() &&
-                s.favourites.isNotEmpty() && s.shows(FormExtra.FAVOURITE)
+            // Payee matches while typing (03).
             when {
                 f.payee.isNotBlank() && s.suggestions.isNotEmpty() -> FormChipRow(Modifier.padding(top = Space.small)) {
                     s.suggestions.take(4).forEach { p -> FormChip(p.name, { vm.pickPayee(p) }) }
-                }
-                favouritesShow -> FormChipRow(Modifier.padding(top = Space.small)) {
-                    s.favourites.forEach { fav ->
-                        val saved = stringResource(R.string.favourite_saved, fav.favourite.name, money.plain(fav.favourite.amount))
-                        FormChip(
-                            fav.favourite.name, { vm.spendFavourite(fav, saved, onSaved) },
-                            circle = { CategoryCircle(fav.categoryIcon, fav.categoryHue, Size.favouriteCircle) },
-                            trailing = money.plain(fav.favourite.amount),
-                        )
-                    }
                 }
             }
             // Category chips: the 4 most used and More (the category sheet).
@@ -238,7 +236,8 @@ private fun Form(
             }
         }
         // One line: "HDFC Savings · Today" (each part opens its sheet); a transfer reads From → To.
-        val day = if (s.shows(FormExtra.TIME)) dates.dayTime(f.at) else dates.day(dates.date(f.at))
+        // The time has its own chip in the extras (12), so the line says just the day.
+        val day = dates.day(dates.date(f.at))
         val when_ = if (s.upcoming) stringResource(R.string.dot_join, day, stringResource(R.string.upcoming_word)) else day
         val clock = painterResource(if (s.upcoming) R.drawable.ic_event_upcoming_regular else R.drawable.ic_schedule_regular)
         val accountIcon = painterResource(duotoneIcon(s.account?.account?.icon ?: "account_balance"))
@@ -260,12 +259,15 @@ private fun Form(
                 LineButton(clock, when_) { open(AddSheet.DATE) }
             }
         }
-        // The extras: Note · Receipt · Repeat or lend (79). Which show follows Customise › Expense.
+        // The extras: Note · Time · Receipt · Repeat or lend (01, 17). Which show follows Customise › Expense.
         FormChipRow(Modifier.padding(top = Space.small)) {
             if (s.shows(FormExtra.NOTE)) {
                 val tags = f.tags.takeIf { it.isNotEmpty() }?.joinToString(", ")
                 val value = f.note.ifBlank { tags.orEmpty() }.ifBlank { null }
                 FormChip(value ?: stringResource(R.string.note), { open(AddSheet.NOTE) }, if (value != null) FormChipStyle.SELECTED else FormChipStyle.TONAL, icon = painterResource(R.drawable.ic_notes_regular))
+            }
+            if (s.shows(FormExtra.TIME)) {
+                FormChip(dates.time(f.at), { open(AddSheet.TIME) }, FormChipStyle.TONAL, icon = painterResource(R.drawable.ic_schedule_regular))
             }
             if (s.shows(FormExtra.ATTACH)) {
                 val files = f.kept.size + f.attachments.size
@@ -317,13 +319,6 @@ private fun LineButton(icon: Painter, text: String, error: Boolean = false, onCl
         Icon(icon, null, tint = fg, modifier = Modifier.size(Size.iconSmall))
         Text(text, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
-}
-
-/** The amount's caret: 3 dp, primary, blinking (Motion.kt). */
-@Composable
-private fun Caret() {
-    val blink by rememberInfiniteTransition(label = "caret").animateFloat(1f, 0f, caretBlinkSpec(), label = "caretAlpha")
-    Box(Modifier.padding(start = Space.grid).size(Size.caretWidth, Size.caretHeight).alpha(blink).clip(Shapes.pill).background(MaterialTheme.colorScheme.primary))
 }
 
 fun everyLabel(every: String) = when (every) {

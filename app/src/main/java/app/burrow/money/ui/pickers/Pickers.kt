@@ -67,15 +67,10 @@ fun CategorySheet(
             ListGroup {
                 categories.forEachIndexed { i, cat ->
                     val total = spent[cat.id] ?: 0L
-                    ListRow(
-                        headline = cat.name,
-                        index = i,
-                        count = categories.size,
+                    app.burrow.money.ui.components.PickRow(
+                        cat.name, i, categories.size, cat.id == selectedId, { onPick(cat) },
                         supporting = if (total > 0) stringResource(R.string.spent_this_month, money.plain(total)) else stringResource(R.string.nothing_this_month),
-                        selected = cat.id == selectedId,
-                        lead = { CategoryCircle(cat.icon, cat.colorHue) },
-                        trailing = { if (cat.id == selectedId) SelectedCheck() },
-                        onClick = { haptics.tick(); onPick(cat) },
+                        lead = { CategoryCircle(cat.icon, cat.colorHue) }, ring = false,
                     )
                 }
             }
@@ -98,15 +93,10 @@ fun AccountSheet(
         SheetBody {
             ListGroup {
                 accounts.forEachIndexed { i, a ->
-                    ListRow(
-                        headline = a.account.name,
-                        index = i,
-                        count = accounts.size,
+                    app.burrow.money.ui.components.PickRow(
+                        a.account.name, i, accounts.size, a.account.id == selectedId, { onPick(a) },
                         supporting = stringResource(R.string.dot_join, money.balance(a.balance), accountTypeLabel(a.account.type)),
-                        selected = a.account.id == selectedId,
                         lead = { CategoryCircle(a.account.icon, a.account.colorHue) },
-                        trailing = { if (a.account.id == selectedId) SelectedCheck() },
-                        onClick = { haptics.tick(); onPick(a) },
                     )
                 }
             }
@@ -125,10 +115,6 @@ fun accountTypeLabel(type: String): String = stringResource(
         else -> R.string.account_bank
     },
 )
-
-@Composable
-private fun SelectedCheck() =
-    Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(Size.icon))
 
 /** One line of text (payee, note): a field that opens focused, and Done. */
 @Composable

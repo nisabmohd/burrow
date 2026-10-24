@@ -80,6 +80,22 @@ class ProjectRulesTest {
         }
     }
 
+    @Test fun noPlusMinusSteppers() = assertNone(
+        "− / + stepper buttons (every number is the value sheet: COMPONENTS § Value sheet)",
+        violations { f, _, l -> f.name != "Keypad.kt" && "TonalIconButton(" in l && ("R.string.key_minus" in l || "R.string.key_plus" in l) },
+    )
+
+    @Test fun pickOneRowsAreNeverTinted() = assertNone(
+        "ListRow(selected = …) — pick-one lists use PickRow with the round check (C1)",
+        // Teach tints the step being picked: that is "now", not a choice.
+        violations { f, _, l -> f.name != "TeachScreen.kt" && f.name != "Customise.kt" && f.name != "Lists.kt" && Regex("""selected = [^,)]+==""").containsMatchIn(l) && "ListRow" in l },
+    )
+
+    @Test fun tabsArePillTabs() = assertNone(
+        "a tab row built from ButtonGroup or chips (tabs are PillTabs)",
+        violations { _, _, l -> "PlanSection.entries" in l && "ButtonGroup" in l || "CustomiseTab.entries" in l && "Chip(" in l },
+    )
+
     // --- strings ---------------------------------------------------------------------------------
 
     private val stringRe = Regex("""<string name="([^"]+)"[^>]*>(.*?)</string>""", RegexOption.DOT_MATCHES_ALL)

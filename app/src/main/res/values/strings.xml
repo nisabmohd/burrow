@@ -190,8 +190,8 @@
     <string name="install">Install</string>
     <string name="downloading">Downloading…</string>
     <string name="downloading_percent">Downloading… %1$d%%</string>
-    <string name="allow_installs_hint">Allow Burrow to install apps, then tap Install</string>
-    <string name="update_failed">The download didn\'t finish</string>
+    <string name="allow_installs_hint">Allow Burrow to install apps, then tap Install.</string>
+    <string name="update_failed">The download didn\'t finish.</string>
     <string name="open_release_page">Open release page</string>
     <string name="restricted_title">Android is blocking access</string>
     <string name="restricted_line">Burrow was installed from a file. In App info tap ⋮ › Allow restricted settings, then turn it on here again</string>
@@ -243,7 +243,7 @@
     <string name="add_a_rule">Add a rule</string>
     <string name="add_a_rule_line">Teach the app a new message format</string>
     <string name="paste_message">Paste a message</string>
-    <string name="paste_message_line">Then tap the amount and payee</string>
+    <string name="paste_message_line">Then tap the amount and payee in it</string>
     <string name="from_not_understood">From messages not understood</string>
     <plurals name="n_waiting">
         <item quantity="one">%d waiting</item>
@@ -261,8 +261,8 @@
     <string name="rules_bad_file">This file has a rule that can\'t be used</string>
     <string name="rules_shared">Rules file saved</string>
     <string name="message">Message</string>
-    <string name="message_hint">Paste the bank\'s message</string>
-    <string name="sender_hint">Who sent it, like AX-KOTAKB</string>
+    <string name="message_hint">Paste the bank message here</string>
+    <string name="sender_hint">HDFCBK, VM-DBSBNK…</string>
     <string name="continue_">Continue</string>
 
     <!-- Rule (50) -->
@@ -280,7 +280,7 @@
     <string name="message_language">Message language</string>
     <string name="number_style">Number style</string>
     <string name="test_it">Test it</string>
-    <string name="test_hint">Paste any message</string>
+    <string name="test_hint">Paste a message to test</string>
     <string name="test_reads">Reads %1$s</string>
     <string name="test_reads_to">Reads %1$s to %2$s</string>
     <string name="test_no">This rule doesn\'t read it</string>
@@ -293,9 +293,9 @@
     <!-- Teach (52) -->
     <string name="teach_title">Teach a message</string>
     <string name="teach_amount">Tap the &lt;b&gt;amount&lt;/b&gt; in the message.</string>
-    <string name="teach_payee">Tap &lt;b&gt;who you paid&lt;/b&gt;, or skip it.</string>
-    <string name="teach_account">Tap the &lt;b&gt;account&lt;/b&gt;, or skip it.</string>
-    <string name="teach_done">Looks right? Save the rule.</string>
+    <string name="teach_payee">Tap &lt;b&gt;who you paid&lt;/b&gt;, or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
+    <string name="teach_account">Tap the &lt;b&gt;account&lt;/b&gt;, or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
+    <string name="teach_done">All set. Messages like this will be read from now on.</string>
     <string name="not_picked">Not picked yet</string>
     <string name="not_an_amount">That isn\'t an amount</string>
     <string name="skip">Skip</string>
@@ -450,12 +450,12 @@
     <string name="delete_goal_title">Delete this goal?</string>
     <string name="delete_goal_text">The money you added stays in your accounts\' history.</string>
     <string name="new_goal">New goal</string>
-    <string name="goal_name_hint">Japan trip, new laptop…</string>
+    <string name="goal_name_hint">Trip, laptop, emergency fund…</string>
     <string name="target">Target</string>
     <string name="by_when">By when</string>
     <string name="no_date">No date</string>
     <string name="icon">Icon</string>
-    <string name="goal_cant_save">Add a name and a target to save.</string>
+    <string name="goal_cant_save">Add a name and a target to save</string>
 
     <!-- Accounts (55–59) -->
     <string name="add_account">Add account</string>
@@ -691,7 +691,7 @@
     <string name="delete_category_text">Its transactions and bills move to Other. Its budget is removed.</string>
 
     <!-- Currency (67) -->
-    <string name="search_currencies">Search currencies</string>
+    <string name="search_currencies">Search currency</string>
     <string name="your_region">from your region</string>
     <string name="from_your_region">%1$s · from your region</string>
     <string name="currency_note">Totals and budgets use this. Accounts keep their own currency.</string>
@@ -777,15 +777,13 @@
     <string name="restore_from_file">Restore from another file</string>
     <string name="backup_explain">Backups are encrypted with your password and saved in a folder you pick, such as one your cloud app syncs. Burrow never uploads anything.</string>
     <string name="backup_password">Backup password</string>
-    <string name="backup_password_line">At least 6 characters. Without it, a backup can\'t be opened, not even by us.</string>
+    <string name="backup_password_line">You need it to restore. It can\'t be recovered.</string>
     <string name="password">Password</string>
     <string name="password_again">Password again</string>
     <string name="passwords_differ">The passwords don\'t match</string>
     <string name="password_short">At least 6 characters</string>
     <string name="password_saved">Password saved</string>
-    <string name="enter_backup_password">Enter the backup password</string>
-    <string name="wrong_password_title">Wrong password</string>
-    <string name="wrong_password_text">That password doesn\'t open this backup.</string>
+    <string name="enter_backup_password">The password you set for backups</string>
     <string name="try_again">Try again</string>
     <string name="not_a_backup">That file isn\'t a Burrow backup</string>
     <string name="replace_title">Replace everything?</string>
@@ -807,12 +805,12 @@
     </plurals>
 
     <!-- About (72) -->
-    <string name="version_build">Version %1$s (%2$d)</string>
+    <string name="version_build">Version %1$s · build %2$d</string>
     <string name="source_code">Source code</string>
-    <string name="source_code_line">Free and open source, GPL-3.0</string>
+    <string name="source_code_line">Free and open source · GPL v3</string>
     <string name="data_stays">Your data stays yours</string>
-    <string name="data_stays_line">Burrow never sends your data anywhere</string>
-    <string name="rate">Rate on Google Play</string>
+    <string name="data_stays_line">Burrow never sends it anywhere</string>
+    <string name="rate">Rate on Play Store</string>
     <string name="report_problem">Report a problem</string>
     <string name="licences">Licences</string>
 
@@ -1159,7 +1157,7 @@
         <item quantity="one">%1$d of %2$d payment this month · you typed %3$d</item>
         <item quantity="other">%1$d of %2$d payments this month · you typed %3$d</item>
     </plurals>
-    <string name="percent_by_itself">%1$d%% recorded by itself</string>
+    <string name="percent_by_itself">%1$d%% by itself</string>
     <string name="from_senders">From %1$s</string>
     <plurals name="teach_missed">
         <item quantity="one">Teach it %d message it missed</item>
@@ -1203,7 +1201,6 @@
     <string name="attach_receipt">Attach a receipt</string>
     <string name="receipt">Receipt</string>
     <string name="close_keypad">Close the keypad</string>
-    <string name="made_by">Made by mid apps</string>
     <!-- Calm pass (2026-10-23): New expense -->
     <string name="type_transfer_line">Between your accounts · not spending</string>
     <string name="repeat_or_lend">Repeat or lend</string>
@@ -1248,11 +1245,49 @@
     <string name="upcoming_added_on">Upcoming · added on %1$s</string>
     <string name="change_date">Change date</string>
     <string name="saved_upcoming_on">Saved · Upcoming on %1$s</string>
-    <string name="not_understood_title">Messages not understood</string>
-    <string name="not_understood_line">Teach the app a message once and it reads the rest from that bank. Not a payment? Ignore it.</string>
+    <string name="not_understood_title">Not understood</string>
+    <string name="not_understood_line">These looked like payments but no rule could read them. Teach once, and messages like it are read from then on.</string>
     <string name="nothing_to_teach">Nothing to teach</string>
-    <string name="nothing_to_teach_line">Messages with money that no rule could read wait here.</string>
+    <string name="nothing_to_teach_line">Messages the app can\'t read show up here.</string>
     <string name="teach">Teach</string>
     <string name="paused">Paused</string>
     <string name="needs_access">Needs access</string>
+    <string name="built_in_pack_line">rules · built in · read-only</string>
+    <string name="use_this_pack">Use this pack</string>
+    <string name="rules_in_pack">Rules in this pack</string>
+    <string name="rename_rule">Rename rule</string>
+    <string name="rule_name_hint">HDFC card, salary…</string>
+    <string name="money_in_or_out">Money in or out</string>
+    <string name="teach_direction">Tap the word that says &lt;b&gt;money in or out&lt;/b&gt; (credited, debited), or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
+    <string name="when_you_paid">When you paid</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="type_an_amount">Type an amount</string>
+    <string name="fix_balance_shows">%1$s · the app shows %2$s</string>
+    <string name="your_bank_shows">Your bank shows</string>
+    <string name="fix_less">%1$s less than the app · one adjustment of %2$s</string>
+    <string name="fix_more">%1$s more than the app · one adjustment of %2$s</string>
+    <string name="fix_same">Same as the app</string>
+    <string name="pay_card_bill">Pay card bill</string>
+    <string name="pay_card_line">%1$s · statement %2$s</string>
+    <string name="statement_chip">Statement %1$s</string>
+    <string name="emi_line">%1$s · EMI %2$d of %3$d</string>
+    <string name="emi_chip">EMI %1$s</string>
+    <string name="split_part_line">Of %1$s in all</string>
+    <string name="remove_part">Remove part</string>
+    <string name="tap_to_fix">Tap to fix</string>
+    <string name="tap_to_turn_on">Tap to turn on</string>
+    <string name="who_sent_it">Who sent it</string>
+    <string name="rename_rule_line">Shown in your rules list</string>
+    <string name="teach_fix">Tap the amount again so it reads back.</string>
+    <string name="category_for_payment">Category for this payment</string>
+    <string name="use_for_messages_like_this">Use for messages like this</string>
+    <string name="test_help">Paste any message from %1$s; the parts it reads are highlighted.</string>
+    <string name="licences_line">Burrow and what it uses</string>
+    <string name="licences_app">App</string>
+    <string name="licences_libraries">Libraries</string>
+    <string name="licences_icons_fonts">Icons and fonts</string>
+    <string name="enter_backup_password_title">Enter backup password</string>
+    <string name="wrong_password_again">Wrong password. Try again.</string>
+    <string name="add_currency_line">You type its rate; Burrow never looks it up</string>
 </resources>

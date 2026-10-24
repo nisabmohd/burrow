@@ -27,7 +27,7 @@ object RuleBuilder {
     /** An amount token: optional currency letters/symbol, then a number. */
     fun isAmount(token: String): Boolean = AMOUNT_TOKEN.matches(token)
 
-    fun build(id: String, name: String, sender: String?, text: String, amount: IntRange, payee: IntRange?, account: IntRange?): Rule {
+    fun build(id: String, name: String, sender: String?, text: String, amount: IntRange, payee: IntRange?, account: IntRange?, directionWord: IntRange? = null): Rule {
         val parts = listOfNotNull(Part.AMOUNT to amount, payee?.let { Part.PAYEE to it }, account?.let { Part.ACCOUNT to it })
             .sortedBy { it.second.first }
         val sb = StringBuilder("(?s)")
@@ -39,7 +39,9 @@ object RuleBuilder {
         }
         val amountText = text.substring(amount)
         val lower = text.lowercase()
-        val direction = when {
+        // The word the user tapped decides; otherwise guess from the whole message.
+        val tapped = directionWord?.let { directionOf(text.substring(it)) }
+        val direction = tapped ?: when {
             Rule(id = "", name = "", sender = "", pattern = "").inWords.any { lower.contains(it) } -> Direction.IN
             Rule(id = "", name = "", sender = "", pattern = "").outWords.any { lower.contains(it) } -> Direction.OUT
             else -> null
@@ -55,6 +57,17 @@ object RuleBuilder {
             example = text,
         )
     }
+
+    /**
+     * What a tapped word means: money in for "credited", "received", "deposited", "refund", "added",
+     * "cashback" (and their stems), money out for anything else ("debited", "spent", "paid", "sent").
+     */
+    fun directionOf(word: String): Direction {
+        val w = word.lowercase()
+        return if (IN_STEMS.any { w.contains(it) }) Direction.IN else Direction.OUT
+    }
+
+    private val IN_STEMS = listOf("credit", "receiv", "deposit", "refund", "added", "cashback", "reversal", "jama")
 
     /** "AX-KOTAKB" → any sender ending in KOTAKB; a package name exactly; nothing → any sender. */
     fun senderPattern(sender: String?): String {
@@ -74,6 +87,7 @@ object RuleBuilder {
         // A word, ending where the word ends (before any closing punctuation), even as the last part.
         Part.PAYEE -> "(?<payee>\\S+?)$WORD_END"
         Part.ACCOUNT -> if (ACCOUNT_TOKEN.matches(token)) "(?<account>[Xx*•.]*\\d+)" else "(?<account>\\S+?)$WORD_END"
+        Part.DIRECTION -> literal(token) // never a group: it only sets the rule's direction
     }
 
     /** Text between two parts: kept, unless it is long, then its first and last two words around a gap. */

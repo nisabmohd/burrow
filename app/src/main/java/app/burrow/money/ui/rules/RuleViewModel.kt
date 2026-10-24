@@ -30,6 +30,8 @@ class RuleViewModel(private val capture: CaptureRepository, private val engine: 
 
     fun setEnabled(on: Boolean) = viewModelScope.launch { capture.setRuleEnabled(id, on) }
 
+    fun rename(name: String) = viewModelScope.launch { rule.first()?.let { capture.renameRule(it, name) } }
+
     fun delete(onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
         val r = rule.first() ?: return@launch
         capture.deleteRule(id)

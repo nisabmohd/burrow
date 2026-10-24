@@ -6,6 +6,16 @@
 - Tapping a chip, an amount or a link shows the press inside its shape, not a square around it.
 - Filter chips under the search are easier to tap.
 - Licences open inside the app with their full text, and list Burrow's own licence (GPL-3.0).
+- Built-in message rules are listed like your own; tap one to see what it reads. Your rules can be renamed.
+- To review: each payment has its own Save button instead of swiping.
+- Teach: tap the word that says money in or out ("credited", "debited"), like the payee; picked parts show a check.
+- Auto-capture: Bank SMS always says "Reads messages from banks".
+- One way to change any number: a sheet with the value, quick choices and a keypad (budgets, refunds, split parts, fixing a balance, paying a card bill, month start, time). No more − / + buttons.
+- Every list where you pick one shows a round check; tabs look the same on Plan and Customise.
+- Not understood: each message has a Teach button. Teach can set the payment's category and whether to keep reading messages like it.
+- Large text: the nav shows only the open tab's name, widgets and tiles stack, the add button turns into a round +.
+- A wrong backup password shows right in the password sheet.
+- New expense: favourites sit right under the amount as quick-add pills ("₹20 Chai", one tap saves), and the time has its own chip next to Note.
 
 ## 0.2.0
 - Check for updates: the GitHub download now finds, downloads and installs new versions itself (Play and F-Droid update it for you).

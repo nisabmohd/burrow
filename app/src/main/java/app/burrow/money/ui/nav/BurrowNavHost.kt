@@ -497,7 +497,12 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onOpen = { nav.navigate(RuleRoute(it)) },
                             onTeach = { nav.navigate(MissedRoute) },
                             onTeachText = { sender, text -> nav.navigate(TeachRoute(sender = sender, text = text)) },
+                            onOpenPack = { nav.navigate(PackRulesRoute(it)) },
                         )
+                    }
+                    composable<PackRulesRoute> { e ->
+                        val vm = viewModel { RulesViewModel(container.capture, container.settings) }
+                        app.burrow.money.ui.rules.PackRulesScreen(vm, e.toRoute<PackRulesRoute>().id, onBack = { nav.popBackStack() }, onOpen = { nav.navigate(RuleRoute(it)) })
                     }
                     composable<MissedRoute> {
                         val vm = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
@@ -511,7 +516,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<TeachRoute> { e ->
                         val r = e.toRoute<TeachRoute>()
                         val fallback = stringResource(R.string.my_rule)
-                        val vm = viewModel { TeachViewModel(container.capture, container.rules, r.captureId, r.sender, r.text, fallback) }
+                        val vm = viewModel { TeachViewModel(container.capture, container.rules, container.money, r.captureId, r.sender, r.text, fallback) }
                         TeachScreen(vm, onClose = { nav.popBackStack() })
                     }
                     composable<TxnRoute> { e ->

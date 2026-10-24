@@ -209,10 +209,15 @@ private fun ActivityChartCard(chart: ActivityChart, onSelect: (Int?) -> Unit, on
     val selDay = chart.selected?.let { chart.bars.getOrNull(it)?.first }
     ChartCard(
         icon = painterResource(R.drawable.ic_bar_chart_duotone),
-        label = if (chart.lastDays) stringResource(R.string.last_14_days) else dates.range(chart.range),
+        // A picked day (12): the day becomes the label and the line is just how many.
+        label = when {
+            selDay != null -> dates.day(selDay)
+            chart.lastDays -> stringResource(R.string.last_14_days)
+            else -> dates.range(chart.range)
+        },
         value = money.plain(chart.total),
         line = if (selDay != null) {
-            pluralStringResource(if (chart.income) R.plurals.came_in_on_n else R.plurals.spent_on_n, chart.count, dates.weekdayDay(selDay), chart.count)
+            pluralStringResource(R.plurals.n_transactions, chart.count, chart.count)
         } else {
             pluralStringResource(if (chart.income) R.plurals.came_in_n else R.plurals.spent_n, chart.count, chart.count)
         },

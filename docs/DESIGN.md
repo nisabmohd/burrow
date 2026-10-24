@@ -3,7 +3,7 @@
 Burrow is a small, private expense tracker for Android. It records payments by itself from
 bank messages, reminds you of bills, and shows what is left. These are the rules every screen follows.
 The live reference is the prototype (`design/prototype/burrow-prototype.html`, not in git) and the
-PNGs in `design/screens/` (light) and `design/screens/dark/`.
+PNGs in `design/screens/` (light only; dark mode follows the tokens and is checked in the app).
 
 ## The feel
 Clean, calm, Material You Expressive, minimal, as if Google made it. Not a clone of any other app.
@@ -17,6 +17,7 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
 3. **One signal per number.** A ring *or* a bar, plus one short line ("₹710 over", "₹5,310 left").
    Never ring + bar + % + red text together.
 4. **No buttons inside cards.** Tap the row to open it. One main action per screen: the FAB, one
+   One exception (user, 2026-10-24): To review cards each have a Save button and don't swipe.
    bottom button, or the single "Mark paid" on the Next-up card.
 5. **Notes go first.** Any notice (overdue, paused, suggestion, goal reached) is the first thing on
    the page, in the one `Note` component. Colour by kind only (info rose, warning amber, error red).
@@ -25,7 +26,7 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
    (Type, Accounts, Categories as wrapping chips, fits one screen) and one Dates sheet. Active
    filters become removable chips under the search bar with "Clear all".
 8. **Every picker is a bottom sheet.** Category, account, dates, day (stepper), widgets, budgets.
-   Dialogs only confirm delete, replace data or a wrong password.
+   Dialogs only confirm delete or replace data; a wrong password shows inside its sheet (144).
 9. **One chart style.** Pill bars with a dashed average; rings with a gap; the circle heatmap.
    Charts are Compose Canvas, no library.
 10. **Short words.** A title and one line. Explanations live in the first-time intros, not on settings
@@ -125,4 +126,4 @@ an icon + label, a 22 sp value, one line and a 60 dp visual at the bottom.
 
 ## Dark theme
 Same structure; tones from `TOKENS.md`. Category circles get darker containers with light icons.
-Check every new screen in both themes before calling it done (`design/screens/dark/` for reference).
+Check every new screen in both themes before calling it done (dark in the app; the PNGs are light).

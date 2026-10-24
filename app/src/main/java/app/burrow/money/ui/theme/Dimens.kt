@@ -95,7 +95,11 @@ object Size {
     /** Below this height a wide screen is a landscape phone: New expense puts its keypad beside the form. */
     val landscapeMaxHeight = 480.dp
     val keypadSide = 340.dp
-    val checkBadge = 22.dp    // the round check on a selected choice or toggle tile
+    val checkBadge = 24.dp    // the round check (pick one): ring → filled primary with a ✓ (COMPONENTS § Round check)
+    val checkInBadge = 14.dp  // the ✓ inside it
+    val bulletDot = 6.dp      // a What's new bullet (Update sheet 128)
+    val pillTab = 44.dp       // a fixed set of pill tabs (Plan)
+    val pillTabScrolling = 40.dp // a scrolling set (Customise)
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)
     val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
 }

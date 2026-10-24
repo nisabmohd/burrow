@@ -115,16 +115,17 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
             app.burrow.money.ui.components.BlockGap { LazyColumn(Modifier.fillMaxSize(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(Space.block)) {
                 item(key = "line") { SpendCard(s) }
                 item(key = "pair") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+                    val big = s.biggest
+                    app.burrow.money.ui.components.PairRow(first = { m ->
                         Widget(
                             stringResource(R.string.a_day_label), painterResource(R.drawable.ic_today_duotone), money.plain(money.whole(s.perDay)), stringResource(R.string.on_average),
-                            Modifier.weight(1f), visual = { Sparkline(s.daily) },
+                            m, visual = { Sparkline(s.daily) },
                         )
-                        val big = s.biggest
+                    }) { m ->
                         Widget(
                             stringResource(R.string.biggest), painterResource(R.drawable.ic_arrow_upward_duotone), money.plain(big?.txn?.amount ?: 0),
                             big?.let { stringResource(R.string.dot_join, it.txn.payee ?: it.categoryName.orEmpty(), dates.shortDay(it.day())) }.orEmpty(),
-                            Modifier.weight(1f),
+                            m,
                             visual = {
                                 if (big != null) Row(verticalAlignment = Alignment.CenterVertically) {
                                     CategoryCircle(big.categoryIcon, big.categoryHue)

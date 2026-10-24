@@ -95,6 +95,37 @@ fun Keypad(onKey: (Key) -> Unit, doneEnabled: Boolean, modifier: Modifier = Modi
     }
 }
 
+/**
+ * The value sheet's keypad (COMPONENTS § Value sheet): 3 × 4 of the same 52 dp pill keys, 1–9, then
+ * `.` (or a gap when [showDot] is false: days, time), 0, ⌫ (hold to clear). Done lives in the footer.
+ */
+@Composable
+fun NumberPad(onKey: (Key) -> Unit, modifier: Modifier = Modifier, showDot: Boolean = true) {
+    val c = MaterialTheme.colorScheme
+    val rows = listOf(
+        listOf<Key?>(Key.Digit('1'), Key.Digit('2'), Key.Digit('3')),
+        listOf<Key?>(Key.Digit('4'), Key.Digit('5'), Key.Digit('6')),
+        listOf<Key?>(Key.Digit('7'), Key.Digit('8'), Key.Digit('9')),
+        listOf(if (showDot) Key.Dot else null, Key.Digit('0'), Key.Backspace),
+    )
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.keypad)) {
+        rows.forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.keypad)) {
+                row.forEach { key ->
+                    val mod = Modifier.weight(1f)
+                    when (key) {
+                        null -> Box(mod)
+                        is Key.Digit -> TextKey(key.char.toString(), mod) { onKey(key) }
+                        Key.Dot -> TextKey(".", mod) { onKey(key) }
+                        Key.Backspace -> IconKey(R.drawable.ic_backspace_regular, stringResource(R.string.key_delete), c.secondaryContainer, c.onSecondaryContainer, mod, onLongClick = { onKey(Key.Clear) }) { onKey(key) }
+                        else -> Box(mod)
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun TextKey(text: String, modifier: Modifier, onClick: () -> Unit) {
     KeyShape(MaterialTheme.colorScheme.surfaceContainerLow, modifier, label = null, onClick = onClick) {

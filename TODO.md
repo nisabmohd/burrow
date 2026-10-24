@@ -10,7 +10,6 @@ Screen numbers point to `design/screens/`.
 - [ ] Google Play: upload `burrow-0.2.0-play.aab` to closed testing; data safety ("no data collected or shared");
       SMS permissions declaration (`release/sms-declaration.md`)
 - [ ] F-Droid: merge request for the `foss` build
-- [ ] Re-take store screenshots 01–07 with today's UI (`tools/store_shots.py`; 08 is done)
 - [ ] **Rate on Play Store** (play): set `PLAY_LISTED = true` once the listing is live; the About row is wired.
       Maybe a one-time gentle ask after a few weeks (one sheet, never again after "No thanks")
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
@@ -22,12 +21,11 @@ Screen numbers point to `design/screens/`.
 - [ ] New bill: weekly and yearly repeat when creating (monthly only today; editing keeps yearly)
 - [ ] Deposits: "Remind me a week before" is saved but no maturity reminder is scheduled
 - [ ] Payee names for UPI ids ("thirdwave@okicici" → "Third Wave Coffee") and payee aliases
-- [ ] Rename a message rule (the pencil on 50)
 - [ ] More country rule packs (UAE, UK first; only India is built in), and community packs
 - [ ] More languages
 
 ## Tests
-- [ ] Run the new tests: `./gradlew :app:testFossDebugUnitTest :app:connectedFossDebugAndroidTest`, then `python3 tools/smoke.py`
+- [ ] Run the new tests (incl. ValueTyping, PillTabs, ValueSheet, PickAndCards): `./gradlew :app:testFossDebugUnitTest :app:connectedFossDebugAndroidTest`, then `python3 tools/smoke.py`
 - [ ] Screen-level tests (Today, New expense, Auto-capture with fake state) once those screens take state instead of view models
 
 ## Check on a real phone
@@ -38,11 +36,15 @@ Screen numbers point to `design/screens/`.
 - [ ] RTL with an RTL language (the emulator falls back to English)
 - [ ] 20k-transaction performance test: Activity scrolling and Insights
 
+## Design follow-ups (kit 2026-10-24)
+- [ ] Ask the designer to fix PNGs that break agreed rules: 24 (check on the Goals tab), 02 (plain tick, not the round
+      check), 74 and New expense 13 ("#Work" tags; tags are plain words), New expense 11 (list date sheet; the rule is
+      Yesterday · Today · Tomorrow chips over a calendar), 84 / 139 ("never goes online"; the wording is "never sends
+      your data anywhere")
+- [ ] Card minimum due (141 "Minimum ₹410" chip): the app doesn't store it yet
+
 ## Clean-up
-- [ ] Swipe: Coming up, To review and Messages not understood build their own `SwipeToDismissBox` with their own
-      background; move them onto the shared `SwipeRow` (or a dismissing variant of it) so every swipe looks and feels the same
-- [ ] Pick one from a list: sheets (Type, …) mark the choice with a plain check, Customise lists with a round radio
-      (`PickList`); pick one look for both
+- [ ] Swipe: Coming up builds its own `SwipeToDismissBox`; move it onto the shared `SwipeRow` (or a dismissing variant)
 - [ ] Replace the raw dp left inside the starter components (Blocks, Charts, Controls, Lists, ~34) with `Dimens` tokens
 
 ## Every change

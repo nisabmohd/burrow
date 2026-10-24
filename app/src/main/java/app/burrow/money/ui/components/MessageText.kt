@@ -89,13 +89,14 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
  * The grey box a message sits in: a small header (sms icon, sender or bank, time) and the text.
  */
 @Composable
-fun MessageBox(header: String, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
+fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
     val c = MaterialTheme.colorScheme
     Column(
         modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainer).padding(horizontal = Space.card, vertical = Space.block),
         verticalArrangement = Arrangement.spacedBy(Space.group),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+        // No header when the card above already says who sent it (Not understood, 116).
+        if (header != null) Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
             Icon(painterResource(R.drawable.ic_sms_duotone), null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconSmall))
             Text(header, style = BurrowType.label, color = c.onSurfaceVariant)
         }

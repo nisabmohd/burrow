@@ -1,5 +1,6 @@
 package app.burrow.money.ui.review
 
+import app.burrow.money.ui.components.MessageCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,8 +61,9 @@ import app.burrow.money.ui.theme.Space
 
 /**
  * To review (44): each payment the app found as a card (circle, payee, account · time, amount, ✕),
- * its message with the parts it read highlighted, category chips and More. Swipe right saves,
- * left ignores; "Save N payments" saves them all. Empty: All caught up.
+ * its message with the parts it read highlighted, category chips and More, and its own Save button
+ * (user, 2026-10-24: no swiping here, one tap per card instead). "Save N payments" saves them all.
+ * Empty: All caught up.
  */
 @Composable
 fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit = {}) {
@@ -97,24 +96,10 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
                 val ignore = {
                     vm.ignore(item.capture.id) { undo -> snackbar.show(context.getString(R.string.ignored), undo) }
                 }
-                val rightSaves = app.burrow.money.ui.LocalListPrefs.current.swipeRight == app.burrow.money.data.SwipeRight.PAID
-                val swipe = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { v ->
-                        when (v) {
-                            // Customise › Transactions › Swipe right: save, or open it to edit first.
-                            SwipeToDismissBoxValue.StartToEnd -> if (rightSaves) { haptics.confirm(); save(); true } else { onEdit(item.capture.id); false }
-                            SwipeToDismissBoxValue.EndToStart -> { haptics.threshold(); ignore(); true }
-                            else -> false
-                        }
-                    },
+                ReviewCard(
+                    item, Modifier.animateItem(), onIgnore = ignore, onChoose = { vm.choose(item.capture.id, it) }, onMore = { moreFor = item.capture.id },
+                    onSave = { haptics.confirm(); save() },
                 )
-                SwipeToDismissBox(
-                    state = swipe,
-                    modifier = Modifier.animateItem(),
-                    backgroundContent = { SwipeBackground(swipe.dismissDirection) },
-                ) {
-                    ReviewCard(item, onIgnore = ignore, onChoose = { vm.choose(item.capture.id, it) }, onMore = { moreFor = item.capture.id }, onSave = save)
-                }
             }
         }
         BurrowButton(
@@ -137,54 +122,25 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ReviewCard(item: ReviewItem, onIgnore: () -> Unit, onChoose: (Long) -> Unit, onMore: () -> Unit, onSave: () -> Unit) {
-    val c = MaterialTheme.colorScheme
+private fun ReviewCard(item: ReviewItem, modifier: Modifier, onIgnore: () -> Unit, onChoose: (Long) -> Unit, onMore: () -> Unit, onSave: () -> Unit) {
     val money = LocalMoney.current
     val dates = rememberDateText()
     val cap = item.capture
     val amount = if (item.isIncome) money.signed(cap.amount ?: 0) else money.signed(-(cap.amount ?: 0))
-    val saveLabel = stringResource(R.string.save)
-    val ignoreLabel = stringResource(R.string.ignore)
     val when_ = dates.day(dates.date(cap.receivedAt)).let { d -> if (d == stringResource(R.string.today)) dates.time(cap.receivedAt) else d }
-    Column(
-        Modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(Space.card)
-            .semantics { customActions = listOf(CustomAccessibilityAction(saveLabel) { onSave(); true }, CustomAccessibilityAction(ignoreLabel) { onIgnore(); true }) },
-        verticalArrangement = Arrangement.spacedBy(Space.block),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
-            CategoryCircle(item.category?.icon, item.category?.colorHue)
-            Column(Modifier.weight(1f)) {
-                Text(cap.payee?.let { tidyPayee(it) } ?: item.from, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    listOfNotNull(item.accountName, when_).joinToString(" · "),
-                    style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 2,
-                )
+    MessageCard(
+        lead = { CategoryCircle(item.category?.icon, item.category?.colorHue) },
+        title = cap.payee?.let { tidyPayee(it) } ?: item.from,
+        line = listOfNotNull(item.accountName, when_).joinToString(" · "),
+        amount = amount,
+        ignoreLabel = stringResource(R.string.ignore), onIgnore = onIgnore,
+        button = stringResource(R.string.save), buttonIcon = painterResource(R.drawable.ic_check_regular), onButton = onSave,
+        modifier = modifier,
+        extra = {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+                item.chips.forEach { cat -> Chip(cat.name, cat.id == item.category?.id, { onChoose(cat.id) }) }
+                Chip(stringResource(R.string.more), false, onMore, icon = painterResource(R.drawable.ic_more_horiz_regular))
             }
-            Text(amount, style = BurrowType.titleSmall, color = c.onSurface)
-            TonalIconButton(painterResource(R.drawable.ic_close_regular), ignoreLabel, onIgnore)
-        }
-        if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, marksFor(item.spans))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-            item.chips.forEach { cat -> Chip(cat.name, cat.id == item.category?.id, { onChoose(cat.id) }) }
-            Chip(stringResource(R.string.more), false, onMore, icon = painterResource(R.drawable.ic_more_horiz_regular))
-        }
-    }
-}
-
-/** What shows under a card being swiped: save (right) or ignore (left). */
-@Composable
-private fun SwipeBackground(direction: SwipeToDismissBoxValue) {
-    if (direction == SwipeToDismissBoxValue.Settled) return
-    val c = MaterialTheme.colorScheme
-    val saving = direction == SwipeToDismissBoxValue.StartToEnd
-    Box(
-        Modifier.fillMaxSize().clip(Shapes.surface).background(if (saving) c.primaryContainer else c.surfaceContainerHigh).padding(horizontal = Space.sheet),
-        contentAlignment = if (saving) Alignment.CenterStart else Alignment.CenterEnd,
-    ) {
-        Icon(
-            painterResource(if (saving) R.drawable.ic_check_regular else R.drawable.ic_close_regular),
-            null,
-            tint = if (saving) c.onPrimaryContainer else c.onSurfaceVariant,
-        )
-    }
+        },
+    ) { if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, marksFor(item.spans)) }
 }

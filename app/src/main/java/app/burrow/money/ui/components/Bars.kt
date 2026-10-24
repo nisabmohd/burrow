@@ -147,6 +147,17 @@ fun ScreenTopBar(
 @Composable
 fun AddFab(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val lift by animateDpAsState(if (LocalSnackbar.current.visible) Space.fabLift else 0.dp, standardSpec(), label = "fabLift")
+    // Large text (153–157): icon only, so the FAB doesn't cover half the screen.
+    if (androidx.compose.ui.platform.LocalDensity.current.fontScale > LARGE_TEXT) {
+        androidx.compose.material3.FloatingActionButton(
+            onClick = onClick,
+            modifier = modifier.offset { IntOffset(0, -lift.roundToPx()) }.size(Size.fab).semantics { contentDescription = label },
+            shape = Shapes.pill,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ) { Icon(painterResource(R.drawable.ic_add_regular), null, modifier = Modifier.size(Size.icon)) }
+        return
+    }
     ExtendedFloatingActionButton(
         onClick = onClick,
         // Material's extended FAB hides its text from accessibility, so the label goes on the button.
@@ -172,12 +183,15 @@ data class NavItem(val label: String, @DrawableRes val icon: Int, @DrawableRes v
 fun BurrowNavBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     val c = MaterialTheme.colorScheme
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    // Large text (153): only the selected tab keeps its label, so five labels never squeeze.
+    val allLabels = androidx.compose.ui.platform.LocalDensity.current.fontScale <= LARGE_TEXT
     NavigationBar(modifier, containerColor = c.surfaceContainerLow) {
         items.forEachIndexed { i, item ->
             val isSelected = i == selected
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { if (!isSelected) haptics.tick(); onSelect(i) },
+                alwaysShowLabel = allLabels,
                 icon = {
                     Icon(
                         painterResource(if (isSelected) item.selectedIcon else item.icon),

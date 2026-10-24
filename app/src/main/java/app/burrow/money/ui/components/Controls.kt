@@ -1,5 +1,8 @@
 package app.burrow.money.ui.components
 
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.layout.PaddingValues
@@ -110,39 +113,6 @@ fun <T> ChipWrap(items: List<T>, label: (T) -> String, selected: (T) -> Boolean,
     }
 }
 
-/**
- * Every day choice in the app (month start, bill due day): − big day + , quick chips, one result
- * line, Done. Put it inside [BurrowSheet].
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun DayStepper(
-    day: Int,
-    onDay: (Int) -> Unit,
-    quick: List<Int>,
-    resultLine: String,
-    minus: Painter,
-    minusLabel: String,
-    plus: Painter,
-    plusLabel: String,
-    onDone: () -> Unit,
-    doneLabel: String,
-    ordinal: (Int) -> String,
-    max: Int = 28,
-) {
-    val haptics = LocalHapticFeedback.current
-    Column(Modifier.fillMaxWidth().padding(horizontal = Space.screen), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(Modifier.fillMaxWidth().padding(vertical = Space.small), verticalAlignment = Alignment.CenterVertically) {
-            TonalIconButton(minus, minusLabel, { haptics.tick(); onDay((day - 1).coerceAtLeast(1)) })
-            Text(ordinal(day), style = BurrowType.display, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-            TonalIconButton(plus, plusLabel, { haptics.tick(); onDay((day + 1).coerceAtMost(max)) })
-        }
-        ChipRow(quick, { ordinal(it) }, { it == day }, onDay)
-        Text(resultLine, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Space.block))
-        Button(onClick = { haptics.confirm(); onDone() }, modifier = Modifier.fillMaxWidth().padding(bottom = Space.block).height(Size.buttonBottom), shape = Shapes.pill) { Text(doneLabel, style = BurrowType.button) }
-    }
-}
-
 /** The kinds of button (docs/COMPONENTS.md § Buttons). [OFF] looks disabled but still takes taps. */
 enum class ButtonKind { FILLED, TONAL, DANGER, OFF }
 
@@ -182,49 +152,82 @@ fun BurrowButton(
 }
 
 /**
- * Connected button group (Expense / Income / Transfer, Coming up / Budgets / Goals): 48 dp pills 4 dp
- * apart, label centred; the selected one is primary. No check: a check beside a centred label sat
- * at a different spot in every pill.
+ * Connected button group for settings choices (theme, text size, week start, Recent 3 / 5 / 10,
+ * Bill / Subscription): 48 dp pills 4 dp apart; the selected one is primary with a check, check and
+ * label centred together. Tabs are [PillTabs], never this.
  */
 @Composable
 fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
     Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
-        options.forEach { option -> SegmentPill(label(option), option == selected, { onSelect(option) }, Modifier.weight(1f)) }
+        options.forEach { option ->
+            val on = option == selected
+            Row(
+                Modifier
+                    .weight(1f)
+                    .height(Size.button)
+                    .clip(Shapes.pill)
+                    .background(if (on) c.primary else c.surfaceContainer)
+                    .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onSelect(option) } }
+                    .padding(horizontal = Space.small),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val fg = if (on) c.onPrimary else c.onSurfaceVariant
+                if (on) {
+                    Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
+                    Spacer(Modifier.width(Space.group))
+                }
+                // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
+                androidx.compose.foundation.text.BasicText(
+                    label(option), style = BurrowType.button.copy(color = fg), maxLines = 1,
+                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+                )
+            }
+        }
     }
 }
 
 /**
- * [ButtonGroup] for more options than fit a row (Customise tabs): the same pills at their own width,
- * scrolling sideways; the open one is brought into view.
+ * Tabs (COMPONENTS § Pill tabs): Plan's Coming up / Budgets / Goals and Customise's five. Selected =
+ * primary / onPrimary, others surfaceContainerHigh / onSurfaceVariant, label centred, no check.
+ * Fixed (default): equal widths, 44 dp. [scrolling]: own widths, 40 dp, scrolls sideways with the
+ * open tab brought into view (it sits in the screen margin itself).
  */
 @Composable
-fun <T> ScrollingButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+fun <T> PillTabs(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier, scrolling: Boolean = false) {
+    if (!scrolling) {
+        Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
+            options.forEach { o -> PillTab(label(o), o == selected, { onSelect(o) }, Modifier.weight(1f), Size.pillTab, Space.inline) }
+        }
+        return
+    }
     val state = androidx.compose.foundation.lazy.rememberLazyListState()
     val index = options.indexOf(selected)
     androidx.compose.runtime.LaunchedEffect(index) { state.animateScrollToItem((index - 1).coerceAtLeast(0)) }
     androidx.compose.foundation.lazy.LazyRow(
         modifier.fillMaxWidth().selectableGroup(), state = state,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = Space.screen),
-        horizontalArrangement = Arrangement.spacedBy(Space.group),
+        horizontalArrangement = Arrangement.spacedBy(Space.inline),
     ) {
-        items(options.size) { i -> val o = options[i]; SegmentPill(label(o), o == selected, { onSelect(o) }, Modifier, Space.sheet) }
+        items(options.size) { i -> val o = options[i]; PillTab(label(o), o == selected, { onSelect(o) }, Modifier, Size.pillTabScrolling, Space.card) }
     }
 }
 
 @Composable
-private fun SegmentPill(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier, inset: androidx.compose.ui.unit.Dp = Space.inline) {
+private fun PillTab(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier, height: androidx.compose.ui.unit.Dp, inset: androidx.compose.ui.unit.Dp) {
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     Box(
         modifier
-            .height(Size.button)
+            .height(height)
             .clip(Shapes.pill)
-            .background(if (on) c.primary else c.surfaceContainer)
-            .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onClick() } }
+            .background(if (on) c.primary else c.surfaceContainerHigh)
+            .selectable(selected = on, role = Role.Tab) { if (!on) { haptics.tick(); onClick() } }
             .padding(horizontal = inset),
         contentAlignment = Alignment.Center,
     ) {
-        // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
         androidx.compose.foundation.text.BasicText(
             text, style = BurrowType.button.copy(color = if (on) c.onPrimary else c.onSurfaceVariant, textAlign = TextAlign.Center), maxLines = 1,
             autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
@@ -252,31 +255,42 @@ fun PillTextField(
     keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
     /** Dots instead of the text (backup password). */
     password: Boolean = false,
+    /** More than 1: a tall box with 24 dp corners, text and icon at the top (Paste a message 121). */
+    lines: Int = 1,
 ) {
     val c = MaterialTheme.colorScheme
     val text = rememberFieldText(value)
+    val tall = lines > 1
+    val shape = if (tall) Shapes.surface else Shapes.pill
+    // A 2 dp primary ring while it has focus, the same as Paid to (137, 143).
+    val interaction = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
     BasicTextField(
         value = text.field,
         onValueChange = { text.typed(it, onValueChange) },
-        singleLine = true,
+        singleLine = !tall,
+        minLines = lines,
         textStyle = BurrowType.bodyLarge.copy(color = c.onSurface),
         cursorBrush = SolidColor(c.primary),
         visualTransformation = if (password) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction, keyboardType = keyboardType),
         keyboardActions = KeyboardActions(onAny = { onDone() }),
         modifier = modifier.fillMaxWidth(),
+        interactionSource = interaction,
         decorationBox = { field ->
             Row(
-                Modifier.fillMaxWidth().heightIn(min = Size.search).clip(Shapes.pill).background(c.surfaceContainer)
-                    .padding(start = if (leading != null) Space.card else Space.sheet, end = Space.small),
-                verticalAlignment = Alignment.CenterVertically,
+                Modifier.fillMaxWidth().heightIn(min = Size.search).clip(shape).background(c.surfaceContainer)
+                    .then(if (focused) Modifier.border(Size.focusRing, c.primary, shape) else Modifier)
+                    .padding(start = if (leading != null) Space.card else Space.sheet, end = Space.small)
+                    .then(if (tall) Modifier.padding(vertical = Space.card) else Modifier),
+                verticalAlignment = if (tall) Alignment.Top else Alignment.CenterVertically,
             ) {
                 if (leading != null) {
                     Icon(leading, null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.icon))
                     Spacer(Modifier.width(Space.card))
                 }
                 Box(Modifier.weight(1f)) {
-                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
+                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = lines)
                     field()
                 }
                 if (text.field.text.isNotEmpty() && clearLabel != null) {

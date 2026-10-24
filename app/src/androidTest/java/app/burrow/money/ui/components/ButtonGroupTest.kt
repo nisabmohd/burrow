@@ -20,7 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** Plan's tabs, Expense / Income / Transfer, theme, week start: one connected group. */
+/** Settings choices (theme, text size, week start, Recent 3 / 5 / 10): the connected group with a check. */
 @RunWith(Parameterized::class)
 class ButtonGroupTest(private val width: Dp, private val fontScale: Float) {
     companion object {
@@ -28,42 +28,41 @@ class ButtonGroupTest(private val width: Dp, private val fontScale: Float) {
     }
 
     @get:Rule val rule = createComposeRule()
-    private val options = listOf("Coming up", "Budgets", "Goals")
+    private val options = listOf("System", "Light", "Dark")
 
     @Test fun selectedIsMarkedAndOnlyOne() {
-        rule.show(width, fontScale) { ButtonGroup(options, "Budgets", { it }, {}) }
-        assertFalse(rule.onNodeWithText("Coming up").isSelected())
-        assertTrue(rule.onNodeWithText("Budgets").isSelected())
-        assertFalse(rule.onNodeWithText("Goals").isSelected())
+        rule.show(width, fontScale) { ButtonGroup(options, "Light", { it }, {}) }
+        assertFalse(rule.onNodeWithText("System").isSelected())
+        assertTrue(rule.onNodeWithText("Light").isSelected())
+        assertFalse(rule.onNodeWithText("Dark").isSelected())
     }
 
     @Test fun tappingAnotherSelectsItTappingTheSelectedDoesNothing() {
         val picks = mutableListOf<String>()
         rule.show(width, fontScale) {
-            var sel by remember { mutableStateOf("Coming up") }
+            var sel by remember { mutableStateOf("System") }
             ButtonGroup(options, sel, { it }, { picks += it; sel = it })
         }
-        rule.onNodeWithText("Coming up").performClick()
+        rule.onNodeWithText("System").performClick()
         assertEquals("tapping the open tab fires nothing", emptyList<String>(), picks)
-        rule.onNodeWithText("Goals").performClick()
-        assertEquals(listOf("Goals"), picks)
-        assertTrue(rule.onNodeWithText("Goals").isSelected())
-        assertFalse(rule.onNodeWithText("Coming up").isSelected())
+        rule.onNodeWithText("Dark").performClick()
+        assertEquals(listOf("Dark"), picks)
+        assertTrue(rule.onNodeWithText("Dark").isSelected())
+        assertFalse(rule.onNodeWithText("System").isSelected())
     }
 
-    @Test fun labelSitsInTheSameSpotInEveryPillSelectedOrNot() {
-        // 2026-10-24: a check beside the label put "Coming up" left and "Goals" centred.
-        rule.show(width, fontScale) { ButtonGroup(options, "Goals", { it }, {}) }
+    @Test fun checkAndLabelAreCentredTogetherInsideThePill() {
+        rule.show(width, fontScale) { ButtonGroup(options, "Dark", { it }, {}) }
         for (o in options) {
             val pill = rule.onNodeWithText(o).getUnclippedBoundsInRoot()
             val text = rule.onNodeWithText(o, useUnmergedTree = true).getUnclippedBoundsInRoot()
-            assertEquals("$o centred", pill.centerX().value, text.centerX().value, 1.5f)
-            assertEquals("$o centred", pill.centerY().value, text.centerY().value, 1.5f)
+            assertTrue("$o label inside its pill", text.left >= pill.left && text.right <= pill.right)
+            assertEquals("$o vertically centred", pill.centerY().value, text.centerY().value, 1.5f)
         }
     }
 
     @Test fun pillsAreEqualAndTallEnoughToTap() {
-        rule.show(width, fontScale) { ButtonGroup(options, "Goals", { it }, {}) }
+        rule.show(width, fontScale) { ButtonGroup(options, "Dark", { it }, {}) }
         val widths = options.map { rule.onNodeWithText(it).assertHeightIsAtLeast(48.dp).getUnclippedBoundsInRoot().let { r -> (r.right - r.left).value } }
         assertEquals(widths.first(), widths.max(), 1f)
         assertEquals(widths.first(), widths.min(), 1f)

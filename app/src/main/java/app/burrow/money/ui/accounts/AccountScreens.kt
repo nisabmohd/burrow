@@ -34,7 +34,6 @@ import app.burrow.money.R
 import app.burrow.money.data.AccountType
 import app.burrow.money.data.AccountWithBalance
 import app.burrow.money.ui.LocalMoney
-import app.burrow.money.ui.components.AmountStepperSheet
 import app.burrow.money.ui.components.AmountTrailing
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
@@ -42,7 +41,6 @@ import app.burrow.money.ui.components.BurrowSwitch
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.ChipWrap
-import app.burrow.money.ui.components.DayStepper
 import app.burrow.money.ui.components.HeaderIcon
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.LabeledField
@@ -137,9 +135,10 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: () -> Unit,
     val owesYou = p.balance > 0
     PayInSheet(
         stringResource(R.string.settle_up_with, p.person.name), stringResource(if (owesYou) R.string.settle_in_line else R.string.settle_out_line, p.person.name),
-        kotlin.math.abs(p.balance), money.digitsUnit() * 100, s.payAccounts, { settling = null },
+        kotlin.math.abs(p.balance), s.payAccounts, { settling = null },
         accountLabel = if (owesYou) R.string.into_account else R.string.from_account, accountLine = R.string.not_spending_or_income,
-    ) { account, amount ->
+        chips = listOf(stringResource(R.string.all_of_it) to kotlin.math.abs(p.balance)),
+    ) { account, amount, _ ->
         settling = null
         vm.settle(p.person, account, amount, owesYou) { undo -> snackbar.show(context.getString(R.string.settled), undo) }
     }
@@ -275,78 +274,105 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
     val unit = money.digitsUnit()
     val payFrom = s.others.filter { it.account.type == AccountType.BANK || it.account.type == AccountType.CASH || it.account.type == AccountType.WALLET }
     when (sheet) {
-        AccountSheet.FIX -> FixBalanceSheet(s.balance, { sheet = null }) { actual ->
+        AccountSheet.FIX -> FixBalanceSheet(a.name, s.balance, { sheet = null }) { actual ->
             sheet = null
             vm.fixBalance(actual) { undo -> snackbar.show(context.getString(R.string.balance_fixed), undo) }
         }
-        AccountSheet.PAY -> PayInSheet(stringResource(R.string.pay_bill), a.name, (s.card?.due ?: 0).coerceAtLeast(unit), unit * 1_000, payFrom, { sheet = null }) { from, amount ->
-            sheet = null
-            vm.payIn(from, amount) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
+        AccountSheet.PAY -> {
+            val due = (s.card?.due ?: 0).coerceAtLeast(0)
+            PayInSheet(
+                stringResource(R.string.pay_card_bill), stringResource(R.string.pay_card_line, a.name, money.plain(due)), due.coerceAtLeast(unit), payFrom, { sheet = null },
+                chips = if (due > 0) listOf(stringResource(R.string.statement_chip, money.plain(due)) to due) else emptyList(),
+            ) { from, amount, day ->
+                sheet = null
+                vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
+            }
         }
-        AccountSheet.PREPAY -> PayInSheet(stringResource(R.string.prepay), a.name, unit * 50_000, unit * 10_000, payFrom, { sheet = null }) { from, amount ->
-            sheet = null
-            vm.payIn(from, amount) { undo -> snackbar.show(context.getString(R.string.prepaid), undo) }
+        AccountSheet.PREPAY -> {
+            val loan = s.loan
+            PayInSheet(
+                stringResource(R.string.prepay),
+                if (loan != null && loan.total > 0) stringResource(R.string.emi_line, a.name, loan.paid + 1, loan.total) else a.name,
+                loan?.emi?.takeIf { it > 0 } ?: unit * 50_000, payFrom, { sheet = null },
+                chips = loan?.emi?.takeIf { it > 0 }?.let { listOf(stringResource(R.string.emi_chip, money.plain(it)) to it) }.orEmpty(),
+            ) { from, amount, day ->
+                sheet = null
+                vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.prepaid), undo) }
+            }
         }
         null -> Unit
     }
 }
 
-/** Fix balance: type what the bank says; one adjustment row makes it match. */
+/**
+ * Fix balance (140): what the bank shows, typed in the value sheet; the line under it says how far
+ * off the app is and the one adjustment that fixes it. A card or loan (negative balance) keeps its sign.
+ */
 @Composable
-private fun FixBalanceSheet(current: Long, onDismiss: () -> Unit, onSave: (Long) -> Unit) {
+private fun FixBalanceSheet(name: String, current: Long, onDismiss: () -> Unit, onSave: (Long) -> Unit) {
     val money = LocalMoney.current
-    var text by rememberSaveable { mutableStateOf(java.math.BigDecimal.valueOf(current, money.digits).stripTrailingZeros().toPlainString()) }
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.fix_balance), onDismiss, stringResource(R.string.fix_balance_line))
-        SheetBody {
-            PillTextField(
-                text, { v -> text = v.filter { it.isDigit() || it == '.' || it == '-' } }, "0",
-                leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal,
-            )
-        }
-        SheetFooter {
-            BurrowButton(stringResource(R.string.cancel), onDismiss, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
-            BurrowButton(stringResource(R.string.save), {
-                val negative = text.startsWith("-")
-                val v = app.burrow.money.domain.TypedAmount.parse(text, money.digits)
-                onSave(if (negative) -v else v)
-            }, Modifier.weight(1f), height = Size.buttonBottom)
-        }
-    }
+    val sign = if (current < 0) -1 else 1
+    app.burrow.money.ui.components.AmountSheet(
+        title = stringResource(R.string.fix_balance),
+        line = stringResource(R.string.fix_balance_shows, name, money.plain(current)),
+        label = stringResource(R.string.your_bank_shows),
+        amount = kotlin.math.abs(current),
+        below = { v ->
+            val diff = sign * v - current
+            when {
+                diff < 0 -> stringResource(R.string.fix_less, money.plain(-diff), money.signed(diff))
+                diff > 0 -> stringResource(R.string.fix_more, money.plain(diff), money.signed(diff))
+                else -> stringResource(R.string.fix_same)
+            }
+        },
+        confirm = stringResource(R.string.save), cancel = true,
+        onDone = { onSave(sign * it) }, onDismiss = onDismiss,
+    )
 }
 
-/** Pay bill (card) and Prepay (loan): an amount and the account it comes from. */
+/**
+ * Pay card bill (141), Prepay / EMI (142), Settle up: the value sheet with quick amounts, the account
+ * it comes from (a transfer, not spending) and the date, Cancel / Save.
+ */
 @Composable
 private fun PayInSheet(
     title: String,
     line: String,
     start: Long,
-    step: Long,
     from: List<AccountWithBalance>,
     onDismiss: () -> Unit,
     accountLabel: Int = R.string.from_account,
     accountLine: Int = R.string.a_transfer_not_spending,
-    onPay: (Long, Long) -> Unit,
+    chips: List<Pair<String, Long>> = emptyList(),
+    onPay: (Long, Long, LocalDate) -> Unit,
 ) {
+    val money = LocalMoney.current
+    val dates = app.burrow.money.ui.rememberDateText()
     var amount by rememberSaveable { mutableLongStateOf(start) }
     var fromId by rememberSaveable { mutableStateOf(from.firstOrNull()?.account?.id) }
-    var picking by remember { mutableStateOf(false) }
+    var day by rememberSaveable { mutableStateOf(LocalDate.now()) }
+    var picking by rememberSaveable { mutableStateOf<String?>(null) }
     val account = from.firstOrNull { it.account.id == fromId }
-    if (picking) {
-        AccountSheet(from, fromId, { fromId = it.account.id; picking = false }, { picking = false })
-        return
+    when (picking) {
+        "account" -> { AccountSheet(from, fromId, { fromId = it.account.id; picking = null }, { picking = null }); return }
+        "date" -> { app.burrow.money.ui.pickers.DateSheet(day, { day = it; picking = null }, { picking = null }); return }
     }
-    AmountStepperSheet(
-        title = title, line = line, amount = amount, onAmount = { amount = it }, step = step,
-        chips = listOf(start, start + step, start + 2 * step).distinct(),
-        confirm = title, onConfirm = { fromId?.let { onPay(it, amount) } }, onDismiss = onDismiss,
-        extra = {
+    app.burrow.money.ui.components.AmountSheet(
+        title = title, line = line, amount = amount, onChange = { amount = it }, chips = chips,
+        confirm = stringResource(R.string.save), cancel = true, min = 1,
+        onDone = { a -> fromId?.let { onPay(it, a, day) } }, onDismiss = onDismiss,
+        rows = {
             ListGroup {
                 ListRow(
-                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, 1,
-                    supporting = stringResource(accountLine),
+                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, 2,
+                    supporting = listOfNotNull(account?.let { money.plain(it.balance) }, stringResource(accountLine)).joinToString(" · "),
                     lead = { CategoryCircle(account?.account?.icon, account?.account?.colorHue) },
-                    onClick = { picking = true },
+                    onClick = { picking = "account" },
+                )
+                ListRow(
+                    dates.day(day), 1, 2, supporting = stringResource(R.string.date),
+                    lead = { IconCircle(painterResource(R.drawable.ic_schedule_duotone)) },
+                    onClick = { picking = "date" },
                 )
             }
         },
@@ -469,21 +495,14 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
     }
     when (sheet) {
         FormSheet.STATEMENT, FormSheet.DUE -> {
-            var day by rememberSaveable { mutableIntStateOf(if (sheet == FormSheet.STATEMENT) f.statementDay else f.dueDay) }
-            BurrowSheet({ sheet = null }) {
-                SheetHeader(stringResource(if (sheet == FormSheet.STATEMENT) R.string.statement_day else R.string.due_day), { sheet = null })
-                DayStepper(
-                    day = day, onDay = { day = it }, quick = listOf(1, 5, 10, 15, 25), resultLine = stringResource(R.string.every_month_on, dates.ordinal(day)),
-                    minus = painterResource(R.drawable.ic_remove_regular), minusLabel = stringResource(R.string.key_minus),
-                    plus = painterResource(R.drawable.ic_add_regular), plusLabel = stringResource(R.string.key_plus),
-                    onDone = {
-                        val d = day
-                        if (sheet == FormSheet.STATEMENT) vm.edit { it.copy(statementDay = d) } else vm.edit { it.copy(dueDay = d) }
-                        sheet = null
-                    },
-                    doneLabel = stringResource(R.string.done), ordinal = dates::ordinal, max = 31,
-                )
-            }
+            val statement = sheet == FormSheet.STATEMENT
+            app.burrow.money.ui.components.DaySheet(
+                title = stringResource(if (statement) R.string.statement_day else R.string.due_day),
+                day = if (statement) f.statementDay else f.dueDay,
+                onDone = { d -> if (statement) vm.edit { it.copy(statementDay = d) } else vm.edit { it.copy(dueDay = d) }; sheet = null },
+                onDismiss = { sheet = null }, ordinal = dates::ordinal, quick = listOf(1, 5, 10, 15, 25), max = 31,
+                result = { d -> stringResource(R.string.every_month_on, dates.ordinal(d)) },
+            )
         }
         FormSheet.MATURITY -> DateSheet(f.maturity ?: LocalDate.now().plusYears(1), { d -> vm.edit { it.copy(maturity = d) }; sheet = null }, { sheet = null }, future = true, title = stringResource(R.string.matures_on))
         null -> Unit

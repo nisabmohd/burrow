@@ -137,10 +137,6 @@ fun AttachSheet(app: AppContainer, vm: AddViewModel, s: AddUiState, onDismiss: (
     }
 }
 
-/** A check at the end of the chosen row in a pick sheet. */
-@Composable
-private fun RowCheck() = androidx.compose.material3.Icon(painterResource(R.drawable.ic_check_regular), null, tint = MaterialTheme.colorScheme.primary)
-
 /** Type (111), from the title "New expense ▾": Expense · Income · Transfer. */
 @Composable
 fun TypeSheet(type: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
@@ -154,11 +150,9 @@ fun TypeSheet(type: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
         SheetBody {
             ListGroup {
                 options.forEachIndexed { i, (key, line, icon) ->
-                    ListRow(
-                        stringResource(typeLabel(key)), i, options.size, supporting = stringResource(line), selected = key == type,
-                        lead = { IconCircle(painterResource(icon)) },
-                        trailing = if (key == type) ({ RowCheck() }) else null,
-                        onClick = { onPick(key) },
+                    app.burrow.money.ui.components.PickRow(
+                        stringResource(typeLabel(key)), i, options.size, key == type, { onPick(key) },
+                        supporting = stringResource(line), lead = { IconCircle(painterResource(icon)) },
                     )
                 }
             }
@@ -206,11 +200,9 @@ fun RepeatOrLendSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
         SheetBody {
             ListGroup {
                 options.forEachIndexed { i, (key, text, icon) ->
-                    ListRow(
-                        stringResource(text.first), i, options.size, supporting = stringResource(text.second), selected = key == choice,
-                        lead = { IconCircle(painterResource(icon)) },
-                        trailing = if (key == choice) ({ RowCheck() }) else null,
-                        onClick = { pick(key) },
+                    app.burrow.money.ui.components.PickRow(
+                        stringResource(text.first), i, options.size, key == choice, { pick(key) },
+                        supporting = stringResource(text.second), lead = { IconCircle(painterResource(icon)) },
                     )
                 }
             }
@@ -233,19 +225,8 @@ private const val CHOICE_ONCE = "ONCE"
 private const val CHOICE_REPEAT = "REPEAT"
 private const val CHOICE_SUB = "SUBSCRIPTION"
 
-/** The time of a transaction (with Time on in Customise › Expense). */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Time (135): the value sheet, typed. */
 @Composable
-fun TimeSheet(time: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val state = rememberTimePickerState(time.hour, time.minute, android.text.format.DateFormat.is24HourFormat(context))
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.time), onDismiss)
-        SheetBody { TimePicker(state, Modifier.fillMaxWidth()) }
-        SheetFooter {
-            BurrowButton(stringResource(R.string.done), { onPick(LocalTime.of(state.hour, state.minute)) }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
-        }
-    }
-}
+fun TimeSheet(time: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit) = app.burrow.money.ui.components.TimeValueSheet(time, onPick, onDismiss)
 
 fun payeeLabel(type: String) = if (type == TxnType.INCOME) R.string.received_from else R.string.paid_to

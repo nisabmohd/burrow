@@ -503,6 +503,10 @@ interface CaptureDao {
     @Query("SELECT COUNT(*) FROM CaptureEntity WHERE status = :status")
     fun count(status: String): Flow<Int>
 
+    /** Which rule read each message (built-in rules keep no count of their own). */
+    @Query("SELECT ruleId FROM CaptureEntity WHERE ruleId IS NOT NULL AND status != 'UNREAD'")
+    fun ruleIds(): Flow<List<String>>
+
     /** Read captures since [since], for spotting the same payment twice (SMS and app). */
     @Query("SELECT * FROM CaptureEntity WHERE receivedAt >= :since AND amount IS NOT NULL")
     suspend fun since(since: Long): List<CaptureEntity>
@@ -534,6 +538,10 @@ interface RuleDao {
 
     @Query("UPDATE CaptureRuleEntity SET uses = uses + 1 WHERE id = :id")
     suspend fun used(id: String)
+
+    /** Rename and other edits: the rule's JSON only, so its uses, switch and place in the list stay. */
+    @Query("UPDATE CaptureRuleEntity SET json = :json WHERE id = :id")
+    suspend fun setJson(id: String, json: String)
 
     @Query("DELETE FROM CaptureRuleEntity WHERE id = :id")
     suspend fun delete(id: String)

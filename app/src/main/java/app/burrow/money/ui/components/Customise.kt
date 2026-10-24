@@ -41,15 +41,18 @@ import app.burrow.money.ui.theme.Space
  * (a ListRow with a BurrowSwitch). Plus PickList: a grouped list with round radio marks (80, 85).
  */
 
-/** The round check on a selected tile; an empty ring when [on] is false and [ring] is set. */
+/**
+ * The round check (COMPONENTS § Round check): every pick-one list, sheet or screen, Teach rows and
+ * selected tiles. 24 dp: filled primary with a ✓ when [on]; an empty ring when off and [ring] is set.
+ */
 @Composable
 fun CheckBadge(on: Boolean, modifier: Modifier = Modifier, ring: Boolean = false) {
     val c = MaterialTheme.colorScheme
     when {
         on -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).background(c.primary), contentAlignment = Alignment.Center) {
-            Icon(painterResource(R.drawable.ic_check_regular), null, tint = c.onPrimary, modifier = Modifier.size(Size.iconSmall * 0.8f))
+            Icon(painterResource(R.drawable.ic_check_regular), null, tint = c.onPrimary, modifier = Modifier.size(Size.checkInBadge))
         }
-        ring -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).border(Space.group / 2 + Space.group / 4, c.outline, Shapes.pill))
+        ring -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).border(Space.group / 2, c.outline, Shapes.pill))
     }
 }
 
@@ -185,20 +188,38 @@ fun OrderedRow(
     )
 }
 
+/**
+ * One row of a pick-one list (C1, 2026-10-24): every pick sheet and screen (Type 111, Account 20,
+ * Option 138, currency, language, backup schedule, lock after…). A plain row, never tinted; the round
+ * check on the right says which is chosen. [ring] false = only the chosen row shows its check (the long
+ * Category sheet, 19).
+ */
+@Composable
+fun PickRow(
+    headline: String,
+    index: Int,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    supporting: String? = null,
+    lead: (@Composable () -> Unit)? = null,
+    ring: Boolean = true,
+) {
+    val haptics = LocalHapticFeedback.current
+    ListRow(
+        headline, index, count, supporting = supporting,
+        modifier = Modifier.semantics { this.selected = selected },
+        lead = lead,
+        trailing = { CheckBadge(selected, ring = ring) },
+        onClick = { haptics.tick(); onClick() },
+    )
+}
+
 /** Pick one from a grouped list with round radio marks on the right (80 top card, 85 numbers / dates). */
 @Composable
 fun <T> PickList(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit) {
-    val haptics = LocalHapticFeedback.current
     ListGroup {
-        options.forEachIndexed { i, o ->
-            val on = o.key == selected
-            ListRow(
-                o.title, i, options.size, supporting = o.line,
-                modifier = Modifier.semantics { this.selected = on },
-                trailing = { CheckBadge(on, ring = true) },
-                onClick = { haptics.tick(); onSelect(o.key) },
-            )
-        }
+        options.forEachIndexed { i, o -> PickRow(o.title, i, options.size, o.key == selected, { onSelect(o.key) }, supporting = o.line) }
     }
 }
 

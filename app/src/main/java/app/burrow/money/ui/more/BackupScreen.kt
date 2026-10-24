@@ -1,5 +1,6 @@
 package app.burrow.money.ui.more
 
+import app.burrow.money.ui.components.PickRow
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -143,7 +144,7 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
     }
 
     when (sheet) {
-        BackupSheet.PASSWORD -> PasswordSheet(stringResource(R.string.backup_password), stringResource(R.string.backup_password_line), confirm = true, onDismiss = { sheet = null }) { pw ->
+        BackupSheet.PASSWORD -> PasswordSheet(stringResource(R.string.backup_password), stringResource(R.string.backup_password_line), confirm = true, button = stringResource(R.string.save), onDismiss = { sheet = null }) { pw ->
             sheet = null
             scope.launch { app.backup.setPassword(pw); snackbar.show(context.getString(R.string.password_saved)) }
         }
@@ -153,7 +154,7 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
                 val opts = listOf("OFF", "DAILY", "WEEKLY")
                 ListGroup {
                     opts.forEachIndexed { i, o ->
-                        ListRow(scheduleLabel(o), i, opts.size, selected = settings.backupSchedule == o, onClick = {
+                        PickRow(scheduleLabel(o), i, opts.size, settings.backupSchedule == o, {
                             sheet = null
                             scope.launch { app.settings.setBackupSchedule(o); app.backup.schedule() }
                         })
@@ -196,18 +197,14 @@ fun rememberRestoreFlow(app: AppContainer, onRestored: suspend () -> Unit = {}):
     }
 
     if (askPassword) {
-        PasswordSheet(stringResource(R.string.backup_password), stringResource(R.string.enter_backup_password), confirm = false, onDismiss = { askPassword = false; file = null }) { pw ->
-            askPassword = false
+        PasswordSheet(
+            stringResource(R.string.enter_backup_password_title), stringResource(R.string.enter_backup_password), confirm = false,
+            button = stringResource(R.string.restore), onDismiss = { askPassword = false; wrong = false; file = null },
+            error = if (wrong) stringResource(R.string.wrong_password_again) else null,
+        ) { pw ->
             val bytes = file ?: return@PasswordSheet
-            scope.launch { if (!tryOpen(bytes, pw)) wrong = true }
+            scope.launch { if (tryOpen(bytes, pw)) { askPassword = false; wrong = false } else wrong = true }
         }
-    }
-    if (wrong) {
-        ConfirmDialog(
-            painterResource(R.drawable.ic_key_regular), stringResource(R.string.wrong_password_title), stringResource(R.string.wrong_password_text),
-            stringResource(R.string.try_again), stringResource(R.string.cancel),
-            onConfirm = { wrong = false; askPassword = true }, onDismiss = { wrong = false; file = null },
-        )
     }
     ready?.let { data ->
         ConfirmDialog(
@@ -234,9 +231,12 @@ fun rememberRestoreFlow(app: AppContainer, onRestored: suspend () -> Unit = {}):
     }
 }
 
-/** A password (and its confirmation when setting one). */
+/**
+ * A password (143 set, with its confirmation; 144 enter): fields with the key icon, [error] in red
+ * under them ("Wrong password. Try again." — the sheet stays open, no dialog), one button.
+ */
 @Composable
-fun PasswordSheet(title: String, line: String, confirm: Boolean, onDismiss: () -> Unit, onDone: (String) -> Unit) {
+fun PasswordSheet(title: String, line: String, confirm: Boolean, button: String, onDismiss: () -> Unit, error: String? = null, onDone: (String) -> Unit) {
     var a by rememberSaveable { mutableStateOf("") }
     var b by rememberSaveable { mutableStateOf("") }
     val ok = a.length >= 6 && (!confirm || a == b)
@@ -247,9 +247,10 @@ fun PasswordSheet(title: String, line: String, confirm: Boolean, onDismiss: () -
             if (confirm) PasswordField(b, { b = it }, stringResource(R.string.password_again))
             if (confirm && b.isNotEmpty() && a != b) Text(stringResource(R.string.passwords_differ), style = BurrowType.body, color = MaterialTheme.colorScheme.error)
             if (a.isNotEmpty() && a.length < 6) Text(stringResource(R.string.password_short), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (error != null) Text(error, style = BurrowType.body, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = Space.small))
         }
         SheetFooter {
-            BurrowButton(stringResource(R.string.done), { if (ok) onDone(a) }, Modifier.fillMaxWidth(), if (ok) ButtonKind.FILLED else ButtonKind.OFF, height = Size.buttonBottom)
+            BurrowButton(button, { if (ok) onDone(a) }, Modifier.fillMaxWidth(), if (ok) ButtonKind.FILLED else ButtonKind.OFF, height = Size.buttonBottom)
         }
     }
 }

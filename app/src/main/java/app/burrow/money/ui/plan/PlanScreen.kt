@@ -50,7 +50,6 @@ import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.AddFab
 import app.burrow.money.ui.components.AmountTrailing
 import app.burrow.money.ui.components.BurrowButton
-import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.Cookie
@@ -113,7 +112,7 @@ fun PlanScreen(
     ) { padding ->
         val s = state ?: return@TabScreen
         Column(Modifier.fillMaxSize()) {
-            ButtonGroup(
+            app.burrow.money.ui.components.PillTabs(
                 PlanSection.entries, section,
                 { stringResource(when (it) { PlanSection.BILLS -> R.string.coming_up; PlanSection.BUDGETS -> R.string.budgets; PlanSection.GOALS -> R.string.goals }) },
                 { section = it },
@@ -362,26 +361,24 @@ fun BudgetRows(lines: List<BudgetLine>, onOpen: (Long) -> Unit) {
 /** What the budget edit sheet is for: the overall budget (null) or one category. */
 data class BudgetEdit(val categoryId: Long?, val name: String, val amount: Long, val carryOver: Boolean = false)
 
-/** The budget edit sheet (32): − amount +, chips, carry over, Cancel / Save. */
+/** The budget edit sheet (32): the value sheet with four amounts as chips, Carry over, Cancel / Save. */
 @Composable
 fun BudgetEditSheet(e: BudgetEdit, onDismiss: () -> Unit, onSave: (Long, Boolean) -> Unit) {
     val money = LocalMoney.current
     val unit = money.digitsUnit()
-    var amount by remember(e) { mutableLongStateOf(e.amount) }
     var carry by remember(e) { mutableStateOf(e.carryOver) }
     val step = (if (e.categoryId == null) 1_000 else 500) * unit
-    val base = (amount / step).coerceAtLeast(1) * step
-    app.burrow.money.ui.components.AmountStepperSheet(
+    val base = (e.amount / step).coerceAtLeast(1) * step
+    val chips = (listOf(base - 5 * step, base, base + 5 * step, base + 10 * step).filter { it > 0 } + e.amount).filter { it > 0 }.distinct().sorted().takeLast(4)
+    app.burrow.money.ui.components.AmountSheet(
         title = if (e.categoryId == null) stringResource(R.string.month_budget, e.name) else e.name,
         line = stringResource(R.string.monthly_budget),
-        amount = amount,
-        onAmount = { amount = it },
-        step = step,
-        chips = listOf(base - 5 * step, base, base + 5 * step, base + 10 * step).filter { it > 0 }.distinct(),
-        confirm = stringResource(R.string.save),
-        onConfirm = { onSave(amount, carry) },
+        amount = e.amount,
+        chips = chips.map { money.plain(it) to it },
+        confirm = stringResource(R.string.save), cancel = true, min = 1,
+        onDone = { onSave(it, carry) },
         onDismiss = onDismiss,
-        extra = {
+        rows = {
             ListGroup {
                 ListRow(
                     stringResource(R.string.carry_over), 0, 1, supporting = stringResource(R.string.carry_over_line),

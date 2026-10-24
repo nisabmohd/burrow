@@ -25,7 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-/** Buttons, icon buttons, switch, text field, day stepper. */
+/** Buttons, icon buttons, switch, text field. */
 class ControlsTest {
     @get:Rule val rule = createComposeRule()
 
@@ -63,6 +63,12 @@ class ControlsTest {
         sw.assertIsOn()
     }
 
+    @Test fun tallTextFieldWrapsLongText() {
+        val long = "Rs.2,350.00 debited from A/c XX4471 on 18-10-26 to VPA zomato@hdfcbank Ref 629184"
+        rule.show(320.dp) { PillTextField(long, {}, "Paste the bank message here", lines = 3) }
+        rule.onNodeWithText(long).assertIsDisplayed().assertHeightIsAtLeast(56.dp)
+    }
+
     @Test fun textFieldTypesShowsPlaceholderAndClears() {
         rule.show {
             var v by remember { mutableStateOf("") }
@@ -74,36 +80,5 @@ class ControlsTest {
         rule.onNodeWithContentDescription("Clear").performClick()
         rule.onNodeWithText("Chai").assertDoesNotExist()
         rule.onNodeWithText("Paid to").assertIsDisplayed()
-    }
-
-    @Test fun dayStepperStaysBetween1AndMax() {
-        var day = 0
-        rule.show {
-            var d by remember { mutableIntStateOf(1) }
-            day = d
-            DayStepper(
-                d, { d = it }, listOf(1, 5, 25), "Starts on the ${d}th",
-                painterResource(R.drawable.ic_remove_regular), "Fewer", painterResource(R.drawable.ic_add_regular), "More",
-                {}, "Done", { "$it." }, max = 28,
-            )
-        }
-        rule.onNodeWithContentDescription("Fewer").performClick()
-        rule.runOnIdle { assertEquals("never below 1", 1, day) }
-        rule.onNodeWithText("25.").performClick()
-        repeat(5) { rule.onNodeWithContentDescription("More").performClick() }
-        rule.runOnIdle { assertEquals("never above max", 28, day) }
-        rule.onNodeWithText("28.", useUnmergedTree = true).assertIsDisplayed()
-    }
-
-    @Test fun dayStepperQuickChipsPick() {
-        var day = 0
-        rule.show {
-            var d by remember { mutableIntStateOf(10) }
-            day = d
-            DayStepper(d, { d = it }, listOf(1, 5, 25), "", painterResource(R.drawable.ic_remove_regular), "Fewer", painterResource(R.drawable.ic_add_regular), "More", {}, "Done", { "$it." })
-        }
-        rule.onNodeWithText("5.").performClick()
-        rule.runOnIdle { assertEquals(5, day) }
-        rule.onNodeWithText("Done").assertTextEquals("Done")
     }
 }
