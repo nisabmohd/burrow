@@ -1290,4 +1290,13 @@
     <string name="enter_backup_password_title">Enter backup password</string>
     <string name="wrong_password_again">Wrong password. Try again.</string>
     <string name="add_currency_line">You type its rate; Burrow never looks it up</string>
+    <string name="hour">Hour</string>
+    <string name="minute">Minute</string>
+    <string name="am_pm">AM or PM</string>
+    <string name="bill_reminder_row">%1$s, a day before</string>
+    <string name="sunday_review_row">Sundays at %1$s</string>
+    <string name="bill_reminder_time">Bill reminder time</string>
+    <string name="bill_reminder_time_line">A day before it is due</string>
+    <string name="sunday_review_time">Sunday review time</string>
+    <string name="every_sunday">Every Sunday</string>
 </resources>

@@ -1177,4 +1177,13 @@
     <string name="enter_backup_password_title">バックアップのパスワードを入力</string>
     <string name="wrong_password_again">パスワードが違います。もう一度お試しください。</string>
     <string name="add_currency_line">レートは自分で入力します。Burrow が調べることはありません</string>
+    <string name="hour">時</string>
+    <string name="minute">分</string>
+    <string name="am_pm">午前・午後</string>
+    <string name="bill_reminder_row">%1$s、前日</string>
+    <string name="sunday_review_row">毎週日曜 %1$s</string>
+    <string name="bill_reminder_time">請求リマインダーの時刻</string>
+    <string name="bill_reminder_time_line">期日の前日</string>
+    <string name="sunday_review_time">日曜の振り返りの時刻</string>
+    <string name="every_sunday">毎週日曜</string>
 </resources>

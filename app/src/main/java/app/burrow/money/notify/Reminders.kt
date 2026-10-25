@@ -25,11 +25,12 @@ import java.time.ZoneId
 /** Something a bill asks for at a time: a reminder before it, or the due day itself. */
 private data class BillEvent(val at: Long, val o: OccurrenceView, val dueDay: Boolean)
 
-private fun events(list: List<OccurrenceView>, zone: ZoneId): List<BillEvent> = list
+/** Bill events, all at the one reminder time set in Notifications (160). */
+private fun events(list: List<OccurrenceView>, zone: ZoneId, atMinutes: Int): List<BillEvent> = list
     .filter { it.occurrence.status == OccurrenceStatus.UPCOMING }
     .flatMap { o ->
         val due = Instant.ofEpochMilli(o.occurrence.dueDate).atZone(zone).toLocalDate()
-        fun at(d: LocalDate) = d.atStartOfDay(zone).plusMinutes(o.remindAtMinutes.toLong()).toInstant().toEpochMilli()
+        fun at(d: LocalDate) = d.atStartOfDay(zone).plusMinutes(atMinutes.toLong()).toInstant().toEpochMilli()
         listOfNotNull(
             if (o.remindersOn && o.remindDaysBefore > 0) BillEvent(at(due.minusDays(o.remindDaysBefore.toLong())), o, dueDay = false) else null,
             if (o.remindersOn || o.onDue == OnDue.RECORD) BillEvent(at(due), o, dueDay = true) else null,
@@ -46,7 +47,7 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
     val zone = ZoneId.systemDefault()
     val today = LocalDate.now(zone)
     val list = plan.occurrences(today.minusDays(7), today.plusDays(62)).first()
-    val all = events(list, zone)
+    val all = events(list, zone, settings.settings.first().billReminderMinutes)
     val last = settings.billsCheckedAt()
     // Upcoming one-offs whose day has come are added, with a quiet note each (115).
     val posted = money.postDueList(now)

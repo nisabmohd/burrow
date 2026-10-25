@@ -1289,4 +1289,13 @@
     <string name="enter_backup_password_title">Saisir le mot de passe</string>
     <string name="wrong_password_again">Mot de passe incorrect. Réessayez.</string>
     <string name="add_currency_line">Vous saisissez le taux ; Burrow ne le cherche jamais</string>
+    <string name="hour">Heure</string>
+    <string name="minute">Minute</string>
+    <string name="am_pm">AM ou PM</string>
+    <string name="bill_reminder_row">%1$s, la veille</string>
+    <string name="sunday_review_row">Le dimanche à %1$s</string>
+    <string name="bill_reminder_time">Heure des rappels</string>
+    <string name="bill_reminder_time_line">La veille de l\'échéance</string>
+    <string name="sunday_review_time">Heure du bilan du dimanche</string>
+    <string name="every_sunday">Chaque dimanche</string>
 </resources>

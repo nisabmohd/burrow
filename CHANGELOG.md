@@ -15,6 +15,7 @@
 - Not understood: each message has a Teach button. Teach can set the payment's category and whether to keep reading messages like it.
 - Large text: the nav shows only the open tab's name, widgets and tiles stack, the add button turns into a round +.
 - A wrong backup password shows right in the password sheet.
+- Times are picked on a scroll wheel (hour, minute, AM/PM) everywhere, and you can choose when bill reminders and the Sunday review arrive (More › Notifications).
 - New expense: favourites sit right under the amount as quick-add pills ("₹20 Chai", one tap saves), and the time has its own chip next to Note.
 
 ## 0.2.0

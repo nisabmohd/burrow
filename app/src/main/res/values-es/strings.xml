@@ -1289,4 +1289,13 @@
     <string name="enter_backup_password_title">Escribe la contraseña de la copia</string>
     <string name="wrong_password_again">Contraseña incorrecta. Inténtalo de nuevo.</string>
     <string name="add_currency_line">Tú escribes el tipo; Burrow nunca lo busca</string>
+    <string name="hour">Hora</string>
+    <string name="minute">Minuto</string>
+    <string name="am_pm">a. m. o p. m.</string>
+    <string name="bill_reminder_row">%1$s, un día antes</string>
+    <string name="sunday_review_row">Los domingos a las %1$s</string>
+    <string name="bill_reminder_time">Hora del recordatorio</string>
+    <string name="bill_reminder_time_line">Un día antes del vencimiento</string>
+    <string name="sunday_review_time">Hora del resumen del domingo</string>
+    <string name="every_sunday">Cada domingo</string>
 </resources>

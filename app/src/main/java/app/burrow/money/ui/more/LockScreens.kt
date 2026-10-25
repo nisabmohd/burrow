@@ -253,8 +253,18 @@ private fun lockAfterLabel(seconds: Int) = when (seconds) {
 
 /** Notifications (66): a switch per kind and a live preview of the capture notification. */
 @Composable
-fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSundayReview: () -> Unit = {}, onSet: (String, Boolean) -> Unit) {
+fun NotificationSettingsScreen(
+    settings: Settings,
+    onBack: () -> Unit,
+    onBillTime: (Int) -> Unit = {},
+    onReviewTime: (Int) -> Unit = {},
+    onSet: (String, Boolean) -> Unit,
+) {
     val c = MaterialTheme.colorScheme
+    val dates = app.burrow.money.ui.rememberDateText()
+    // Bill reminders and Sunday review: a tap on the row opens the time wheel (160); the switch still turns it on or off.
+    var picking by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    fun clock(minutes: Int) = dates.clock(java.time.LocalTime.of(minutes / 60, minutes % 60))
     DetailFrame(onBack, stringResource(R.string.notifications)) {
         val rows = listOf(
             listOf("capture", R.string.n_payment_found, R.string.n_payment_found_line, R.drawable.ic_sms_duotone),
@@ -268,11 +278,15 @@ fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSundayR
             rows.forEachIndexed { i, r ->
                 val key = r[0] as String
                 ListRow(
-                    stringResource(r[1] as Int), i, rows.size, supporting = stringResource(r[2] as Int),
+                    stringResource(r[1] as Int), i, rows.size,
+                    supporting = when (key) {
+                        "bills" -> stringResource(R.string.bill_reminder_row, clock(settings.billReminderMinutes))
+                        "weekly" -> stringResource(R.string.sunday_review_row, clock(settings.weeklyReviewMinutes))
+                        else -> stringResource(r[2] as Int)
+                    },
                     lead = { IconCircle(painterResource(r[3] as Int)) },
                     trailing = { BurrowSwitch(on.getValue(key), { onSet(key, it) }) },
-                    // The Sunday review row also opens this week's review.
-                    onClick = if (key == "weekly") onSundayReview else null,
+                    onClick = if (key == "bills" || key == "weekly") ({ picking = key }) else null,
                 )
             }
         }
@@ -294,5 +308,17 @@ fun NotificationSettingsScreen(settings: Settings, onBack: () -> Unit, onSundayR
                 }
             }
         }
+    }
+    when (picking) {
+        "bills" -> app.burrow.money.ui.components.TimeWheelSheet(
+            stringResource(R.string.bill_reminder_time), stringResource(R.string.bill_reminder_time_line),
+            java.time.LocalTime.of(settings.billReminderMinutes / 60, settings.billReminderMinutes % 60),
+            { t -> onBillTime(t.hour * 60 + t.minute); picking = null }, { picking = null },
+        )
+        "weekly" -> app.burrow.money.ui.components.TimeWheelSheet(
+            stringResource(R.string.sunday_review_time), stringResource(R.string.every_sunday),
+            java.time.LocalTime.of(settings.weeklyReviewMinutes / 60, settings.weeklyReviewMinutes % 60),
+            { t -> onReviewTime(t.hour * 60 + t.minute); picking = null }, { picking = null },
+        )
     }
 }

@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** What each key does in the value sheet (135–142): amounts, days, times, rates. */
+/** What each key does in the value sheet (136–142): amounts, days, rates. Times are the wheel (TimeWheelTest). */
 class ValueTypingTest {
     private fun d(c: Char) = Key.Digit(c)
 
@@ -42,36 +42,6 @@ class ValueTypingTest {
         assertEquals("1", day("12", Key.Backspace))
         assertEquals("", day("12", Key.Clear))
         assertEquals("no dot in days", "12", day("12", Key.Dot))
-    }
-
-    // --- time ------------------------------------------------------------------------------------
-    private fun time(vararg keys: Key, h24: Boolean = false) = keys.fold("") { t, k -> typeTime(t, k, h24) }
-
-    @Test fun twelveHourTyping() {
-        assertEquals("1030", time(d('1'), d('0'), d('3'), d('0')))
-        assertEquals(10 to 30, typedTime("1030"))
-        assertEquals(9 to 30, typedTime("930"))
-        assertEquals("no 0 to start", "", time(d('0')))
-        assertEquals("a minute never starts with 6–9", "9", time(d('9'), d('7')))
-        assertEquals("never 13 o'clock on a 12-hour clock: 1:3·", "13", time(d('1'), d('3')))
-        assertNull("not whole yet", typedTime("10"))
-        assertNull(typedTime("1360"))
-    }
-
-    @Test fun twentyFourHourTyping() {
-        assertEquals("2215", time(d('2'), d('2'), d('1'), d('5'), h24 = true))
-        assertEquals(22 to 15, typedTime("2215", h24 = true))
-        assertEquals(0 to 5, typedTime("0005", h24 = true))
-        assertNull(typedTime("2460", h24 = true))
-    }
-
-    @Test fun timeReadsWhileTyping() {
-        assertEquals("··:··", typedTimeText(""))
-        assertEquals("1:··", typedTimeText("1"))
-        assertEquals("10:··", typedTimeText("10"))
-        assertEquals("9:3·", typedTimeText("93"))
-        assertEquals("9:30", typedTimeText("930"))
-        assertEquals("10:30", typedTimeText("1030"))
     }
 
     // --- rate -----------------------------------------------------------------------------------

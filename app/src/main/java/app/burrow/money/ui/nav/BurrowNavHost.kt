@@ -120,6 +120,7 @@ import app.burrow.money.ui.teach.TeachViewModel
 import app.burrow.money.ui.today.TodayScreen
 import kotlinx.coroutines.launch
 import app.burrow.money.notify.scheduleWeeklyReview
+import app.burrow.money.notify.runBillReminders
 import app.burrow.money.ui.today.TodayViewModel
 import kotlin.reflect.KClass
 
@@ -287,7 +288,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<BillRoute> { e ->
                         val id = e.toRoute<BillRoute>().id
                         val vm = viewModel { BillViewModel(container.plan, container.money, id) }
-                        BillScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewBillRoute(editId = it)) })
+                        BillScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewBillRoute(editId = it)) }, reminderMinutes = settings.billReminderMinutes)
                     }
                     composable<NewBillRoute> { e ->
                         val r = e.toRoute<NewBillRoute>()
@@ -419,7 +420,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<FontRoute> { FontScreen(settings, appearance, onBack = { nav.popBackStack() }) }
                     composable<LanguageRoute> { LanguageScreen(onBack = { nav.popBackStack() }) }
                     composable<NotificationsRoute> {
-                        NotificationSettingsScreen(settings, onBack = { nav.popBackStack() }, onSundayReview = { nav.navigate(SundayReviewRoute) }) { key, on ->
+                        NotificationSettingsScreen(
+                            settings, onBack = { nav.popBackStack() },
+                            onBillTime = { m -> container.appScope.launch { container.settings.setBillReminderMinutes(m); container.runBillReminders() } },
+                            onReviewTime = { m -> container.appScope.launch { container.settings.setWeeklyReviewMinutes(m); container.scheduleWeeklyReview() } },
+                        ) { key, on ->
                             container.appScope.launch {
                                 container.settings.setNotify(key, on)
                                 if (key == "summary") container.backup.schedule()

@@ -1289,4 +1289,13 @@
     <string name="enter_backup_password_title">Digite a senha do backup</string>
     <string name="wrong_password_again">Senha incorreta. Tente de novo.</string>
     <string name="add_currency_line">Você digita a cotação; o Burrow nunca a busca</string>
+    <string name="hour">Hora</string>
+    <string name="minute">Minuto</string>
+    <string name="am_pm">AM ou PM</string>
+    <string name="bill_reminder_row">%1$s, um dia antes</string>
+    <string name="sunday_review_row">Aos domingos às %1$s</string>
+    <string name="bill_reminder_time">Horário do lembrete</string>
+    <string name="bill_reminder_time_line">Um dia antes do vencimento</string>
+    <string name="sunday_review_time">Horário do resumo de domingo</string>
+    <string name="every_sunday">Todo domingo</string>
 </resources>

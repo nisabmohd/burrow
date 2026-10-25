@@ -81,7 +81,7 @@ private fun onDueTitle(onDue: String) = stringResource(
  * when it is due; Category, Paid from, Repeats, the reminder switch; Paid before; Skip / Mark paid.
  */
 @Composable
-fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
+fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, reminderMinutes: Int = 9 * 60) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
@@ -127,7 +127,7 @@ fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
                 )
                 ListRow(
                     onDueTitle(b.onDue), 3, 4,
-                    supporting = if (b.remindersOn) androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_at, b.remindDaysBefore, minutesLabel(b.remindAtMinutes), b.remindDaysBefore) else stringResource(R.string.reminders_off),
+                    supporting = if (b.remindersOn) androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_at, b.remindDaysBefore, minutesLabel(reminderMinutes) /* the one reminder time from Notifications (160) */, b.remindDaysBefore) else stringResource(R.string.reminders_off),
                     lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
                     trailing = { BurrowSwitch(b.remindersOn, vm::setReminders) },
                 )

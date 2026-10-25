@@ -54,7 +54,8 @@ if something is missing, add a component here first.
 | `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
 | `FilterSheet` / `ActiveFilterChips` | Type (Activity only) · Accounts · Categories chips · Reset / "Show 14 transactions"; removable chips + Clear all under the search | ui/filters/FilterSheets.kt |
 | `Keypad` | 4 × 4, 52 dp pill keys 6 dp apart, docked under New expense (17); operators `secondaryContainer`, ✓ primary (off until it can save); hold ⌫ to clear | Keypad.kt |
-| `ValueSheet` + `AmountSheet` / `DaySheet` / `TimeValueSheet` | **every number** (§ Value sheet): title + line · big value with the blinking `Caret` · optional chips (`ValueChip`) and rows · `NumberPad` · Done, or Cancel / secondary + Save. Amount: budget 32, add money 35, refund 96, fix balance 140, pay card bill 141, prepay / EMI 142, split part, Welcome budget 136; day: due day 28, month start 68, statement / due day; time 135; rate 84. No − / + steppers anywhere | ValueSheet.kt |
+| `ValueSheet` + `AmountSheet` / `DaySheet` | **every number** (§ Value sheet): title + line · big value with the blinking `Caret` · optional chips (`ValueChip`) and rows · `NumberPad` · Done, or Cancel / secondary + Save. Amount: budget 32, add money 35, refund 96, fix balance 140, pay card bill 141, prepay / EMI 142, split part, Welcome budget 136; day: due day 28, month start 68, statement / due day; rate 84 (times are the `TimeWheelSheet`). No − / + steppers anywhere | ValueSheet.kt |
+| `TimeWheelSheet` | **every time** (TIME-PICKER, 24 Oct): title + line, three snapping columns (hour · minute in 5s · AM/PM; 00–23 and no AM/PM on a 24-hour phone), 72 dp columns, 48 dp rows, five showing, the middle row on a `surfaceContainerHigh` pill band, top and bottom rows fading out, a tick on each snap, a tap scrolls a row to the middle; Done. New expense time (135), Bill reminder time (160), Sunday review time | TimeWheel.kt |
 | `NumberPad` | the value sheet's 3 × 4 keypad: the same 52 dp keys, 1–9, `.` (a gap for days and time), 0, ⌫ (hold clears) | Keypad.kt |
 | `ValueText` / `ValuePill` / `Caret` | a value on a screen that opens its value sheet: big `display` text (Welcome budget 99) or a tonal pill in a row (Split parts 95); the 3 dp blinking caret (also New expense) | ValueSheet.kt |
 | `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
@@ -107,9 +108,9 @@ BurrowSheet: title, "Version x · you have y", What's new block (surfaceContaine
 progress / hint / error), footer Later (tonal) + main (filled). States 128–132; About's row states 124–127.
 
 ## Value sheet (one pattern for every number, user 2026-10-24)
-Amount, time, day of month, rate, budget, add money, refund, fix balance, pay in — all the same `ValueSheet`:
-title + muted line · **big value (`display`) with a blinking caret** · optional quick chips / AM-PM / one or two rows ·
-**the same 3 × 4 keypad** (1–9, `.`, 0, ⌫; no `.` for days and time) · footer (Done, or Cancel + Save).
+Amount, day of month, rate, budget, add money, refund, fix balance, pay in — all the same `ValueSheet` (times use the `TimeWheelSheet`):
+title + muted line · **big value (`display`) with a blinking caret** · optional quick chips / one or two rows ·
+**the same 3 × 4 keypad** (1–9, `.`, 0, ⌫; no `.` for days) · footer (Done, or Cancel + Save).
 No − / + steppers anywhere. On screens (Welcome budget, Split parts) the number is a tappable value that opens this sheet.
 The first key typed replaces the value shown; a chip sets it. Over a maximum (a refund) the value turns red and Save looks off.
 

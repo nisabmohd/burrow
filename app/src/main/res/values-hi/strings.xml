@@ -1206,4 +1206,13 @@
     <string name="enter_backup_password_title">बैकअप पासवर्ड डालें</string>
     <string name="wrong_password_again">गलत पासवर्ड। फिर से कोशिश करें।</string>
     <string name="add_currency_line">दर आप डालते हैं; Burrow उसे कभी खोजता नहीं</string>
+    <string name="hour">घंटा</string>
+    <string name="minute">मिनट</string>
+    <string name="am_pm">AM या PM</string>
+    <string name="bill_reminder_row">%1$s, एक दिन पहले</string>
+    <string name="sunday_review_row">हर रविवार %1$s बजे</string>
+    <string name="bill_reminder_time">बिल रिमाइंडर का समय</string>
+    <string name="bill_reminder_time_line">नियत तारीख से एक दिन पहले</string>
+    <string name="sunday_review_time">रविवार समीक्षा का समय</string>
+    <string name="every_sunday">हर रविवार</string>
 </resources>

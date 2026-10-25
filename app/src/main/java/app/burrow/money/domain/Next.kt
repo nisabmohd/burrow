@@ -56,10 +56,10 @@ fun reviewWeek(today: LocalDate, weekStart: DayOfWeek): DayRange {
 }
 
 /** The next Sunday-review moment after [now]: Sunday at [hour]:00 (today, if it's Sunday and earlier). */
-fun nextReviewAt(now: java.time.LocalDateTime, hour: Int = 18): java.time.LocalDateTime {
-    val todayAt = now.toLocalDate().atTime(hour, 0)
+fun nextReviewAt(now: java.time.LocalDateTime, hour: Int = 18, minute: Int = 0): java.time.LocalDateTime {
+    val todayAt = now.toLocalDate().atTime(hour, minute)
     if (now.dayOfWeek == DayOfWeek.SUNDAY && now.isBefore(todayAt)) return todayAt
-    return now.toLocalDate().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atTime(hour, 0)
+    return now.toLocalDate().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atTime(hour, minute)
 }
 
 /** The Welcome budget step's quick picks, in whole units of the main currency (20k, 30k, 50k, 75k for INR). */

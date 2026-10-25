@@ -78,6 +78,9 @@ class DateText(private val context: Context, locale: Locale, style: String = "WR
 
     fun time(at: Long): String = timeFormat.format(Instant.ofEpochMilli(at).atZone(zone))
 
+    /** "9:00 AM" (or "09:00") for a time of day on its own (reminder times). */
+    fun clock(t: java.time.LocalTime): String = timeFormat.format(t)
+
     /** "Today, 9:30 AM". */
     fun dayTime(at: Long): String = context.getString(R.string.day_time, day(date(at)), time(at))
 

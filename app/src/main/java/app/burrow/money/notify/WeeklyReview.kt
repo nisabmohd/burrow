@@ -122,7 +122,8 @@ fun AppContainer.weeklySummaryFlow(today: LocalDate = LocalDate.now()): Flow<Wee
 suspend fun AppContainer.runWeeklyReview(now: LocalDateTime = LocalDateTime.now()) {
     val s = settings.settings.first()
     scheduleWeeklyReview(now)
-    if (!s.notifyWeekly || now.dayOfWeek != java.time.DayOfWeek.SUNDAY || now.hour < REVIEW_HOUR) return
+    val reviewAt = java.time.LocalTime.of(s.weeklyReviewMinutes / 60, s.weeklyReviewMinutes % 60)
+    if (!s.notifyWeekly || now.dayOfWeek != java.time.DayOfWeek.SUNDAY || now.toLocalTime().isBefore(reviewAt)) return
     val key = "weekly:${now.toLocalDate()}"
     if (settings.budgetAlertSent(key)) return
     val sum = weeklySummaryFlow(now.toLocalDate()).first()
@@ -138,16 +139,16 @@ suspend fun AppContainer.runWeeklyReview(now: LocalDateTime = LocalDateTime.now(
     planNotifier.show(60_000, strings(R.string.weekly_title, money.plain(sum.spent)), line, Notifier.openSundayReview(context), strings(R.string.sunday_review))
 }
 
-/** Sets one inexact alarm for the next Sunday 6 PM (no exact-alarm permission). */
-fun AppContainer.scheduleWeeklyReview(now: LocalDateTime = LocalDateTime.now()) {
+/** Sets one inexact alarm for the next Sunday at the review time (no exact-alarm permission). */
+suspend fun AppContainer.scheduleWeeklyReview(now: LocalDateTime = LocalDateTime.now()) {
+    val minutes = settings.settings.first().weeklyReviewMinutes
     val alarms = context.getSystemService(AlarmManager::class.java) ?: return
     val pending = PendingIntent.getBroadcast(context, 3, Intent(context, WeeklyReviewReceiver::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     alarms.cancel(pending)
-    val at = nextReviewAt(now, REVIEW_HOUR).atZone(zone).toInstant().toEpochMilli()
+    val at = nextReviewAt(now, minutes / 60, minutes % 60).atZone(zone).toInstant().toEpochMilli()
     alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
 }
 
-private const val REVIEW_HOUR = 18
 
 /** The Sunday alarm went off (or the app was asked to check, from the smoke test). */
 class WeeklyReviewReceiver : BroadcastReceiver() {

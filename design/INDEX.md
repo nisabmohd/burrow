@@ -5,7 +5,7 @@ The current design (light): the source of truth for layout, sizes and colours. D
 
 Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp screen margin · 24 dp surfaces · pills for small/tappable things · round check for pick-one · value sheet for every number.
 
-## Screens (147)
+## Screens (148)
 
 | File | Screen | What it shows |
 |---|---|---|
@@ -156,6 +156,7 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 | `screens/152-today-paused-2x.png` | Large text (1.3× / 2×) | wrapped note titles stay one tight block above their line; nav shows only the selected label; widgets and tiles go one per row; rows wrap; the FAB goes icon-only; display amounts shrink to fit |
 | `screens/158-wide-today.png` | Wide 840 dp | side **nav rail** (same five tabs, same pill), widgets three across |
 | `screens/159-wide-activity.png` | Wide 840 dp | side **nav rail** (same five tabs, same pill), widgets three across |
+| `screens/160-bill-reminder-time.png` | Bill reminder time | the time wheel from More › Notifications › Bill reminders: "A day before it is due", 9 : 00 AM, Done |
 
 ## Logos and store art (7)
 

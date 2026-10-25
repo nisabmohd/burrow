@@ -5,4 +5,5 @@
 - To review and Not understood: one button per card.
 - Large text: no overlaps, cleaner nav and widgets.
 - Favourites right under the amount; time has its own chip.
+- Time wheel; pick when reminders arrive.
 - Licences open in the app.

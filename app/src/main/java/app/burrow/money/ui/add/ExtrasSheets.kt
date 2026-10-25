@@ -225,8 +225,9 @@ private const val CHOICE_ONCE = "ONCE"
 private const val CHOICE_REPEAT = "REPEAT"
 private const val CHOICE_SUB = "SUBSCRIPTION"
 
-/** Time (135): the value sheet, typed. */
+/** Time (12 / 135): the time wheel. */
 @Composable
-fun TimeSheet(time: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit) = app.burrow.money.ui.components.TimeValueSheet(time, onPick, onDismiss)
+fun TimeSheet(time: LocalTime, onPick: (LocalTime) -> Unit, onDismiss: () -> Unit) =
+    app.burrow.money.ui.components.TimeWheelSheet(stringResource(R.string.time), stringResource(R.string.when_you_paid), time, onPick, onDismiss)
 
 fun payeeLabel(type: String) = if (type == TxnType.INCOME) R.string.received_from else R.string.paid_to

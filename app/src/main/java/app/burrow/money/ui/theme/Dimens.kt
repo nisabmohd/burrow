@@ -98,6 +98,8 @@ object Size {
     val checkBadge = 24.dp    // the round check (pick one): ring → filled primary with a ✓ (COMPONENTS § Round check)
     val checkInBadge = 14.dp  // the ✓ inside it
     val bulletDot = 6.dp      // a What's new bullet (Update sheet 128)
+    val wheelRow = 48.dp      // one row of the time wheel (135); five show
+    val wheelColumn = 72.dp   // one column of the time wheel
     val pillTab = 44.dp       // a fixed set of pill tabs (Plan)
     val pillTabScrolling = 40.dp // a scrolling set (Customise)
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)

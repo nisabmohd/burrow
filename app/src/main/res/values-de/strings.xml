@@ -1233,4 +1233,13 @@
     <string name="enter_backup_password_title">Backup-Passwort eingeben</string>
     <string name="wrong_password_again">Falsches Passwort. Versuch es noch einmal.</string>
     <string name="add_currency_line">Du gibst den Kurs ein; Burrow schlägt ihn nie nach</string>
+    <string name="hour">Stunde</string>
+    <string name="minute">Minute</string>
+    <string name="am_pm">AM oder PM</string>
+    <string name="bill_reminder_row">%1$s, einen Tag vorher</string>
+    <string name="sunday_review_row">Sonntags um %1$s</string>
+    <string name="bill_reminder_time">Uhrzeit für Rechnungen</string>
+    <string name="bill_reminder_time_line">Einen Tag vor Fälligkeit</string>
+    <string name="sunday_review_time">Uhrzeit für den Sonntagsrückblick</string>
+    <string name="every_sunday">Jeden Sonntag</string>
 </resources>

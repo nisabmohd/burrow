@@ -67,12 +67,20 @@ class ValueSheetTest {
         rule.runOnIdle { assertEquals(31, day) }
     }
 
-    @Test fun timeSheetTypesAndPicksPm() {
+    @Test fun timeWheelShowsTheTimeAndDoneReturnsIt() {
         var picked: java.time.LocalTime? = null
-        rule.show { TimeValueSheet(java.time.LocalTime.of(9, 30), { picked = it }, {}) }
-        val h24 = android.text.format.DateFormat.is24HourFormat(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext)
-        if (h24) { tap("2", "2", "1", "5") } else { tap("1", "0", "1", "5"); rule.onNodeWithText(string(R.string.pm)).performClick() }
+        rule.show { TimeWheelSheet("Time", "When you paid", java.time.LocalTime.of(9, 30), { picked = it }, {}) }
+        rule.onNodeWithText("Time").assertIsDisplayed()
         rule.onNodeWithText(string(R.string.done)).performClick()
-        rule.runOnIdle { assertEquals(java.time.LocalTime.of(22, 15), picked) }
+        rule.runOnIdle { assertEquals(java.time.LocalTime.of(9, 30), picked) }
+    }
+
+    @Test fun tappingARowScrollsItToTheMiddle() {
+        var picked: java.time.LocalTime? = null
+        rule.show { TimeWheelSheet("Bill reminder time", null, java.time.LocalTime.of(9, 0), { picked = it }, {}) }
+        rule.onNodeWithText("05").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText(string(R.string.done)).performClick()
+        rule.runOnIdle { assertEquals(5, picked?.minute) }
     }
 }

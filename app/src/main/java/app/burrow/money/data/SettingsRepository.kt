@@ -57,8 +57,12 @@ data class Settings(
     val notifyBills: Boolean = true,
     val notifyBudgets: Boolean = true,
     val notifySummary: Boolean = false,
-    /** Sunday review (13): Sunday 6 PM, on by default. */
+    /** Sunday review (13): on by default, at [weeklyReviewMinutes]. */
     val notifyWeekly: Boolean = true,
+    /** Bill reminders go off at this time of day, minutes after midnight (160; 9:00 AM). */
+    val billReminderMinutes: Int = 9 * 60,
+    /** The Sunday review comes at this time on Sundays, minutes after midnight (6:00 PM). */
+    val weeklyReviewMinutes: Int = 18 * 60,
     // Backup (69)
     val backupFolder: String? = null,
     val backupSchedule: String = "OFF", // OFF, DAILY, WEEKLY
@@ -208,6 +212,10 @@ class SettingsRepository(context: Context) {
     suspend fun setAppLock(on: Boolean) = store.edit { it[APP_LOCK] = on }
     suspend fun setLockAfter(seconds: Int) = store.edit { it[LOCK_AFTER] = seconds }
     suspend fun setHideInNotifications(on: Boolean) = store.edit { it[HIDE_IN_NOTIFICATIONS] = on }
+    /** Bill reminder or Sunday review time (minutes after midnight), from the time wheel. */
+    suspend fun setBillReminderMinutes(m: Int) = store.edit { it[BILL_REMINDER_MINUTES] = m.coerceIn(0, 24 * 60 - 1) }
+    suspend fun setWeeklyReviewMinutes(m: Int) = store.edit { it[WEEKLY_REVIEW_MINUTES] = m.coerceIn(0, 24 * 60 - 1) }
+
     suspend fun setNotify(key: String, on: Boolean) = store.edit {
         when (key) {
             "capture" -> it[NOTIFY_CAPTURE] = on
@@ -284,6 +292,8 @@ class SettingsRepository(context: Context) {
             notifyBudgets = this[NOTIFY_BUDGETS] ?: true,
             notifySummary = this[NOTIFY_SUMMARY] ?: false,
             notifyWeekly = this[NOTIFY_WEEKLY] ?: true,
+            billReminderMinutes = this[BILL_REMINDER_MINUTES] ?: 9 * 60,
+            weeklyReviewMinutes = this[WEEKLY_REVIEW_MINUTES] ?: 18 * 60,
             backupFolder = this[BACKUP_FOLDER],
             backupSchedule = this[BACKUP_SCHEDULE] ?: "OFF",
             lastBackupAt = this[LAST_BACKUP_AT],
@@ -339,6 +349,8 @@ class SettingsRepository(context: Context) {
         val NOTIFY_BUDGETS = booleanPreferencesKey("notifyBudgets")
         val NOTIFY_SUMMARY = booleanPreferencesKey("notifySummary")
         val NOTIFY_WEEKLY = booleanPreferencesKey("weeklyReview")
+        val BILL_REMINDER_MINUTES = intPreferencesKey("billReminderMinutes")
+        val WEEKLY_REVIEW_MINUTES = intPreferencesKey("weeklyReviewMinutes")
         val BACKUP_FOLDER = stringPreferencesKey("backupFolderUri")
         val BACKUP_SCHEDULE = stringPreferencesKey("backupSchedule")
         val LAST_BACKUP_AT = longPreferencesKey("lastBackupAt")
