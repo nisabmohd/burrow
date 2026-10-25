@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -41,7 +42,8 @@ fun ChartCard(
 ) {
     val c = MaterialTheme.colorScheme
     Column(modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(Space.card)) {
-        Row(Modifier.fillMaxWidth().height(Size.icon), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+        // At least 24 dp; taller at large text so the label's descenders aren't clipped.
+        Row(Modifier.fillMaxWidth().heightIn(min = Size.icon), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
             Icon(icon, null, tint = c.primary, modifier = Modifier.size(Size.iconSmall))
             Text(label, style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f), maxLines = 1)
             trailing?.invoke()

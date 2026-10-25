@@ -48,7 +48,9 @@ import app.burrow.money.ui.components.CumulativeLineChart
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.FilterHeaderButtons
 import app.burrow.money.ui.components.ListGroup
+import app.burrow.money.ui.components.PairRow
 import app.burrow.money.ui.components.PillBarChart
+import app.burrow.money.ui.components.isLargeText
 import app.burrow.money.ui.components.RingPercent
 import app.burrow.money.ui.components.SectionHeader
 import app.burrow.money.ui.components.Sparkline
@@ -116,7 +118,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
                 item(key = "line") { SpendCard(s) }
                 item(key = "pair") {
                     val big = s.biggest
-                    app.burrow.money.ui.components.PairRow(first = { m ->
+                    PairRow(first = { m ->
                         Widget(
                             stringResource(R.string.a_day_label), painterResource(R.drawable.ic_today_duotone), money.plain(money.whole(s.perDay)), stringResource(R.string.on_average),
                             m, visual = { Sparkline(s.daily) },
@@ -129,7 +131,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
                             visual = {
                                 if (big != null) Row(verticalAlignment = Alignment.CenterVertically) {
                                     CategoryCircle(big.categoryIcon, big.categoryHue)
-                                    Text(big.categoryName.orEmpty(), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End, maxLines = 1, modifier = Modifier.weight(1f))
+                                    Text(big.categoryName.orEmpty(), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                                 }
                             },
                         )
@@ -173,15 +175,19 @@ private fun SpendCard(s: InsightsState) {
     ) {
         CumulativeLineChart(s.line, s.previousLine, Modifier.semantics { contentDescription = "${money.plain(s.spent)}" })
         Spacer(Modifier.height(Space.small))
+        // Large text: the legend gets its own line under the dates so nothing breaks mid-word.
+        val large = isLargeText()
+        val legend = @Composable {
+            Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
+            Spacer(Modifier.size(Space.card))
+            Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
+        }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant)
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) {
-                Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant)
-                Spacer(Modifier.size(Space.card))
-                Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant)
-            }
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) { if (!large) legend() }
             Text(dates.shortDay(s.range.end), style = BurrowType.label, color = c.onSurfaceVariant)
         }
+        if (large) Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.Center) { legend() }
     }
 }
 
@@ -205,7 +211,7 @@ private fun ByCategoryCard(s: InsightsState, onCategory: (Long) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card),
             ) {
                 CategoryCircle(share.category.icon, share.category.colorHue)
-                Text(stringResource(R.string.share_line, share.category.name, share.percent), style = BurrowType.bodyLarge, color = c.onSurface, modifier = Modifier.weight(1f), maxLines = 1)
+                Text(stringResource(R.string.share_line, share.category.name, share.percent), style = BurrowType.bodyLarge, color = c.onSurface, modifier = Modifier.weight(1f), maxLines = if (isLargeText()) 2 else 1)
                 Text(money.plain(share.total), style = BurrowType.titleSmall, color = c.onSurface)
             }
         }
@@ -217,13 +223,13 @@ private fun ByCategoryCard(s: InsightsState, onCategory: (Long) -> Unit) {
 private fun Patterns(s: InsightsState) {
     val money = LocalMoney.current
     val c = MaterialTheme.colorScheme
+    val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
     Column(verticalArrangement = Arrangement.spacedBy(Space.block)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
-            val first = app.burrow.money.ui.LocalDatePrefs.current.weekStart
+        PairRow(first = { m ->
             Widget(
                 stringResource(R.string.busiest_day), painterResource(R.drawable.ic_calendar_view_month_duotone),
                 s.busiest?.getDisplayName(TextStyle.FULL, Locale.getDefault()) ?: "–",
-                stringResource(R.string.in_total, money.plain(s.busiestTotal)), Modifier.weight(1f),
+                stringResource(R.string.in_total, money.plain(s.busiestTotal)), m,
                 visual = {
                     val order = (0 until 7).map { first.plus(it.toLong()) }
                     PillBarChart(
@@ -232,22 +238,24 @@ private fun Patterns(s: InsightsState) {
                     )
                 },
             )
+        }) { m ->
             Widget(
                 stringResource(R.string.no_spend_days), painterResource(R.drawable.ic_event_available_duotone), s.noSpend.toString(),
-                pluralStringResource(R.plurals.of_days, s.days, s.days), Modifier.weight(1f),
+                pluralStringResource(R.plurals.of_days, s.days, s.days), m,
                 visual = { RingPercent(if (s.days > 0) s.noSpend.toFloat() / s.days else 0f, categoryColors(140f).solid, categoryColors(140f).track, Size.ringWidget) },
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+        PairRow(first = { m ->
             Widget(
                 stringResource(R.string.you_kept), painterResource(R.drawable.ic_savings_duotone), s.kept?.let { "$it%" } ?: "–",
-                if (s.income > 0) stringResource(R.string.of_came_in, money.short(s.income)) else stringResource(R.string.no_income_yet), Modifier.weight(1f),
+                if (s.income > 0) stringResource(R.string.of_came_in, money.short(s.income)) else stringResource(R.string.no_income_yet), m,
                 visual = { RingPercent((s.kept ?: 0) / 100f, c.primary, c.secondaryContainer, Size.ringWidget) },
             )
+        }) { m ->
             val top = s.topPayee
             Widget(
                 stringResource(R.string.top_payee), painterResource(R.drawable.ic_storefront_duotone), top?.name ?: "–",
-                top?.let { pluralStringResource(R.plurals.times, it.times, money.plain(it.total), it.times) }.orEmpty(), Modifier.weight(1f),
+                top?.let { pluralStringResource(R.plurals.times, it.times, money.plain(it.total), it.times) }.orEmpty(), m,
                 // The next two payees with their amounts, instead of repeated icons (37).
                 visual = {
                     Column(verticalArrangement = Arrangement.spacedBy(Space.grid)) {
@@ -326,9 +334,9 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
             }
         }
         Row(Modifier.fillMaxWidth().padding(top = Space.card), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.less), style = BurrowType.label, color = c.onSurfaceVariant)
+            Text(stringResource(R.string.less), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(end = Space.small))
             (0..4).forEach { l -> Box(Modifier.padding(horizontal = Space.group / 2).size(Space.card).clip(Shapes.pill).background(heatColor(l))) }
-            Text(stringResource(R.string.more_word), style = BurrowType.label, color = c.onSurfaceVariant)
+            Text(stringResource(R.string.more_word), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(start = Space.small))
         }
     }
 }

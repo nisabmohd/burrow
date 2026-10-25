@@ -68,6 +68,8 @@ fun TodayWidgets(
     val dates = rememberDateText()
     val c = MaterialTheme.colorScheme
     val today = LocalDate.now()
+    // Large text stacks a wide widget's visual under its words: then it gets the full width.
+    val large = app.burrow.money.ui.components.isLargeText()
     val slots = buildList {
         add(Slot("week", false) { m, wide ->
             Widget(
@@ -77,7 +79,7 @@ fun TodayWidgets(
                     PillBarChart(
                         bars = w.week.map { (d, v) -> Bar(d.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault()), v) },
                         selected = w.week.lastIndex, onSelect = null, height = Size.miniChart, showAverage = false,
-                        modifier = if (wide) Modifier.fillMaxWidth(0.5f) else Modifier,
+                        modifier = if (wide && !large) Modifier.fillMaxWidth(0.5f) else Modifier,
                     )
                 },
             )
@@ -101,7 +103,7 @@ fun TodayWidgets(
             Widget(
                 stringResource(R.string.net_worth), painterResource(R.drawable.ic_account_balance_duotone), (if (w.netWorth < 0) app.burrow.money.domain.MoneyFormat.MINUS else "") + money.short(w.netWorth),
                 stringResource(R.string.this_month_change, money.signed(w.netWorthChange)), m, wide, onClick = onNetWorth,
-                visual = { Sparkline(w.netWorthLine, if (wide) Modifier.fillMaxWidth(0.5f) else Modifier, fill = true) },
+                visual = { Sparkline(w.netWorthLine, if (wide && !large) Modifier.fillMaxWidth(0.5f) else Modifier, fill = true) },
             )
         })
         w.topCategory?.let { cat ->
@@ -111,9 +113,10 @@ fun TodayWidgets(
                     stringResource(R.string.of_spending, w.topShare), m, wide, onClick = { onCategory(cat.id) },
                     visual = {
                         // Alone on a row (wide) the text keeps the left side; half width, donut left and icon right.
+                        val side = wide && !large
                         Row(
-                            if (wide) Modifier else Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = if (wide) Arrangement.spacedBy(Space.block) else Arrangement.SpaceBetween,
+                            if (side) Modifier else Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = if (side) Arrangement.spacedBy(Space.block) else Arrangement.SpaceBetween,
                         ) {
                             // Design 05: the top category in its colour, the next ones soft, everything else grey.
                             DonutChart(
@@ -154,10 +157,7 @@ fun TodayWidgets(
             val a = slots[i]
             val b = slots.getOrNull(i + 1)
             if (pair && !a.wide && b != null && !b.wide) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Space.block)) {
-                    a.content(Modifier.weight(1f), false)
-                    b.content(Modifier.weight(1f), false)
-                }
+                app.burrow.money.ui.components.PairRow(first = { m -> a.content(m, false) }) { m -> b.content(m, false) }
                 i += 2
             } else {
                 a.content(Modifier.fillMaxWidth(), true)

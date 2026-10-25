@@ -94,7 +94,9 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
         return
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.small)) {
-        options.chunked(columns).forEach { row ->
+        // Large text: at most two a row, so a word never breaks inside a tile.
+        val perRow = if (isLargeText()) minOf(columns, 2) else columns
+        options.chunked(perRow).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                 row.forEach { o ->
                     val on = o.key == selected
@@ -122,7 +124,7 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
                         }
                     }
                 }
-                repeat(columns - row.size) { Box(Modifier.weight(1f)) }
+                repeat(perRow - row.size) { Box(Modifier.weight(1f)) }
             }
         }
     }
@@ -138,7 +140,8 @@ fun ToggleTiles(options: List<Toggle>, onToggle: (String, Boolean) -> Unit, onLa
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.small)) {
-        options.chunked(3).forEach { row ->
+        val perRow = if (isLargeText()) 2 else 3
+        options.chunked(perRow).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                 row.forEach { o ->
                     Box(
@@ -155,7 +158,7 @@ fun ToggleTiles(options: List<Toggle>, onToggle: (String, Boolean) -> Unit, onLa
                         }
                     }
                 }
-                repeat(3 - row.size) { Box(Modifier.weight(1f)) }
+                repeat(perRow - row.size) { Box(Modifier.weight(1f)) }
             }
         }
     }

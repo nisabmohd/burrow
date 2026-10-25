@@ -9,6 +9,8 @@ import kotlin.math.sin
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -150,11 +152,14 @@ fun Widget(
     fixedHeight: Boolean = true,
 ) {
     val c = MaterialTheme.colorScheme
-    // Size first, then shape and padding, so a half widget is 184 dp tall in total.
-    val base = modifier.then(if (wide) Modifier.fillMaxWidth() else if (fixedHeight) Modifier.height(Size.widgetHalf) else Modifier)
+    // Large text puts a wide widget's visual under the words so neither is squeezed.
+    val large = isLargeText()
+    // Size first, then shape and padding, so a half widget is 184 dp tall in total. It grows past
+    // that when bigger text needs room, instead of squashing its ring or chart ([PairRow] evens a pair).
+    val base = modifier.then(if (wide) Modifier.fillMaxWidth() else if (fixedHeight) Modifier.heightIn(min = Size.widgetHalf) else Modifier)
         .clip(Shapes.surface).background(c.surfaceContainerLow)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(Space.card)
-    if (wide) {
+    if (wide && !large) {
         Column(base) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) { WidgetText(label, icon, value, line) }
@@ -165,8 +170,11 @@ fun Widget(
     } else {
         Column(base) {
             WidgetText(label, icon, value, line)
-            if (fixedHeight) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(Space.block))
-            visual?.invoke()
+            if (visual != null) {
+                if (fixedHeight && !wide) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(Space.block))
+                visual()
+            }
+            body?.invoke(this)
         }
     }
 }
@@ -280,13 +288,16 @@ fun StatusTile(icon: Painter, hue: Float, status: String?, title: String, line: 
  * its own row so nothing is squeezed.
  */
 @Composable
-fun halvesPairUp(): Boolean = androidx.compose.ui.platform.LocalDensity.current.fontScale <= LARGE_TEXT
+fun halvesPairUp(): Boolean = !isLargeText()
 
 /** Two halves (Insights' A day + Biggest, More's tiles): side by side, or stacked at large text. */
 @Composable
 fun PairRow(modifier: Modifier = Modifier, first: @Composable (Modifier) -> Unit, second: @Composable (Modifier) -> Unit) {
     if (halvesPairUp()) {
-        Row(modifier, horizontalArrangement = Arrangement.spacedBy(Space.block)) { first(Modifier.weight(1f)); second(Modifier.weight(1f)) }
+        // As tall as the taller half, so a pair stays even when one grows.
+        Row(modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(Space.block)) {
+            first(Modifier.weight(1f).fillMaxHeight()); second(Modifier.weight(1f).fillMaxHeight())
+        }
     } else {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.block)) { first(Modifier.fillMaxWidth()); second(Modifier.fillMaxWidth()) }
     }

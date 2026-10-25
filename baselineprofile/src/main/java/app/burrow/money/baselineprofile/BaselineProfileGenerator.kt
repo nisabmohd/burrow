@@ -25,7 +25,14 @@ class BaselineProfileGenerator {
     fun generate() = rule.collect(packageName = PACKAGE, maxIterations = 3, stableIterations = 2, includeInStartupProfile = true) {
         pressHome()
         startActivityAndWait()
+        device.finishWelcome()
         device.visitTabs()
+    }
+
+    /** A fresh install opens on Welcome: Get started → currency → budget → accounts → Today. */
+    private fun UiDevice.finishWelcome() {
+        if (!wait(Until.hasObject(By.text("Get started")), 2_000L)) return
+        for (button in listOf("Get started", "Continue", "Continue", "Done")) tap(By.text(button))
     }
 
     private fun UiDevice.visitTabs() {

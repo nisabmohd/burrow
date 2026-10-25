@@ -271,6 +271,24 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
                 ListRow(stringResource(title), first + i, n, supporting = line?.let { stringResource(it) }, lead = { IconCircle(painterResource(action.first)) }, onClick = action.second)
             }
         }
+        // The developer, mid apps, with the contact address; a tap writes an email (as in Sprout).
+        Spacer(Modifier.height(Space.block))
+        ListGroup {
+            ListRow(
+                stringResource(R.string.mid_apps), 0, 1, supporting = stringResource(R.string.about_contact, BuildConfig.CONTACT_EMAIL),
+                lead = { androidx.compose.foundation.Image(painterResource(R.drawable.ic_mid_apps), null, Modifier.size(Size.iconCircle)) },
+                trailing = { androidx.compose.material3.Icon(painterResource(R.drawable.ic_envelope_regular), null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconSmall)) },
+                onClick = {
+                    runCatching {
+                        context.startActivity(Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).putExtra(Intent.EXTRA_EMAIL, arrayOf(BuildConfig.CONTACT_EMAIL)).putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.app_name)))
+                    }
+                },
+            )
+        }
+        Text(
+            stringResource(R.string.made_by), style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(vertical = Space.sheet),
+        )
     }
 }
 

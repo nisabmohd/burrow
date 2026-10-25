@@ -1284,6 +1284,9 @@
     <string name="use_for_messages_like_this">Use for messages like this</string>
     <string name="test_help">Paste any message from %1$s; the parts it reads are highlighted.</string>
     <string name="licences_line">Burrow and what it uses</string>
+    <string name="mid_apps" translatable="false">mid apps</string>
+    <string name="about_contact">Contact: %1$s</string>
+    <string name="made_by">Made by Nisab Mohd &amp; Contributors</string>
     <string name="licences_app">App</string>
     <string name="licences_libraries">Libraries</string>
     <string name="licences_icons_fonts">Icons and fonts</string>

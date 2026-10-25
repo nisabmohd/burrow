@@ -52,11 +52,14 @@ fun MessageCard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
             lead()
+            // Large text: the amount goes under the payee so the name keeps the width.
+            val large = isLargeText()
             Column(Modifier.weight(1f)) {
-                Text(title, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(title, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = if (large) 2 else 1, overflow = TextOverflow.Ellipsis)
+                if (large && amount != null) Text(amount, style = BurrowType.titleSmall, color = c.onSurface)
                 Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 2)
             }
-            if (amount != null) Text(amount, style = BurrowType.titleSmall, color = c.onSurface)
+            if (!large && amount != null) Text(amount, style = BurrowType.titleSmall, color = c.onSurface)
             TonalIconButton(painterResource(R.drawable.ic_close_regular), ignoreLabel, onIgnore)
         }
         message()

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
@@ -105,7 +106,7 @@ fun PillBarChart(
                 drawLine(c.outline, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)))
             }
         }
-        Row(Modifier.fillMaxWidth().height(22.dp), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 22.dp), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {
             bars.forEachIndexed { i, b ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
                     // Every nth label plus the last one; a label too close to the last one gives way ("21 22").

@@ -17,6 +17,8 @@
 - A wrong backup password shows right in the password sheet.
 - Times are picked on a scroll wheel (hour, minute, AM/PM) everywhere, and you can choose when bill reminders and the Sunday review arrive (More › Notifications).
 - New expense: favourites sit right under the amount as quick-add pills ("₹20 Chai", one tap saves), and the time has its own chip next to Note.
+- Big font sizes no longer squash charts and cards: rings stay round, widgets put their chart under the words, Insights' legend and section titles are never cut, Customise tiles go two to a row, and Welcome's buttons stack.
+- About shows who makes Burrow: mid apps, with a contact address (tap to write an email).
 
 ## 0.2.0
 - Check for updates: the GitHub download now finds, downloads and installs new versions itself (Play and F-Droid update it for you).

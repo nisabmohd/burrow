@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -83,6 +84,7 @@ fun BlockGap(content: @Composable () -> Unit) =
  * its group, whatever column it sits in.
  */
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 fun SectionHeader(title: String, modifier: Modifier = Modifier, meta: String? = null, trailing: (@Composable RowScope.() -> Unit)? = null, titleColor: Color = MaterialTheme.colorScheme.onSurface) {
     val gap = LocalBlockGap.current
     Row(
@@ -96,6 +98,14 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, meta: String? = 
             .heightIn(min = Size.chip),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (meta != null && trailing == null && isLargeText()) {
+            // Large text: a hint that doesn't fit beside the title wraps under it, never squeezing the title.
+            FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, itemVerticalAlignment = Alignment.CenterVertically) {
+                Text(title, style = BurrowType.button, color = titleColor, modifier = Modifier.padding(end = Space.block))
+                Text(meta, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            return@Row
+        }
         Text(title, style = BurrowType.button, color = titleColor, modifier = Modifier.weight(1f))
         when {
             trailing != null -> trailing()
@@ -200,6 +210,10 @@ fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey
 
 /** From this font scale, text is "large": rows wrap to two lines, notes put their action below. */
 const val LARGE_TEXT = 1.3f
+
+/** True from [LARGE_TEXT]: widgets stack their visual under the words, halves take a row each. */
+@Composable
+fun isLargeText(): Boolean = LocalDensity.current.fontScale > LARGE_TEXT
 
 /** A 40 dp circle with a letter (Import: Cashew, Walnut, Money Manager; no brand logos, 10). */
 @Composable

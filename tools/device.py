@@ -9,6 +9,7 @@ import subprocess
 import time
 
 PACKAGE = "app.burrow.money"
+TABS = ["Today", "Activity", "Plan", "Insights", "More"]  # bottom bar, left to right
 ADB = os.environ.get("ADB") or os.path.expanduser("~/Library/Android/sdk/platform-tools/adb")
 
 
@@ -167,6 +168,15 @@ def nav(tab):
         if nodes or time.time() > end:
             break
         time.sleep(0.4)
+    if not nodes and tab in TABS:
+        # Large text: only the open tab shows its label. Tap the others by position (five equal slots).
+        shown = [n for n in dump() if n.label in TABS and n.package == PACKAGE]
+        if shown:
+            bar = max(shown, key=lambda n: n.bounds[1])
+            w = screen_size()[0]
+            shell(f"input tap {w * (2 * TABS.index(tab) + 1) // 10} {bar.center[1]}")
+            time.sleep(1.0)
+            return
     if not nodes:
         raise AssertionError(f"tab not found: {tab}")
     n = max(nodes, key=lambda n: n.bounds[1])

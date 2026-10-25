@@ -10,9 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +53,7 @@ import app.burrow.money.data.defaultCurrency
 import app.burrow.money.domain.MoneyFormat
 import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.BurrowButton
+import app.burrow.money.ui.components.isLargeText
 import app.burrow.money.ui.components.BurrowLogo
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Chip
@@ -142,7 +143,11 @@ fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String
                 else -> AccountsStep(vm, onAddAccount)
             }
         }
-        Row(Modifier.fillMaxWidth().padding(Space.screen), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
+        // Large text: the two buttons stack so "Skip for now" isn't cut.
+        FlowRow(
+            Modifier.fillMaxWidth().padding(Space.screen), horizontalArrangement = Arrangement.spacedBy(Space.inline),
+            verticalArrangement = Arrangement.spacedBy(Space.small), maxItemsInEachRow = if (isLargeText()) 1 else 2,
+        ) {
             when (page) {
                 0 -> BurrowButton(stringResource(R.string.get_started), { page = 1 }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
                 1 -> BurrowButton(stringResource(R.string.continue_), { page = 2 }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
@@ -157,7 +162,8 @@ fun WelcomeScreen(app: AppContainer, vm: WelcomeViewModel, onAddAccount: (String
             }
         }
         if (page == 0) {
-            Row(Modifier.align(Alignment.CenterHorizontally).padding(bottom = Space.block)) {
+            // Wraps "Restore a backup" onto its own line when the text is large.
+            FlowRow(Modifier.fillMaxWidth().padding(horizontal = Space.screen).padding(bottom = Space.block), horizontalArrangement = Arrangement.Center) {
                 Text(stringResource(R.string.welcome_footer) + " · ", style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     stringResource(R.string.restore_backup), style = BurrowType.button, color = MaterialTheme.colorScheme.primary,

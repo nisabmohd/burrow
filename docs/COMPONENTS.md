@@ -27,7 +27,7 @@ if something is missing, add a component here first.
 | `LinkButton` | primary text button ("See all", "Clear all") | Controls.kt |
 | `WavyProgress` / `rememberCountUp` | the hero's wavy bar; a number that counts up once per screen | Charts.kt / CountUp.kt |
 | `AmountTrailing` | `titleSmall` amount over `label` status ("in 6 days", "Paid") | Lists.kt |
-| `Widget` / `PairRow` / `halvesPairUp` | half: 184 dp fixed; wide: wraps, text left + visual right. Halves (Today's widgets, Insights' A day + Biggest, More's tiles) pair two to a row, **one per row at large text** (150–152) | Blocks.kt |
+| `Widget` / `PairRow` / `halvesPairUp` / `isLargeText` | half: 184 dp, grows if bigger text needs it (a pair stays even); wide: wraps, text left + visual right (visual under the text at large text). Halves (Today's widgets, Insights' A day + Biggest + Patterns, More's tiles) pair two to a row, **one per row at large text** (150–152). Large text also: tiles two a row, a section hint wraps under its title | Blocks.kt |
 | Status tiles (More) | 2 equal columns (`minmax(0,1fr)`), 24 dp, icon top-left, status top-right, title, one line | screen code |
 | Category tiles | 3 columns, 56 dp circle + one-word name; dashed "New" tile | screen code |
 | `PillBarChart` | 16 dp pill bars, 104 dp tall (40 in widgets), labels, dots for empty, dashed average; one tap area over the chart picks the bar, TalkBack gets a summary and an action per bar | Charts.kt |

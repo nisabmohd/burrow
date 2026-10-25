@@ -1091,7 +1091,8 @@ def recover():
     d.shell("cmd statusbar collapse")
     d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
     for _ in range(5):
-        if d.exists("Today", timeout=1) and d.exists("Insights", timeout=1):
+        # On a tab: its title plus the bar's labels (at large text the bar shows only the open tab's).
+        if sum(n.label in d.TABS and n.package == d.PACKAGE for n in d.dump()) >= 2:
             return
         d.back()
 
@@ -1100,6 +1101,9 @@ def main(filters):
     selected = [c for c in CHECKS if not filters or any(f in c.__name__ for f in filters)]
     if not os.path.exists(APK):
         sys.exit(f"Build first: ./gradlew :app:assembleFossDebug (missing {APK})")
+    # A Settings screen left open from another app catches "back" from the notification-access page.
+    d.shell("am force-stop com.android.settings")
+    d.shell("settings put system font_scale 1.0")
     fresh_install()
     if welcome_shows_once not in selected and d.exists("Get started", timeout=3):
         finish_welcome()

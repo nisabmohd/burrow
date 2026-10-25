@@ -24,6 +24,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // About screen links. They open in the browser.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
+        buildConfigField("String", "CONTACT_EMAIL", "\"hello.midapps@gmail.com\"")
         buildConfigField("String", "PLAY_STORE_URL", "\"https://play.google.com/store/apps/details?id=app.burrow.money\"")
     }
 
