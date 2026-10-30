@@ -436,7 +436,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
                     else -> R.string.balance_now
                 }
                 LabeledField(stringResource(label)) {
-                    PillTextField(f.balance, { v -> vm.edit { it.copy(balance = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0", leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal)
+                    app.burrow.money.ui.components.AmountField(f.balance, { v -> vm.edit { it.copy(balance = v) } }, stringResource(label))
                 }
             }
             if (f.type != AccountType.CASH) {
@@ -457,7 +457,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
                         )
                     }
                     if (sharedCard == null) LabeledField(stringResource(R.string.credit_limit)) {
-                        PillTextField(f.limit, { v -> vm.edit { it.copy(limit = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0", leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal)
+                        app.burrow.money.ui.components.AmountField(f.limit, { v -> vm.edit { it.copy(limit = v) } }, stringResource(R.string.credit_limit))
                     }
                     ListGroup {
                         ListRow(stringResource(R.string.every_month_on, dates.ordinal(f.statementDay)), 0, 2, supporting = stringResource(R.string.statement_day), lead = { IconCircle(painterResource(R.drawable.ic_receipt_long_duotone)) }, onClick = { sheet = FormSheet.STATEMENT })
@@ -466,7 +466,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
                 }
                 AccountType.LOAN -> {
                     LabeledField(stringResource(R.string.emi_label)) {
-                        PillTextField(f.emi, { v -> vm.edit { it.copy(emi = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0", leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal)
+                        app.burrow.money.ui.components.AmountField(f.emi, { v -> vm.edit { it.copy(emi = v) } }, stringResource(R.string.emi_label))
                     }
                     RateField(f.rate) { r -> vm.edit { it.copy(rate = r) } }
                 }

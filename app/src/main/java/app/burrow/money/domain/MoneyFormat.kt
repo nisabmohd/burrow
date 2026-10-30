@@ -68,6 +68,18 @@ class MoneyFormat(
         else -> plain(0)
     }
 
+    /**
+     * A number on the keypad as it is typed ("1240." → "₹1,240.", "12.50" → "₹12.50"): the dot and trailing
+     * zeros stay, grouping and the decimal separator follow the style, and the decimals setting doesn't round it.
+     * Shown even when amounts are hidden, since you're typing it. "" → "₹0".
+     */
+    fun typed(number: String): String {
+        if (number.isEmpty()) return symbol + "0"
+        val dot = number.indexOf('.')
+        val whole = (if (dot >= 0) number.substring(0, dot) else number).ifEmpty { "0" }
+        return symbol + group(whole) + (if (dot >= 0) style.decimalSeparator + number.substring(dot + 1) else "")
+    }
+
     /** "−₹240" when negative, "₹240" otherwise (balances that can go below zero). */
     fun balance(minor: Long): String = if (minor < 0 && !hidden) MINUS + plain(minor) else plain(minor)
 

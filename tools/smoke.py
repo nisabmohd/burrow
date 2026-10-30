@@ -280,7 +280,7 @@ def insights_heatmap_opens_activity():
 def insights_every_section():
     recover()
     d.nav("Insights")
-    for label in ["Spent", "A day", "Biggest", "By category", "Patterns", "Busiest day", "No-spend days", "You kept", "Top payee", "by day"]:
+    for label in ["Spent", "Average a day", "Biggest", "By category", "Patterns", "Busiest day", "No-spend days", "You saved", "Top payee", "by day"]:
         assert d.scroll_to(label, contains=True), f"Insights section missing: {label}"
 
 
@@ -352,6 +352,247 @@ def new_expense_cant_save_without_category():
     d.tap("Save")
     assert d.exists("New expense", timeout=2), "Save without a category left the form"
     d.tap("Close")
+
+
+# --- every create flow: type, save, edit, delete (2026-10-31: "." did nothing visible on New expense) ---
+
+
+def shown(ending, nodes=None):
+    """An amount on screen, whatever the currency symbol: shown("12.50") matches "₹12.50" and "−$12.50"."""
+    return any(n.label.endswith(ending) for n in (nodes or d.dump()))
+
+
+def tap_amount_field():
+    """The empty amount pill in a form (₹0, $0, 0 €): it opens the value sheet's keypad."""
+    n = next((n for n in d.dump() if re.fullmatch(r"[^\d\s]{1,3}\s?0|0\s?[^\d\s]{1,3}", n.label)), None)
+    assert n, "no empty amount field"
+    tap_node(n)
+    assert d.exists("Done", timeout=3), "the amount field didn't open the keypad sheet"
+
+
+@check
+def new_expense_dot_and_decimals_show_as_typed():
+    open_add()
+    keypad("12")
+    d.tap(".")
+    assert shown("12."), "the dot doesn't show after typing 12"
+    keypad("5")
+    assert shown("12.5"), "12.5 isn't shown"
+    keypad("0")
+    assert shown("12.50"), "the trailing zero is dropped"
+    keypad("9")  # one decimal more than the currency has: refused
+    assert shown("12.50") and not shown("12.509"), "more decimals than the currency allows"
+    d.tap("Delete")
+    assert shown("12.5"), "Delete didn't remove the last digit"
+    keypad("0")
+    d.tap("Food & drinks")
+    d.tap("Save")
+    snackbar("saved")
+    d.nav("Activity")
+    assert d.find("12.50", contains=True, timeout=5), "₹12.50 isn't in Activity"
+
+
+@check
+def new_expense_sum_with_plus_and_minus():
+    open_add()
+    keypad("100")
+    d.tap("Plus")
+    keypad("25.5")
+    d.tap("Minus")
+    keypad("5")
+    nodes = d.dump()
+    assert has("100+25.5−5", nodes), "the sum isn't written under the amount"
+    assert shown("120.50", nodes), "100 + 25.5 − 5 isn't 120.50"
+    d.tap("Close")
+
+
+@check
+def edit_expense_amount_and_category():
+    recover()
+    d.nav("Activity")
+    row = next((n for n in d.dump() if n.label.startswith("−") and n.label.endswith("12.50")), None)
+    assert row, "no −12.50 row to edit"
+    tap_node(row)
+    d.tap("Edit")
+    assert d.exists("Edit expense", timeout=5), "Edit didn't open the form"
+    assert shown("12.5"), "the form doesn't start with the saved amount"
+    d.tap("Delete")
+    keypad("75")
+    assert shown("12.75"), "typing after Delete didn't give 12.75"
+    d.tap("Groceries")
+    d.tap("Save")
+    time.sleep(1)
+    d.back()
+    recover()
+    d.nav("Activity")
+    nodes = d.dump()
+    assert shown("12.75", nodes), "the new amount isn't in Activity"
+    assert any("Groceries" in n.label for n in nodes), "the new category isn't in Activity"
+
+
+@check
+def new_income_saves():
+    open_add()
+    d.tap("New expense")
+    d.tap("Income")
+    assert d.exists("New income", timeout=3), "the type sheet didn't switch to income"
+    keypad("5000.5")
+    d.tap("Salary")
+    d.tap("Save")
+    snackbar("saved")
+    d.nav("Activity")
+    assert d.find("+", contains=True, timeout=5) and shown("5,000.50"), "the income isn't in Activity"
+
+
+@check
+def add_account_with_decimal_balance():
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    d.tap("Add account")
+    d.tap("HDFC Savings, Cash…")
+    d.type_text("Kotak")
+    d.back()  # keyboard down
+    tap_amount_field()
+    keypad("2500.75")
+    assert shown("2,500.75"), "the balance sheet doesn't show 2,500.75 as typed"
+    d.tap("Done")
+    assert shown("2,500.75"), "the form doesn't show the balance after Done"
+    d.tap("Save")
+    assert d.exists("Kotak", timeout=5), "the new account isn't listed"
+    assert shown("2,500.75"), "the new account's balance isn't listed"
+    d.back()
+
+
+@check
+def new_transfer_between_accounts():
+    open_add()
+    d.tap("New expense")
+    d.tap("Transfer")
+    assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
+    keypad("1000")
+    d.tap("Choose an account")
+    d.tap("Kotak")
+    d.tap("Save")
+    snackbar()
+    d.nav("Activity")
+    assert d.find("→", contains=True, timeout=5), "the transfer isn't in Activity"
+
+
+@check
+def new_bill_decimal_edit_and_delete():
+    recover()
+    d.nav("Plan")
+    d.tap("Coming up")
+    d.tap("Add bill")
+    d.tap("Netflix, rent, electricity…")
+    d.type_text("Gym")
+    d.back()
+    tap_amount_field()
+    keypad("1499.5")
+    assert shown("1,499.5"), "the bill amount doesn't show 1,499.5 as typed"
+    d.tap("Done")
+    d.tap("Save")
+    assert d.exists("Gym", timeout=5), "the new bill isn't in Coming up"
+    assert shown("1,499.50"), "the bill amount isn't in Coming up"
+    d.tap("Gym")
+    d.tap("Edit")
+    pill = next((n for n in d.dump() if n.label.endswith("1,499.50")), None)
+    assert pill, "Edit doesn't show the bill's amount"
+    tap_node(pill)
+    keypad("999")
+    d.tap("Done")
+    d.tap("Save")
+    time.sleep(1)
+    assert shown("999"), "the edited amount isn't shown"
+    if not d.exists("Delete bill", timeout=2):
+        d.tap("Gym")
+    d.tap("Delete bill")
+    d.tap("Delete")
+    assert not d.exists("Gym", timeout=2), "the deleted bill is still there"
+
+
+@check
+def new_goal_add_money_undo_and_delete():
+    recover()
+    d.nav("Plan")
+    d.tap("Goals")
+    d.tap("Add goal")
+    d.tap("Trip, laptop, emergency fund…")
+    d.type_text("Laptop")
+    d.back()
+    tap_amount_field()
+    keypad("80000")
+    d.tap("Done")
+    d.tap("Save")
+    assert d.exists("Laptop", timeout=5), "the new goal isn't listed"
+    d.tap("Laptop")
+    d.tap("Add money")
+    keypad("1500.5")
+    assert shown("1,500.5"), "Add money doesn't show 1,500.5 as typed"
+    d.tap("Add")
+    snackbar("Money added", undo=True)
+    assert d.exists("Laptop", timeout=3) and not shown("1,500.50"), "Undo didn't take the money back"
+    d.tap("Delete goal")
+    if d.exists("Delete", timeout=2):
+        d.tap("Delete")
+    recover()
+    d.nav("Plan")
+    d.tap("Goals")
+    assert not d.exists("Laptop", timeout=2), "the deleted goal is still there"
+
+
+@check
+def category_budget_set_and_shown():
+    recover()
+    d.nav("Plan")
+    d.tap("Budgets")
+    d.tap("Add")
+    assert not d.exists("No spending this month", timeout=1), "the budget's category sheet claims no spending"
+    d.tap("Shopping")
+    assert d.exists("Monthly budget", timeout=3), "no budget sheet for the category"
+    keypad("3000")
+    d.tap("Save")
+    snackbar()
+    assert d.exists("Shopping", timeout=5) and shown("3,000 left") or d.exists("left", contains=True), "the category budget isn't listed"
+
+
+@check
+def new_category_saves_and_shows_in_new_expense():
+    open_more_row("Categories")
+    d.scroll_to("New category")
+    d.tap("New category")
+    fields = [n for n in d.dump() if n.cls.endswith("EditText")]
+    assert fields, "New category has no name field"
+    tap_node(fields[0])
+    d.type_text("Plants")
+    d.back()
+    d.tap("Save")
+    assert d.scroll_to("Plants"), "the new category isn't listed"
+    open_add()
+    d.tap("More", contains=False) if d.exists("More", timeout=1) else None
+    assert d.scroll_to("Plants"), "the new category isn't offered on New expense"
+    recover()
+
+
+@check
+def snackbar_swipes_away():
+    # 2026-10-31: swipe the Undo snackbar sideways to dismiss it, without undoing.
+    open_add()
+    keypad("33")
+    d.tap("Food & drinks")
+    d.tap("Save")
+    nodes = snackbar()
+    seen = time.time()
+    undo = next(n for n in nodes if n.label == "Undo")
+    y = undo.center[1]
+    w = d.screen_size()[0]
+    d.swipe(int(w * 0.2), y, int(w * 0.95), y, 200)
+    gone = not d.exists("Undo", timeout=0.3)
+    assert time.time() - seen < 3.8, "too slow to tell a swipe from the snackbar timing out"
+    assert gone, "a sideways swipe didn't dismiss the snackbar"
+    d.nav("Activity")
+    assert shown("33"), "dismissing the snackbar undid the save"
 
 
 @check
@@ -803,7 +1044,7 @@ def licences_open_their_text():
     d.scroll_to("Licences")
     d.tap("Licences")
     assert d.exists("GNU General Public License v3.0", timeout=5), "Burrow's own licence missing"
-    for row, words in [("Burrow", "GNU GENERAL PUBLIC LICENSE"), ("Hugeicons", "Permission is hereby granted"), ("Lexend font", "SIL Open Font License")]:
+    for row, words in [("Burrow", "GNU GENERAL PUBLIC LICENSE"), ("Solar icons", "480 Design"), ("Lexend font", "SIL Open Font License")]:
         d.tap(row, contains=True)
         assert d.exists(words, contains=True, timeout=5), f"{row}: licence text not shown in the app"
         assert d.PACKAGE + "/" in d.shell("dumpsys window | grep mCurrentFocus"), f"{row}: left the app"
@@ -1074,6 +1315,250 @@ def touch_targets_48dp():
         d.nav(tab)
         problems += [f"{tab}: {p}" for p in d.small_targets()]
     assert not problems, "small touch targets: " + "; ".join(problems)
+
+
+# --- deep links, launcher long-press, home-screen widgets (2026-10-31: none of these were tested) ---
+
+ACTION = "app.burrow.money.action."
+
+
+def open_link(action, extra_id=None, cold=False):
+    """Starts the app the way a notification, shortcut or widget does: cold (process killed) or warm."""
+    if cold:
+        d.shell(f"am force-stop {d.PACKAGE}")
+    extra = f" --el id {extra_id}" if extra_id is not None else ""
+    d.shell(f"am start -W -a {ACTION}{action}{extra} -n {d.PACKAGE}/.MainActivity")
+    time.sleep(2)
+
+
+def on_a_tab():
+    return sum(n.label in d.TABS and n.package == d.PACKAGE for n in d.dump()) >= 2
+
+
+# action → something only that screen shows
+LINKS = [
+    ("NEW_EXPENSE", "New expense"), ("NEW_INCOME", "New income"), ("OPEN_PLAN", "Budgets"),
+    ("OPEN_INSIGHTS", "By category"), ("OPEN_ACCOUNTS", "Net worth"), ("OPEN_REVIEW", "To review"),
+    ("SUNDAY_REVIEW", "Sunday review"), ("SEARCH", "Search payee, amount, note"),
+]
+
+
+@check
+def deep_links_open_their_screen_cold_and_warm():
+    problems = []
+    for cold in (True, False):
+        for action, expect in LINKS:
+            recover()
+            if not cold:
+                d.nav("Insights")  # warm: from another tab
+            open_link(action, cold=cold)
+            if not d.exists(expect, timeout=6):
+                problems.append(f"{action} ({'cold' if cold else 'warm'}) didn't show {expect!r}")
+            if crashed():
+                problems.append(f"{action} crashed")
+            d.back()
+            if action == "SEARCH":
+                d.back()
+    recover()
+    assert not problems, "; ".join(problems)
+
+
+@check
+def deep_link_twice_opens_one_form():
+    # A second New expense link (widget tapped twice) mustn't stack two forms.
+    recover()
+    open_link("NEW_EXPENSE")
+    open_link("NEW_EXPENSE")
+    assert d.exists("New expense", timeout=5), "New expense not open"
+    d.tap("Close")
+    time.sleep(1)
+    assert on_a_tab(), "a second New expense was left under the first"
+
+
+@check
+def deep_links_with_missing_ids_dont_crash():
+    # A notification for something since deleted: the app opens without crashing.
+    problems = []
+    for action in ("OPEN_TXN", "OPEN_BILL", "OPEN_CAPTURE"):
+        for cold in (True, False):
+            recover()
+            open_link(action, extra_id=987654, cold=cold)
+            if crashed():
+                problems.append(f"{action} id 987654 ({'cold' if cold else 'warm'}) crashed")
+            d.back()
+        recover()
+        open_link(action)  # no id at all
+        if crashed():
+            problems.append(f"{action} without an id crashed")
+    recover()
+    assert not problems, "; ".join(problems)
+
+
+@check
+def deep_link_before_onboarding_waits():
+    # A shortcut tapped right after install: Welcome first, never a form over it.
+    d.shell(f"pm clear {d.PACKAGE}")
+    d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
+    open_link("NEW_EXPENSE", cold=True)
+    ok = d.exists("Get started", timeout=6)
+    assert not crashed(), "crash opening a link before onboarding"
+    assert ok, "a link before onboarding skipped Welcome"
+    finish_welcome()
+    assert d.exists("Today", timeout=10), "onboarding after a link didn't end on Today"
+
+
+@check
+def launcher_long_press_shows_shortcuts():
+    # The real long-press on the app icon in the launcher's app list (02).
+    d.shell("input keyevent KEYCODE_HOME")
+    time.sleep(1)
+    w, h = d.screen_size()
+    d.swipe(w // 2, int(h * 0.85), w // 2, int(h * 0.2), 300)  # open all apps
+    time.sleep(1.5)
+    icon = d.find("Burrow", timeout=4)
+    if icon is None:  # search for it
+        d.type_text("Burrow")
+        time.sleep(1.5)
+        icon = d.find("Burrow", timeout=4)
+    assert icon, "Burrow isn't in the launcher's app list"
+    d.shell(f"input swipe {icon.center[0]} {icon.center[1]} {icon.center[0]} {icon.center[1]} 1200")
+    time.sleep(1.5)
+    nodes = d.dump()
+    missing = [s for s in ("New expense", "New income", "Search") if not has(s, nodes)]
+    assert not missing, f"long-press menu is missing: {missing}"
+    d.tap("New income")
+    assert d.exists("New income", timeout=6) and d.exists("Save", timeout=2), "the New income shortcut didn't open the form"
+    d.tap("Close")
+
+
+def pin_widget(which):
+    """Asks the launcher to put a Burrow widget on the home screen (debug build) and accepts its dialog."""
+    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am broadcast -a app.burrow.money.debug.PIN_WIDGET --es which {which} -p {d.PACKAGE}")
+    for label in ("Add to home screen", "ADD TO HOME SCREEN", "Add automatically", "Add"):
+        if d.exists(label, timeout=3):
+            d.tap(label)
+            time.sleep(1.5)
+            return True
+    return False
+
+
+def home_labels():
+    d.shell("input keyevent KEYCODE_HOME")
+    time.sleep(2)
+    return [n.label for n in d.dump() if n.label]
+
+
+def widget_amount(labels):
+    """The big number on the safe-to-spend widget: the label right after its title."""
+    for title in ("Safe to spend today", "Spent in"):
+        for i, l in enumerate(labels):
+            if l.startswith(title) and i + 1 < len(labels):
+                return labels[i + 1]
+    return None
+
+
+def save_expense(amount, category="Food & drinks"):
+    open_link("NEW_EXPENSE")
+    keypad(amount)
+    d.tap(category)
+    d.tap("Save")
+    snackbar()
+
+
+@check
+def widgets_pin_and_show_numbers():
+    for which in ("safe", "bill", "add"):
+        assert pin_widget(which), f"the launcher didn't offer to add the {which} widget"
+    labels = home_labels()
+    assert widget_amount(labels), f"the safe-to-spend widget isn't on the home screen ({labels[:12]})"
+    assert any("bill" in l.lower() or "due" in l.lower() for l in labels), "the next bill widget shows nothing"
+    assert has("Add expense") or any(l == "Add expense" for l in labels), "the Add expense widget isn't there"
+
+
+@check
+def widget_updates_at_once_after_save_delete_and_undo():
+    before = widget_amount(home_labels())
+    save_expense("777")
+    after_save = widget_amount(home_labels())
+    assert after_save and after_save != before, f"widget didn't change after saving ₹777 ({before} → {after_save})"
+    recover()
+    d.nav("Activity")
+    d.long_press("777", contains=True)
+    d.tap("Delete")
+    snackbar("deleted")
+    after_delete = widget_amount(home_labels())
+    assert after_delete == before, f"widget didn't go back after the delete ({after_save} → {after_delete}, expected {before})"
+
+
+@check
+def widget_updates_after_budget_change():
+    before = widget_amount(home_labels())
+    recover()
+    d.nav("Plan")
+    d.tap("Budgets")
+    d.tap("budget", contains=True)  # the month's budget header opens its value sheet
+    if d.exists("Monthly budget", timeout=3) or d.exists("Done", timeout=1) or d.exists("Save", timeout=1):
+        keypad("45000")
+        d.tap("Save") if d.exists("Save", timeout=1) else d.tap("Done")
+    after = widget_amount(home_labels())
+    assert after != before, f"widget didn't change after the budget changed ({before} → {after})"
+
+
+@check
+def widget_next_bill_follows_new_and_deleted_bills():
+    recover()
+    d.nav("Plan")
+    d.tap("Coming up")
+    d.tap("Add bill")
+    d.tap("Netflix, rent, electricity…")
+    d.type_text("Zumba")
+    d.back()
+    tap_amount_field()
+    keypad("5")
+    d.tap("Done")
+    d.tap("Save")
+    labels = home_labels()
+    assert any("Zumba" in l for l in labels) or any("due" in l.lower() for l in labels), "the bill widget shows no bill"
+    recover()
+    d.nav("Plan")
+    d.tap("Coming up")
+    d.tap("Zumba")
+    d.tap("Delete bill")
+    d.tap("Delete")
+    assert not any("Zumba" in l for l in home_labels()), "the bill widget still shows a deleted bill"
+
+
+@check
+def widget_hides_amounts_with_the_app():
+    open_more_row("Hide amounts")
+    switch = next((n for n in d.dump() if n.checkable), None)
+    assert switch, "no Hide amounts switch"
+    if not switch.checked:
+        tap_node(switch)
+    labels = home_labels()
+    hidden = any("••••" in l for l in labels)
+    open_more_row("Hide amounts")
+    switch = next((n for n in d.dump() if n.checkable and n.checked), None)
+    if switch:
+        tap_node(switch)
+    assert hidden, "the widget shows amounts while Hide amounts is on"
+    assert not any("••••" in l for l in home_labels()), "the widget still hides amounts after turning it off"
+
+
+@check
+def widget_taps_open_the_app():
+    labels = home_labels()
+    add = d.find("Add expense", timeout=3)
+    assert add, "no Add expense widget to tap"
+    tap_node(add)
+    assert d.exists("New expense", timeout=6), "tapping the Add expense widget didn't open New expense"
+    d.tap("Close")
+    amount = widget_amount(home_labels())
+    n = d.find(amount, timeout=3) if amount else None
+    assert n, "no safe-to-spend widget to tap"
+    tap_node(n)
+    assert on_a_tab() or d.exists("Today", timeout=5), "tapping the widget didn't open the app"
 
 
 @check

@@ -55,12 +55,13 @@ val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> 
 
 /**
  * Category (19, 167): every category with what was spent on it this month. When both kinds are
- * listed, an Expense group then an Income group; New category last.
+ * listed, an Expense group then an Income group; New category last. [spent] null = the screen has no
+ * spending to show (bills, budgets, review, import): no line under the rows, rather than a wrong "nothing".
  */
 @Composable
 fun CategorySheet(
     categories: List<CategoryEntity>,
-    spent: Map<Long, Long>,
+    spent: Map<Long, Long>?,
     selectedId: Long?,
     onPick: (CategoryEntity) -> Unit,
     onDismiss: () -> Unit,
@@ -68,7 +69,7 @@ fun CategorySheet(
     val money = LocalMoney.current
     val haptics = LocalHapticFeedback.current
     BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.category), onDismiss, stringResource(R.string.category_sheet_line))
+        SheetHeader(stringResource(R.string.category), onDismiss, if (spent != null) stringResource(R.string.category_sheet_line) else null)
         SheetBody {
             // Both kinds in one list: Expense first, then Income, each under its own header.
             val groups = categories.groupBy { it.kind == app.burrow.money.data.CategoryKind.INCOME }.toSortedMap()
@@ -76,10 +77,14 @@ fun CategorySheet(
                 if (groups.size > 1) app.burrow.money.ui.components.SectionHeader(stringResource(if (income) R.string.type_income else R.string.type_expense))
                 ListGroup {
                     cats.forEachIndexed { i, cat ->
-                        val total = spent[cat.id] ?: 0L
+                        val total = spent?.get(cat.id) ?: 0L
                         app.burrow.money.ui.components.PickRow(
                             cat.name, i, cats.size, cat.id == selectedId, { onPick(cat) },
-                            supporting = if (total > 0) stringResource(R.string.spent_this_month, money.plain(total)) else stringResource(R.string.nothing_this_month),
+                            supporting = when {
+                                spent == null -> null
+                                total > 0 -> stringResource(R.string.spent_this_month, money.plain(total))
+                                else -> stringResource(R.string.nothing_this_month)
+                            },
                             lead = { CategoryCircle(cat.icon, cat.colorHue) }, ring = false,
                         )
                     }

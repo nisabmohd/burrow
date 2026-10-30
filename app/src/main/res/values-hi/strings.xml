@@ -300,7 +300,7 @@
     <string name="due_from">%1$s · %2$s से</string>
     <string name="this_week">इस हफ़्ते</string>
     <string name="later">बाद में</string>
-    <string name="late">देर</string>
+    <string name="late">बकाया</string>
     <string name="tomorrow">कल</string>
     <plurals name="in_days">
         <item quantity="one">%d दिन में</item>
@@ -504,21 +504,21 @@
     <string name="less_than">%2$s से %1$s कम</string>
     <string name="more_than">%2$s से %1$s ज़्यादा</string>
     <string name="this_period">इस अवधि</string>
-    <string name="before">पहले</string>
-    <string name="a_day_label">रोज़</string>
-    <string name="on_average">औसतन</string>
+    <string name="before">पिछली अवधि</string>
+    <string name="a_day_label">रोज़ का औसत</string>
+    <string name="on_average">हर दिन खर्च</string>
     <string name="biggest">सबसे बड़ा</string>
     <string name="by_category">श्रेणी के हिसाब से</string>
     <string name="patterns">पैटर्न</string>
     <string name="busiest_day">सबसे ज़्यादा खर्च का दिन</string>
-    <string name="in_total">कुल %1$s</string>
+    <string name="in_total">उस दिन कुल %1$s खर्च</string>
     <string name="no_spend_days">बिना खर्च के दिन</string>
     <plurals name="of_days">
         <item quantity="one">%d दिन में से</item>
         <item quantity="other">%d दिनों में से</item>
     </plurals>
     <string name="you_kept">आपने बचाया</string>
-    <string name="of_came_in">आए %1$s में से</string>
+    <string name="of_came_in">कमाए %1$s में से</string>
     <string name="no_income_yet">इन तारीख़ों में कोई आय नहीं</string>
     <string name="top_payee">सबसे ज़्यादा भुगतान</string>
     <plurals name="times">
@@ -537,11 +537,11 @@
     <string name="avg">औसत %1$s</string>
     <string name="less_than_before">पहले से %1$s कम</string>
     <string name="more_than_before">पहले से %1$s ज़्यादा</string>
-    <string name="spent_in_7_days">7 दिन में खर्च</string>
+    <string name="spent_in_7_days">पिछले 7 दिनों में खर्च</string>
     <string name="next_bill">अगला बिल</string>
     <string name="this_month_change">इस महीने %1$s</string>
     <string name="top_category">सबसे बड़ी श्रेणी</string>
-    <string name="of_spending">खर्च का %1$d%%</string>
+    <string name="of_spending">इस महीने के खर्च का %1$d%%</string>
     <string name="goal">लक्ष्य</string>
     <string name="goal_widget_line">%1$s में से · %2$s</string>
     <string name="a_month_to_finish">समय पर पूरा करने के लिए %1$s हर महीने</string>
@@ -740,11 +740,12 @@
     <string name="region">क्षेत्र</string>
     <string name="currency">मुद्रा</string>
     <string name="today_screen">आज की स्क्रीन</string>
-    <string name="today_screen_line">विजेट, ऊपर का कार्ड, हाल के</string>
+    <string name="today_screen_line">कार्ड, मुख्य रकम और हाल के भुगतान</string>
     <string name="new_expense_form">नए खर्च का फ़ॉर्म</string>
-    <string name="new_expense_form_line">फ़ील्ड और डिफ़ॉल्ट</string>
+    <string name="new_expense_form_line">भुगतान जोड़ते समय क्या दिखे</string>
+    <string name="transactions_line">मिले भुगतान, स्वाइप और हटाना</string>
     <string name="language_and_region">भाषा और क्षेत्र</string>
-    <string name="primary_short">%1$s मुख्य</string>
+    <string name="primary_short">%1$s मुख्य मुद्रा</string>
     <plurals name="n_others">
         <item quantity="one">%1$d और</item>
         <item quantity="other">%1$d और</item>
@@ -1133,8 +1134,8 @@
         <item quantity="other">%d भुगतान</item>
     </plurals>
     <plurals name="n_coming_up">
-        <item quantity="one">%d आने वाला</item>
-        <item quantity="other">%d आने वाले</item>
+        <item quantity="one">%d भुगतान आने वाला</item>
+        <item quantity="other">%d भुगतान आने वाले</item>
     </plurals>
     <plurals name="activity_summary_line">
         <item quantity="one">%d लेन-देन · पिछले 14 दिन</item>

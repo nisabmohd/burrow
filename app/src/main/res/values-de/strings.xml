@@ -524,20 +524,20 @@
     <string name="less_than">%1$s weniger als %2$s</string>
     <string name="more_than">%1$s mehr als %2$s</string>
     <string name="this_period">Dieser Zeitraum</string>
-    <string name="before">Davor</string>
-    <string name="a_day_label">Pro Tag</string>
-    <string name="on_average">im Schnitt</string>
+    <string name="before">Vorheriger Zeitraum</string>
+    <string name="a_day_label">Schnitt pro Tag</string>
+    <string name="on_average">pro Tag ausgegeben</string>
     <string name="biggest">Größte</string>
     <string name="by_category">Nach Kategorie</string>
     <string name="patterns">Muster</string>
     <string name="busiest_day">Teuerster Tag</string>
-    <string name="in_total">%1$s insgesamt</string>
+    <string name="in_total">%1$s an diesem Wochentag ausgegeben</string>
     <string name="no_spend_days">Tage ohne Ausgaben</string>
     <plurals name="of_days">
         <item quantity="one">von %d Tag</item>
         <item quantity="other">von %d Tagen</item>
     </plurals>
-    <string name="you_kept">Du hast behalten</string>
+    <string name="you_kept">Du hast gespart</string>
     <string name="of_came_in">von %1$s Einnahmen</string>
     <string name="no_income_yet">Keine Einnahmen in diesem Zeitraum</string>
     <string name="top_payee">Häufigster Empfänger</string>
@@ -558,11 +558,11 @@
     <string name="less_than_before">%1$s weniger als davor</string>
     <string name="more_than_before">%1$s mehr als davor</string>
 
-    <string name="spent_in_7_days">in 7 Tagen ausgegeben</string>
+    <string name="spent_in_7_days">in den letzten 7 Tagen ausgegeben</string>
     <string name="next_bill">Nächste Rechnung</string>
     <string name="this_month_change">%1$s diesen Monat</string>
     <string name="top_category">Top-Kategorie</string>
-    <string name="of_spending">%1$d %% der Ausgaben</string>
+    <string name="of_spending">%1$d %% der Ausgaben diesen Monat</string>
     <string name="goal">Ziel</string>
     <string name="goal_widget_line">von %1$s · %2$s</string>
     <string name="a_month_to_finish">%1$s im Monat, um rechtzeitig fertig zu sein</string>
@@ -770,11 +770,12 @@
     <string name="region">Region</string>
     <string name="currency">Währung</string>
     <string name="today_screen">Startseite</string>
-    <string name="today_screen_line">Widgets, obere Karte, letzte Buchungen</string>
+    <string name="today_screen_line">Karten, Hauptzahl und letzte Zahlungen</string>
     <string name="new_expense_form">Formular für neue Ausgaben</string>
-    <string name="new_expense_form_line">Felder und Standardwerte</string>
+    <string name="new_expense_form_line">Was beim Hinzufügen einer Zahlung erscheint</string>
+    <string name="transactions_line">Gefundene Zahlungen, Wischen und Löschen</string>
     <string name="language_and_region">Sprache und Region</string>
-    <string name="primary_short">%1$s Haupt</string>
+    <string name="primary_short">%1$s Hauptwährung</string>
     <plurals name="n_others">
         <item quantity="one">%1$d weitere</item>
         <item quantity="other">%1$d weitere</item>
@@ -1160,8 +1161,8 @@
         <item quantity="other">%d Zahlungen</item>
     </plurals>
     <plurals name="n_coming_up">
-        <item quantity="one">%d steht an</item>
-        <item quantity="other">%d stehen an</item>
+        <item quantity="one">%d Zahlung steht an</item>
+        <item quantity="other">%d Zahlungen stehen an</item>
     </plurals>
     <plurals name="activity_summary_line">
         <item quantity="one">%d Buchung · letzte 14 Tage</item>

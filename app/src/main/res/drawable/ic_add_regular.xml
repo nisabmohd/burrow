@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons Add01 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_add_regular), tint = …) -->
+<!-- Solar add (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_add_regular), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12.001 4.00101V20.001" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M20.001 12.001L4.00098 12.001" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M4 12L20 12" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M12.0204 4L12.0205 20.0003" />
 </vector>

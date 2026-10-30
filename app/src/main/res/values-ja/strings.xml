@@ -500,18 +500,18 @@
     <string name="more_than">%2$s より %1$s 多い</string>
     <string name="this_period">この期間</string>
     <string name="before">前の期間</string>
-    <string name="a_day_label">1 日あたり</string>
-    <string name="on_average">平均</string>
+    <string name="a_day_label">1 日あたりの平均</string>
+    <string name="on_average">毎日の支出</string>
     <string name="biggest">最大</string>
     <string name="by_category">カテゴリ別</string>
     <string name="patterns">傾向</string>
     <string name="busiest_day">いちばん使った曜日</string>
-    <string name="in_total">合計 %1$s</string>
+    <string name="in_total">その曜日の合計 %1$s</string>
     <string name="no_spend_days">支出ゼロの日</string>
     <plurals name="of_days">
         <item quantity="other">%d 日のうち</item>
     </plurals>
-    <string name="you_kept">手元に残った額</string>
+    <string name="you_kept">貯蓄できた割合</string>
     <string name="of_came_in">収入 %1$s のうち</string>
     <string name="no_income_yet">この期間の収入はありません</string>
     <string name="top_payee">いちばん多い支払先</string>
@@ -531,11 +531,11 @@
     <string name="less_than_before">前より %1$s 少ない</string>
     <string name="more_than_before">前より %1$s 多い</string>
 
-    <string name="spent_in_7_days">7 日間の支出</string>
+    <string name="spent_in_7_days">過去 7 日間の支出</string>
     <string name="next_bill">次の請求</string>
     <string name="this_month_change">今月 %1$s</string>
     <string name="top_category">トップのカテゴリ</string>
-    <string name="of_spending">支出の %1$d%%</string>
+    <string name="of_spending">今月の支出の %1$d%%</string>
     <string name="goal">目標</string>
     <string name="goal_widget_line">%1$s のうち · %2$s</string>
     <string name="a_month_to_finish">期限に間に合うには月 %1$s</string>
@@ -737,11 +737,12 @@
     <string name="region">地域</string>
     <string name="currency">通貨</string>
     <string name="today_screen">今日の画面</string>
-    <string name="today_screen_line">ウィジェット、上部カード、最近の取引</string>
+    <string name="today_screen_line">カード、メインの数字、最近の支払い</string>
     <string name="new_expense_form">支出の入力画面</string>
-    <string name="new_expense_form_line">項目と初期値</string>
+    <string name="new_expense_form_line">支払いを追加するときに表示される項目</string>
+    <string name="transactions_line">見つかった支払い、スワイプ、削除</string>
     <string name="language_and_region">言語と地域</string>
-    <string name="primary_short">%1$s がメイン</string>
+    <string name="primary_short">%1$s がメイン通貨</string>
     <plurals name="n_others">
         <item quantity="other">他 %1$d 件</item>
     </plurals>
@@ -1107,7 +1108,7 @@
         <item quantity="other">%d 件の支払い</item>
     </plurals>
     <plurals name="n_coming_up">
-        <item quantity="other">予定 %d 件</item>
+        <item quantity="other">今後の支払い %d 件</item>
     </plurals>
     <plurals name="activity_summary_line">
         <item quantity="other">%d 件の取引 · 過去 14 日</item>

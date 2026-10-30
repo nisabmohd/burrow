@@ -154,7 +154,7 @@ fun AmountSheet(
     val value = input.input.minor()
     val ok = value >= min && (max == null || value <= max)
     ValueSheet(
-        title = title, value = money.plain(value), line = line, label = label,
+        title = title, value = if (input.fresh || input.input.hasOperator) money.plain(value) else money.typed(input.input.text), line = line, label = label,
         onKey = { key -> input = input.press(key, digits); onChange?.invoke(input.input.minor()) },
         below = when {
             max != null && value > max -> stringResource(R.string.at_most, money.plain(max))
@@ -188,6 +188,40 @@ fun ValuePill(text: String, onClick: () -> Unit, label: String, modifier: Modifi
             contentAlignment = Alignment.Center,
         ) { Text(text, style = BurrowType.titleSmall, color = c.onSecondaryContainer, maxLines = 1) }
     }
+}
+
+/**
+ * Money in a form (New bill amount, account balance, credit limit, EMI, goal target): looks like a
+ * [PillTextField] with the currency icon, but a tap opens the [AmountSheet] keypad instead of the phone's
+ * keyboard (every number is the value sheet). [value] is the plain number as the form keeps it ("499.5", "").
+ */
+@Composable
+fun AmountField(value: String, onValue: (String) -> Unit, title: String, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    val money = LocalMoney.current
+    var open by rememberSaveable { mutableStateOf(false) }
+    val minor = AmountInput(value, money.digits).minor()
+    Row(
+        modifier.fillMaxWidth().heightIn(min = Size.search).clip(Shapes.pill).background(c.surfaceContainer)
+            .clickable(onClickLabel = title) { open = true }
+            .padding(start = Space.card, end = Space.sheet),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.material3.Icon(
+            androidx.compose.ui.res.painterResource(currencyIcon(money.currency)), null,
+            tint = c.onSurfaceVariant, modifier = Modifier.size(Size.icon),
+        )
+        androidx.compose.foundation.layout.Spacer(Modifier.size(Space.card))
+        Text(
+            if (minor > 0) money.plain(minor) else money.plain(0), style = BurrowType.bodyLarge,
+            color = if (minor > 0) c.onSurface else c.onSurfaceVariant, maxLines = 1,
+        )
+    }
+    if (open) AmountSheet(
+        title = title, amount = minor,
+        onDone = { m -> onValue(AmountInput.of(m, money.digits).text); open = false },
+        onDismiss = { open = false },
+    )
 }
 
 /** A big value on a screen that opens its [ValueSheet] (Welcome budget 99): `display`, centred, tappable. */

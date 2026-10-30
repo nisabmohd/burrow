@@ -328,7 +328,7 @@
     <string name="due_from">%1$s · desde %2$s</string>
     <string name="this_week">Esta semana</string>
     <string name="later">Más adelante</string>
-    <string name="late">Atrasadas</string>
+    <string name="late">Vencidas</string>
     <string name="tomorrow">Mañana</string>
     <plurals name="in_days">
         <item quantity="one">en %d día</item>
@@ -549,22 +549,22 @@
     <string name="less_than">%1$s menos que %2$s</string>
     <string name="more_than">%1$s más que %2$s</string>
     <string name="this_period">Este periodo</string>
-    <string name="before">Antes</string>
-    <string name="a_day_label">Al día</string>
-    <string name="on_average">de media</string>
+    <string name="before">Periodo anterior</string>
+    <string name="a_day_label">Media al día</string>
+    <string name="on_average">gastado cada día</string>
     <string name="biggest">Mayor</string>
     <string name="by_category">Por categoría</string>
     <string name="patterns">Patrones</string>
     <string name="busiest_day">Día con más gasto</string>
-    <string name="in_total">%1$s en total</string>
+    <string name="in_total">%1$s gastado ese día de la semana</string>
     <string name="no_spend_days">Días sin gastos</string>
     <plurals name="of_days">
         <item quantity="one">de %d día</item>
         <item quantity="many">de %d días</item>
         <item quantity="other">de %d días</item>
     </plurals>
-    <string name="you_kept">Te quedaste con</string>
-    <string name="of_came_in">de los %1$s que entraron</string>
+    <string name="you_kept">Ahorraste</string>
+    <string name="of_came_in">de los %1$s que ganaste</string>
     <string name="no_income_yet">Sin ingresos en estas fechas</string>
     <string name="top_payee">Destinatario principal</string>
     <plurals name="times">
@@ -585,11 +585,11 @@
     <string name="less_than_before">%1$s menos que antes</string>
     <string name="more_than_before">%1$s más que antes</string>
 
-    <string name="spent_in_7_days">gastado en 7 días</string>
+    <string name="spent_in_7_days">gastado en los últimos 7 días</string>
     <string name="next_bill">Próxima factura</string>
     <string name="this_month_change">%1$s este mes</string>
     <string name="top_category">Categoría principal</string>
-    <string name="of_spending">%1$d %% del gasto</string>
+    <string name="of_spending">%1$d %% del gasto de este mes</string>
     <string name="goal">Meta</string>
     <string name="goal_widget_line">de %1$s · %2$s</string>
     <string name="a_month_to_finish">%1$s al mes para acabar a tiempo</string>
@@ -803,11 +803,12 @@
     <string name="region">Región</string>
     <string name="currency">Moneda</string>
     <string name="today_screen">Pantalla Hoy</string>
-    <string name="today_screen_line">Widgets, tarjeta superior, recientes</string>
+    <string name="today_screen_line">Tarjetas, cifra principal y pagos recientes</string>
     <string name="new_expense_form">Formulario de nuevo gasto</string>
-    <string name="new_expense_form_line">Campos y valores por defecto</string>
+    <string name="new_expense_form_line">Qué aparece al añadir un pago</string>
+    <string name="transactions_line">Pagos encontrados, deslizar y borrar</string>
     <string name="language_and_region">Idioma y región</string>
-    <string name="primary_short">%1$s principal</string>
+    <string name="primary_short">%1$s moneda principal</string>
     <plurals name="n_others">
         <item quantity="one">%1$d más</item>
         <item quantity="many">%1$d más</item>
@@ -1213,9 +1214,9 @@
         <item quantity="other">%d pagos</item>
     </plurals>
     <plurals name="n_coming_up">
-        <item quantity="one">%d próximo</item>
-        <item quantity="many">%d próximos</item>
-        <item quantity="other">%d próximos</item>
+        <item quantity="one">%d pago próximo</item>
+        <item quantity="many">%d pagos próximos</item>
+        <item quantity="other">%d pagos próximos</item>
     </plurals>
     <plurals name="activity_summary_line">
         <item quantity="one">%d movimiento · últimos 14 días</item>

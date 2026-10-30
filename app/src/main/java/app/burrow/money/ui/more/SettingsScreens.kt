@@ -303,7 +303,7 @@ val LICENCES = listOf(
     Licence("Burrow", "GNU General Public License v3.0", R.raw.licence_gpl3, LicenceGroup.APP),
     Licence("AndroidX (Compose, Material 3, Room, DataStore, Navigation, Lifecycle, Activity, Core)", "Apache License 2.0", R.raw.licence_apache2, LicenceGroup.LIBRARIES),
     Licence("Kotlin, kotlinx.coroutines and kotlinx.serialization", "Apache License 2.0", R.raw.licence_apache2, LicenceGroup.LIBRARIES),
-    Licence("Hugeicons", "MIT License", R.raw.licence_hugeicons_mit, LicenceGroup.ICONS_FONTS),
+    Licence("Solar icons by 480 Design", "Creative Commons Attribution 4.0", R.raw.licence_solar_cc_by, LicenceGroup.ICONS_FONTS),
     Licence("Lexend font", "SIL Open Font License 1.1", R.raw.licence_ofl_lexend, LicenceGroup.ICONS_FONTS),
     Licence("Outfit font", "SIL Open Font License 1.1", R.raw.licence_ofl_outfit, LicenceGroup.ICONS_FONTS),
     Licence("Atkinson Hyperlegible Next font", "SIL Open Font License 1.1", R.raw.licence_ofl_atkinson, LicenceGroup.ICONS_FONTS),

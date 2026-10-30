@@ -219,11 +219,7 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
                 )
             }
             LabeledField(stringResource(R.string.amount)) {
-                PillTextField(
-                    f.amount, { v -> vm.edit { it.copy(amount = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0",
-                    leading = painterResource(app.burrow.money.ui.components.currencyIcon(LocalMoney.current.currency)), clearLabel = stringResource(R.string.clear),
-                    keyboardType = KeyboardType.Decimal,
-                )
+                app.burrow.money.ui.components.AmountField(f.amount, { v -> vm.edit { it.copy(amount = v) } }, stringResource(R.string.amount))
             }
             LabeledField(stringResource(R.string.how_often)) {
                 ButtonGroup(
@@ -269,7 +265,7 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
         }
     }
     when (sheet) {
-        BillSheet.CATEGORY -> CategorySheet(s.categories, emptyMap(), f.categoryId, { cat -> vm.edit { it.copy(categoryId = cat.id) }; sheet = null }, { sheet = null })
+        BillSheet.CATEGORY -> CategorySheet(s.categories, null, f.categoryId, { cat -> vm.edit { it.copy(categoryId = cat.id) }; sheet = null }, { sheet = null })
         BillSheet.ACCOUNT -> AccountSheet(s.accounts, f.accountId, { a -> vm.edit { it.copy(accountId = a.account.id) }; sheet = null }, { sheet = null })
         BillSheet.DAY -> when (val r = f.repeat) {
             is Repeat.Monthly -> DueDaySheet(r.day, dates, { d -> vm.edit { it.copy(repeat = Repeat.Monthly(d)) }; sheet = null }, { sheet = null })

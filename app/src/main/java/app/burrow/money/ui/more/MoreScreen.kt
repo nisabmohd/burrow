@@ -114,7 +114,7 @@ fun MoreScreen(vm: MoreViewModel, onOpen: (MoreDest) -> Unit) {
             ListGroup {
                 ListRow(stringResource(R.string.today_screen), 0, 5, supporting = stringResource(R.string.today_screen_line), lead = { IconCircle(painterResource(R.drawable.ic_grid_view_duotone), hue = 345f) }, onClick = { onOpen(MoreDest.CUSTOMISE_TODAY) })
                 ListRow(stringResource(R.string.new_expense_form), 1, 5, supporting = stringResource(R.string.new_expense_form_line), lead = { IconCircle(painterResource(R.drawable.ic_edit_note_duotone), hue = 140f) }, onClick = { onOpen(MoreDest.CUSTOMISE_EXPENSE) })
-                ListRow(stringResource(R.string.transactions), 2, 5, supporting = stringResource(paymentFoundLabel(st.onPaymentFound)), lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone), hue = 215f) }, onClick = { onOpen(MoreDest.CUSTOMISE_TRANSACTIONS) })
+                ListRow(stringResource(R.string.transactions), 2, 5, supporting = stringResource(R.string.transactions_line), lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone), hue = 215f) }, onClick = { onOpen(MoreDest.CUSTOMISE_TRANSACTIONS) })
                 ListRow(stringResource(R.string.language_and_region), 3, 5, supporting = stringResource(R.string.dot_join, AppLanguage.currentName(context), money.sampleNumber()), lead = { IconCircle(painterResource(R.drawable.ic_translate_duotone), hue = 192f) }, onClick = { onOpen(MoreDest.CUSTOMISE_REGION) })
                 ListRow(stringResource(R.string.currency), 4, 5, supporting = currencyLine2(st.mainCurrency, s.otherCurrencies), lead = { IconCircle(painterResource(app.burrow.money.ui.components.currencyIcon(st.mainCurrency)), hue = 50f) }, onClick = { onOpen(MoreDest.CUSTOMISE_CURRENCY) })
             }

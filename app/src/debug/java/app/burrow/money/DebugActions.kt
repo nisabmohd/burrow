@@ -7,7 +7,10 @@ import app.burrow.money.data.AccountEntity
 import app.burrow.money.data.AccountType
 import app.burrow.money.data.CaptureEntity
 import app.burrow.money.data.CaptureStatus
+import app.burrow.money.home.AddExpenseWidget
 import app.burrow.money.home.HomeSurfaces
+import app.burrow.money.home.NextBillWidget
+import app.burrow.money.home.SafeToSpendWidget
 import app.burrow.money.notify.runWeeklyReview
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -18,7 +21,8 @@ import java.time.temporal.TemporalAdjusters
 /**
  * Debug builds only (never in a release): `adb shell am broadcast -a app.burrow.money.debug.SUNDAY_REVIEW`
  * sends the Sunday review now (as if it were this Sunday, 6:30 PM); `…debug.HOME` redraws the widgets
- * and shortcuts. Used by tools/smoke.py. `…debug.SEED_REVIEW` adds data to check the 2026-10-27 changes
+ * and shortcuts; `…debug.PIN_WIDGET --es which safe|bill|add` asks the launcher to put that widget on the home
+ * screen (smoke checks the widgets update as data changes). Used by tools/smoke.py. `…debug.SEED_REVIEW` adds data to check the 2026-10-27 changes
  * by hand (TODO.md › Design todo): messages not understood, and three cards on one credit line.
  */
 class DebugActions : BroadcastReceiver() {
@@ -33,6 +37,15 @@ class DebugActions : BroadcastReceiver() {
                         app.runWeeklyReview(sunday.atTime(18, 30))
                     }
                     "app.burrow.money.debug.HOME" -> HomeSurfaces.refresh(app)
+                    "app.burrow.money.debug.PIN_WIDGET" -> {
+                        val provider = when (intent.getStringExtra("which")) {
+                            "bill" -> NextBillWidget::class.java
+                            "add" -> AddExpenseWidget::class.java
+                            else -> SafeToSpendWidget::class.java
+                        }
+                        android.appwidget.AppWidgetManager.getInstance(context)
+                            .requestPinAppWidget(android.content.ComponentName(context, provider), null, null)
+                    }
                     "app.burrow.money.debug.SEED_REVIEW" -> seedReview(app)
                 }
             } finally {

@@ -355,7 +355,7 @@
     <string name="due_from">%1$s · from %2$s</string>
     <string name="this_week">This week</string>
     <string name="later">Later</string>
-    <string name="late">Late</string>
+    <string name="late">Overdue</string>
     <string name="tomorrow">Tomorrow</string>
     <plurals name="in_days">
         <item quantity="one">in %d day</item>
@@ -574,22 +574,22 @@
     <string name="less_than">%1$s less than %2$s</string>
     <string name="more_than">%1$s more than %2$s</string>
     <string name="this_period">This period</string>
-    <string name="before">Before</string>
-    <string name="a_day_label">A day</string>
-    <string name="on_average">on average</string>
+    <string name="before">Last period</string>
+    <string name="a_day_label">Average a day</string>
+    <string name="on_average">spent each day</string>
     <string name="biggest">Biggest</string>
     <string name="by_category">By category</string>
     <string name="share_line" translatable="false">%1$s · %2$d%%</string>
     <string name="patterns">Patterns</string>
     <string name="busiest_day">Busiest day</string>
-    <string name="in_total">%1$s in total</string>
+    <string name="in_total">%1$s spent on that weekday</string>
     <string name="no_spend_days">No-spend days</string>
     <plurals name="of_days">
         <item quantity="one">of %d day</item>
         <item quantity="other">of %d days</item>
     </plurals>
-    <string name="you_kept">You kept</string>
-    <string name="of_came_in">of %1$s that came in</string>
+    <string name="you_kept">You saved</string>
+    <string name="of_came_in">of the %1$s you earned</string>
     <string name="no_income_yet">No income in these dates</string>
     <string name="top_payee">Top payee</string>
     <plurals name="times">
@@ -611,11 +611,11 @@
     <string name="more_than_before">%1$s more than before</string>
 
     <!-- Today widgets (05, 10) -->
-    <string name="spent_in_7_days">spent in 7 days</string>
+    <string name="spent_in_7_days">spent in the last 7 days</string>
     <string name="next_bill">Next bill</string>
     <string name="this_month_change">%1$s this month</string>
     <string name="top_category">Top category</string>
-    <string name="of_spending">%1$d%% of spending</string>
+    <string name="of_spending">%1$d%% of this month\'s spending</string>
     <string name="goal">Goal</string>
     <string name="goal_widget_line">of %1$s · %2$s</string>
     <string name="a_month_to_finish">%1$s a month to finish on time</string>
@@ -840,11 +840,12 @@
     <string name="region">Region</string>
     <string name="currency">Currency</string>
     <string name="today_screen">Today screen</string>
-    <string name="today_screen_line">Widgets, top card, recent</string>
+    <string name="today_screen_line">Cards, main number and recent payments</string>
     <string name="new_expense_form">New expense form</string>
-    <string name="new_expense_form_line">Fields and defaults</string>
+    <string name="new_expense_form_line">What shows when you add a payment</string>
+    <string name="transactions_line">Payments found, swipes and deleting</string>
     <string name="language_and_region">Language and region</string>
-    <string name="primary_short">%1$s primary</string>
+    <string name="primary_short">%1$s main currency</string>
     <plurals name="n_others">
         <item quantity="one">%1$d other</item>
         <item quantity="other">%1$d others</item>
@@ -1236,8 +1237,8 @@
         <item quantity="other">%d payments</item>
     </plurals>
     <plurals name="n_coming_up">
-        <item quantity="one">%d coming up</item>
-        <item quantity="other">%d coming up</item>
+        <item quantity="one">%d payment coming up</item>
+        <item quantity="other">%d payments coming up</item>
     </plurals>
     <string name="amount_this_week">%1$s this week</string>
     <string name="activity_summary">%1$s spent</string>

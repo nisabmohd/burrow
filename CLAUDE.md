@@ -31,7 +31,7 @@ investments with live prices, tax module, document vault, multiple ledgers.
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first.
 - Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete and replace data; a wrong password shows in its sheet (144).
-- Icons: Hugeicons free stroke-rounded vector drawables only (`ic_<name>_<regular|fill|duotone>`, user, 2026-10-30), see `docs/ICONS.md`.
+- Icons: Solar Linear (outline) vector drawables only, one style everywhere, no duotone (480 Design, CC BY 4.0, credited in About › Licences; `ic_<name>_<regular|fill|duotone>`, user, 2026-10-31), see `docs/ICONS.md`.
 - Release: R8 full, minify + shrink resources, baseline profile committed. APK < 5 MB.
 - Build and run after every change; one commit per working step. Never `./gradlew clean` bare: use `:app:clean`.
 - Release files go in `build/dist/v<version>/`.

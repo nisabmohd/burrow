@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons ArrowRight02 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_arrow_forward_fill), tint = …) -->
+<!-- Solar arrow-right (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_arrow_forward_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M18.5 12L4.99997 12" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M4 12H20M14 18L20 12L14 6" />
 </vector>

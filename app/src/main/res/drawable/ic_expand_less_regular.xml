@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons ArrowUp01 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_expand_less_regular), tint = …) -->
+<!-- Solar alt-arrow-up (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_expand_less_regular), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M17.9998 15C17.9998 15 13.5809 9.00001 11.9998 9C10.4187 8.99999 5.99985 15 5.99985 15" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M19 15L12 9L5 15" />
 </vector>

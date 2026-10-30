@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1
+- New icons: Burrow now uses Solar outline icons (by 480 Design) everywhere, one clean line style. Credited in About › Licences.
+- Swipe the Undo bar sideways to dismiss it. The change stays.
+- Typing an amount shows exactly what you typed: "12." keeps its dot and "12.50" its zero, in New expense and every amount sheet.
+- A bill's amount, an account's balance, a credit limit, an EMI and a goal's target open the number keypad instead of the phone keyboard.
+- Picking a category for a bill or a budget no longer says "No spending this month" for every category.
+- Home-screen widgets update as soon as anything changes: bills, budgets, accounts and Hide amounts, not only new payments.
+- Clearer words on cards: "Electricity overdue", "spent in the last 7 days", "38% of this month's spending", "Average a day", "You saved 84% of the ₹1.2L you earned", "₹ main currency", and plainer lines under Customise.
+
 ## 0.3.0
 - New expense: after your favourites, up to four recent payments sit under the amount ("₹240 Third Wave Coffee"). One tap fills the form so you can check and save. Turn them off in Customise › Expense › Recent.
 - The date sheet keeps Yesterday, Today and Tomorrow over the calendar, and now has a Time row. Pick a day ahead and it says when the payment will be added.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons Cancel01 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_close_duotone), tint = …) -->
+<!-- Solar close (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_close_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M18.9991 19L5 5.00098" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M19 5L5.00092 18.999" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M19.0068 5L5.00684 19" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M19 19L5 5" />
 </vector>

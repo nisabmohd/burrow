@@ -1,0 +1,7 @@
+- New outline icons everywhere.
+- Swipe the Undo bar away.
+- Amounts show exactly what you type, dot and all.
+- Bill, balance, limit, EMI and goal amounts use the number keypad.
+- Bill and budget category lists no longer say "No spending" by mistake.
+- Widgets update the moment anything changes.
+- Clearer words on cards and settings.

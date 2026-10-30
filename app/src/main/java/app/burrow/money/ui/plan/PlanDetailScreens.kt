@@ -318,10 +318,7 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
                 PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.goal_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))
             }
             LabeledField(stringResource(R.string.target)) {
-                PillTextField(
-                    f.target, { v -> vm.edit { it.copy(target = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, money.plain(50_000L * money.digitsUnit()).filter { it.isDigit() || it == ',' || it == '.' },
-                    leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal,
-                )
+                app.burrow.money.ui.components.AmountField(f.target, { v -> vm.edit { it.copy(target = v) } }, stringResource(R.string.target))
             }
             // Under the fields it is about (134), not at the bottom of the form.
             if (f.tried && !vm.canSave(f)) {

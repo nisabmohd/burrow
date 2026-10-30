@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons Scissors (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_salon_duotone), tint = …) -->
+<!-- Solar scissors (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_salon_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M2.99219 6C2.99219 7.65685 4.33533 9 5.99219 9C7.64904 9 8.99219 7.65685 8.99219 6C8.99219 4.34315 7.64904 3 5.99219 3C4.33533 3 2.99219 4.34315 2.99219 6Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8.99219 8L20.9922 19" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8.99193 16L12.9922 12M2.99219 18C2.99219 19.6569 4.33533 21 5.99219 21C7.64904 21 8.99219 19.6569 8.99219 18C8.99219 16.3431 7.64904 15 5.99219 15C4.33533 15 2.99219 16.3431 2.99219 18Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M15.4922 9.5L20.9922 4" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M16.4013 20.5L6 2M22 19C22 20.6569 20.6569 22 19 22C17.3431 22 16 20.6569 16 19C16 17.3431 17.3431 16 19 16C20.6569 16 22 17.3431 22 19Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M7.59865 20.5L18 2M2 19C2 20.6569 3.34315 22 5 22C6.65685 22 8 20.6569 8 19C8 17.3431 6.65685 16 5 16C3.34315 16 2 17.3431 2 19Z" />
 </vector>

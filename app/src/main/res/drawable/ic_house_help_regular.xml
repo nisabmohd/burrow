@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hugeicons Clean (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_house_help_regular), tint = …) -->
+<!-- Solar broom (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_house_help_regular), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M21 3L13 11.5" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M9.44573 11.0854C6.96539 12.0368 4.98269 11.8736 3 11.0885C3.50059 17.531 6.50414 20.0089 10.5089 21C10.5089 21 13.5261 18.8664 13.961 13.8074C14.0081 13.2595 14.0317 12.9856 13.9178 12.6769C13.8038 12.3682 13.5802 12.1468 13.1329 11.704C12.3973 10.9757 12.0295 10.6116 11.5929 10.5204C11.1564 10.4293 10.5862 10.648 9.44573 11.0854Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M4.5 16.4464C4.5 16.4464 7 16.9286 9.5 15" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M8.5 7.25C8.5 7.94036 7.94036 8.5 7.25 8.5C6.55964 8.5 6 7.94036 6 7.25C6 6.55964 6.55964 6 7.25 6C7.94036 6 8.5 6.55964 8.5 7.25Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M11.125 4H11M11.25 4C11.25 4.13807 11.1381 4.25 11 4.25C10.8619 4.25 10.75 4.13807 10.75 4C10.75 3.86193 10.8619 3.75 11 3.75C11.1381 3.75 11.25 3.86193 11.25 4Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M2.44853 11.4113L3.18962 12.6295C5.22275 15.9716 8.02819 18.7771 11.3703 20.8103L12.5886 21.5514C14.4872 22.5206 16.9425 21.898 18.0027 19.89C18.5037 18.9411 18.9798 17.8777 19.2819 16.821C20.1903 13.6432 19.8572 10.8584 19.8572 10.8584L13.1415 4.14263C13.1415 4.14263 10.3567 3.80954 7.17896 4.71798C6.12226 5.02007 5.05883 5.49617 4.11001 5.99715C2.10201 7.05737 1.47943 9.51271 2.44853 11.4113Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M22 2L19.6426 4.35742" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M13.3564 4.35767C15.0924 2.62172 17.9069 2.62163 19.6428 4.35759C21.3788 6.09355 21.3788 8.90817 19.6429 10.6441" />
 </vector>

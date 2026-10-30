@@ -136,7 +136,7 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
 
     val item = items.firstOrNull { it.capture.id == moreFor }
     if (item != null) {
-        CategorySheet(item.allCategories, emptyMap(), item.category?.id, { vm.choose(item.capture.id, it.id); moreFor = null }, { moreFor = null })
+        CategorySheet(item.allCategories, null, item.category?.id, { vm.choose(item.capture.id, it.id); moreFor = null }, { moreFor = null })
     }
 }
 

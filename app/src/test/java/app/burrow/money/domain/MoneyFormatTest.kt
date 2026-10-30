@@ -27,6 +27,19 @@ class MoneyFormatTest {
         assertEquals("₹240.05", inr.plain(240_05))
     }
 
+    /** New expense shows what was typed: the dot right after it's pressed, trailing zeros, no rounding. */
+    @Test fun typedKeepsTheDotAndZeros() {
+        assertEquals("₹0", inr.typed(""))
+        assertEquals("₹12.", inr.typed("12."))
+        assertEquals("₹0.5", inr.typed("0.5"))
+        assertEquals("₹12.50", inr.typed("12.50"))
+        assertEquals("₹1,20,000.0", inr.typed("120000.0"))
+        assertEquals("€1.234,5", eurDe.typed("1234.5"))
+        val noDecimals = MoneyFormat("INR", "₹", inr.style, decimals = Decimals.NONE)
+        assertEquals("₹12.5", noDecimals.typed("12.5"))
+        assertEquals("₹12.5", inr.withHidden(true).typed("12.5"))
+    }
+
     @Test fun signs() {
         assertEquals("−₹240", inr.signed(-240_00))
         assertEquals("+₹1,20,000", inr.signed(1_20_000_00))

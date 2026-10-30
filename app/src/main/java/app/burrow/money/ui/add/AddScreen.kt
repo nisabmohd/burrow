@@ -186,7 +186,8 @@ private fun Form(
         Column(Modifier.fillMaxWidth().padding(top = Space.small, bottom = Space.block), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    money.plain(s.amount),
+                    // What was typed ("12." keeps its dot); with + / − the total, the sum shows below.
+                    if (f.input.hasOperator) money.plain(s.amount) else money.typed(f.input.text),
                     style = BurrowType.display,
                     color = if (s.amount > 0) c.onSurface else c.onSurfaceVariant,
                     maxLines = 1,
