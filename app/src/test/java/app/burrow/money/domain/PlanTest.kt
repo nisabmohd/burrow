@@ -26,6 +26,19 @@ class PlanTest {
         assertEquals(LocalDate.of(2026, 10, 26), Repeat.Weekly(DayOfWeek.MONDAY).nextOnOrAfter(d.plusDays(1)))
     }
 
+    @Test fun switchRepeatKeepsTheDay() {
+        // 2026-10-19 is a Monday.
+        assertEquals(Repeat.Weekly(DayOfWeek.MONDAY), Repeat.Monthly(17).every(Repeat.Every.WEEK, d))
+        assertEquals(Repeat.Yearly(10, 17), Repeat.Monthly(17).every(Repeat.Every.YEAR, d))
+        assertEquals(Repeat.Monthly(9), Repeat.Yearly(1, 9).every(Repeat.Every.MONTH, d))
+        assertEquals(Repeat.Monthly(19), Repeat.Weekly(DayOfWeek.FRIDAY).every(Repeat.Every.MONTH, d))
+        assertEquals(Repeat.Yearly(10, 19), Repeat.Weekly(DayOfWeek.FRIDAY).every(Repeat.Every.YEAR, d))
+        assertEquals(Repeat.Yearly(1, 9), Repeat.Yearly(1, 9).every(Repeat.Every.YEAR, d))
+        // Feb has no 31st: the yearly day clamps so the date is real.
+        assertEquals(Repeat.Yearly(2, 28), Repeat.Monthly(31).every(Repeat.Every.YEAR, LocalDate.of(2026, 2, 3)))
+        assertEquals(Repeat.Every.WEEK, Repeat.Weekly(DayOfWeek.MONDAY).every)
+    }
+
     @Test fun repeatRoundTrip() {
         for (r in listOf(Repeat.Monthly(17), Repeat.Yearly(1, 9), Repeat.Weekly(DayOfWeek.MONDAY))) assertEquals(r, Repeat.parse(r.encode()))
         assertNull(Repeat.parse("MONTHLY:40"))

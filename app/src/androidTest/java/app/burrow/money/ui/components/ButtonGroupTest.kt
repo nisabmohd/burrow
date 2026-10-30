@@ -22,9 +22,12 @@ import org.junit.runners.Parameterized
 
 /** Settings choices (theme, text size, week start, Recent 3 / 5 / 10): the connected group with a check. */
 @RunWith(Parameterized::class)
-class ButtonGroupTest(private val width: Dp, private val fontScale: Float) {
+class ButtonGroupTest(private val widthDp: Float, private val fontScale: Float) {
+    // JUnit builds the test by reflection, which can't pass a Dp (a value class): the width comes in as a Float.
+    private val width: Dp get() = widthDp.dp
+
     companion object {
-        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first, it.second) }
+        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first.value, it.second) }
     }
 
     @get:Rule val rule = createComposeRule()

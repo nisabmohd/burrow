@@ -71,6 +71,10 @@ data class AddForm(
 @Immutable
 data class PayeeSuggestion(val name: String, val icon: String?, val hue: Float?, val categoryId: Long?)
 
+/** A Recent chip on an empty form: an earlier entry; one tap fills the form with it (not saved). */
+@Immutable
+data class RecentSuggestion(val payee: String?, val amount: Long, val categoryId: Long, val accountId: Long)
+
 @Immutable
 data class AddUiState(
     val form: AddForm,
@@ -86,6 +90,8 @@ data class AddUiState(
     val favourites: List<app.burrow.money.data.FavouriteView> = emptyList(),
     /** Categories used most for this type, most first. */
     val topCategoryIds: List<Long> = emptyList(),
+    /** The last few different entries of this type, for the Recent chips. */
+    val recent: List<RecentSuggestion> = emptyList(),
 ) {
     /** The category chips (17): the 4 most used (then the rest in order); the chosen one always shows. */
     val quickCategories: List<CategoryEntity> get() {
@@ -116,10 +122,22 @@ data class AddUiState(
 
     /** Repeat (a bill) is offered on a new income or expense when Customise › Expense has it on. */
     val repeatOffered get() = shows(FormExtra.REPEAT) && !isEdit && form.type != TxnType.TRANSFER
+
+    /** Nothing typed yet on a new entry: the favourites and Recent chips show. */
+    val blank get() = !isEdit && amount == 0L && form.payee.isBlank()
+
+    /** Recent chips (the form is blank), minus any a favourite already covers (same name and amount). */
+    val recentChips: List<RecentSuggestion> get() {
+        if (!blank || form.type == TxnType.TRANSFER || !shows(FormExtra.RECENT)) return emptyList()
+        val favs = if (form.type == TxnType.EXPENSE && shows(FormExtra.FAVOURITE)) favourites.map { it.favourite } else emptyList()
+        return recent.filter { r -> favs.none { it.amount == r.amount && it.name.equals(r.payee ?: "", ignoreCase = true) } && categories.any { it.id == r.categoryId } }
+            .take(RECENT_CHIPS)
+    }
 }
 
 private const val UPCOMING_SLACK = 60_000L
 private const val QUICK_CATEGORIES = 4
+private const val RECENT_CHIPS = 4
 
 /** A finished save: what the snackbar says and how Undo puts things back. */
 class Saved(val type: String, val wasEdit: Boolean, val upcoming: Boolean = false, val label: String? = null, val undo: suspend () -> Unit)
@@ -144,6 +162,7 @@ class AddViewModel(
     private val form = MutableStateFlow<AddForm?>(null)
     private val suggestions = MutableStateFlow<List<PayeeSuggestion>>(emptyList())
     private val topCategories = MutableStateFlow<List<Long>>(emptyList())
+    private val recent = MutableStateFlow<List<RecentSuggestion>>(emptyList())
     private var original: TxnEntity? = null
     private val digits = MoneyFormat.of(currency).digits
     private var picked = false
@@ -155,9 +174,9 @@ class AddViewModel(
             val period = BudgetPeriod.containing(LocalDate.now(), monthStartDay)
             combine(
                 combine(repo.categories, repo.accounts, repo.spentByCategory(period)) { a, b, c -> Triple(a, b, c) },
-                combine(app.settings.settings, topCategories) { a, b -> a to b }, suggestions, repo.tags, app.next.favourites,
-            ) { (cats, accs, spent), (s, top), sug, tags, favs ->
-                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs, top)
+                combine(app.settings.settings, topCategories, recent) { a, b, r -> Triple(a, b, r) }, suggestions, repo.tags, app.next.favourites,
+            ) { (cats, accs, spent), (s, top, rec), sug, tags, favs ->
+                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs, top, rec)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -242,6 +261,9 @@ class AddViewModel(
     private fun refreshSuggestions() = viewModelScope.launch {
         val f = form.value ?: return@launch
         if (f.type != TxnType.TRANSFER) topCategories.value = repo.topCategories(f.type, QUICK_CATEGORIES)
+        // A few spare, so a favourite covering one still leaves four.
+        recent.value = if (f.type == TxnType.TRANSFER || editId != 0L) emptyList()
+        else repo.recentEntries(f.type, RECENT_CHIPS * 2).mapNotNull { t -> t.categoryId?.let { RecentSuggestion(t.payee, t.amount, it, t.accountId) } }
         if (f.type == TxnType.TRANSFER) { suggestions.value = emptyList(); return@launch }
         val names = repo.payeeSuggestions(f.type, f.payee).filter { !it.equals(f.payee.trim(), true) }
         val cats = repo.categories.first()
@@ -249,6 +271,15 @@ class AddViewModel(
             val cat = repo.usualCategoryFor(n, f.type)?.let { id -> cats.firstOrNull { it.id == id } }
             PayeeSuggestion(n, cat?.icon, cat?.colorHue, cat?.id)
         }
+    }
+
+    /** A Recent chip: the amount, payee, category and account of that entry; the date stays now. */
+    fun pickRecent(r: RecentSuggestion, accounts: List<AccountWithBalance>) {
+        picked = true
+        // The account only if it can still pay (not closed or turned into a loan since).
+        val account = r.accountId.takeIf { id -> accounts.any { it.account.id == id } }
+        edit { it.copy(input = AmountInput.of(r.amount, digits), payee = r.payee.orEmpty(), categoryId = r.categoryId, accountId = account ?: it.accountId) }
+        refreshSuggestions()
     }
 
     fun toggleTag(tag: String) = edit { it.copy(tags = if (tag in it.tags) it.tags - tag else it.tags + tag) }

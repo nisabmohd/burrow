@@ -50,7 +50,13 @@ import java.time.LocalDate
 fun CategoryCircle(icon: String?, hue: Float?, size: androidx.compose.ui.unit.Dp = Size.iconCircle) =
     IconCircle(painterResource(duotoneIcon(icon)), hue = hue, size = size)
 
-/** Category (19): every category of one kind, with what was spent on it this month. */
+/** Opens New category from any category sheet (167); null hides the row (previews, tests). */
+val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * Category (19, 167): every category with what was spent on it this month. When both kinds are
+ * listed, an Expense group then an Income group; New category last.
+ */
 @Composable
 fun CategorySheet(
     categories: List<CategoryEntity>,
@@ -64,13 +70,27 @@ fun CategorySheet(
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.category), onDismiss, stringResource(R.string.category_sheet_line))
         SheetBody {
-            ListGroup {
-                categories.forEachIndexed { i, cat ->
-                    val total = spent[cat.id] ?: 0L
-                    app.burrow.money.ui.components.PickRow(
-                        cat.name, i, categories.size, cat.id == selectedId, { onPick(cat) },
-                        supporting = if (total > 0) stringResource(R.string.spent_this_month, money.plain(total)) else stringResource(R.string.nothing_this_month),
-                        lead = { CategoryCircle(cat.icon, cat.colorHue) }, ring = false,
+            // Both kinds in one list: Expense first, then Income, each under its own header.
+            val groups = categories.groupBy { it.kind == app.burrow.money.data.CategoryKind.INCOME }.toSortedMap()
+            groups.forEach { (income, cats) ->
+                if (groups.size > 1) app.burrow.money.ui.components.SectionHeader(stringResource(if (income) R.string.type_income else R.string.type_expense))
+                ListGroup {
+                    cats.forEachIndexed { i, cat ->
+                        val total = spent[cat.id] ?: 0L
+                        app.burrow.money.ui.components.PickRow(
+                            cat.name, i, cats.size, cat.id == selectedId, { onPick(cat) },
+                            supporting = if (total > 0) stringResource(R.string.spent_this_month, money.plain(total)) else stringResource(R.string.nothing_this_month),
+                            lead = { CategoryCircle(cat.icon, cat.colorHue) }, ring = false,
+                        )
+                    }
+                }
+            }
+            LocalNewCategory.current?.let { onNew ->
+                ListGroup {
+                    ListRow(
+                        stringResource(R.string.new_category), 0, 1, supporting = stringResource(R.string.new_category_line),
+                        lead = { IconCircle(painterResource(R.drawable.ic_add_regular)) },
+                        onClick = { onDismiss(); onNew() },
                     )
                 }
             }
@@ -147,9 +167,11 @@ private fun PillTextFieldValue(value: TextFieldValue, onChange: (TextFieldValue)
 }
 
 /**
- * The one date sheet: an optional Yesterday · Today · Tomorrow row (New expense), a month calendar
- * in equal columns, Done. Days on or before today (transaction dates), from today on with [future]
- * (goal dates), or any day with [anyDay] (a future one makes a transaction upcoming).
+ * The one date sheet (78, 176): an optional Yesterday · Today · Tomorrow row ([quick], New expense;
+ * a chip picks the day, Done saves), a month calendar in equal columns, an optional Time row that opens
+ * the time wheel ([time]), Done. Days on or before today (transaction dates), from today on with [future]
+ * (goal dates), or any day with [anyDay] (a future one makes a transaction upcoming, and the line says
+ * when it is added). [yearly] (164): the month name alone and "Next: 9 Jan 2027" (a yearly due date).
  */
 @Composable
 fun DateSheet(
@@ -160,28 +182,66 @@ fun DateSheet(
     title: String? = null,
     anyDay: Boolean = false,
     quick: Boolean = false,
+    yearly: Boolean = false,
+    line: String? = null,
+    time: java.time.LocalTime? = null,
+    onTime: (java.time.LocalTime) -> Unit = {},
 ) {
     val today = remember { LocalDate.now() }
     var picked by remember { mutableStateOf(date) }
+    var pickedTime by remember { mutableStateOf(time) }
+    var wheel by remember { mutableStateOf(false) }
     var month by remember { mutableStateOf(java.time.YearMonth.from(date)) }
     val haptics = LocalHapticFeedback.current
+    val dates = app.burrow.money.ui.rememberDateText()
     val selectable: (LocalDate) -> Boolean = { d -> anyDay || if (future) !d.isBefore(today) else !d.isAfter(today) }
+    if (wheel && pickedTime != null) {
+        app.burrow.money.ui.components.TimeWheelSheet(stringResource(R.string.time), line, pickedTime!!, { pickedTime = it; wheel = false }, { wheel = false })
+        return
+    }
+    val header = when {
+        yearly -> stringResource(R.string.next_on, dates.fullDay(app.burrow.money.domain.Repeat.Yearly(picked.monthValue, picked.dayOfMonth).nextOnOrAfter(today)))
+        quick && picked.isAfter(today) -> stringResource(R.string.upcoming_added_on, dates.weekdayDay(picked))
+        else -> line
+    }
     BurrowSheet(onDismiss) {
-        SheetHeader(title ?: stringResource(R.string.date), onDismiss, if (anyDay) stringResource(R.string.date_sheet_line) else null)
+        SheetHeader(title ?: stringResource(R.string.date), onDismiss, header)
         SheetBody {
             if (quick) {
-                ChipRow(
-                    listOf(R.string.yesterday to today.minusDays(1), R.string.today to today, R.string.tomorrow to today.plusDays(1)),
-                    { stringResource(it.first) }, { picked == it.second }, { haptics.confirm(); onPick(it.second) },
-                )
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(app.burrow.money.ui.theme.Space.small, androidx.compose.ui.Alignment.CenterHorizontally),
+                ) {
+                    listOf(R.string.yesterday to today.minusDays(1), R.string.today to today, R.string.tomorrow to today.plusDays(1)).forEach { (label, day) ->
+                        app.burrow.money.ui.components.Chip(stringResource(label), picked == day, {
+                            haptics.tick(); picked = day; month = java.time.YearMonth.from(day)
+                        })
+                    }
+                }
             }
-            app.burrow.money.ui.filters.MonthHeader(month, { month = month.minusMonths(1) }, { month = month.plusMonths(1) })
+            app.burrow.money.ui.filters.MonthHeader(
+                month, { month = month.minusMonths(1) }, { month = month.plusMonths(1) },
+                title = if (yearly) dates.month(month.atDay(1)) else null,
+            )
             app.burrow.money.ui.filters.MonthCalendar(month, today, app.burrow.money.domain.DayRange(picked, picked), selectable) { d ->
                 haptics.tick(); picked = d
             }
+            pickedTime?.let { t ->
+                ListGroup {
+                    ListRow(
+                        dates.clock(t), 0, 1, supporting = stringResource(R.string.time),
+                        lead = { IconCircle(painterResource(R.drawable.ic_schedule_duotone)) },
+                        onClick = { wheel = true },
+                    )
+                }
+            }
         }
         SheetFooter {
-            BurrowButton(stringResource(R.string.done), { haptics.confirm(); onPick(picked) }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+            BurrowButton(stringResource(R.string.done), {
+                haptics.confirm()
+                pickedTime?.let { if (it != time) onTime(it) }
+                onPick(picked)
+            }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
         }
     }
 }

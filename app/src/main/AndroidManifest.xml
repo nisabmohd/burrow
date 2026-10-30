@@ -16,6 +16,20 @@
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
+    <!-- The payment apps Auto-capture reads (PaymentNotificationListener.PAYMENT_APPS), to show their names. -->
+    <queries>
+        <package android:name="com.google.android.apps.nbu.paisa.user" />
+        <package android:name="com.phonepe.app" />
+        <package android:name="net.one97.paytm" />
+        <package android:name="in.org.npci.upiapp" />
+        <package android:name="com.dreamplug.androidapp" />
+        <package android:name="com.snapwork.hdfc" />
+        <package android:name="com.csam.icici.bank.imobile" />
+        <package android:name="com.sbi.lotusintouch" />
+        <package android:name="com.msf.kbank.mobile" />
+        <package android:name="com.axis.mobile" />
+    </queries>
+
     <application
         android:name=".BurrowApp"
         android:allowBackup="false"

@@ -24,6 +24,12 @@ class RuleBuilderTest {
         assertFalse(RuleBuilder.isAmount("zomato@hdfcbank"))
     }
 
+    @Test fun sameWordForTwoPartsDoesNotCrash() {
+        // Tapping the account word again for Paid to used to cut the text between them backwards.
+        val rule = teach(kotak, "AX-KOTAKB", "Rs.2,350.00", "XX4471", "XX4471")
+        assertNotNull(engine.parseWith(rule, "AX-KOTAKB", kotak))
+    }
+
     @Test fun readsTheMessageItWasTaughtOn() {
         val rule = teach(kotak, "AX-KOTAKB", "Rs.2,350.00", "zomato@hdfcbank", "XX4471")
         val p = engine.parseWith(rule, "AX-KOTAKB", kotak)

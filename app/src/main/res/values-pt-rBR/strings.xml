@@ -183,7 +183,6 @@
     <string name="payment_apps">Apps de pagamento</string>
     <string name="off">Desativado</string>
     <string name="on">Ativado</string>
-    <string name="tap_to_teach">Toque para ensinar o app</string>
     <string name="message_rules">Regras de mensagens</string>
     <string name="rules_line">Incluídas para a Índia · %1$d suas</string>
     <plurals name="rules_line_yours">
@@ -245,6 +244,7 @@
     <string name="what_it_reads">O que ela lê</string>
     <string name="amount">Valor</string>
     <string name="paid_to">Pago para</string>
+    <string name="from_or_to">De / para</string>
     <string name="direction">Direção</string>
     <string name="money_out">Saída</string>
     <string name="money_in">Entrada</string>
@@ -265,7 +265,7 @@
 
     <string name="teach_title">Ensinar uma mensagem</string>
     <string name="teach_amount">Toque no &lt;b&gt;valor&lt;/b&gt; na mensagem.</string>
-    <string name="teach_payee">Toque em &lt;b&gt;para quem você pagou&lt;/b&gt;, ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
+    <string name="teach_payee">Toque no &lt;b&gt;nome&lt;/b&gt;: para quem você pagou ou quem te pagou, ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
     <string name="teach_account">Toque na &lt;b&gt;conta&lt;/b&gt;, ou &lt;a href="skip"&gt;pule&lt;/a&gt;.</string>
     <string name="teach_done">Pronto. Mensagens como esta serão lidas a partir de agora.</string>
     <string name="not_picked">Ainda não escolhido</string>
@@ -375,6 +375,8 @@
     <string name="due_day">Dia do vencimento</string>
     <string name="every_month_on">Todo mês no dia %1$s</string>
     <string name="due_every_month_on">Vence todo mês no dia</string>
+    <string name="due_every_week_on">Vence toda semana na</string>
+    <string name="due_every_year_on">Vence todo ano em</string>
     <string name="next_due">Próximo vencimento %1$s</string>
     <string name="when_due">No vencimento</string>
     <string name="bill_cant_save">Adicione um nome, um valor e uma conta para salvar.</string>
@@ -471,6 +473,9 @@
     <string name="an_account">uma conta</string>
     <string name="asks_you_on">Pergunta a você em %1$s</string>
     <string name="remind_week_before">Lembrar uma semana antes</string>
+    <string name="deposit_reminder">%1$s vence em uma semana</string>
+    <string name="deposit_reminder_line">%1$s vão para %2$s em %3$s</string>
+    <string name="deposit_reminder_line_alone">%1$s no vencimento em %2$s</string>
     <string name="fix_balance">Corrigir saldo</string>
     <string name="fix_balance_line">Se não bater com o seu banco</string>
     <string name="balance_fixed">Saldo corrigido</string>
@@ -826,6 +831,7 @@
     <string name="extra_lend">Emprestar</string>
     <string name="extra_time">Hora</string>
     <string name="extra_last_category">Última categoria</string>
+    <string name="extra_recent">Recentes</string>
     <string name="opens_as">Abre como</string>
     <string name="default_account">Conta padrão</string>
     <string name="change">Mudar</string>
@@ -1128,12 +1134,6 @@
         <item quantity="other">%1$d de %2$d pagamentos neste mês · você digitou %3$d</item>
     </plurals>
     <string name="percent_by_itself">%1$d%% sozinho</string>
-    <string name="from_senders">De %1$s</string>
-    <plurals name="teach_missed">
-        <item quantity="one">Ensine %d mensagem que ele perdeu</item>
-        <item quantity="many">Ensine %d mensagens que ele perdeu</item>
-        <item quantity="other">Ensine %d mensagens que ele perdeu</item>
-    </plurals>
     <string name="move_accounts_title">Passar suas contas para %1$s?</string>
     <plurals name="move_accounts_line">
         <item quantity="one">%1$d conta está em %2$s. Passe-a com os pagamentos para %3$s, ou mantenha em %2$s e adicione uma cotação em Personalizar › Moeda.</item>
@@ -1279,7 +1279,6 @@
     <string name="who_sent_it">Quem enviou</string>
     <string name="rename_rule_line">Aparece na sua lista de regras</string>
     <string name="teach_fix">Toque no valor de novo.</string>
-    <string name="category_for_payment">Categoria deste pagamento</string>
     <string name="use_for_messages_like_this">Usar em mensagens como esta</string>
     <string name="test_help">Cole uma mensagem de %1$s; as partes lidas ficam destacadas.</string>
     <string name="licences_line">O Burrow e o que ele usa</string>
@@ -1298,4 +1297,32 @@
     <string name="bill_reminder_time_line">Um dia antes do vencimento</string>
     <string name="sunday_review_time">Horário do resumo de domingo</string>
     <string name="every_sunday">Todo domingo</string>
+    <plurals name="n_not_understood">
+        <item quantity="one">%d mensagem não entendida</item>
+        <item quantity="other">%d mensagens não entendidas</item>
+    </plurals>
+    <string name="teach_once_line">Ensine uma vez e mensagens assim serão lidas</string>
+    <string name="own_limit">Limite próprio</string>
+    <string name="shares_limit_of">Mesmo limite de %1$s</string>
+    <string name="shared_with">compartilhado com %1$s</string>
+    <string name="shared_limit_line">Cartões na mesma linha de crédito dividem um limite</string>
+    <string name="due">Vence</string>
+    <string name="every_week_on">Toda semana na %1$s</string>
+    <string name="every_year_on">Todo ano em %1$s</string>
+    <string name="next_on">Próximo: %1$s</string>
+    <string name="since_statement_chip">Desde a fatura %1$s</string>
+    <string name="own_limit_line">Digite o limite abaixo</string>
+    <string name="shares_limit_line">Disponível conta os dois cartões</string>
+    <string name="new_category_line">Nome, cor e ícone</string>
+    <string name="back_to_today">Voltar para Hoje</string>
+    <string name="teach_once_short">Ensine uma vez, lido daí em diante</string>
+    <string name="teach_the_ones_missed">Ensine os que ele não entendeu</string>
+    <string name="teach_category_in_review">Os pagamentos lidos vão para Revisar com a categoria habitual do destinatário; você escolhe lá.</string>
+    <plurals name="teach_n_missed">
+        <item quantity="one">Ensinar %d mensagem não entendida</item>
+        <item quantity="other">Ensinar %d mensagens não entendidas</item>
+    </plurals>
+    <string name="about_contact">Contato: %1$s</string>
+    <string name="made_by">Feito por Nisab Mohd e colaboradores</string>
+    <string name="every_weekday_next">Toda %1$s · próxima em %2$s</string>
 </resources>

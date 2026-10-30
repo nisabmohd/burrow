@@ -28,7 +28,9 @@ object RuleBuilder {
     fun isAmount(token: String): Boolean = AMOUNT_TOKEN.matches(token)
 
     fun build(id: String, name: String, sender: String?, text: String, amount: IntRange, payee: IntRange?, account: IntRange?, directionWord: IntRange? = null): Rule {
+        // A word picked for two parts counts once (the amount wins), so the text between parts never runs backwards.
         val parts = listOfNotNull(Part.AMOUNT to amount, payee?.let { Part.PAYEE to it }, account?.let { Part.ACCOUNT to it })
+            .fold(emptyList<Pair<Part, IntRange>>()) { kept, p -> if (kept.any { it.second.overlaps(p.second) }) kept else kept + p }
             .sortedBy { it.second.first }
         val sb = StringBuilder("(?s)")
         // A little context before the first part, so the rule only fires on this kind of message.
@@ -143,6 +145,8 @@ object RuleBuilder {
         }
         return s
     }
+
+    private fun IntRange.overlaps(o: IntRange) = first <= o.last && o.first <= last
 
     private fun escape(s: String): String = buildString { s.forEach { ch -> if (ch in META) append('\\'); append(ch) } }
 

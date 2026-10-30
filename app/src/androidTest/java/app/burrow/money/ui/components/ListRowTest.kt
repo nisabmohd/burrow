@@ -20,9 +20,12 @@ import org.junit.runners.Parameterized
 
 /** Every settings row, transaction row and pick list row. */
 @RunWith(Parameterized::class)
-class ListRowTest(private val width: Dp, private val fontScale: Float) {
+class ListRowTest(private val widthDp: Float, private val fontScale: Float) {
+    // JUnit builds the test by reflection, which can't pass a Dp (a value class): the width comes in as a Float.
+    private val width: Dp get() = widthDp.dp
+
     companion object {
-        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first, it.second) }
+        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first.value, it.second) }
     }
 
     @get:Rule val rule = createComposeRule()

@@ -1,6 +1,5 @@
 package app.burrow.money.ui.teach
 
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,7 +44,7 @@ import app.burrow.money.ui.theme.Space
 
 /**
  * Teach a message (52): close · title · Save; one instruction line; the message, where a tap picks
- * the word for the current part; rows for Amount, Paid to and Account (the current one tinted).
+ * the word for the current part; rows for Amount, From / to, Account and Money in or out (the current one tinted).
  * Save turns on once the rule built from the taps reads the message back.
  */
 @Composable
@@ -57,7 +56,6 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
-    var pickCategory by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val save = {
         if (s.canSave) {
             haptics.confirm()
@@ -112,25 +110,22 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
                     )
                 }
             }
-            // All set (149): this payment's category and whether the rule keeps reading the next ones.
+            // All set (149): whether the rule keeps reading the next ones. No category here: a rule reads
+            // a kind of message, and each payment it reads gets its own category in To review.
             if (s.canSave) {
-                val categories by vm.categories.collectAsStateWithLifecycle()
-                val cat = categories.firstOrNull { it.id == s.categoryId }
-                val rows = if (vm.hasPayment) 2 else 1
                 ListGroup {
-                    if (vm.hasPayment) ListRow(
-                        cat?.name ?: stringResource(R.string.choose_category), 0, rows, supporting = stringResource(R.string.category_for_payment),
-                        lead = { app.burrow.money.ui.pickers.CategoryCircle(cat?.icon, cat?.colorHue) },
-                        onClick = { pickCategory = true },
-                    )
                     ListRow(
-                        stringResource(R.string.use_for_messages_like_this), rows - 1, rows,
+                        stringResource(R.string.use_for_messages_like_this), 0, 1,
                         supporting = s.sender.ifBlank { null }?.let { stringResource(R.string.rule_from, it) },
                         lead = { IconCircle(painterResource(R.drawable.ic_rule_duotone)) },
                         trailing = { app.burrow.money.ui.components.BurrowSwitch(s.useRule, vm::setUseRule) },
                     )
                 }
-                if (pickCategory) app.burrow.money.ui.pickers.CategorySheet(categories, emptyMap(), s.categoryId, { vm.setCategory(it.id); pickCategory = false }, { pickCategory = false })
+                androidx.compose.material3.Text(
+                    stringResource(R.string.teach_category_in_review), style = app.burrow.money.ui.theme.BurrowType.body,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = Space.headingInset),
+                )
             }
         }
     }
@@ -138,7 +133,7 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
 
 private val PARTS = listOf(
     Triple(Part.AMOUNT, R.string.amount, R.drawable.ic_payments_duotone),
-    Triple(Part.PAYEE, R.string.paid_to, R.drawable.ic_storefront_duotone),
+    Triple(Part.PAYEE, R.string.from_or_to, R.drawable.ic_storefront_duotone),
     Triple(Part.ACCOUNT, R.string.account, R.drawable.ic_account_balance_duotone),
     Triple(Part.DIRECTION, R.string.money_in_or_out, R.drawable.ic_swap_vert_duotone),
 )

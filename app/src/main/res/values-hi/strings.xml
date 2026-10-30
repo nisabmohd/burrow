@@ -170,7 +170,6 @@
     <string name="payment_apps">पेमेंट ऐप</string>
     <string name="off">बंद</string>
     <string name="on">चालू</string>
-    <string name="tap_to_teach">ऐप को सिखाने के लिए टैप करें</string>
     <string name="message_rules">संदेश नियम</string>
     <string name="rules_line">भारत के लिए पहले से · आपके %1$d</string>
     <plurals name="rules_line_yours">
@@ -225,6 +224,7 @@
     <string name="what_it_reads">यह क्या पढ़ता है</string>
     <string name="amount">रक़म</string>
     <string name="paid_to">किसे दिया</string>
+    <string name="from_or_to">किससे / किसे</string>
     <string name="direction">दिशा</string>
     <string name="money_out">पैसा गया</string>
     <string name="money_in">पैसा आया</string>
@@ -244,7 +244,7 @@
     <string name="built_in_rule">पहले से बना · %1$s</string>
     <string name="teach_title">संदेश सिखाएँ</string>
     <string name="teach_amount">संदेश में &lt;b&gt;रक़म&lt;/b&gt; पर टैप करें।</string>
-    <string name="teach_payee">&lt;b&gt;जिसे दिया&lt;/b&gt; उस पर टैप करें, या &lt;a href="skip"&gt;छोड़ें&lt;/a&gt;।</string>
+    <string name="teach_payee">&lt;b&gt;नाम&lt;/b&gt; पर टैप करें: जिसे दिया या जिससे मिला, या &lt;a href="skip"&gt;छोड़ें&lt;/a&gt;।</string>
     <string name="teach_account">&lt;b&gt;खाते&lt;/b&gt; पर टैप करें, या &lt;a href="skip"&gt;छोड़ें&lt;/a&gt;।</string>
     <string name="teach_done">हो गया। ऐसे संदेश अब से पढ़े जाएँगे।</string>
     <string name="not_picked">अभी नहीं चुना</string>
@@ -344,6 +344,8 @@
     <string name="due_day">देय तारीख़</string>
     <string name="every_month_on">हर महीने %1$s तारीख़ को</string>
     <string name="due_every_month_on">हर महीने देय</string>
+    <string name="due_every_week_on">हर हफ़्ते देय</string>
+    <string name="due_every_year_on">हर साल देय</string>
     <string name="next_due">अगली तारीख़ %1$s</string>
     <string name="when_due">देय होने पर</string>
     <string name="bill_cant_save">सेव करने के लिए नाम, रक़म और खाता जोड़ें।</string>
@@ -434,6 +436,9 @@
     <string name="an_account">एक खाते</string>
     <string name="asks_you_on">%1$s को आपसे पूछेगा</string>
     <string name="remind_week_before">एक हफ़्ते पहले याद दिलाएँ</string>
+    <string name="deposit_reminder">%1$s एक हफ़्ते में मैच्योर होगा</string>
+    <string name="deposit_reminder_line">%1$s %3$s को %2$s में जाएँगे</string>
+    <string name="deposit_reminder_line_alone">%2$s को परिपक्वता पर %1$s</string>
     <string name="fix_balance">बैलेंस ठीक करें</string>
     <string name="fix_balance_line">अगर यह आपके बैंक से मेल नहीं खाता</string>
     <string name="balance_fixed">बैलेंस ठीक हुआ</string>
@@ -762,6 +767,7 @@
     <string name="extra_lend">उधार</string>
     <string name="extra_time">समय</string>
     <string name="extra_last_category">पिछली श्रेणी</string>
+    <string name="extra_recent">हाल के</string>
     <string name="opens_as">किस रूप में खुले</string>
     <string name="default_account">डिफ़ॉल्ट खाता</string>
     <string name="change">बदलें</string>
@@ -1051,11 +1057,6 @@
         <item quantity="other">इस महीने %2$d में से %1$d भुगतान · आपने %3$d टाइप किए</item>
     </plurals>
     <string name="percent_by_itself">%1$d%% अपने-आप</string>
-    <string name="from_senders">%1$s से</string>
-    <plurals name="teach_missed">
-        <item quantity="one">छूटा %d संदेश सिखाएँ</item>
-        <item quantity="other">छूटे %d संदेश सिखाएँ</item>
-    </plurals>
     <string name="emi">EMI</string>
     <string name="emi_label">EMI</string>
     <string name="move_accounts_title">खाते %1$s में ले जाएँ?</string>
@@ -1196,7 +1197,6 @@
     <string name="who_sent_it">किसने भेजा</string>
     <string name="rename_rule_line">आपकी नियम सूची में यही दिखेगा</string>
     <string name="teach_fix">रक़म पर फिर से टैप करें।</string>
-    <string name="category_for_payment">इस भुगतान की श्रेणी</string>
     <string name="use_for_messages_like_this">ऐसे संदेशों के लिए इस्तेमाल करें</string>
     <string name="test_help">%1$s का कोई संदेश पेस्ट करें; जो हिस्से पढ़े जाते हैं वे हाइलाइट होंगे।</string>
     <string name="licences_line">Burrow और जो यह इस्तेमाल करता है</string>
@@ -1215,4 +1215,32 @@
     <string name="bill_reminder_time_line">नियत तारीख से एक दिन पहले</string>
     <string name="sunday_review_time">रविवार समीक्षा का समय</string>
     <string name="every_sunday">हर रविवार</string>
+    <plurals name="n_not_understood">
+        <item quantity="one">%d संदेश समझ नहीं आया</item>
+        <item quantity="other">%d संदेश समझ नहीं आए</item>
+    </plurals>
+    <string name="teach_once_line">एक बार सिखाएँ, फिर ऐसे संदेश पढ़े जाएँगे</string>
+    <string name="own_limit">अपनी सीमा</string>
+    <string name="shares_limit_of">%1$s जैसी ही सीमा</string>
+    <string name="shared_with">%1$s के साथ साझा</string>
+    <string name="shared_limit_line">एक क्रेडिट लाइन के कार्ड एक लिमिट साझा करते हैं</string>
+    <string name="due">देय</string>
+    <string name="every_week_on">हर हफ़्ते %1$s को</string>
+    <string name="every_year_on">हर साल %1$s को</string>
+    <string name="next_on">अगला: %1$s</string>
+    <string name="since_statement_chip">स्टेटमेंट के बाद %1$s</string>
+    <string name="own_limit_line">इसकी लिमिट नीचे लिखें</string>
+    <string name="shares_limit_line">उपलब्ध में दोनों कार्ड गिने जाते हैं</string>
+    <string name="new_category_line">नाम, रंग और आइकन</string>
+    <string name="back_to_today">आज पर वापस</string>
+    <string name="teach_once_short">एक बार सिखाएँ, फिर हमेशा पढ़ा जाएगा</string>
+    <string name="teach_the_ones_missed">जो छूट गए, वे सिखाएँ</string>
+    <string name="teach_category_in_review">पढ़े गए भुगतान पाने वाले की सामान्य श्रेणी के साथ समीक्षा में जाते हैं; श्रेणी वहीं चुनें।</string>
+    <plurals name="teach_n_missed">
+        <item quantity="one">छूटा %d संदेश सिखाएँ</item>
+        <item quantity="other">छूटे %d संदेश सिखाएँ</item>
+    </plurals>
+    <string name="about_contact">संपर्क: %1$s</string>
+    <string name="made_by">Nisab Mohd और योगदानकर्ताओं द्वारा बनाया गया</string>
+    <string name="every_weekday_next">हर %1$s · अगला %2$s को</string>
 </resources>

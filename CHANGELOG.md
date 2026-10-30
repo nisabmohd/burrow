@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+- New expense: after your favourites, up to four recent payments sit under the amount ("₹240 Third Wave Coffee"). One tap fills the form so you can check and save. Turn them off in Customise › Expense › Recent.
+- The date sheet keeps Yesterday, Today and Tomorrow over the calendar, and now has a Time row. Pick a day ahead and it says when the payment will be added.
+- Bills can repeat every week, month or year. Weekly bills pick their day from a row of day circles; yearly bills use the same calendar, with the next date shown.
+- To review: each payment has Edit and Save. Edit opens it in New expense to change the name, amount or account.
+- Messages it couldn't read are easier to find: a note on Today when nothing is waiting in To review, a row at the top of To review, and a link when you're all caught up. Auto-capture lists them even when it's off.
+- Teach: the name part is "From / to", and the category is picked in To review, not while teaching.
+- Category sheets that list both kinds show Expense, then Income, and every category sheet ends with New category.
+- Cards on one credit line can share a limit: Available counts what every card on the line owes.
+- Pay card bill: choose the statement amount or everything since the statement.
+- Fixed deposits remind you a week before they mature, with the amount, the account it goes to and the date.
+- Swipes on Coming up stay quiet until you've dragged far enough, then show what letting go will do.
+- Buttons grow with large text instead of cutting their label.
+- "Rate on Play Store" in About, now that Burrow is on Play.
+
 ## 0.2.1
 - Auto-capture shows what it really does: More says "Paused · Needs access" when Android blocks it, the same as Today and Auto-capture.
 - Text never runs into the next line at large font sizes, and wrapped note titles sit closer together.

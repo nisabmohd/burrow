@@ -11,7 +11,6 @@ import app.burrow.money.data.CaptureRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,8 +25,6 @@ data class TeachState(
     val notAmount: Boolean = false,
     /** The rule the taps make, when it reads the message back with the picked amount. */
     val rule: Rule? = null,
-    /** This payment's category (149), when teaching a message that came in (not a pasted one). */
-    val categoryId: Long? = null,
     /** "Use for messages like this" (149): the rule stays on for the next ones. */
     val useRule: Boolean = true,
 ) {
@@ -41,7 +38,6 @@ data class TeachState(
 class TeachViewModel(
     private val capture: CaptureRepository,
     private val engine: RuleEngine,
-    money: app.burrow.money.data.MoneyRepository,
     private val captureId: Long,
     pastedSender: String,
     pastedText: String,
@@ -50,14 +46,6 @@ class TeachViewModel(
     private val _state = MutableStateFlow<TeachState?>(null)
     val state: StateFlow<TeachState?> = _state.asStateFlow()
 
-    /** For the category row's sheet. */
-    val categories: StateFlow<List<app.burrow.money.data.CategoryEntity>> =
-        money.categories.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** A payment to categorise: only a message that came in has one. */
-    val hasPayment get() = captureId != 0L
-
-    fun setCategory(id: Long) = _state.update { it?.copy(categoryId = id) }
     fun setUseRule(on: Boolean) = _state.update { it?.copy(useRule = on) }
 
     init {
@@ -69,7 +57,6 @@ class TeachViewModel(
                 receivedAt = c?.receivedAt,
                 step = Part.AMOUNT,
                 picks = emptyMap(),
-                categoryId = c?.categoryId,
             )
         }
     }
@@ -79,6 +66,8 @@ class TeachViewModel(
         val step = s.step ?: return@update s
         val token = RuleBuilder.tokenAt(s.text, offset) ?: return@update s
         if (step == Part.AMOUNT && !RuleBuilder.isAmount(s.text.substring(token))) return@update s.copy(notAmount = true)
+        // A word already picked for another part stays there (a second tap on the amount did crash).
+        if (s.picks.any { (part, r) -> part != step && r.first <= token.last && token.first <= r.last }) return@update s
         val picks = s.picks + (step to token)
         rebuild(s.copy(picks = picks, step = next(step, picks), notAmount = false))
     }
@@ -123,22 +112,16 @@ class TeachViewModel(
 
     /**
      * Saves the rule and tries it on every message waiting; returns how many moved to To review.
-     * This message keeps the category picked here. With "Use for messages like this" off, the rule
-     * reads this message and is then switched off.
+     * A rule reads a kind of message, not one payment, so it has no category: each payment it reads
+     * gets its payee's usual one in To review, where it can be changed. With "Use for messages like
+     * this" off, the rule reads this message and is then switched off.
      */
     fun save(onDone: (Int) -> Unit) {
         val s = _state.value ?: return
         val rule = s.rule ?: return
         viewModelScope.launch {
             capture.saveRule(rule)
-            if (s.categoryId == null && captureId != 0L) {
-                // Suggest the payee's usual category for this payment, as capture does.
-                val payee = s.picks[Part.PAYEE]?.let { s.text.substring(it) }
-                capture.suggestions(payee, if (rule.direction == app.burrow.money.capture.Direction.IN) app.burrow.money.data.TxnType.INCOME else app.burrow.money.data.TxnType.EXPENSE).firstOrNull()
-                    ?.let { _state.update { st -> st?.copy(categoryId = it) } }
-            }
             val moved = capture.retryNotUnderstood()
-            _state.value?.categoryId?.let { if (captureId != 0L) capture.setCategory(captureId, it) }
             if (!s.useRule) capture.setRuleEnabled(rule.id, false)
             onDone(moved)
         }

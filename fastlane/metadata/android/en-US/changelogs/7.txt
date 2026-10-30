@@ -1,0 +1,9 @@
+- Recent payments under the amount: one tap fills the form.
+- Date sheet with a Time row; future days say when they're added.
+- Weekly, monthly and yearly bills.
+- To review: Edit or Save each payment.
+- Messages it missed are easy to find and teach.
+- Cards can share one credit limit.
+- Pay a card's statement or everything since.
+- Deposit reminder a week before maturity.
+- Buttons grow with large text.

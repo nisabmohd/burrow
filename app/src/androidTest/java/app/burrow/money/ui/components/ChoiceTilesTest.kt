@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.burrow.money.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,9 +19,12 @@ import org.junit.runners.Parameterized
 
 /** Customise › Currency "Decimal places", "Show amounts as"; Transactions "When a payment is found". */
 @RunWith(Parameterized::class)
-class ChoiceTilesTest(private val width: Dp, private val fontScale: Float) {
+class ChoiceTilesTest(private val widthDp: Float, private val fontScale: Float) {
+    // JUnit builds the test by reflection, which can't pass a Dp (a value class): the width comes in as a Float.
+    private val width: Dp get() = widthDp.dp
+
     companion object {
-        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first, it.second) }
+        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first.value, it.second) }
     }
 
     @get:Rule val rule = createComposeRule()

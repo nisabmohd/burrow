@@ -208,6 +208,7 @@ private fun ExpenseTab(vm: CustomiseViewModel, settings: Settings, s: CustomiseS
             Toggle(FormExtra.TIME, stringResource(R.string.extra_time), painterResource(R.drawable.ic_schedule_duotone), FormExtra.TIME in x),
             Toggle(FormExtra.LAST_CATEGORY, stringResource(R.string.extra_last_category), painterResource(R.drawable.ic_history_duotone), FormExtra.LAST_CATEGORY in x),
             Toggle(FormExtra.FAVOURITE, stringResource(R.string.favourite), painterResource(R.drawable.ic_star_duotone), FormExtra.FAVOURITE in x),
+            Toggle(FormExtra.RECENT, stringResource(R.string.extra_recent), painterResource(R.drawable.ic_history_duotone), FormExtra.RECENT in x),
         ),
         vm::extra, on, off,
     )

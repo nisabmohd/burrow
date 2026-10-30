@@ -174,6 +174,10 @@ class MoneyRepository(
 
     suspend fun nextUpcoming(): Long? = db.txns().nextUpcoming()
 
+    /** New expense's Recent chips: the last few different entries of [type] (see [distinctRecent]). */
+    suspend fun recentEntries(type: String, limit: Int): List<TxnEntity> =
+        distinctRecent(db.txns().recentOfType(type, RECENT_LOOKBACK), limit)
+
     /** Paid to suggestions (87): the most used payees, or those starting with what was typed. */
     suspend fun payeeSuggestions(type: String, typed: String, limit: Int = 4): List<String> =
         if (typed.isBlank()) db.txns().topPayees(type, limit) else db.txns().payeesStarting(typed.trim(), limit)
@@ -330,3 +334,13 @@ fun BudgetPeriod.startMillis(zone: ZoneId = ZoneId.systemDefault()) = start.atSt
 fun BudgetPeriod.endMillis(zone: ZoneId = ZoneId.systemDefault()) = endExclusive.atStartOfDay(zone).toInstant().toEpochMilli()
 
 private fun Flow<List<CategorySum>>.mapToMap(): Flow<Map<Long, Long>> = flow { collect { list -> emit(list.associate { it.categoryId to it.total }) } }
+
+/** How many of the latest entries New expense looks through for its Recent chips. */
+private const val RECENT_LOOKBACK = 40
+
+/**
+ * The newest entry for each payee (or category, when there is none), newest first: "₹250 Swiggy"
+ * once, even after ten Swiggy orders, so the chips cover different things.
+ */
+fun distinctRecent(latest: List<TxnEntity>, limit: Int): List<TxnEntity> =
+    latest.distinctBy { it.payee?.trim()?.lowercase()?.ifBlank { null } ?: "#${it.categoryId}" }.take(limit)

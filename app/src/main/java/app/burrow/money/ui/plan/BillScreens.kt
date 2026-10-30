@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import app.burrow.money.ui.components.confirm
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -41,6 +42,7 @@ import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.ConfirmDialog
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.LabeledField
+import app.burrow.money.ui.components.SheetBody
 import app.burrow.money.ui.components.ListGroup
 import app.burrow.money.ui.components.ListRow
 import app.burrow.money.ui.components.LocalSnackbar
@@ -58,6 +60,14 @@ import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
 import java.time.LocalDate
 import java.time.format.TextStyle
+
+/** The New bill due row: "Every week on Monday", "Every month on the 1st", "Every year on 9 Jan". */
+@Composable
+fun dueLabel(r: Repeat, dates: DateText): String = when (r) {
+    is Repeat.Monthly -> stringResource(R.string.every_month_on, dates.ordinal(r.day))
+    is Repeat.Yearly -> stringResource(R.string.every_year_on, dates.shortDay(LocalDate.of(2000, r.month, r.day)))
+    is Repeat.Weekly -> stringResource(R.string.every_week_on, r.day.getDisplayName(TextStyle.FULL, java.util.Locale.getDefault()))
+}
 
 /** "Monthly on the 19th", "Yearly on 9 Jan", "Weekly on Monday". */
 @Composable
@@ -177,8 +187,9 @@ fun minutesLabel(minutes: Int): String {
 private enum class BillSheet { CATEGORY, ACCOUNT, DAY }
 
 /**
- * New bill (27): close · title · Save; Bill | Subscription; Name; Amount; Category, Paid from and the
- * due day (DayStepper sheet, 28); When it is due: Ask me / Record it for me / Only remind me.
+ * New bill (27): close · title · Save; Bill | Subscription; Name; Amount; How often (Weekly ·
+ * Monthly · Yearly); Category, Paid from and the due day (the day sheet 28, a weekday sheet or the
+ * date sheet); When it is due: Ask me / Record it for me / Only remind me.
  */
 @Composable
 fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit) {
@@ -214,24 +225,28 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
                     keyboardType = KeyboardType.Decimal,
                 )
             }
+            LabeledField(stringResource(R.string.how_often)) {
+                ButtonGroup(
+                    Repeat.Every.entries, f.repeat.every,
+                    { stringResource(when (it) { Repeat.Every.WEEK -> R.string.weekly; Repeat.Every.MONTH -> R.string.monthly; Repeat.Every.YEAR -> R.string.yearly }) },
+                    { e -> vm.edit { it.copy(repeat = it.repeat.every(e, LocalDate.now())) } }, Modifier.fillMaxWidth(),
+                )
+            }
+            // The due row comes first and follows How often (27, 161, 162).
             ListGroup {
                 ListRow(
-                    s.category?.name ?: stringResource(R.string.choose_category), 0, 3, supporting = stringResource(R.string.category),
+                    dueLabel(f.repeat, dates), 0, 3, supporting = stringResource(R.string.due),
+                    lead = { IconCircle(painterResource(R.drawable.ic_calendar_month_duotone)) },
+                    onClick = { sheet = BillSheet.DAY },
+                )
+                ListRow(
+                    s.category?.name ?: stringResource(R.string.choose_category), 1, 3, supporting = stringResource(R.string.category),
                     lead = { CategoryCircle(s.category?.icon, s.category?.colorHue) }, onClick = { sheet = BillSheet.CATEGORY },
                 )
                 ListRow(
-                    s.account?.account?.name ?: stringResource(R.string.choose_account), 1, 3, supporting = stringResource(R.string.paid_from),
+                    s.account?.account?.name ?: stringResource(R.string.choose_account), 2, 3, supporting = stringResource(R.string.paid_from),
                     supportingColor = if (f.tried && s.account == null) c.error else c.onSurfaceVariant,
                     lead = { CategoryCircle(s.account?.account?.icon, s.account?.account?.colorHue) }, onClick = { sheet = BillSheet.ACCOUNT },
-                )
-                ListRow(
-                    when (val r = f.repeat) {
-                        is Repeat.Monthly -> stringResource(R.string.every_month_on, dates.ordinal(r.day))
-                        else -> repeatLabel(r, dates)
-                    },
-                    2, 3, supporting = stringResource(R.string.due_day),
-                    lead = { IconCircle(painterResource(R.drawable.ic_event_repeat_duotone)) },
-                    onClick = if (f.repeat is Repeat.Monthly) ({ sheet = BillSheet.DAY }) else null,
                 )
             }
             SectionHeader(stringResource(R.string.when_due))
@@ -256,8 +271,43 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
     when (sheet) {
         BillSheet.CATEGORY -> CategorySheet(s.categories, emptyMap(), f.categoryId, { cat -> vm.edit { it.copy(categoryId = cat.id) }; sheet = null }, { sheet = null })
         BillSheet.ACCOUNT -> AccountSheet(s.accounts, f.accountId, { a -> vm.edit { it.copy(accountId = a.account.id) }; sheet = null }, { sheet = null })
-        BillSheet.DAY -> DueDaySheet((f.repeat as? Repeat.Monthly)?.day ?: 1, dates, { d -> vm.edit { it.copy(repeat = Repeat.Monthly(d)) }; sheet = null }, { sheet = null })
+        BillSheet.DAY -> when (val r = f.repeat) {
+            is Repeat.Monthly -> DueDaySheet(r.day, dates, { d -> vm.edit { it.copy(repeat = Repeat.Monthly(d)) }; sheet = null }, { sheet = null })
+            is Repeat.Weekly -> WeekdaySheet(r.day, { d -> vm.edit { it.copy(repeat = Repeat.Weekly(d)) }; sheet = null }, { sheet = null })
+            is Repeat.Yearly -> app.burrow.money.ui.pickers.DateSheet(
+                r.nextOnOrAfter(LocalDate.now()), { d -> vm.edit { it.copy(repeat = Repeat.Yearly(d.monthValue, d.dayOfMonth)) }; sheet = null }, { sheet = null },
+                title = stringResource(R.string.due_every_year_on), anyDay = true, yearly = true,
+            )
+        }
         null -> Unit
+    }
+}
+
+/**
+ * Due every week on (163): one row of day circles from the week-start day, "Every Monday · next on
+ * Mon, 26 Oct" under it (follows each tap; the sheet stays open), Done saves the day.
+ */
+@Composable
+private fun WeekdaySheet(start: java.time.DayOfWeek, onPick: (java.time.DayOfWeek) -> Unit, onDismiss: () -> Unit) {
+    var day by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(start) }
+    val dates = rememberDateText()
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val next = Repeat.Weekly(day).nextOnOrAfter(LocalDate.now())
+    app.burrow.money.ui.components.BurrowSheet(onDismiss) {
+        app.burrow.money.ui.components.SheetHeader(stringResource(R.string.due_every_week_on), onDismiss)
+        SheetBody {
+            app.burrow.money.ui.components.WeekdayRow(day, app.burrow.money.ui.LocalDatePrefs.current.weekStart, { day = it })
+            androidx.compose.material3.Text(
+                stringResource(R.string.every_weekday_next, day.getDisplayName(TextStyle.FULL, java.util.Locale.getDefault()), dates.weekdayDay(next)),
+                style = app.burrow.money.ui.theme.BurrowType.body, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        app.burrow.money.ui.components.SheetFooter {
+            app.burrow.money.ui.components.BurrowButton(
+                stringResource(R.string.done), { haptics.confirm(); onPick(day) }, Modifier.fillMaxWidth(), height = Size.buttonBottom,
+            )
+        }
     }
 }
 

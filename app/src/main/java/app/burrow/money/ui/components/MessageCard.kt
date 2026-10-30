@@ -26,8 +26,9 @@ import app.burrow.money.ui.theme.Space
 /**
  * A message the app found, as a card (To review 44, Not understood 116): [lead] circle, [title] and
  * [line], an optional [amount], ✕ to ignore; the message ([message], usually a [MessageBox]);
- * optional [extra] (category chips); one full-width tonal [button]. The only cards with a button
- * (user, 2026-10-24) — they never swipe (C2). TalkBack gets the button and Ignore as actions.
+ * optional [extra] (category chips); one full-width tonal [button], or [second] + [button] side by
+ * side (To review: Edit · Save, user 2026-10-28; stacked at large text). The only cards with buttons
+ * (user, 2026-10-24) — they never swipe (C2). TalkBack gets the buttons and Ignore as actions.
  */
 @Composable
 fun MessageCard(
@@ -42,12 +43,21 @@ fun MessageCard(
     modifier: Modifier = Modifier,
     amount: String? = null,
     extra: (@Composable () -> Unit)? = null,
+    second: String? = null,
+    secondIcon: Painter? = null,
+    onSecond: () -> Unit = {},
     message: @Composable () -> Unit,
 ) {
     val c = MaterialTheme.colorScheme
     Column(
         modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(Space.card)
-            .semantics { customActions = listOf(CustomAccessibilityAction(button) { onButton(); true }, CustomAccessibilityAction(ignoreLabel) { onIgnore(); true }) },
+            .semantics {
+                customActions = listOfNotNull(
+                    CustomAccessibilityAction(button) { onButton(); true },
+                    second?.let { CustomAccessibilityAction(it) { onSecond(); true } },
+                    CustomAccessibilityAction(ignoreLabel) { onIgnore(); true },
+                )
+            },
         verticalArrangement = Arrangement.spacedBy(Space.block),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
@@ -55,7 +65,7 @@ fun MessageCard(
             // Large text: the amount goes under the payee so the name keeps the width.
             val large = isLargeText()
             Column(Modifier.weight(1f)) {
-                Text(title, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = if (large) 2 else 1, overflow = TextOverflow.Ellipsis)
+                Text(title, style = BurrowType.bodyLarge, color = c.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (large && amount != null) Text(amount, style = BurrowType.titleSmall, color = c.onSurface)
                 Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 2)
             }
@@ -64,6 +74,16 @@ fun MessageCard(
         }
         message()
         extra?.invoke()
-        BurrowButton(button, onButton, Modifier.fillMaxWidth(), ButtonKind.TONAL, buttonIcon)
+        when {
+            second == null -> BurrowButton(button, onButton, Modifier.fillMaxWidth(), ButtonKind.TONAL, buttonIcon)
+            isLargeText() -> Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
+                BurrowButton(second, onSecond, Modifier.fillMaxWidth(), ButtonKind.TONAL, secondIcon)
+                BurrowButton(button, onButton, Modifier.fillMaxWidth(), ButtonKind.TONAL, buttonIcon)
+            }
+            else -> Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+                BurrowButton(second, onSecond, Modifier.weight(1f), ButtonKind.TONAL, secondIcon)
+                BurrowButton(button, onButton, Modifier.weight(1f), ButtonKind.TONAL, buttonIcon)
+            }
+        }
     }
 }

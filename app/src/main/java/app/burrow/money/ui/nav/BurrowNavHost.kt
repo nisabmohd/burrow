@@ -228,7 +228,10 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     val short = with(density) { window.height.toDp() } < app.burrow.money.ui.theme.Size.landscapeMaxHeight
     val maxWidth = if (short) app.burrow.money.ui.theme.Size.contentMaxLandscape else app.burrow.money.ui.theme.Size.contentMax
     val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
-    CompositionLocalProvider(LocalSnackbar provides snackbar, app.burrow.money.ui.txn.LocalTxnActions provides txnActions) {
+    CompositionLocalProvider(
+        LocalSnackbar provides snackbar, app.burrow.money.ui.txn.LocalTxnActions provides txnActions,
+        app.burrow.money.ui.pickers.LocalNewCategory provides { nav.navigate(EditCategoryRoute()) },
+    ) {
         // Landscape: the system's nav buttons and the camera cutout sit at the sides; keep clear of them.
         androidx.compose.foundation.layout.Row(
             Modifier.fillMaxSize().windowInsetsPadding(
@@ -255,6 +258,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         TodayScreen(
                             vm, onAdd = openAdd, onAccounts = { nav.navigate(AccountsRoute) }, onOpen = openTxn, onSeeAll = { nav.openTab(ActivityRoute) },
                             onReview = { nav.navigate(ReviewRoute) },
+                            onMissed = { nav.navigate(MissedRoute) },
                             onCaptureIntro = { nav.navigate(CaptureIntroRoute) },
                             onFixCapture = { nav.navigate(AutoCaptureRoute) },
                             onBill = { nav.navigate(BillRoute(it)) },
@@ -319,7 +323,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<AccountRoute> { e ->
                         val id = e.toRoute<AccountRoute>().id
-                        val vm = viewModel { AccountViewModel(container.money, container.strings, id) }
+                        val vm = viewModel { AccountViewModel(container.money, container.strings, id) { container.runBillReminders() } }
                         AccountScreen(
                             vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewAccountRoute(it)) },
                             onTransfer = { nav.navigate(AddRoute(type = "TRANSFER", accountId = it)) }, onOpenTxn = openTxn,
@@ -327,7 +331,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<NewAccountRoute> { e ->
                         val r = e.toRoute<NewAccountRoute>()
-                        val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) }
+                        val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) { container.runBillReminders() } }
                         val saved = stringResource(R.string.saved)
                         NewAccountScreen(
                             vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() },
@@ -468,7 +472,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<ReviewRoute> {
                         val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
-                        ReviewScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) })
+                        ReviewScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onMissed = { nav.navigate(MissedRoute) })
                     }
                     composable<CaptureIntroRoute> {
                         CaptureIntroScreen(
@@ -521,7 +525,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<TeachRoute> { e ->
                         val r = e.toRoute<TeachRoute>()
                         val fallback = stringResource(R.string.my_rule)
-                        val vm = viewModel { TeachViewModel(container.capture, container.rules, container.money, r.captureId, r.sender, r.text, fallback) }
+                        val vm = viewModel { TeachViewModel(container.capture, container.rules, r.captureId, r.sender, r.text, fallback) }
                         TeachScreen(vm, onClose = { nav.popBackStack() })
                     }
                     composable<TxnRoute> { e ->

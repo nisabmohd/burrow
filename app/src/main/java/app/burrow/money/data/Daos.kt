@@ -336,6 +336,15 @@ interface TxnDao {
     @Query("SELECT MIN(at) FROM TxnEntity WHERE status = 'UPCOMING'")
     suspend fun nextUpcoming(): Long?
 
+    /** The latest entries of [type] typed in or captured (not samples, upcoming or lend), for New expense's Recent chips. */
+    @Query(
+        """
+        SELECT * FROM TxnEntity WHERE type = :type AND isSample = 0 AND status = 'POSTED' AND lend IS NULL
+        AND categoryId IS NOT NULL AND billOccurrenceId IS NULL ORDER BY at DESC LIMIT :limit
+        """,
+    )
+    suspend fun recentOfType(type: String, limit: Int): List<TxnEntity>
+
     /** Payees used most, for the Paid to suggestions (87). */
     @Query("SELECT payee FROM TxnEntity WHERE type = :type AND payee IS NOT NULL AND payee != '' GROUP BY payee COLLATE NOCASE ORDER BY COUNT(*) DESC, MAX(at) DESC LIMIT :limit")
     suspend fun topPayees(type: String, limit: Int): List<String>
@@ -688,10 +697,6 @@ interface NextDao {
     /** Real payments in the period by source, for "Recorded by itself" (15). Imports and transfers aren't payments typed or found. */
     @Query("SELECT source, COUNT(*) AS count FROM TxnEntity WHERE at >= :from AND at < :to AND type IN ('EXPENSE', 'INCOME') AND isSample = 0 AND status = 'POSTED' AND source != 'IMPORT' GROUP BY source")
     fun sourceCounts(from: Long, to: Long): Flow<List<SourceCount>>
-
-    /** Senders of the messages it couldn't read ("From Kotak and SBI Card"). */
-    @Query("SELECT DISTINCT sender FROM CaptureEntity WHERE status = 'UNREAD' ORDER BY receivedAt DESC LIMIT 3")
-    fun unreadSenders(): Flow<List<String>>
 }
 data class PersonSince(val personId: Long, val since: Long)
 

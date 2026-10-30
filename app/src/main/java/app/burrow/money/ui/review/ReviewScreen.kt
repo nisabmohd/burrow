@@ -61,13 +61,15 @@ import app.burrow.money.ui.theme.Space
 
 /**
  * To review (44): each payment the app found as a card (circle, payee, account · time, amount, ✕),
- * its message with the parts it read highlighted, category chips and More, and its own Save button
- * (user, 2026-10-24: no swiping here, one tap per card instead). "Save N payments" saves them all.
+ * its message with the parts it read highlighted, category chips and More, and its own Edit and Save
+ * buttons (user, 2026-10-24: no swiping here, one tap per card instead; 2026-10-28: Edit opens it in
+ * New expense to change the name, amount or account before saving). "Save N payments" saves them all.
  * Empty: All caught up.
  */
 @Composable
-fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit = {}) {
+fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit = {}, onMissed: () -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val missed by vm.notUnderstood.collectAsStateWithLifecycle()
     val items = state ?: return
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
@@ -81,6 +83,13 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
                 shape = { Cookie(painterResource(R.drawable.ic_task_alt_regular)) },
                 title = stringResource(R.string.all_caught_up),
                 line = stringResource(R.string.all_caught_up_line),
+                // Back to Today, and under it the messages it missed (170) when there are any.
+                button = {
+                    androidx.compose.foundation.layout.Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                        app.burrow.money.ui.components.BurrowButton(stringResource(R.string.back_to_today), onBack, kind = app.burrow.money.ui.components.ButtonKind.TONAL)
+                        if (missed > 0) app.burrow.money.ui.components.LinkButton(pluralStringResource(R.plurals.teach_n_missed, missed, missed), onMissed, Modifier.padding(top = Space.small))
+                    }
+                },
             )
             return@Column
         }
@@ -89,6 +98,17 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = Space.screen, end = Space.screen, bottom = Space.block),
             verticalArrangement = Arrangement.spacedBy(Space.block),
         ) {
+            if (missed > 0) item(key = "missed") {
+                app.burrow.money.ui.components.ListGroup {
+                    app.burrow.money.ui.components.ListRow(
+                        pluralStringResource(R.plurals.n_not_understood, missed, missed), 0, 1,
+                        supporting = stringResource(R.string.teach_once_short),
+                        lead = { app.burrow.money.ui.components.IconCircle(painterResource(R.drawable.ic_help_duotone)) },
+                        trailing = { app.burrow.money.ui.components.Chevron() },
+                        onClick = onMissed,
+                    )
+                }
+            }
             items(items, key = { it.capture.id }) { item ->
                 val save = {
                     vm.save(item.capture.id) { undo -> snackbar.show(context.getString(R.string.saved), undo) }
@@ -98,7 +118,7 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
                 }
                 ReviewCard(
                     item, Modifier.animateItem(), onIgnore = ignore, onChoose = { vm.choose(item.capture.id, it) }, onMore = { moreFor = item.capture.id },
-                    onSave = { haptics.confirm(); save() },
+                    onSave = { haptics.confirm(); save() }, onEdit = { onEdit(item.capture.id) },
                 )
             }
         }
@@ -122,7 +142,7 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ReviewCard(item: ReviewItem, modifier: Modifier, onIgnore: () -> Unit, onChoose: (Long) -> Unit, onMore: () -> Unit, onSave: () -> Unit) {
+private fun ReviewCard(item: ReviewItem, modifier: Modifier, onIgnore: () -> Unit, onChoose: (Long) -> Unit, onMore: () -> Unit, onSave: () -> Unit, onEdit: () -> Unit) {
     val money = LocalMoney.current
     val dates = rememberDateText()
     val cap = item.capture
@@ -135,6 +155,7 @@ private fun ReviewCard(item: ReviewItem, modifier: Modifier, onIgnore: () -> Uni
         amount = amount,
         ignoreLabel = stringResource(R.string.ignore), onIgnore = onIgnore,
         button = stringResource(R.string.save), buttonIcon = painterResource(R.drawable.ic_check_regular), onButton = onSave,
+        second = stringResource(R.string.edit), secondIcon = painterResource(R.drawable.ic_edit_regular), onSecond = onEdit,
         modifier = modifier,
         extra = {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {

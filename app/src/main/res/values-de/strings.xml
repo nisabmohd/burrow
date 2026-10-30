@@ -178,7 +178,6 @@
     <string name="payment_apps">Zahlungs-Apps</string>
     <string name="off">Aus</string>
     <string name="on">An</string>
-    <string name="tap_to_teach">Tippen, um es der App beizubringen</string>
     <string name="message_rules">Nachrichtenregeln</string>
     <string name="rules_line">Eingebaut für Indien · %1$d eigene</string>
     <plurals name="rules_line_yours">
@@ -235,6 +234,7 @@
     <string name="what_it_reads">Was sie liest</string>
     <string name="amount">Betrag</string>
     <string name="paid_to">Bezahlt an</string>
+    <string name="from_or_to">Von / an</string>
     <string name="direction">Richtung</string>
     <string name="money_out">Geld raus</string>
     <string name="money_in">Geld rein</string>
@@ -255,7 +255,7 @@
 
     <string name="teach_title">Nachricht beibringen</string>
     <string name="teach_amount">Tippe auf den &lt;b&gt;Betrag&lt;/b&gt; in der Nachricht.</string>
-    <string name="teach_payee">Tippe auf den &lt;b&gt;Empfänger&lt;/b&gt; oder &lt;a href="skip"&gt;überspringe es&lt;/a&gt;.</string>
+    <string name="teach_payee">Tippe auf den &lt;b&gt;Namen&lt;/b&gt;: wen du bezahlt hast oder wer dich bezahlt hat, oder &lt;a href="skip"&gt;überspringe es&lt;/a&gt;.</string>
     <string name="teach_account">Tippe auf das &lt;b&gt;Konto&lt;/b&gt; oder &lt;a href="skip"&gt;überspringe es&lt;/a&gt;.</string>
     <string name="teach_done">Fertig. Solche Nachrichten werden ab jetzt gelesen.</string>
     <string name="not_picked">Noch nicht gewählt</string>
@@ -358,6 +358,8 @@
     <string name="due_day">Fälligkeitstag</string>
     <string name="every_month_on">Jeden Monat am %1$s</string>
     <string name="due_every_month_on">Jeden Monat fällig am</string>
+    <string name="due_every_week_on">Jede Woche fällig am</string>
+    <string name="due_every_year_on">Jedes Jahr fällig am</string>
     <string name="next_due">Nächste Fälligkeit %1$s</string>
     <string name="when_due">Bei Fälligkeit</string>
     <string name="bill_cant_save">Zum Speichern Name, Betrag und Konto angeben.</string>
@@ -451,6 +453,9 @@
     <string name="an_account">ein Konto</string>
     <string name="asks_you_on">Fragt dich am %1$s</string>
     <string name="remind_week_before">Eine Woche vorher erinnern</string>
+    <string name="deposit_reminder">%1$s wird in einer Woche fällig</string>
+    <string name="deposit_reminder_line">%1$s gehen am %3$s auf %2$s</string>
+    <string name="deposit_reminder_line_alone">%1$s bei Fälligkeit am %2$s</string>
     <string name="fix_balance">Kontostand korrigieren</string>
     <string name="fix_balance_line">Wenn er nicht zu deiner Bank passt</string>
     <string name="balance_fixed">Kontostand korrigiert</string>
@@ -792,6 +797,7 @@
     <string name="extra_lend">Leihen</string>
     <string name="extra_time">Uhrzeit</string>
     <string name="extra_last_category">Letzte Kategorie</string>
+    <string name="extra_recent">Zuletzt</string>
     <string name="opens_as">Öffnet als</string>
     <string name="default_account">Standardkonto</string>
     <string name="change">Ändern</string>
@@ -1080,11 +1086,6 @@
         <item quantity="other">%1$d von %2$d Zahlungen diesen Monat · %3$d selbst eingegeben</item>
     </plurals>
     <string name="percent_by_itself">%1$d %% von selbst</string>
-    <string name="from_senders">Von %1$s</string>
-    <plurals name="teach_missed">
-        <item quantity="one">Bring ihr %d verpasste Nachricht bei</item>
-        <item quantity="other">Bring ihr %d verpasste Nachrichten bei</item>
-    </plurals>
     <string name="move_accounts_title">Deine Konten auf %1$s umstellen?</string>
     <plurals name="move_accounts_line">
         <item quantity="one">%1$d Konto ist in %2$s. Stell es samt Zahlungen auf %3$s um, oder lass es in %2$s und füge unter Anpassen › Währung einen Kurs hinzu.</item>
@@ -1223,7 +1224,6 @@
     <string name="who_sent_it">Absender</string>
     <string name="rename_rule_line">So steht sie in deiner Regelliste</string>
     <string name="teach_fix">Tippe noch einmal auf den Betrag.</string>
-    <string name="category_for_payment">Kategorie für diese Zahlung</string>
     <string name="use_for_messages_like_this">Für solche Nachrichten verwenden</string>
     <string name="test_help">Füge eine Nachricht von %1$s ein; die gelesenen Teile werden markiert.</string>
     <string name="licences_line">Burrow und was es verwendet</string>
@@ -1242,4 +1242,32 @@
     <string name="bill_reminder_time_line">Einen Tag vor Fälligkeit</string>
     <string name="sunday_review_time">Uhrzeit für den Sonntagsrückblick</string>
     <string name="every_sunday">Jeden Sonntag</string>
+    <plurals name="n_not_understood">
+        <item quantity="one">%d Nachricht nicht verstanden</item>
+        <item quantity="other">%d Nachrichten nicht verstanden</item>
+    </plurals>
+    <string name="teach_once_line">Einmal beibringen, dann werden ähnliche Nachrichten gelesen</string>
+    <string name="own_limit">Eigenes Limit</string>
+    <string name="shares_limit_of">Gleiches Limit wie %1$s</string>
+    <string name="shared_with">geteilt mit %1$s</string>
+    <string name="shared_limit_line">Karten auf einer Kreditlinie teilen ein Limit</string>
+    <string name="due">Fällig</string>
+    <string name="every_week_on">Jede Woche am %1$s</string>
+    <string name="every_year_on">Jedes Jahr am %1$s</string>
+    <string name="next_on">Nächste: %1$s</string>
+    <string name="since_statement_chip">Seit Abrechnung %1$s</string>
+    <string name="own_limit_line">Limit unten eingeben</string>
+    <string name="shares_limit_line">Verfügbar zählt beide Karten</string>
+    <string name="new_category_line">Name, Farbe und Symbol</string>
+    <string name="back_to_today">Zurück zu Heute</string>
+    <string name="teach_once_short">Einmal beibringen, ab dann gelesen</string>
+    <string name="teach_the_ones_missed">Bring ihr die verpassten bei</string>
+    <string name="teach_category_in_review">Gelesene Zahlungen landen in Zu prüfen mit der üblichen Kategorie des Empfängers; dort wählst du sie.</string>
+    <plurals name="teach_n_missed">
+        <item quantity="one">%d verpasste Nachricht beibringen</item>
+        <item quantity="other">%d verpasste Nachrichten beibringen</item>
+    </plurals>
+    <string name="about_contact">Kontakt: %1$s</string>
+    <string name="made_by">Von Nisab Mohd &amp; Mitwirkenden</string>
+    <string name="every_weekday_next">Jeden %1$s · nächster am %2$s</string>
 </resources>

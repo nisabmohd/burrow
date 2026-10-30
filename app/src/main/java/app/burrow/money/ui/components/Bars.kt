@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -186,6 +188,9 @@ fun BurrowNavBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, m
     // Large text (153): only the selected tab keeps its label, so five labels never squeeze.
     val allLabels = androidx.compose.ui.platform.LocalDensity.current.fontScale <= LARGE_TEXT
     NavigationBar(modifier, containerColor = c.surfaceContainerLow) {
+        // The bar runs edge to edge but its tabs keep in from it: without this the first and last
+        // pills sat about 6 dp from the edge, against the 16 dp of every screen (as Sprout 1.4.0).
+        Spacer(Modifier.width(Space.navBarEnd))
         items.forEachIndexed { i, item ->
             val isSelected = i == selected
             NavigationBarItem(
@@ -218,6 +223,7 @@ fun BurrowNavBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, m
                 ),
             )
         }
+        Spacer(Modifier.width(Space.navBarEnd))
     }
 }
 

@@ -8,6 +8,8 @@ import android.content.Intent
 import app.burrow.money.AppContainer
 import app.burrow.money.BurrowApp
 import app.burrow.money.R
+import app.burrow.money.data.AccountEntity
+import app.burrow.money.data.AccountType
 import app.burrow.money.data.OccurrenceStatus
 import app.burrow.money.data.OccurrenceView
 import app.burrow.money.data.OnDue
@@ -16,6 +18,7 @@ import app.burrow.money.data.TxnType
 import app.burrow.money.domain.BudgetPeriod
 import app.burrow.money.domain.MoneyFormat
 import app.burrow.money.domain.budgetAlert
+import app.burrow.money.domain.depositValue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -38,6 +41,16 @@ private fun events(list: List<OccurrenceView>, zone: ZoneId, atMinutes: Int): Li
     }
     .sortedBy { it.at }
 
+/** A deposit with "Remind me a week before": one note at the reminder time, 7 days before it matures. */
+internal data class DepositEvent(val at: Long, val deposit: AccountEntity)
+
+internal fun depositEvents(accounts: List<AccountEntity>, zone: ZoneId, atMinutes: Int): List<DepositEvent> = accounts
+    .filter { it.type == AccountType.SAVINGS && it.remind && !it.archived && !it.isSample && it.maturityDate != null }
+    .map { a ->
+        val maturity = Instant.ofEpochMilli(a.maturityDate!!).atZone(zone).toLocalDate()
+        DepositEvent(maturity.minusDays(7).atStartOfDay(zone).plusMinutes(atMinutes.toLong()).toInstant().toEpochMilli(), a)
+    }
+
 /**
  * Bill reminders (Day 11). Runs what came due since the last run (at app start and when the alarm
  * fires), then sets one inexact alarm for the next event: no WorkManager, no exact-alarm permission
@@ -48,6 +61,8 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
     val today = LocalDate.now(zone)
     val list = plan.occurrences(today.minusDays(7), today.plusDays(62)).first()
     val all = events(list, zone, settings.settings.first().billReminderMinutes)
+    val accounts = money.accounts.first().map { it.account }
+    val deposits = depositEvents(accounts, zone, settings.settings.first().billReminderMinutes)
     val last = settings.billsCheckedAt()
     // Upcoming one-offs whose day has come are added, with a quiet note each (115).
     val posted = money.postDueList(now)
@@ -66,6 +81,7 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
         val st = settings.settings.first()
         val money = MoneyFormat.of(st.mainCurrency).withHidden(st.hideInNotifications)
         // "Record it" still records with reminders switched off in Notifications; it just stays quiet.
+        // Deposit reminders follow the same Bills switch.
         val notifier = if (st.notifyBills) planNotifier else null
         for (e in all.filter { it.at in (last + 1)..now }) {
             val o = e.o
@@ -80,10 +96,27 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
                 else -> notifier?.show(id, string(R.string.reminder_today, o.name), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
             }
         }
+        for (e in deposits.filter { it.at in (last + 1)..now }) {
+            val a = e.deposit
+            val zoneDay = { ms: Long -> Instant.ofEpochMilli(ms).atZone(zone).toLocalDate() }
+            val maturity = zoneDay(a.maturityDate!!)
+            var unit = 1L
+            repeat(app.burrow.money.data.minorDigits(a.currency)) { unit *= 10 }
+            val total = depositValue(
+                a.principal ?: 0, a.interestRate?.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
+                a.startDate?.let(zoneDay) ?: maturity, maturity, maturity, unit,
+            )
+            val fmt = MoneyFormat.of(a.currency).withHidden(st.hideInNotifications)
+            val payout = accounts.firstOrNull { it.id == a.payoutAccountId }?.name
+            // "₹1,12,000 goes to HDFC Savings on Mon, 26 Oct" (166).
+            val day = app.burrow.money.ui.DateText(context, java.util.Locale.getDefault(), st.dateFormat).weekdayDay(maturity)
+            val line = if (payout != null) string(R.string.deposit_reminder_line, fmt.plain(total), payout, day) else string(R.string.deposit_reminder_line_alone, fmt.plain(total), day)
+            notifier?.show(60_000 + (a.id % 10_000).toInt(), string(R.string.deposit_reminder, a.name), line, Notifier.openAccounts(context))
+        }
     }
     settings.setBillsCheckedAt(now)
     // The next bill event or the next upcoming payment's time, whichever comes first.
-    scheduleNext(listOfNotNull(all.firstOrNull { it.at > now }?.at, money.nextUpcoming()).minOrNull())
+    scheduleNext(listOfNotNull(all.firstOrNull { it.at > now }?.at, deposits.filter { it.at > now }.minOfOrNull { it.at }, money.nextUpcoming()).minOrNull())
 }
 
 private fun AppContainer.string(id: Int, vararg args: Any) = strings(id, *args)

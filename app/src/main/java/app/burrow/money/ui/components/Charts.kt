@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.burrow.money.ui.theme.BAR_STAGGER_MS
 import app.burrow.money.ui.theme.BurrowType
+import app.burrow.money.ui.theme.Chart
 import app.burrow.money.ui.theme.Easing
 import app.burrow.money.ui.theme.Size
 
@@ -82,13 +83,13 @@ fun PillBarChart(
     LaunchedEffect(bars) { grow.animateTo(1f, app.burrow.money.ui.theme.barGrowSpec(bars.size)) }
     Column(modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth().height(height).then(tapArea)) {
-            Row(Modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {
+            Row(Modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) Chart.barGapDense else Chart.barGap)) {
                 bars.forEachIndexed { i, b ->
                     Box(Modifier.weight(1f).height(height), contentAlignment = Alignment.BottomCenter) {
                         Canvas(Modifier.fillMaxWidth().height(height)) {
                             val w = minOf(Size.chartBar.toPx(), size.width)
                             if (b.value <= 0L) {
-                                drawCircle(c.surfaceContainerHigh, radius = 3.dp.toPx(), center = Offset(size.width / 2, size.height - 3.dp.toPx()))
+                                drawCircle(c.surfaceContainerHigh, radius = Chart.emptyDot.toPx(), center = Offset(size.width / 2, size.height - Chart.emptyDot.toPx()))
                             } else {
                                 val h = pillBarHeight(b.value, max, size.height, w, grow.value)
                                 drawRoundRect(
@@ -103,10 +104,10 @@ fun PillBarChart(
             }
             if (showAverage && avg > 0f) Canvas(Modifier.fillMaxWidth().height(height)) {
                 val y = size.height - size.height * (avg / max)
-                drawLine(c.outline, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)))
+                drawLine(c.outline, Offset(0f, y), Offset(size.width, y), strokeWidth = Chart.average.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)))
             }
         }
-        Row(Modifier.fillMaxWidth().heightIn(min = 22.dp), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) 3.dp else 6.dp)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = Chart.labelRow), horizontalArrangement = Arrangement.spacedBy(if (bars.size > 14) Chart.barGapDense else Chart.barGap)) {
             bars.forEachIndexed { i, b ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
                     // Every nth label plus the last one; a label too close to the last one gives way ("21 22").
@@ -130,14 +131,14 @@ private fun Color.compositeOverSurface(bg: Color): Color =
 
 /** Ring with a gap, filling clockwise from 12 o'clock. Rows 40 dp, widgets 52 dp, wide widgets 104 dp. */
 @Composable
-fun ProgressRing(progress: Float, color: Color, track: Color, size: Dp, stroke: Dp = 4.dp, content: @Composable () -> Unit = {}) {
+fun ProgressRing(progress: Float, color: Color, track: Color, size: Dp, stroke: Dp = Chart.ring, content: @Composable () -> Unit = {}) {
     Box(Modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(size)) {
             val s = stroke.toPx()
             val tl = Offset(s / 2, s / 2)
             val arc = GSize(this.size.width - s, this.size.height - s)
             val p = if (progress.isNaN()) 0f else progress.coerceIn(0f, 1f)
-            val gap = ringGapDegrees(s, arc.width / 2, 3.dp.toPx())
+            val gap = ringGapDegrees(s, arc.width / 2, Chart.ringGap.toPx())
             when {
                 p <= 0f -> drawArc(track, -90f, 360f, false, tl, arc, style = Stroke(s))
                 p >= 1f -> drawArc(color, -90f, 360f, false, tl, arc, style = Stroke(s))
@@ -190,11 +191,11 @@ fun heatLevel(value: Long, max: Long): Int = when {
 fun WavyProgress(progress: Float, color: Color, modifier: Modifier = Modifier) {
     val p = progress.coerceIn(0f, 1f)
     Canvas(modifier.fillMaxWidth().height(Size.wavyHeight)) {
-        val stroke = 4.dp.toPx()
+        val stroke = Chart.wavy.toPx()
         val mid = size.height / 2
-        val amp = 3.2.dp.toPx()
-        val wave = 26.dp.toPx()
-        val inset = 3.dp.toPx()
+        val amp = Chart.wavyAmplitude.toPx()
+        val wave = Chart.wavyLength.toPx()
+        val inset = Chart.wavyInset.toPx()
         val end = size.width * p
         if (end > inset * 2) {
             val path = androidx.compose.ui.graphics.Path()
@@ -202,14 +203,14 @@ fun WavyProgress(progress: Float, color: Color, modifier: Modifier = Modifier) {
             path.moveTo(x, mid)
             while (x <= end - inset) {
                 path.lineTo(x, mid + amp * kotlin.math.sin(2 * Math.PI * x / wave).toFloat())
-                x += 2.dp.toPx()
+                x += Chart.wavyStep.toPx()
             }
             drawPath(path, color, style = Stroke(stroke, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         }
-        val gap = 8.dp.toPx()
-        if (end < size.width - 14.dp.toPx()) {
+        val gap = Chart.wavyGap.toPx()
+        if (end < size.width - Chart.wavyTail.toPx()) {
             drawLine(color.copy(alpha = 0.22f), Offset(end + gap, mid), Offset(size.width - gap, mid), strokeWidth = stroke, cap = StrokeCap.Round)
-            drawCircle(color, radius = 2.dp.toPx(), center = Offset(size.width - 2.dp.toPx(), mid))
+            drawCircle(color, radius = Chart.wavyEndDot.toPx(), center = Offset(size.width - Chart.wavyEndDot.toPx(), mid))
         }
     }
 }
@@ -224,7 +225,7 @@ fun RingPercent(fraction: Float, color: Color, track: Color, size: Dp = Size.ico
     val c = MaterialTheme.colorScheme
     val shown by androidx.compose.animation.core.animateFloatAsState(fraction.coerceIn(0f, 1f), app.burrow.money.ui.theme.progressSpec(), label = "ring")
     val ringColor = if (over) c.error else color
-    val stroke = when { size >= Size.ringWide -> 10.dp; size > Size.iconCircle -> 5.dp; else -> 3.dp }
+    val stroke = when { size >= Size.ringWide -> Chart.ringWide; size > Size.iconCircle -> Chart.ringWidget; else -> Chart.ringRow }
     ProgressRing(if (done) 1f else shown, ringColor, if (over) c.error.copy(alpha = 0.25f) else track, size, stroke = stroke) {
         if (done) {
             androidx.compose.material3.Icon(
@@ -257,13 +258,13 @@ fun CumulativeLineChart(current: List<Long>, previous: List<Long>, modifier: Mod
     Canvas(modifier.fillMaxWidth().height(height)) {
         val n = maxOf(current.size, previous.size, 2)
         val max = maxOf(current.maxOrNull() ?: 0, previous.maxOrNull() ?: 0, 1).toFloat()
-        val pad = 2.dp.toPx() // half the line, so the top and ends aren't cut off
+        val pad = Chart.linePad.toPx() // half the line, so the top and ends aren't cut off
         fun x(i: Int) = pad + (size.width - 2 * pad) * i / (n - 1)
         fun y(v: Long) = size.height - pad - (size.height - 2 * pad) * (v.coerceAtLeast(0L) / max) * grow.value
         fun path(values: List<Long>) = androidx.compose.ui.graphics.Path().apply {
             values.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) }
         }
-        if (previous.size > 1) drawPath(path(previous), c.outline, style = Stroke(2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)), cap = StrokeCap.Round))
+        if (previous.size > 1) drawPath(path(previous), c.outline, style = Stroke(Chart.lineBefore.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)), cap = StrokeCap.Round))
         if (current.size > 1) {
             val line = path(current)
             val area = androidx.compose.ui.graphics.Path().apply {
@@ -273,9 +274,9 @@ fun CumulativeLineChart(current: List<Long>, previous: List<Long>, modifier: Mod
                 close()
             }
             drawPath(area, c.primary.copy(alpha = 0.12f))
-            drawPath(line, c.primary, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            drawPath(line, c.primary, style = Stroke(Chart.line.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         } else if (current.size == 1) {
-            drawCircle(c.primary, 3.dp.toPx(), Offset(x(0), y(current[0])))
+            drawCircle(c.primary, Chart.lineDot.toPx(), Offset(x(0), y(current[0])))
         }
     }
 }
@@ -289,7 +290,7 @@ fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, fill: Boolean =
         val min = values.min().toFloat()
         val flat = values.max() == values.min()
         val span = (values.max() - values.min()).toFloat().coerceAtLeast(1f)
-        val pad = 1.dp.toPx()
+        val pad = Chart.sparkPad.toPx()
         val p = androidx.compose.ui.graphics.Path()
         values.forEachIndexed { i, v ->
             val px = pad + (size.width - 2 * pad) * i / (values.size - 1)
@@ -300,7 +301,7 @@ fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, fill: Boolean =
             val area = androidx.compose.ui.graphics.Path().apply { addPath(p); lineTo(size.width - pad, size.height); lineTo(pad, size.height); close() }
             drawPath(area, c.primary.copy(alpha = 0.12f))
         }
-        drawPath(p, c.primary, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawPath(p, c.primary, style = Stroke(Chart.lineBefore.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
 
@@ -317,9 +318,9 @@ fun StackBar(parts: List<Pair<Color, Long>>, modifier: Modifier = Modifier) {
             drawRoundRect(Color.Gray.copy(alpha = 0.15f), Offset.Zero, size, CornerRadius(size.height / 2, size.height / 2))
             return@Canvas
         }
-        val gap = 3.dp.toPx()
+        val gap = Chart.stackGap.toPx()
         val usable = (size.width - gap * (shown.size - 1)).coerceAtLeast(0f)
-        val widths = stackWidths(shown.map { it.second }, usable, minOf(3.dp.toPx(), usable / shown.size))
+        val widths = stackWidths(shown.map { it.second }, usable, minOf(Chart.stackGap.toPx(), usable / shown.size))
         var x = 0f
         shown.forEachIndexed { i, (color, _) ->
             val w = widths[i]
@@ -356,7 +357,7 @@ fun heatColor(level: Int): Color {
 
 /** A ring split by category (Top category widget): arcs in each category's colour, gaps sized to the caps. */
 @Composable
-fun DonutChart(parts: List<Pair<Color, Long>>, size: Dp = Size.ringWidget, stroke: Dp = 6.dp) {
+fun DonutChart(parts: List<Pair<Color, Long>>, size: Dp = Size.ringWidget, stroke: Dp = Chart.donut) {
     val shown = parts.filter { it.second > 0 }
     val total = shown.sumOf { it.second }.coerceAtLeast(1)
     Canvas(Modifier.size(size)) {
@@ -367,7 +368,7 @@ fun DonutChart(parts: List<Pair<Color, Long>>, size: Dp = Size.ringWidget, strok
             drawArc(shown.firstOrNull()?.first ?: Color.Gray.copy(alpha = 0.2f), -90f, 360f, false, tl, arc, style = Stroke(s))
             return@Canvas
         }
-        val gap = ringGapDegrees(s, arc.width / 2, 2.dp.toPx())
+        val gap = ringGapDegrees(s, arc.width / 2, Chart.donutGap.toPx())
         var start = -90f
         shown.forEach { (color, v) ->
             val sweep = 360f * v / total
@@ -384,7 +385,7 @@ fun SplitBar(part: Long, whole: Long, modifier: Modifier = Modifier) {
     val c = MaterialTheme.colorScheme
     val f = if (whole <= 0) 0f else (part.toFloat() / whole).coerceIn(0f, 1f)
     Canvas(modifier.fillMaxWidth().height(Size.stackBar)) {
-        val gap = 4.dp.toPx()
+        val gap = Chart.splitGap.toPx()
         val h = size.height
         val w1 = when { f <= 0f -> 0f; f >= 1f -> size.width; else -> ((size.width - gap) * f).coerceAtLeast(h) }
         if (w1 > 0) drawRoundRect(c.primary, Offset.Zero, GSize(w1, h), CornerRadius(h / 2, h / 2))

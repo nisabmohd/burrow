@@ -111,6 +111,8 @@ object FormExtra {
     const val TIME = "time"; const val LAST_CATEGORY = "lastcat"
     /** The Favourite chip (04): saves the expense as a one-tap favourite too. */
     const val FAVOURITE = "favourite"
+    /** Recent chips on an empty form: the last few entries, one tap fills the form with them. */
+    const val RECENT = "recent"
 }
 val ALL_FORM_EXTRAS = setOf(FormExtra.NOTE, FormExtra.REPEAT, FormExtra.ATTACH, FormExtra.LEND, FormExtra.TIME, FormExtra.LAST_CATEGORY)
 
@@ -190,6 +192,7 @@ class SettingsRepository(context: Context) {
     suspend fun setFormExtra(key: String, on: Boolean) = store.edit {
         // The Favourite chip came later: it is on unless switched off, also for forms customised before it.
         if (key == FormExtra.FAVOURITE) { it[FAVOURITE_OFF] = !on; return@edit }
+        if (key == FormExtra.RECENT) { it[RECENT_OFF] = !on; return@edit }
         val now = it[FORM_EXTRAS] ?: DEFAULT_FORM_EXTRAS
         it[FORM_EXTRAS] = if (on) now + key else now - key
     }
@@ -303,7 +306,8 @@ class SettingsRepository(context: Context) {
                 ?.let { saved -> saved + HOME_WIDGET_ORDER.filter { it !in saved } } ?: HOME_WIDGET_ORDER,
             homeRecentCount = this[RECENT_COUNT] ?: 5,
             homeShowReview = this[SHOW_REVIEW] ?: true,
-            formExtras = (this[FORM_EXTRAS] ?: DEFAULT_FORM_EXTRAS).let { if (this[FAVOURITE_OFF] == true) it - FormExtra.FAVOURITE else it + FormExtra.FAVOURITE },
+            formExtras = (this[FORM_EXTRAS] ?: DEFAULT_FORM_EXTRAS).let { if (this[FAVOURITE_OFF] == true) it - FormExtra.FAVOURITE else it + FormExtra.FAVOURITE }
+                .let { if (this[RECENT_OFF] == true) it - FormExtra.RECENT else it + FormExtra.RECENT },
             formDefaultType = this[FORM_TYPE] ?: TxnType.EXPENSE,
             formDefaultAccount = this[FORM_ACCOUNT],
             onPaymentFound = this[PAYMENT_FOUND] ?: PaymentFound.ASK,
@@ -361,6 +365,7 @@ class SettingsRepository(context: Context) {
         val SHOW_REVIEW = booleanPreferencesKey("homeShowReview")
         val FORM_EXTRAS = stringSetPreferencesKey("formExtras")
         val FAVOURITE_OFF = booleanPreferencesKey("formFavouriteOff")
+        val RECENT_OFF = booleanPreferencesKey("formRecentOff")
         val FORM_TYPE = stringPreferencesKey("formDefaultType")
         val FORM_ACCOUNT = longPreferencesKey("formDefaultAccount")
         val PAYMENT_FOUND = stringPreferencesKey("onPaymentFound")

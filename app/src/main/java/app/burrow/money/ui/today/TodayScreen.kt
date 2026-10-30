@@ -49,6 +49,7 @@ fun TodayScreen(
     onOpen: (Long) -> Unit,
     onSeeAll: () -> Unit,
     onReview: () -> Unit,
+    onMissed: () -> Unit = {},
     onCaptureIntro: () -> Unit,
     onFixCapture: () -> Unit,
     onBill: (Long) -> Unit,
@@ -126,6 +127,19 @@ fun TodayScreen(
                         title = pluralStringResource(R.plurals.n_to_review, s.toReview, s.toReview),
                         line = stringResource(R.string.found_in_messages),
                         onClick = onReview,
+                        arrow = painterResource(R.drawable.ic_arrow_forward_regular),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            } else if (s.notUnderstood > 0 && s.showReview) {
+                // Messages no rule could read: one note to Not understood, so they never stay out of sight.
+                item(key = "missed", contentType = "note") {
+                    Note(
+                        kind = NoteKind.INFO,
+                        icon = painterResource(R.drawable.ic_help_duotone),
+                        title = pluralStringResource(R.plurals.n_not_understood, s.notUnderstood, s.notUnderstood),
+                        line = stringResource(R.string.teach_once_line),
+                        onClick = onMissed,
                         arrow = painterResource(R.drawable.ic_arrow_forward_regular),
                         modifier = Modifier.animateItem(),
                     )

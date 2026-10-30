@@ -22,6 +22,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import app.burrow.money.R
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.aspectRatio
 import app.burrow.money.ui.theme.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,9 +78,9 @@ fun TonalIconButton(icon: Painter, label: String, onClick: () -> Unit, active: B
         ) { Icon(icon, contentDescription = label) }
         if (badge > 0) {
             Box(
-                Modifier.align(Alignment.TopEnd).offset((-2).dp, 2.dp).sizeIn(minWidth = 16.dp, minHeight = 16.dp).clip(Shapes.pill).background(c.primary),
+                Modifier.align(Alignment.TopEnd).offset(-Space.row, Space.row).sizeIn(minWidth = Size.badge, minHeight = Size.badge).clip(Shapes.pill).background(c.primary),
                 contentAlignment = Alignment.Center,
-            ) { Text("$badge", style = BurrowType.label, color = c.onPrimary, modifier = Modifier.padding(horizontal = 4.dp)) }
+            ) { Text("$badge", style = BurrowType.label, color = c.onPrimary, modifier = Modifier.padding(horizontal = Space.grid)) }
         }
     }
 }
@@ -138,10 +142,11 @@ fun BurrowButton(
     }
     Button(
         onClick = onClick,
-        modifier = modifier.height(height),
+        // [height] is the least: at large text the label scales freely and the pill grows to hold it.
+        modifier = modifier.heightIn(min = height),
         shape = Shapes.pill,
         colors = ButtonDefaults.buttonColors(containerColor = bg, contentColor = fg),
-        contentPadding = PaddingValues(horizontal = Space.sheet),
+        contentPadding = PaddingValues(horizontal = Space.sheet, vertical = Space.small),
     ) {
         if (icon != null) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(Size.iconButton20))
@@ -364,3 +369,48 @@ fun Chevron() = Icon(
     tint = MaterialTheme.colorScheme.onSurfaceVariant,
     modifier = Modifier.size(Size.icon),
 )
+
+/**
+ * Pick a weekday (163): seven day circles in one row from [first] (Customise › Region › Week), the
+ * chosen one primary, the rest surfaceContainerLow. Each day has an equal share of the width and a
+ * 48 dp tall target; its circle is [Size.weekdayCircle], smaller only when seven don't fit. TalkBack
+ * reads the full day name and whether it is chosen.
+ */
+@Composable
+fun WeekdayRow(selected: java.time.DayOfWeek, first: java.time.DayOfWeek, onPick: (java.time.DayOfWeek) -> Unit, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    val locale = java.util.Locale.getDefault()
+    Row(modifier.fillMaxWidth().padding(vertical = Space.small).selectableGroup()) {
+        (0L until 7L).map { first.plus(it) }.forEach { day ->
+            val on = day == selected
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(Size.button)
+                    .clip(Shapes.pill)
+                    .selectable(on, role = Role.RadioButton) { if (!on) { haptics.tick(); onPick(day) } }
+                    .semantics(mergeDescendants = true) { contentDescription = day.getDisplayName(java.time.format.TextStyle.FULL, locale) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier
+                        .sizeIn(maxWidth = Size.weekdayCircle, maxHeight = Size.weekdayCircle)
+                        .aspectRatio(1f)
+                        .clip(Shapes.pill)
+                        .background(if (on) c.primary else c.surfaceContainerLow),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // The letter sits in a fixed circle, so it stops growing at 1.3× (like a ring's number).
+                    CappedFontScale {
+                        Text(
+                            day.getDisplayName(java.time.format.TextStyle.NARROW, locale), style = BurrowType.titleSmall,
+                            color = if (on) c.onPrimary else c.onSurface,
+                            modifier = Modifier.clearAndSetSemantics { },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

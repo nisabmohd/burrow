@@ -100,6 +100,10 @@ Row 72 (56 one-line) · icon circle 40 (big 64) · icon 24 (22 in circles) · bu
 · icon button 48 · chip 36 · keypad key 60 · top bar 64 · bottom nav 80 · search 56 · note 72 · half widget 184
 · heatmap day 38 · chart bar 16 wide, chart 104 tall. Touch targets are never under 48 dp.
 
+**Chart** (strokes and gaps inside the Canvas charts, `Chart` in Dimens.kt): bars 6 apart (3 past 14 bars), empty-bar
+dot 3, average line 1.5 dashed; rings 4 (3 in rows, 5 in widgets, 10 wide) with a 3 gap, donut 6 with a 2 gap; hero wave
+4 (amplitude 3.2, length 26); running total 2.5 over a dashed 2 line; stack bar parts 3 apart, split bar 4.
+
 ## Shape — the one-shape rule
 Only two shapes exist (user, 2026-10-19):
 - **Surfaces: 24 dp corners.** Cards, widgets, list groups (24 outside / 6 between rows), sheets (top), dialogs, notes, snackbar, tiles.

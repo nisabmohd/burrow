@@ -24,8 +24,6 @@ data class AutoCaptureState(
     val yourRules: Int,
     /** "92% · Recorded by itself" (15). */
     val trust: app.burrow.money.data.Trust = app.burrow.money.data.Trust(0, 0),
-    /** Who sent the messages it couldn't read ("Kotak and SBI Card"). */
-    val unreadFrom: List<String> = emptyList(),
     /** The India pack is on: "Built-in for India" on the Message rules row. */
     val indiaPack: Boolean = false,
 )
@@ -33,13 +31,13 @@ data class AutoCaptureState(
 /** Auto-capture (48): the two switches, messages to teach, rules, Try it. */
 class AutoCaptureViewModel(private val app: AppContainer, monthStartDay: Int) : ViewModel() {
     val state: StateFlow<AutoCaptureState?> = combine(
-        combine(app.capture.savedThisMonth(monthStartDay), app.next.trust(BudgetPeriod.containing(java.time.LocalDate.now(), monthStartDay)), app.next.unreadSenders) { a, b, c -> Triple(a, b, c) },
+        combine(app.capture.savedThisMonth(monthStartDay), app.next.trust(BudgetPeriod.containing(java.time.LocalDate.now(), monthStartDay)), ::Pair),
         app.settings.settings,
         app.capture.banksSeen("SMS"),
         app.capture.notUnderstoodCount,
         app.capture.userRules,
-    ) { (saved, trust, from), s, banks, unread, mine ->
-        AutoCaptureState(saved, s.smsCapture, s.notificationCapture, banks, unread, mine.size, trust, from.map(::senderName).distinct(), "in" in s.enabledPacks)
+    ) { (saved, trust), s, banks, unread, mine ->
+        AutoCaptureState(saved, s.smsCapture, s.notificationCapture, banks, unread, mine.size, trust, "in" in s.enabledPacks)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setSms(on: Boolean) = viewModelScope.launch { app.settings.setSmsCapture(on) }

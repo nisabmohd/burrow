@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -109,11 +110,17 @@ fun MissedScreen(vm: MissedViewModel, onBack: () -> Unit, onTeach: (Long) -> Uni
 @Composable
 private fun MissedCard(m: CaptureEntity, modifier: Modifier, onTeach: () -> Unit, onIgnore: () -> Unit) {
     val dates = rememberDateText()
-    val from = if (m.source == "SMS") senderName(m.sender) else m.sender.substringAfterLast('.')
+    // "AX-HDFCBK-S" → "HDFCBK"; a notification → its app's name, not the package.
+    val context = LocalContext.current
+    val from = remember(m.sender, m.source) {
+        if (m.source == "SMS") senderName(m.sender).substringBefore('-')
+        else runCatching { context.packageManager.run { getApplicationLabel(getApplicationInfo(m.sender, 0)).toString() } }
+            .getOrElse { m.sender.substringAfterLast('.') }
+    }
     val day = dates.day(dates.date(m.receivedAt)).let { d -> if (d == stringResource(R.string.today)) dates.time(m.receivedAt) else d }
     MessageCard(
         lead = { IconCircle(painterResource(if (m.source == "SMS") R.drawable.ic_sms_duotone else R.drawable.ic_notifications_duotone)) },
-        title = m.sender.ifBlank { from }, line = day,
+        title = from.ifBlank { m.sender }, line = day,
         ignoreLabel = stringResource(R.string.ignore), onIgnore = onIgnore,
         button = stringResource(R.string.teach), buttonIcon = painterResource(R.drawable.ic_hand_tap_regular), onButton = onTeach,
         modifier = modifier,

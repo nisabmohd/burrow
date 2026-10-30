@@ -23,9 +23,12 @@ import org.junit.runners.Parameterized
 
 /** PickRow (C1: round check, no tint) and MessageCard (To review / Not understood: a button, no swipe). */
 @RunWith(Parameterized::class)
-class PickAndCardsTest(private val width: Dp, private val fontScale: Float) {
+class PickAndCardsTest(private val widthDp: Float, private val fontScale: Float) {
+    // JUnit builds the test by reflection, which can't pass a Dp (a value class): the width comes in as a Float.
+    private val width: Dp get() = widthDp.dp
+
     companion object {
-        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first, it.second) }
+        @JvmStatic @Parameterized.Parameters(name = "{0} at {1}x") fun sizes() = SIZES.map { arrayOf<Any>(it.first.value, it.second) }
     }
 
     @get:Rule val rule = createComposeRule()

@@ -7,6 +7,7 @@
             <intent-filter>
                 <action android:name="app.burrow.money.debug.SUNDAY_REVIEW" />
                 <action android:name="app.burrow.money.debug.HOME" />
+                <action android:name="app.burrow.money.debug.SEED_REVIEW" />
             </intent-filter>
         </receiver>
     </application>

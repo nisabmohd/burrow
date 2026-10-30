@@ -17,10 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -32,13 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.semantics
+import app.burrow.money.ui.components.SwipeAction
+import app.burrow.money.ui.components.SwipeRow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
 import app.burrow.money.data.BudgetLine
@@ -225,33 +220,14 @@ private fun ComingRow(item: ComingItem, index: Int, count: Int, onOpen: (ComingI
     val money = LocalMoney.current
     val dates = rememberDateText()
     val c = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
     val today = remember { LocalDate.now() }
     val late = item.group == ComingGroup.OVERDUE
     val rightLabel = stringResource(if (item.repeats) R.string.mark_paid else R.string.add_now)
     val leftLabel = stringResource(if (item.repeats) R.string.skip else R.string.delete)
-    val swipe = rememberSwipeToDismissBoxState(confirmValueChange = { v ->
-        when (v) {
-            SwipeToDismissBoxValue.StartToEnd -> { haptics.confirm(); right(item) }
-            SwipeToDismissBoxValue.EndToStart -> { haptics.threshold(); left(item) }
-            else -> Unit
-        }
-        false // the row stays; the data moves it
-    })
-    SwipeToDismissBox(
-        swipe,
-        backgroundContent = {
-            val toRight = swipe.dismissDirection == SwipeToDismissBoxValue.StartToEnd
-            if (swipe.dismissDirection != SwipeToDismissBoxValue.Settled) {
-                Row(
-                    Modifier.fillMaxSize().clip(Shapes.grouped(index, count)).background(if (toRight) c.primaryContainer else c.surfaceContainerHigh).padding(horizontal = Space.sheet),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = if (toRight) Arrangement.Start else Arrangement.End,
-                ) {
-                    Text(if (toRight) rightLabel else leftLabel, style = BurrowType.button, color = if (toRight) c.onPrimaryContainer else c.onSurfaceVariant)
-                }
-            }
-        },
+    SwipeRow(
+        SwipeAction(null, rightLabel, primary = true, showLabel = true) { right(item) },
+        SwipeAction(null, leftLabel, primary = false, showLabel = true) { left(item) },
+        Shapes.grouped(index, count),
     ) {
         val whenText = if (late) stringResource(R.string.was_due_cap, dates.shortDay(item.date)) else dates.due(item.date, today)
         ListRow(
@@ -259,9 +235,6 @@ private fun ComingRow(item: ComingItem, index: Int, count: Int, onOpen: (ComingI
             supporting = stringResource(R.string.dot_join, whenText, shortName(item.accountName)),
             supportingColor = if (late) c.error else c.onSurfaceVariant,
             supportingIcon = painterResource(if (item.repeats) R.drawable.ic_autorenew_regular else R.drawable.ic_event_upcoming_regular),
-            modifier = Modifier.semantics {
-                customActions = listOf(CustomAccessibilityAction(rightLabel) { right(item); true }, CustomAccessibilityAction(leftLabel) { left(item); true })
-            },
             lead = { CategoryCircle(item.icon, item.hue) },
             trailing = {
                 AmountTrailing(

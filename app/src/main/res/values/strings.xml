@@ -213,7 +213,6 @@
     <string name="payment_apps_line" translatable="false">GPay, PhonePe, Paytm</string>
     <string name="off">Off</string>
     <string name="on">On</string>
-    <string name="tap_to_teach">Tap to teach the app</string>
     <string name="message_rules">Message rules</string>
     <string name="rules_line">Built-in for India · %1$d of yours</string>
     <plurals name="rules_line_yours">
@@ -272,6 +271,8 @@
     <string name="what_it_reads">What it reads</string>
     <string name="amount">Amount</string>
     <string name="paid_to">Paid to</string>
+    <!-- A rule's name part: the payee for money out, the sender for money in. -->
+    <string name="from_or_to">From / to</string>
     <string name="direction">Direction</string>
     <string name="money_out">Money out</string>
     <string name="money_in">Money in</string>
@@ -293,7 +294,7 @@
     <!-- Teach (52) -->
     <string name="teach_title">Teach a message</string>
     <string name="teach_amount">Tap the &lt;b&gt;amount&lt;/b&gt; in the message.</string>
-    <string name="teach_payee">Tap &lt;b&gt;who you paid&lt;/b&gt;, or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
+    <string name="teach_payee">Tap the &lt;b&gt;name&lt;/b&gt;: who you paid or who paid you, or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
     <string name="teach_account">Tap the &lt;b&gt;account&lt;/b&gt;, or &lt;a href="skip"&gt;skip it&lt;/a&gt;.</string>
     <string name="teach_done">All set. Messages like this will be read from now on.</string>
     <string name="not_picked">Not picked yet</string>
@@ -398,6 +399,8 @@
     <string name="due_day">Due day</string>
     <string name="every_month_on">Every month on the %1$s</string>
     <string name="due_every_month_on">Due every month on</string>
+    <string name="due_every_week_on">Due every week on</string>
+    <string name="due_every_year_on">Due every year on</string>
     <string name="next_due">Next due %1$s</string>
     <string name="when_due">When it is due</string>
     <string name="bill_cant_save">Add a name, an amount and an account to save.</string>
@@ -494,6 +497,9 @@
     <string name="an_account">an account</string>
     <string name="asks_you_on">Asks you on %1$s</string>
     <string name="remind_week_before">Remind me a week before</string>
+    <string name="deposit_reminder">%1$s matures in a week</string>
+    <string name="deposit_reminder_line">%1$s goes to %2$s on %3$s</string>
+    <string name="deposit_reminder_line_alone">%1$s at maturity on %2$s</string>
     <string name="fix_balance">Fix balance</string>
     <string name="fix_balance_line">If it doesn\'t match your bank</string>
     <string name="balance_fixed">Balance fixed</string>
@@ -508,6 +514,10 @@
     <string name="put_in_label">Amount put in</string>
     <string name="last_digits">Last digits</string>
     <string name="credit_limit">Credit limit</string>
+    <string name="own_limit">Its own limit</string>
+    <string name="shares_limit_of">Same limit as %1$s</string>
+    <string name="shared_with">shared with %1$s</string>
+    <string name="shared_limit_line">Cards on one credit line share one limit</string>
     <string name="statement_day">Statement day</string>
     <string name="emi_label">EMI</string>
     <string name="interest_rate" formatted="false">Interest rate (% a year)</string>
@@ -857,6 +867,7 @@
     <string name="extra_lend">Lend</string>
     <string name="extra_time">Time</string>
     <string name="extra_last_category">Last category</string>
+    <string name="extra_recent">Recent</string>
     <string name="opens_as">Opens as</string>
     <string name="default_account">Default account</string>
     <string name="change">Change</string>
@@ -1158,11 +1169,6 @@
         <item quantity="other">%1$d of %2$d payments this month · you typed %3$d</item>
     </plurals>
     <string name="percent_by_itself">%1$d%% by itself</string>
-    <string name="from_senders">From %1$s</string>
-    <plurals name="teach_missed">
-        <item quantity="one">Teach it %d message it missed</item>
-        <item quantity="other">Teach it %d messages it missed</item>
-    </plurals>
     <string name="move_accounts_title">Move your accounts to %1$s?</string>
     <plurals name="move_accounts_line">
         <item quantity="one">%1$d account is in %2$s. Move it and its payments to %3$s, or keep it in %2$s and add a rate in Customise › Currency.</item>
@@ -1246,6 +1252,11 @@
     <string name="change_date">Change date</string>
     <string name="saved_upcoming_on">Saved · Upcoming on %1$s</string>
     <string name="not_understood_title">Not understood</string>
+    <plurals name="n_not_understood">
+        <item quantity="one">%d message not understood</item>
+        <item quantity="other">%d messages not understood</item>
+    </plurals>
+    <string name="teach_once_line">Teach once and messages like it are read</string>
     <string name="not_understood_line">These looked like payments but no rule could read them. Teach once, and messages like it are read from then on.</string>
     <string name="nothing_to_teach">Nothing to teach</string>
     <string name="nothing_to_teach_line">Messages the app can\'t read show up here.</string>
@@ -1280,7 +1291,6 @@
     <string name="who_sent_it">Who sent it</string>
     <string name="rename_rule_line">Shown in your rules list</string>
     <string name="teach_fix">Tap the amount again so it reads back.</string>
-    <string name="category_for_payment">Category for this payment</string>
     <string name="use_for_messages_like_this">Use for messages like this</string>
     <string name="test_help">Paste any message from %1$s; the parts it reads are highlighted.</string>
     <string name="licences_line">Burrow and what it uses</string>
@@ -1302,4 +1312,21 @@
     <string name="bill_reminder_time_line">A day before it is due</string>
     <string name="sunday_review_time">Sunday review time</string>
     <string name="every_sunday">Every Sunday</string>
+    <string name="due">Due</string>
+    <string name="every_week_on">Every week on %1$s</string>
+    <string name="every_year_on">Every year on %1$s</string>
+    <string name="next_on">Next: %1$s</string>
+    <string name="since_statement_chip">Since statement %1$s</string>
+    <string name="own_limit_line">Type its limit below</string>
+    <string name="shares_limit_line">Available counts both cards</string>
+    <string name="new_category_line">Name, colour and icon</string>
+    <string name="back_to_today">Back to Today</string>
+    <string name="teach_once_short">Teach once, read from then on</string>
+    <string name="teach_the_ones_missed">Teach it the ones it missed</string>
+    <string name="teach_category_in_review">Payments it reads go to To review with the payee\'s usual category; you pick it there.</string>
+    <plurals name="teach_n_missed">
+        <item quantity="one">Teach %d message it missed</item>
+        <item quantity="other">Teach %d messages it missed</item>
+    </plurals>
+    <string name="every_weekday_next">Every %1$s · next on %2$s</string>
 </resources>

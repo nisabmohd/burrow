@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -90,7 +91,11 @@ class AccountsViewModel(private val money: MoneyRepository) : ViewModel() {
 
 /** A card's numbers (57). */
 @Immutable
-data class CardInfo(val due: Long, val dueDate: LocalDate?, val sinceStatement: Long, val statementDate: LocalDate?, val limit: Long?)
+data class CardInfo(
+    val due: Long, val dueDate: LocalDate?, val sinceStatement: Long, val statementDate: LocalDate?, val limit: Long?,
+    /** Cards on one credit line: what all of them owe (the limit is used by all), and the others' names. */
+    val lineDue: Long = due, val sharedWith: List<String> = emptyList(),
+)
 
 /** A loan's numbers (58). */
 @Immutable
@@ -112,7 +117,8 @@ data class AccountState(
 )
 
 /** One account (56–59). */
-class AccountViewModel(private val money: MoneyRepository, private val strings: Strings, val id: Long) : ViewModel() {
+/** [onDepositChanged] sets the reminder alarm again after a deposit's "Remind me a week before" changes. */
+class AccountViewModel(private val money: MoneyRepository, private val strings: Strings, val id: Long, private val onDepositChanged: suspend () -> Unit = {}) : ViewModel() {
     private val today = LocalDate.now(zone)
 
     val state: StateFlow<AccountState?> = combine(money.accounts, money.latest(400)) { accs, txns ->
@@ -124,20 +130,28 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
             balance = me.balance,
             txns = mine,
             others = accs.filter { it.account.id != id },
-            card = if (a.type == AccountType.CARD) card(a, me.balance, mine) else null,
+            card = if (a.type == AccountType.CARD) card(a, me.balance, mine, accs) else null,
             loan = if (a.type == AccountType.LOAN) loan(a, me.balance) else null,
             deposit = if (a.type == AccountType.SAVINGS && a.maturityDate != null) deposit(a, accs) else null,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private fun card(a: AccountEntity, balance: Long, txns: List<TxnView>): CardInfo {
+    private fun card(a: AccountEntity, balance: Long, txns: List<TxnView>, accs: List<AccountWithBalance>): CardInfo {
         val statement = a.statementDay?.let { d ->
             val here = YearMonth.from(today).atDay(d.coerceAtMost(YearMonth.from(today).lengthOfMonth()))
             if (here.isAfter(today)) here.minusMonths(1) else here
         }
         val due = a.dueDay?.let { app.burrow.money.domain.Repeat.Monthly(it).nextOnOrAfter(today) }
         val since = statement?.let { s -> txns.filter { it.txn.accountId == a.id && it.txn.type == TxnType.EXPENSE && !it.txn.at.day().isBefore(s) }.sumOf { it.txn.amount } } ?: 0
-        return CardInfo((-balance).coerceAtLeast(0), due, since, statement, a.creditLimit)
+        // One credit line: the limit is the line's first card's, and every card on it uses it up.
+        val line = creditLine(a.id, accs.map { it.account })
+        val owner = accs.firstOrNull { it.account.id == line }?.account ?: a
+        val cards = accs.filter { it.account.type == AccountType.CARD && creditLine(it.account.id, accs.map { x -> x.account }) == line }
+        return CardInfo(
+            (-balance).coerceAtLeast(0), due, since, statement, owner.creditLimit,
+            lineDue = cards.sumOf { (-it.balance).coerceAtLeast(0) },
+            sharedWith = cards.filter { it.account.id != a.id }.map { it.account.name },
+        )
     }
 
     private fun loan(a: AccountEntity, balance: Long): LoanInfo? = loanInfo(a, balance, today)
@@ -183,7 +197,9 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
         onDone { money.delete(txnId) }
     }
 
-    fun setRemind(on: Boolean) = viewModelScope.launch { state.value?.account?.let { money.updateAccount(it.copy(remind = on)) } }
+    fun setRemind(on: Boolean) = viewModelScope.launch {
+        state.value?.account?.let { money.updateAccount(it.copy(remind = on)); onDepositChanged() }
+    }
 
     /** Count in net worth (86). */
     fun setInNetWorth(on: Boolean) = viewModelScope.launch { state.value?.account?.let { money.updateAccount(it.copy(includeInNetWorth = on)) } }
@@ -209,6 +225,8 @@ data class AccountForm(
     val inNetWorth: Boolean? = null,
     /** Edit only: the opening balance, shown with "fix it from Fix balance". */
     val opening: Long = 0,
+    /** CARD: uses this other card's credit limit (null: its own). */
+    val sharesLimitWith: Long? = null,
 ) {
     val shownIcon get() = icon ?: defaultAccountIcon(type)
     val countsInNetWorth get() = inNetWorth ?: app.burrow.money.data.defaultInNetWorth(type)
@@ -230,6 +248,16 @@ val ACCOUNT_ICONS = listOf(
     "smartphone", "home", "shield", "flight", "school", "redeem",
 )
 
+/**
+ * The credit line [cardId] is on: the id of the card that holds the limit. A card shares with one
+ * card; if that one shares too, its line wins (one step, so a loop can't form).
+ */
+fun creditLine(cardId: Long, accounts: List<AccountEntity>): Long {
+    val me = accounts.firstOrNull { it.id == cardId } ?: return cardId
+    val other = me.sharesLimitWith?.let { id -> accounts.firstOrNull { it.id == id && it.type == AccountType.CARD && !it.archived } } ?: return cardId
+    return other.sharesLimitWith?.takeIf { it != cardId } ?: other.id
+}
+
 /** New account / edit account: the fields that apply to its type. */
 class NewAccountViewModel(
     private val money: MoneyRepository,
@@ -238,9 +266,16 @@ class NewAccountViewModel(
     private val currency: String,
     /** Welcome step 2's "+ Card" etc.: the type to start with. */
     private val startType: String? = null,
+    /** Sets the reminder alarm again after a deposit is saved (its maturity may have moved). */
+    private val onDepositChanged: suspend () -> Unit = {},
 ) : ViewModel() {
     val form = MutableStateFlow<AccountForm?>(null)
     private var original: AccountEntity? = null
+
+    /** Other cards, for "Shares the limit of" (one credit line for several cards). */
+    val otherCards: StateFlow<List<AccountEntity>> = money.accounts
+        .map { list -> list.map { it.account }.filter { it.type == AccountType.CARD && it.id != editId && !it.archived } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val isEdit get() = editId != 0L
 
     init {
@@ -253,6 +288,7 @@ class NewAccountViewModel(
                     it.type, it.name, "", it.number.orEmpty(), txt(it.creditLimit), it.statementDay ?: 5, it.dueDay ?: 25,
                     txt(it.emi), it.interestRate.orEmpty(), it.maturityDate?.day(),
                     hue = it.colorHue, icon = it.icon, inNetWorth = it.includeInNetWorth, opening = it.openingBalance,
+                    sharesLimitWith = it.sharesLimitWith,
                 )
             } ?: AccountForm(type = startType ?: AccountType.BANK)
         }
@@ -290,7 +326,9 @@ class NewAccountViewModel(
             val a = base.copy(
                 name = f.name.trim(), type = f.type, icon = f.shownIcon, colorHue = f.hue, includeInNetWorth = f.countsInNetWorth,
                 number = f.number.filter { it.isDigit() }.takeLast(MAX_DIGITS).ifEmpty { null },
-                creditLimit = if (f.type == AccountType.CARD) amt(f.limit) else null,
+                // A card on another's line keeps no limit of its own.
+                creditLimit = if (f.type == AccountType.CARD && f.sharesLimitWith == null) amt(f.limit) else null,
+                sharesLimitWith = if (f.type == AccountType.CARD) f.sharesLimitWith else null,
                 statementDay = if (f.type == AccountType.CARD) f.statementDay else null,
                 dueDay = if (f.type == AccountType.CARD) f.dueDay else null,
                 emi = if (f.type == AccountType.LOAN) amt(f.emi) else null,
@@ -301,6 +339,7 @@ class NewAccountViewModel(
                 isSample = false,
             )
             if (original == null) money.addAccount(a) else money.updateAccount(a)
+            if (a.type == AccountType.SAVINGS || original?.type == AccountType.SAVINGS) onDepositChanged()
             onSaved()
         }
     }

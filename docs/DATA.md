@@ -23,6 +23,8 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
   to ≤ 1600 px JPEG; included in backups; deleted with the transaction.
 - **Tags**: `tag` + `txn_tag` (#Work, #Trip…), filterable in Activity.
 - **Net worth**: `account.includeInNetWorth` (cards and loans default false).
+- **Shared credit line** (v6): `account.sharesLimitWith` = the card whose `creditLimit` this card uses (its own is
+  cleared). Available = that limit − what every card on the line owes. One step only (`creditLine()`), so no loops.
 - **Exchange rates**: `rate` (currency, perPrimary as BigDecimal text, setAt); each txn keeps its own `fxRate`.
 
 ## Entities

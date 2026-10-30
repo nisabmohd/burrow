@@ -42,6 +42,9 @@ data class ReviewItem(
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewViewModel(private val capture: CaptureRepository, private val money: MoneyRepository, private val engine: RuleEngine) : ViewModel() {
 
+    /** Messages no rule could read: a row to Not understood, so they are one tap away from here. */
+    val notUnderstood: StateFlow<Int> = capture.notUnderstoodCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     val state: StateFlow<List<ReviewItem>?> = combine(capture.toReview, money.categories, money.accounts, capture.activeRules) { list, cats, accounts, rules ->
         Quad(list, cats, accounts, rules)
     }.mapLatest { (list, cats, accounts, rules) ->

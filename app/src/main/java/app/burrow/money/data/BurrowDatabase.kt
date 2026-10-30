@@ -52,6 +52,8 @@ data class AccountEntity(
     @ColumnInfo(defaultValue = "1") val remind: Boolean = true,
     /** v4: counted in net worth. Cards and loans start off (their dues are already in spending). */
     @ColumnInfo(defaultValue = "1") val includeInNetWorth: Boolean = true,
+    /** v6, CARD: the card whose credit limit this one uses (cards on one credit line, add-on cards). */
+    val sharesLimitWith: Long? = null,
 )
 
 @kotlinx.serialization.Serializable
@@ -287,13 +289,14 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
         PersonEntity::class, AttachmentEntity::class, TagEntity::class, TxnTagEntity::class, RateEntity::class,
         SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
         AutoMigration(from = 2, to = 3), // account details, goal transfers, bill circles and flags
         AutoMigration(from = 3, to = 4, spec = V3To4::class), // customise: net worth, upcoming, lend, tags, files, rates
         AutoMigration(from = 4, to = 5), // next: refunds, split parts, favourites, import mappings
+        AutoMigration(from = 5, to = 6), // cards sharing one credit limit
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {

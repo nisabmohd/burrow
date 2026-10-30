@@ -64,6 +64,8 @@ data class TodayUiState(
     /** No transactions at all: Today shows only the empty state. */
     val isEmpty: Boolean,
     val toReview: Int,
+    /** Messages with money no rule could read; Today points to them when nothing waits in To review. */
+    val notUnderstood: Int,
     val smsCapture: Boolean,
     val appCapture: Boolean,
     val shown: Set<String>,
@@ -153,10 +155,10 @@ class TodayViewModel(
         Triple(HeroState(period, period.daysLeft(today), spent, overall?.amount, digits, spentToday, due), recent, samples to (count == 0))
     }
 
-    val state: StateFlow<TodayUiState?> = combine(money, capture.reviewCount, settings.settings, widgets, coming) { (hero, recent, flags), review, s, w, c ->
+    val state: StateFlow<TodayUiState?> = combine(money, combine(capture.reviewCount, capture.notUnderstoodCount, ::Pair), settings.settings, widgets, coming) { (hero, recent, flags), (review, missed), s, w, c ->
         TodayUiState(
             hero, recent.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }.take(s.homeRecentCount), flags.first, flags.second,
-            review, s.smsCapture, s.notificationCapture, s.homeWidgets, w,
+            review, missed, s.smsCapture, s.notificationCapture, s.homeWidgets, w,
             s.homeTopCard, s.homeWidgetOrder, s.homeShowReview, w.netWorth, s.showTime,
             c.filter { it.group == app.burrow.money.ui.plan.ComingGroup.OVERDUE || it.group == app.burrow.money.ui.plan.ComingGroup.THIS_WEEK },
         )

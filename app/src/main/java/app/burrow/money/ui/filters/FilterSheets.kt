@@ -172,10 +172,10 @@ fun DatesSheet(start: DayRange?, onApply: (DayRange?) -> Unit, onDismiss: () -> 
 
 /** "October 2026" with ‹ › : the line above every [MonthCalendar]. */
 @Composable
-fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit) {
+fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit, title: String? = null) {
     val dates = rememberDateText()
     Row(Modifier.fillMaxWidth().padding(top = Space.small), verticalAlignment = Alignment.CenterVertically) {
-        Text(dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.small))
+        Text(title ?: dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.small))
         TonalIconButton(painterResource(R.drawable.ic_chevron_left_regular), stringResource(R.string.previous_month), onPrevious)
         Box(Modifier.size(Space.small))
         TonalIconButton(painterResource(R.drawable.ic_chevron_right_regular), stringResource(R.string.next_month), onNext)

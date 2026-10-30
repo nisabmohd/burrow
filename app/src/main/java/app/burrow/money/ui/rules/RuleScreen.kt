@@ -163,7 +163,7 @@ private fun ReadsGroup(p: Parsed?, direction: Direction?) {
     val amount = p?.let { MoneyFormat.of(it.currency ?: "INR").plain(it.amountMinor) } ?: notRead
     ListGroup {
         ListRow(amount, 0, 4, supporting = stringResource(R.string.amount), lead = { IconCircle(painterResource(R.drawable.ic_payments_duotone)) })
-        ListRow(p?.payee ?: notRead, 1, 4, supporting = stringResource(R.string.paid_to), lead = { IconCircle(painterResource(R.drawable.ic_storefront_duotone)) })
+        ListRow(p?.payee ?: notRead, 1, 4, supporting = stringResource(R.string.from_or_to), lead = { IconCircle(painterResource(R.drawable.ic_storefront_duotone)) })
         ListRow(p?.account ?: notRead, 2, 4, supporting = stringResource(R.string.account), lead = { IconCircle(painterResource(R.drawable.ic_account_balance_duotone)) })
         ListRow(
             stringResource(

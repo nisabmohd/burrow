@@ -13,14 +13,14 @@ if something is missing, add a component here first.
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing, **2 dp primary ring while focused** (137, 143); `lines > 1` = a tall box with 24 dp corners, icon and text at the top (Paste a message 121) | Controls.kt |
 | `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle (`neutral` for something not yours: a built-in pack, 118); the centred header when the big line is words ("142 payments recorded") | Blocks.kt |
 | `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); header optional (none under a card that already names the sender, 116) | MessageText.kt |
-| `MessageCard` | a message the app found (To review 44, Not understood 116): circle, title, line, optional amount, ✕; the message; optional chips; **one full-width tonal button** (Save / Teach). The only cards with a button; they never swipe (C2) | MessageCard.kt |
+| `MessageCard` | a message the app found (To review 44, Not understood 116): circle, title, line, optional amount, ✕; the message; optional chips; **one full-width tonal button** (Teach), or two side by side (To review: Edit · Save; stacked at large text). The only cards with buttons; they never swipe (C2) | MessageCard.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
 | `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing; optional long-press, and `lifted` while dragged | Lists.kt |
 | `BlockColumn` / `BlockGap` | a page body: blocks 12 dp apart; `SectionHeader`s inside keep 16 above / 8 below (they take the column gap off their own padding) | Lists.kt |
 | `ChipRow` | quick choices in ONE row of equal chips, label centred, no check (Yesterday · Today · Tomorrow); never wraps | Controls.kt |
-| `MonthHeader` + `MonthCalendar` | "October 2026" ‹ › over seven equal columns of 38 dp day circles; the Dates sheet and the one `DateSheet` (never Material's DatePicker: its 48 dp cells overflow narrow phones) | ui/filters/FilterSheets.kt |
+| `MonthHeader` + `MonthCalendar` | "October 2026" ‹ › over seven equal columns of 38 dp day circles; the Dates sheet and the one `DateSheet` (`title` = the month alone for a yearly date, 164) (never Material's DatePicker: its 48 dp cells overflow narrow phones) | ui/filters/FilterSheets.kt |
 | `IconCircle` | 40 dp (64 big), duotone icon at 55%; category colours or neutral | Lists.kt |
 | `SectionHeader` | `button` style title, meta or text button right, 16 above / 8 below | Lists.kt |
 | `TxnRow` / `TxnCircle` | the one transaction row (Today › Recent, Activity): category circle, payee, "Food & drinks · HDFC" (+ time today), amount | ui/txn/TxnRow.kt |
@@ -46,9 +46,9 @@ if something is missing, add a component here first.
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar; **icon only at large text** (150–152) | Bars.kt |
 | `TypeSheet` / `RepeatOrLendSheet` | from "New expense ▾" (111): Expense · Income · Transfer; Repeat or lend (112): Once · Repeat · Subscription · Lent · Borrowed, then How often or who, Done | ui/add/ExtrasSheets.kt |
-| `ComingRow` + `comingUp()` | Plan › Coming up (22): bills and future-dated payments in one list grouped Overdue · This week · This month · Later; circle · name · ↻/📅 "in 5 days · ICICI" · amount over date; swipe right Paid / Add now, left Skip / Delete | ui/plan/PlanScreen.kt, ComingUp.kt |
+| `ComingRow` + `comingUp()` | Plan › Coming up (22): bills and future-dated payments in one list grouped Overdue · This week · This month · Later; circle · name · ↻/📅 "in 5 days · ICICI" · amount over date; swipe right Paid / Add now, left Skip / Delete (on `SwipeRow`, labels instead of icons) | ui/plan/PlanScreen.kt, ComingUp.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
-| Pickers | `CategorySheet`, `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
+| Pickers | `CategorySheet` (both kinds: Expense group then Income group; **New category** last, from `LocalNewCategory`, 167), `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
 | `LabeledField` | a form field with its label above (New bill, New goal, New account) | Fields.kt |
 | `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |
 | `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
@@ -75,7 +75,7 @@ if something is missing, add a component here first.
 | `PickRow` / `PickList` | **every pick-one list** (C1): a plain row (never tinted) with the round check on the right — Type 111, Account 20, Option 138, currency, language, backup schedule, lock after, New bill "When it's due"; `PickList` = a group of them from `Choice`s (top card 80, numbers and dates 85). `ring = false` only on the long Category sheet (19): just the chosen row shows its check | Customise.kt |
 | `CheckBadge` | the round check (§ Round check): 24 dp ring (2 dp outline) → filled primary with a 14 dp ✓; pick-one rows, tiles, Teach rows | Customise.kt |
 | `StatusTile` | More's four tiles: icon circle (category hue), status top-right, title, one line; "on" tiles tinted `secondaryContainer` | Blocks.kt |
-| `SwipeRow` (`SwipeAction`) | a row with a swipe each way, set in Customise › Transactions; springs back; TalkBack gets the same as custom actions | SwipeRow.kt |
+| `SwipeRow` (`SwipeAction`) | a row with a swipe each way (Coming up; Activity when set in Customise › Transactions); past `Space.swipeTrigger` (96 dp) it arms: one threshold haptic and the background takes the action's colour; let go there and it runs, let go sooner (even a flick) and it springs back; the label (or icon) shows only once armed (171–173); TalkBack gets the same as custom actions | SwipeRow.kt |
 | `StepDots` / `IntroPanel` / `IntroCard` / `IntroTile` | Welcome and Auto-capture intro: step dots (current = 24 dp pill), the rose panel, tilted white cards | Intro.kt |
 | `BurrowLogo` | the Burrow mark on a primary rounded square (Welcome 40 dp, About 112 dp) | Intro.kt |
 | `PinScreen` | lock in a cookie, title, four dots, 3 × 4 pad of 72 dp round keys (fingerprint, 0, ⌫) | ui/more/LockScreens.kt |
@@ -113,6 +113,21 @@ title + muted line · **big value (`display`) with a blinking caret** · optiona
 **the same 3 × 4 keypad** (1–9, `.`, 0, ⌫; no `.` for days) · footer (Done, or Cancel + Save).
 No − / + steppers anywhere. On screens (Welcome budget, Split parts) the number is a tappable value that opens this sheet.
 The first key typed replaces the value shown; a chip sets it. Over a maximum (a refund) the value turns red and Save looks off.
+
+## Calendar (one in the app)
+`DateSheet` over `MonthHeader` + `MonthCalendar`: 38 dp day circles, today ringed, chosen filled primary. New expense (78, 176):
+"When you paid" (a future day: "Upcoming · added on Sat 24 Oct") · Yesterday · Today · Tomorrow chips (pick, don't close) ·
+calendar · Time row → `TimeWheelSheet` · Done saves day and time. Yearly due date (164): `yearly = true`, month name only,
+"Next: 9 Jan 2027". Goal and maturity dates use the plain sheet.
+
+## Weekday row (`WeekdayRow`, Controls.kt)
+Pick a weekday (163, "Due every week on"; reuse for any weekday choice): seven day circles in one row from the Region ›
+Week start day, 8 dp above and below. Circle `Size.weekdayCircle` (44 dp; smaller only when seven don't fit), letter
+`titleSmall`, capped at 1.3×. Chosen = primary / onPrimary, others surfaceContainerLow / onSurface. Each day is an equal
+share of the width and 48 dp tall; TalkBack reads the full day name and its selected state.
+
+## Buttons grow with the text
+`BurrowButton` is 48 dp (56 dp at the bottom) **at least**: at large text the label scales and the pill grows; never cap it.
 
 ## Swatch grid (`SwatchGrid.kt`)
 `SwatchGrid` lays round choices in six equal columns, rows filled from the start (12 colours = two

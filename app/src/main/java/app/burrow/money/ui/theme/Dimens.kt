@@ -32,6 +32,8 @@ object Space {
     val empty = 40.dp         // above and below an empty state
     val keypad = 6.dp         // between keypad keys (17)
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
+    val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
+    val navBarEnd = 8.dp      // at each end of the bottom nav, so its end pills sit ~16 dp in, like the screen
 }
 
 object Size {
@@ -101,9 +103,42 @@ object Size {
     val wheelRow = 48.dp      // one row of the time wheel (135); five show
     val wheelColumn = 72.dp   // one column of the time wheel
     val pillTab = 44.dp       // a fixed set of pill tabs (Plan)
+    val weekdayCircle = 44.dp // a day in the weekday row (163); shrinks to fit seven on a narrow phone
     val pillTabScrolling = 40.dp // a scrolling set (Customise)
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)
     val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
+    val badge = 16.dp         // the count on a header button (filters set)
+}
+
+/** Strokes, gaps and dots inside the Canvas charts (Charts.kt). */
+object Chart {
+    val barGap = 6.dp          // between pill bars
+    val barGapDense = 3.dp     // between pill bars when more than 14 show
+    val emptyDot = 3.dp        // radius of the dot where a bar has nothing
+    val average = 1.5.dp       // the dashed average line
+    val labelRow = 22.dp       // the labels under the bars
+    val ring = 4.dp            // a ring's stroke (default)
+    val ringRow = 3.dp         // RingPercent in a 40 dp row
+    val ringWidget = 5.dp      // RingPercent in a half widget
+    val ringWide = 10.dp       // RingPercent in a wide widget
+    val ringGap = 3.dp         // the gap in a ring, beyond its round caps
+    val donut = 6.dp           // the Top category ring's stroke
+    val donutGap = 2.dp        // between its arcs, beyond the caps
+    val wavy = 4.dp            // the hero's wavy line
+    val wavyAmplitude = 3.2.dp
+    val wavyLength = 26.dp     // one wave
+    val wavyStep = 2.dp        // how finely the wave is drawn
+    val wavyInset = 3.dp       // half the stroke, so the caps aren't cut
+    val wavyGap = 8.dp         // between the wave and the track left
+    val wavyTail = 14.dp       // the track left shows only when it's longer than this
+    val wavyEndDot = 2.dp      // radius of the dot at the end of the track
+    val line = 2.5.dp          // the Insights running total
+    val lineBefore = 2.dp      // the dashed period before; also a Sparkline
+    val linePad = 2.dp         // half the line, so its top and ends aren't cut
+    val lineDot = 3.dp         // a running total with one day
+    val sparkPad = 1.dp
+    val stackGap = 3.dp        // between parts of the By category bar; the smallest part
+    val splitGap = 4.dp        // between Money in and Money out
 }
 
 object Shapes {

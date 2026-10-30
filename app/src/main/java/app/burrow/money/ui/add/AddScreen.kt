@@ -152,7 +152,11 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
         AddSheet.CATEGORY -> CategorySheet(s.categoriesForType, s.spentByCategory, f.categoryId, { vm.setCategory(it.id); sheet = null }, { sheet = null })
         AddSheet.ACCOUNT -> AccountSheet(s.accountsForType, f.accountId, { vm.setAccount(it.account.id); sheet = null }, { sheet = null })
         AddSheet.TO_ACCOUNT -> AccountSheet(s.accounts.filter { it.account.id != f.accountId }, f.toAccountId, { vm.setToAccount(it.account.id); sheet = null }, { sheet = null })
-        AddSheet.DATE -> DateSheet(dates.date(f.at), { vm.setDate(it); sheet = null }, { sheet = null }, anyDay = true, quick = true)
+        AddSheet.DATE -> DateSheet(
+            dates.date(f.at), { vm.setDate(it); sheet = null }, { sheet = null }, anyDay = true, quick = true,
+            line = stringResource(R.string.when_you_paid),
+            time = java.time.Instant.ofEpochMilli(f.at).atZone(java.time.ZoneId.systemDefault()).toLocalTime(), onTime = vm::setTime,
+        )
         AddSheet.TIME -> TimeSheet(java.time.Instant.ofEpochMilli(f.at).atZone(java.time.ZoneId.systemDefault()).toLocalTime(), { vm.setTime(it); sheet = null }, { sheet = null })
         AddSheet.NOTE -> NoteSheet(vm, s) { sheet = null }
         AddSheet.REPEAT_OR_LEND -> RepeatOrLendSheet(vm, s) { sheet = null }
@@ -197,14 +201,23 @@ private fun Form(
             }
             if (below != null) Text(below, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
         }
-        // Favourites, only while the form is empty (01): quick-add pills under the amount, "₹20 Chai";
-        // one tap saves the expense straight away (Undo).
-        val favouritesShow = f.type == TxnType.EXPENSE && !s.isEdit && s.amount == 0L && f.payee.isBlank() &&
-            s.favourites.isNotEmpty() && s.shows(FormExtra.FAVOURITE)
-        if (favouritesShow) FormChipRow(Modifier.padding(bottom = Space.small)) {
-            s.favourites.forEach { fav ->
+        // While the form is empty (01), one row of pills under the amount: favourites ("₹20 Chai",
+        // filled; one tap saves straight away, with Undo), then Recent (the last few different
+        // entries, outlined with their category; one tap fills the form to check and save).
+        val favouritesShow = f.type == TxnType.EXPENSE && s.blank && s.favourites.isNotEmpty() && s.shows(FormExtra.FAVOURITE)
+        val recent = s.recentChips
+        if (favouritesShow || recent.isNotEmpty()) FormChipRow(Modifier.padding(bottom = Space.small)) {
+            if (favouritesShow) s.favourites.forEach { fav ->
                 val saved = stringResource(R.string.favourite_saved, fav.favourite.name, money.plain(fav.favourite.amount))
                 FormChip(money.plain(fav.favourite.amount), { vm.spendFavourite(fav, saved, onSaved) }, FormChipStyle.FILLED, trailing = fav.favourite.name)
+            }
+            recent.forEach { r ->
+                val cat = s.categories.first { it.id == r.categoryId }
+                FormChip(
+                    money.plain(r.amount), { vm.pickRecent(r, s.accountsForType) },
+                    circle = { CategoryCircle(cat.icon, cat.colorHue, Size.favouriteCircle) },
+                    trailing = r.payee?.ifBlank { null } ?: cat.name,
+                )
             }
         }
         if (!transfer) {

@@ -175,10 +175,12 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                         supporting = card.statementDate?.let { stringResource(R.string.since_statement, dates.shortDay(it)) } ?: stringResource(R.string.since_statement_plain),
                         lead = { IconCircle(painterResource(R.drawable.ic_receipt_long_duotone)) },
                     )
+                    // On a shared line, what is left is the line's: every card on it uses the same limit.
                     val limit = card.limit
+                    val used = limit?.let { stringResource(R.string.used_of, Math.round(card.lineDue * 100f / it), money.short(it)) }
                     ListRow(
-                        if (limit != null) stringResource(R.string.available, money.short(limit - card.due)) else stringResource(R.string.no_limit), 1, 2,
-                        supporting = limit?.let { stringResource(R.string.used_of, Math.round(card.due * 100f / it), money.short(it)) },
+                        if (limit != null) stringResource(R.string.available, money.short((limit - card.lineDue).coerceAtLeast(0))) else stringResource(R.string.no_limit), 1, 2,
+                        supporting = if (card.sharedWith.isNotEmpty()) listOfNotNull(used, stringResource(R.string.shared_with, card.sharedWith.joinToString(", "))).joinToString(" · ") else used,
                         lead = { IconCircle(painterResource(R.drawable.ic_account_balance_wallet_duotone)) },
                     )
                 }
@@ -282,7 +284,11 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
             val due = (s.card?.due ?: 0).coerceAtLeast(0)
             PayInSheet(
                 stringResource(R.string.pay_card_bill), stringResource(R.string.pay_card_line, a.name, money.plain(due)), due.coerceAtLeast(unit), payFrom, { sheet = null },
-                chips = if (due > 0) listOf(stringResource(R.string.statement_chip, money.plain(due)) to due) else emptyList(),
+                // Statement and Since statement (141): pay what the bill says, or everything spent since.
+                chips = listOfNotNull(
+                    due.takeIf { it > 0 }?.let { stringResource(R.string.statement_chip, money.plain(it)) to it },
+                    s.card?.sinceStatement?.takeIf { it > 0 }?.let { stringResource(R.string.since_statement_chip, money.short(it)) to it },
+                ),
             ) { from, amount, day ->
                 sheet = null
                 vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
@@ -381,12 +387,13 @@ private fun PayInSheet(
 
 private val TYPES = listOf(AccountType.BANK, AccountType.CASH, AccountType.WALLET, AccountType.CARD, AccountType.LOAN, AccountType.SAVINGS)
 
-private enum class FormSheet { STATEMENT, DUE, MATURITY }
+private enum class FormSheet { STATEMENT, DUE, MATURITY, LIMIT }
 
 /** New account / edit account: type, name, balance, last digits, and the type's own details. */
 @Composable
 fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -> Unit, onArchived: (suspend () -> Unit) -> Unit = {}) {
     val formState by vm.form.collectAsStateWithLifecycle()
+    val otherCards by vm.otherCards.collectAsStateWithLifecycle()
     val f = formState ?: return
     val c = MaterialTheme.colorScheme
     val money = LocalMoney.current
@@ -439,7 +446,17 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
             }
             when (f.type) {
                 AccountType.CARD -> {
-                    LabeledField(stringResource(R.string.credit_limit)) {
+                    // Several cards on one credit line: this one uses another card's limit instead of its own.
+                    val sharedCard = otherCards.firstOrNull { it.id == f.sharesLimitWith }
+                    if (otherCards.isNotEmpty()) ListGroup {
+                        ListRow(
+                            stringResource(R.string.credit_limit), 0, 1,
+                            supporting = sharedCard?.let { stringResource(R.string.shares_limit_of, it.name) } ?: stringResource(R.string.own_limit),
+                            lead = { IconCircle(painterResource(R.drawable.ic_credit_card_duotone)) },
+                            onClick = { sheet = FormSheet.LIMIT },
+                        )
+                    }
+                    if (sharedCard == null) LabeledField(stringResource(R.string.credit_limit)) {
                         PillTextField(f.limit, { v -> vm.edit { it.copy(limit = v.filter { ch -> ch.isDigit() || ch == '.' }) } }, "0", leading = painterResource(currencyIcon(money.currency)), clearLabel = stringResource(R.string.clear), keyboardType = KeyboardType.Decimal)
                     }
                     ListGroup {
@@ -503,6 +520,27 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: () -
                 onDismiss = { sheet = null }, ordinal = dates::ordinal, quick = listOf(1, 5, 10, 15, 25), max = 31,
                 result = { d -> stringResource(R.string.every_month_on, dates.ordinal(d)) },
             )
+        }
+        FormSheet.LIMIT -> BurrowSheet({ sheet = null }) {
+            SheetHeader(stringResource(R.string.credit_limit), { sheet = null }, stringResource(R.string.shared_limit_line))
+            SheetBody {
+                ListGroup {
+                    val n = otherCards.size + 1
+                    app.burrow.money.ui.components.PickRow(
+                        stringResource(R.string.own_limit), 0, n, f.sharesLimitWith == null, { vm.edit { it.copy(sharesLimitWith = null) }; sheet = null },
+                        supporting = stringResource(R.string.own_limit_line),
+                        lead = { IconCircle(painterResource(R.drawable.ic_credit_card_duotone)) },
+                    )
+                    otherCards.forEachIndexed { i, card ->
+                        app.burrow.money.ui.components.PickRow(
+                            stringResource(R.string.shares_limit_of, card.name), i + 1, n, f.sharesLimitWith == card.id,
+                            { vm.edit { it.copy(sharesLimitWith = card.id) }; sheet = null },
+                            supporting = stringResource(R.string.shares_limit_line),
+                            lead = { CategoryCircle(card.icon, card.colorHue) },
+                        )
+                    }
+                }
+            }
         }
         FormSheet.MATURITY -> DateSheet(f.maturity ?: LocalDate.now().plusYears(1), { d -> vm.edit { it.copy(maturity = d) }; sheet = null }, { sheet = null }, future = true, title = stringResource(R.string.matures_on))
         null -> Unit

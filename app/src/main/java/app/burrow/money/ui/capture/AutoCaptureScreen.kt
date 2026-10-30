@@ -150,11 +150,12 @@ fun AutoCaptureScreen(
                 }
             }
             ListGroup { switches.forEachIndexed { i, r -> r(i, switches.size) } }
-            if (anyOn && s.notUnderstood > 0) {
+            // Shown even with capture off: messages read earlier still wait to be taught.
+            if (s.notUnderstood > 0) {
                 ListGroup {
                     ListRow(
-                        pluralStringResource(R.plurals.teach_missed, s.notUnderstood, s.notUnderstood), 0, 1,
-                        supporting = if (s.unreadFrom.isNotEmpty()) stringResource(R.string.from_senders, s.unreadFrom.joinToString(", ")) else stringResource(R.string.tap_to_teach),
+                        pluralStringResource(R.plurals.n_not_understood, s.notUnderstood, s.notUnderstood), 0, 1,
+                        supporting = stringResource(R.string.teach_the_ones_missed),
                         lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
                         trailing = { Chevron() },
                         onClick = { onTeach(0L) }, // the list of messages not understood

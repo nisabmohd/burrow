@@ -147,7 +147,6 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
         Trust(found = l.filter { it.source == "SMS" || it.source == "NOTIFICATION" }.sumOf { it.count }, total = l.sumOf { it.count })
     }
 
-    val unreadSenders: Flow<List<String>> = seeded { db.next().unreadSenders() }
 
     fun captureFor(txnId: Long): Flow<CaptureEntity?> = seeded { db.next().captureFor(txnId) }
 

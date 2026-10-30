@@ -26,6 +26,30 @@ sealed interface Repeat {
         is Weekly -> "WEEKLY:${day.name.take(3)}"
     }
 
+    /** How often, for the Weekly · Monthly · Yearly choice on New bill. */
+    enum class Every { WEEK, MONTH, YEAR }
+
+    val every: Every get() = when (this) {
+        is Weekly -> Every.WEEK
+        is Monthly -> Every.MONTH
+        is Yearly -> Every.YEAR
+    }
+
+    /** This rule as [to], keeping its day of the month where it has one, else [today]'s. */
+    fun every(to: Every, today: LocalDate): Repeat {
+        if (to == every) return this
+        val dayOfMonth = when (this) {
+            is Monthly -> day
+            is Yearly -> day
+            is Weekly -> today.dayOfMonth
+        }
+        return when (to) {
+            Every.WEEK -> Weekly(today.dayOfWeek)
+            Every.MONTH -> Monthly(dayOfMonth)
+            Every.YEAR -> Yearly(today.monthValue, dayOfMonth.coerceAtMost(YearMonth.from(today).lengthOfMonth()))
+        }
+    }
+
     /** The first due date on or after [date]. */
     fun nextOnOrAfter(date: LocalDate): LocalDate = when (this) {
         is Monthly -> {

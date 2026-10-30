@@ -19,8 +19,8 @@ android {
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 6
-        versionName = "0.2.1"
+        versionCode = 7
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // About screen links. They open in the browser.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
@@ -35,7 +35,7 @@ android {
         create("play") {
             dimension = "distribution"
             buildConfigField("boolean", "PLAY_STORE", "true")
-            buildConfigField("boolean", "PLAY_LISTED", "false") // true once live: turns on "Rate on Play Store"
+            buildConfigField("boolean", "PLAY_LISTED", "true") // live on Play (2026-10-28): "Rate on Play Store" in About
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "false") // Play updates it
         }
