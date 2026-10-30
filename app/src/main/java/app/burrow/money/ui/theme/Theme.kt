@@ -41,5 +41,9 @@ fun BurrowTheme(settings: ThemeSettings = ThemeSettings(), content: @Composable 
 @Composable @ReadOnlyComposable
 fun categoryColors(hue: Float): CategoryColors = categoryColors(hue, LocalDarkTheme.current)
 
+/** [successSwipeColors] for the current light/dark. */
+@Composable
+fun successSwipeColors(): SwipeColors = successSwipeColors(LocalDarkTheme.current)
+
 @Composable @ReadOnlyComposable
 fun warningColors(): WarningColors = warningColors(LocalDarkTheme.current)

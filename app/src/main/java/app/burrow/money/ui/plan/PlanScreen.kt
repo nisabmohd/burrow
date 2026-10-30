@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.burrow.money.ui.components.SwipeAction
+import app.burrow.money.ui.components.SwipeTone
 import app.burrow.money.ui.components.SwipeRow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
@@ -225,8 +226,11 @@ private fun ComingRow(item: ComingItem, index: Int, count: Int, onOpen: (ComingI
     val rightLabel = stringResource(if (item.repeats) R.string.mark_paid else R.string.add_now)
     val leftLabel = stringResource(if (item.repeats) R.string.skip else R.string.delete)
     SwipeRow(
-        SwipeAction(null, rightLabel, primary = true, showLabel = true) { right(item) },
-        SwipeAction(null, leftLabel, primary = false, showLabel = true) { left(item) },
+        SwipeAction(painterResource(if (item.repeats) R.drawable.ic_check_regular else R.drawable.ic_add_regular), rightLabel, SwipeTone.SUCCESS) { right(item) },
+        SwipeAction(
+            painterResource(if (item.repeats) R.drawable.ic_redo_regular else R.drawable.ic_delete_regular), leftLabel,
+            if (item.repeats) SwipeTone.NEUTRAL else SwipeTone.DESTRUCTIVE,
+        ) { left(item) },
         Shapes.grouped(index, count),
     ) {
         val whenText = if (late) stringResource(R.string.was_due_cap, dates.shortDay(item.date)) else dates.due(item.date, today)

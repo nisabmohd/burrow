@@ -1,7 +1,10 @@
 package app.burrow.money.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -30,20 +33,26 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import app.burrow.money.ui.theme.BurrowType
+import app.burrow.money.ui.theme.Size
+import app.burrow.money.ui.theme.successSwipeColors
 import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.abs
 
+/** The colour behind a swiped row: green for a success, primary, grey, or red for a delete. */
+enum class SwipeTone { SUCCESS, PRIMARY, NEUTRAL, DESTRUCTIVE }
+
 /**
- * What a swipe does (Customise › Transactions › Swipe): its icon, its TalkBack label, and the action.
- * [showLabel] draws the label instead of the icon (Coming up: "Mark paid", "Skip").
+ * What a swipe does: its icon, its label (drawn next to the icon, and TalkBack's), its colour and the action.
+ * [showLabel] false draws the icon alone (Activity's Edit / Duplicate / Delete).
  */
 @Immutable
-data class SwipeAction(val icon: Painter?, val label: String, val primary: Boolean, val showLabel: Boolean = false, val run: () -> Unit)
+data class SwipeAction(val icon: Painter?, val label: String, val tone: SwipeTone, val showLabel: Boolean = true, val run: () -> Unit)
 
 /**
  * A list row with a swipe each way (either may be null). The row springs back; the data moves it.
- * Past [Space.swipeTrigger] the action is armed: one threshold haptic, the background fills in, and
+ * Like Sprout: the action's colour, icon and label show from the first pixel of the drag, so you see
+ * what the swipe does before it counts. Past [Space.swipeTrigger] it is armed (one threshold haptic) and
  * letting go runs it. Let go sooner (even with a quick flick) and nothing happens.
  * TalkBack gets the same actions as custom actions, so nothing needs a swipe.
  */
@@ -89,26 +98,26 @@ fun SwipeRow(start: SwipeAction?, end: SwipeAction?, shape: Shape, modifier: Mod
         enableDismissFromStartToEnd = start != null,
         enableDismissFromEndToStart = end != null,
         backgroundContent = {
-            val toStart = state.dismissDirection == SwipeToDismissBoxValue.StartToEnd
-            val action = if (toStart) start else end
+            val toEnd = state.dismissDirection == SwipeToDismissBoxValue.StartToEnd
+            val action = if (toEnd) start else end
             if (state.dismissDirection != SwipeToDismissBoxValue.Settled && action != null) {
                 val c = MaterialTheme.colorScheme
-                // Short of the trigger the background stays quiet; armed, it takes the action's colour.
-                val bg = when {
-                    !armed -> c.surfaceContainer
-                    action.primary -> c.primaryContainer
-                    else -> c.surfaceContainerHighest
+                val success = successSwipeColors()
+                val (bg, fg) = when (action.tone) {
+                    SwipeTone.SUCCESS -> success.background to success.content
+                    SwipeTone.PRIMARY -> c.primary to c.onPrimary
+                    SwipeTone.NEUTRAL -> c.surfaceContainerHighest to c.onSurfaceVariant
+                    SwipeTone.DESTRUCTIVE -> c.error to c.onError
                 }
-                val fg = if (armed && action.primary) c.onPrimaryContainer else c.onSurfaceVariant
-                Box(
+                Row(
                     Modifier.fillMaxSize().clip(shape).background(bg).padding(horizontal = Space.sheet),
-                    contentAlignment = if (toStart) Alignment.CenterStart else Alignment.CenterEnd,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Space.small, if (toEnd) Alignment.Start else Alignment.End),
                 ) {
-                    // The label (or icon) shows only once armed (171–173): a short drag stays quiet.
-                    if (armed) {
-                        if (action.showLabel || action.icon == null) Text(action.label, style = BurrowType.button, color = fg)
-                        else Icon(action.icon, null, tint = fg)
-                    }
+                    // Icon then label going right, label then icon going left (Sprout's habit card).
+                    val icon: @Composable () -> Unit = { action.icon?.let { Icon(it, null, tint = fg, modifier = Modifier.size(Size.iconButton20)) } }
+                    val label: @Composable () -> Unit = { if (action.showLabel || action.icon == null) Text(action.label, style = BurrowType.button, color = fg, maxLines = 1) }
+                    if (toEnd) { icon(); label() } else { label(); icon() }
                 }
             }
         },

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
 import app.burrow.money.ui.components.SwipeAction
+import app.burrow.money.ui.components.SwipeTone
 import app.burrow.money.ui.components.SwipeRow
 import app.burrow.money.ui.LocalMoney
 import androidx.compose.runtime.mutableStateOf
@@ -148,11 +149,11 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
                         itemsIndexed(g.txns, key = { _, t -> t.txn.id }, contentType = { _, _ -> "txn" }) { i, t ->
                             // Customise › Transactions › Swipe: right edits or duplicates, left deletes.
                             val right = when (prefs.swipeRight) {
-                                app.burrow.money.data.SwipeRight.EDIT -> SwipeAction(painterResource(R.drawable.ic_edit_regular), editLabel, true) { onEdit(t.txn.id) }
-                                app.burrow.money.data.SwipeRight.DUPLICATE -> SwipeAction(painterResource(R.drawable.ic_content_copy_regular), duplicateLabel, true) { onDuplicate(t.txn.id) }
+                                app.burrow.money.data.SwipeRight.EDIT -> SwipeAction(painterResource(R.drawable.ic_edit_regular), editLabel, SwipeTone.PRIMARY) { onEdit(t.txn.id) }
+                                app.burrow.money.data.SwipeRight.DUPLICATE -> SwipeAction(painterResource(R.drawable.ic_content_copy_regular), duplicateLabel, SwipeTone.PRIMARY) { onDuplicate(t.txn.id) }
                                 else -> null
                             }
-                            val left = if (prefs.swipeLeft == app.burrow.money.data.SwipeLeft.DELETE) SwipeAction(painterResource(R.drawable.ic_delete_regular), deleteLabel, false) {
+                            val left = if (prefs.swipeLeft == app.burrow.money.data.SwipeLeft.DELETE) SwipeAction(painterResource(R.drawable.ic_delete_regular), deleteLabel, SwipeTone.DESTRUCTIVE) {
                                 if (prefs.confirmDelete) confirmDelete = t.txn.id else vm.delete(t.txn.id) { undo -> snackbar.show(deletedLabel, undo) }
                             } else null
                             SwipeRow(right, left, app.burrow.money.ui.theme.Shapes.grouped(i, g.txns.size), Modifier.animateItem().padding(top = if (i > 0) Space.row else 0.dp)) {

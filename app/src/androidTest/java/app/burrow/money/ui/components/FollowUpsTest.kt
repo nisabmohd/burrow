@@ -162,7 +162,7 @@ class FollowUpsTest {
     @Test fun theLabelShowsOnlyOnceArmedAndLettingGoThenRunsIt() {
         var paid = 0
         rule.show {
-            SwipeRow(SwipeAction(null, "Mark paid", primary = true, showLabel = true) { paid++ }, null, Shapes.surface) {
+            SwipeRow(SwipeAction(null, "Mark paid", SwipeTone.SUCCESS) { paid++ }, null, Shapes.surface) {
                 Text("Netflix", Modifier.fillMaxWidth().height(72.dp))
             }
         }
@@ -179,7 +179,7 @@ class FollowUpsTest {
     @Test fun aShortSwipeSpringsBackAndDoesNothing() {
         var paid = 0
         rule.show {
-            SwipeRow(SwipeAction(null, "Mark paid", primary = true, showLabel = true) { paid++ }, null, Shapes.surface) {
+            SwipeRow(SwipeAction(null, "Mark paid", SwipeTone.SUCCESS) { paid++ }, null, Shapes.surface) {
                 Text("Netflix", Modifier.fillMaxWidth().height(72.dp))
             }
         }

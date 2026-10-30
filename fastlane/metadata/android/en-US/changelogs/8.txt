@@ -1,5 +1,6 @@
 - New outline icons everywhere.
 - Swipe the Undo bar away.
+- Swipes show green for paid, grey for skip, red for delete, right away.
 - Amounts show exactly what you type, dot and all.
 - Bill, balance, limit, EMI and goal amounts use the number keypad.
 - Bill and budget category lists no longer say "No spending" by mistake.

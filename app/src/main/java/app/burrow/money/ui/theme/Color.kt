@@ -111,6 +111,17 @@ fun categoryColors(hue: Float, dark: Boolean) = if (dark) {
     CategoryColors(tone(hue, 72, 90f), tone(hue, 62, 27f), tone(hue, 56, 48f), tone(hue, 40, 88f))
 }
 
+/**
+ * Behind a row swiped to a success (Mark paid, Add now): a solid green and the text on it (like
+ * Sprout's swipe). The only green in the app besides the Green category; never on amounts.
+ */
+@Immutable
+data class SwipeColors(val background: Color, val content: Color)
+
+fun successSwipeColors(dark: Boolean) =
+    if (dark) SwipeColors(tone(CategoryHues.GREEN, 42, 40f), tone(CategoryHues.GREEN, 60, 94f))
+    else SwipeColors(tone(CategoryHues.GREEN, 48, 38f), Color.White)
+
 /** The 12 category hues, in picker order. */
 object CategoryHues {
     const val LAVENDER = 275f

@@ -3,6 +3,7 @@
 ## 0.3.1
 - New icons: Burrow now uses Solar outline icons (by 480 Design) everywhere, one clean line style. Credited in About › Licences.
 - Swipe the Undo bar sideways to dismiss it. The change stays.
+- Swiping a row shows what it does from the first touch: green with a check for Mark paid and Add now, grey for Skip, red for Delete, with the icon and the word side by side.
 - Typing an amount shows exactly what you typed: "12." keeps its dot and "12.50" its zero, in New expense and every amount sheet.
 - A bill's amount, an account's balance, a credit limit, an EMI and a goal's target open the number keypad instead of the phone keyboard.
 - Picking a category for a bill or a budget no longer says "No spending this month" for every category.
