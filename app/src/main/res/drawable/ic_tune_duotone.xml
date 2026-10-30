@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phosphor Icons (duotone), MIT. Tint layer removed: Phosphor's is a box behind the glyph, not part of it. Tint it: Icon(painterResource(R.drawable.ic_tune_duotone), tint = …) -->
+<!-- Hugeicons SlidersHorizontal (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_tune_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="@android:color/white" android:pathData="M200,136a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H192A8,8,0,0,1,200,136Zm32-56H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-80,96H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16Z" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M2.99982 12.0002H10.9998" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M13.9998 5.00015L20.9998 5.00015" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M11.9998 19.0002L20.9998 19.0002" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M2.99982 5.00015H9.99982M9.99982 5.00015V3.00015M9.99982 5.00015V7.00015" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M2.99982 19.0002H7.99982M7.99982 19.0002V17.0002M7.99982 19.0002V21.0002" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M14.9998 12.0002L20.9998 12.0002M14.9998 12.0002V10.0002M14.9998 12.0002V14.0002" />
 </vector>

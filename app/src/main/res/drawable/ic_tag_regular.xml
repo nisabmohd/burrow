@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phosphor Icons (regular), MIT. Tint it: Icon(painterResource(R.drawable.ic_tag_regular), tint = …) -->
+<!-- Hugeicons Tag01 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_tag_regular), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="@android:color/white" android:pathData="M224,88H175.4l8.47-46.57a8,8,0,0,0-15.74-2.86l-9,49.43H111.4l8.47-46.57a8,8,0,0,0-15.74-2.86L95.14,88H48a8,8,0,0,0,0,16H92.23L83.5,152H32a8,8,0,0,0,0,16H80.6l-8.47,46.57a8,8,0,0,0,6.44,9.3A7.79,7.79,0,0,0,80,224a8,8,0,0,0,7.86-6.57l9-49.43H144.6l-8.47,46.57a8,8,0,0,0,6.44,9.3A7.79,7.79,0,0,0,144,224a8,8,0,0,0,7.86-6.57l9-49.43H208a8,8,0,0,0,0-16H163.77l8.73-48H224a8,8,0,0,0,0-16Zm-76.5,64H99.77l8.73-48h47.73Z" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8 2H9.01472C10.241 2 10.8541 2 11.4054 2.22836C11.9567 2.45672 12.3903 2.89027 13.2574 3.75736L21.1262 11.6263C21.6841 12.1867 21.9982 12.9449 22 13.7357L22 13.75L22 13.7643C21.9982 14.5551 21.6841 15.3133 21.1262 15.8737L15.8737 21.1262C15.3133 21.6841 14.5551 21.9982 13.7643 22L13.75 22L13.7357 22C12.9449 21.9982 12.1867 21.6841 11.6263 21.1262L3.75736 13.2574C2.89027 12.3903 2.45672 11.9567 2.22836 11.4054C2 10.8541 2 10.241 2 9.01472V8C2 5.17157 2 3.75736 2.87868 2.87868C3.75736 2 5.17157 2 8 2Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M7.5 7.25V7.5M8 7.5C8 7.77614 7.77614 8 7.5 8C7.22386 8 7 7.77614 7 7.5C7 7.22386 7.22386 7 7.5 7C7.77614 7 8 7.22386 8 7.5Z" />
 </vector>

@@ -7,3 +7,4 @@
 - Pay a card's statement or everything since.
 - Deposit reminder a week before maturity.
 - Buttons grow with large text.
+- New icons, and screens fit small phones.

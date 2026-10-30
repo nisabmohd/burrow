@@ -278,7 +278,11 @@ fun StatusTile(icon: Painter, hue: Float, status: String?, title: String, line: 
             if (status != null) Text(status, style = BurrowType.label, color = c.onSurfaceVariant)
         }
         Spacer(Modifier.height(Space.small))
-        Text(title, style = BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
+        // Half a 320 dp screen is too narrow for "Auto-capture" at 16 sp: shrink, never clip.
+        androidx.compose.foundation.text.BasicText(
+            title, style = BurrowType.titleSmall.copy(color = c.onSurface), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = BurrowType.button.fontSize, maxFontSize = BurrowType.titleSmall.fontSize),
+        )
         Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }

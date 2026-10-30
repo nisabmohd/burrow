@@ -64,7 +64,7 @@ class ProjectRulesTest {
     @Test fun dialogsOnlyFromDialogsKt() = assertNone("AlertDialog outside Dialogs.kt (choices are bottom sheets)",
         violations { f, _, l -> f.name != "Dialogs.kt" && "AlertDialog(" in l })
 
-    @Test fun noMaterialIconsLibrary() = assertNone("material-icons (use Phosphor drawables)",
+    @Test fun noMaterialIconsLibrary() = assertNone("material-icons (use Hugeicons drawables)",
         violations { _, _, l -> "androidx.compose.material.icons" in l })
 
     @Test fun notificationsUseTheBurrowMark() = assertNone("setSmallIcon not R.drawable.ic_notification",

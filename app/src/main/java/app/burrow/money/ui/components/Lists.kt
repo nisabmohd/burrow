@@ -162,9 +162,10 @@ fun ListRow(
     ) {
         lead?.invoke()
         Column(Modifier.weight(1f)) {
-            // Large text (Day 26): rows grow to two lines instead of cutting words off.
+            // Large text (Day 26): rows grow to two lines instead of cutting words off. The headline
+            // always may: on a small phone (320 dp) a switch row leaves "Hide amounts in…" no room.
             val lines = if (LocalDensity.current.fontScale > LARGE_TEXT) 2 else 1
-            Text(headline, style = BurrowType.bodyLarge, color = headlineColor, maxLines = lines, overflow = TextOverflow.Ellipsis)
+            Text(headline, style = BurrowType.bodyLarge, color = headlineColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (supporting != null && supportingIcon != null) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.grid)) {
                     androidx.compose.material3.Icon(supportingIcon, null, tint = supportingColor, modifier = Modifier.size(Size.iconSmall))

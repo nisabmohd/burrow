@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phosphor Icons (fill), MIT. Tint it: Icon(painterResource(R.drawable.ic_arrow_forward_fill), tint = …) -->
+<!-- Hugeicons ArrowRight02 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_arrow_forward_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256" android:autoMirrored="true">
-    <path android:fillColor="@android:color/white" android:pathData="M221.66,133.66l-72,72A8,8,0,0,1,136,200V136H40a8,8,0,0,1,0-16h96V56a8,8,0,0,1,13.66-5.66l72,72A8,8,0,0,1,221.66,133.66Z" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M18.5 12L4.99997 12" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6" />
 </vector>

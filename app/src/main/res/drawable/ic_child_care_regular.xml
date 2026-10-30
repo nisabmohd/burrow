@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phosphor Icons (regular), MIT. Tint it: Icon(painterResource(R.drawable.ic_child_care_regular), tint = …) -->
+<!-- Hugeicons Baby01 (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_child_care_regular), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="@android:color/white" android:pathData="M92,140a12,12,0,1,1,12-12A12,12,0,0,1,92,140Zm72-24a12,12,0,1,0,12,12A12,12,0,0,0,164,116Zm-12.27,45.23a45,45,0,0,1-47.46,0,8,8,0,0,0-8.54,13.54,61,61,0,0,0,64.54,0,8,8,0,0,0-8.54-13.54ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88.11,88.11,0,0,0-84.09-87.91C120.32,56.38,120,71.88,120,72a8,8,0,0,0,16,0,8,8,0,0,1,16,0,24,24,0,0,1-48,0c0-.73.13-14.3,8.46-30.63A88,88,0,1,0,216,128Z" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M10 16C10.4561 16.6072 11.1822 17 12 17C12.8178 17 13.5439 16.6072 14 16" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M15.625 11.258V11.611M8.375 11.258V11.611M8.75 11.5C8.75 11.2239 8.58211 11 8.375 11C8.16789 11 8 11.2239 8 11.5C8 11.7761 8.16789 12 8.375 12C8.58211 12 8.75 11.7761 8.75 11.5ZM16 11.5C16 11.2239 15.8321 11 15.625 11C15.4179 11 15.25 11.2239 15.25 11.5C15.25 11.7761 15.4179 12 15.625 12C15.8321 12 16 11.7761 16 11.5Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M3.1856 10.1728C2.48694 10.4846 2 11.1855 2 12C2 12.8145 2.48694 13.5154 3.1856 13.8272C4.02998 17.9217 7.6555 21 12 21C16.3445 21 19.97 17.9217 20.8144 13.8272C21.5131 13.5154 22 12.8145 22 12C22 11.1855 21.5131 10.4846 20.8144 10.1728C19.97 6.07831 16.3445 3 12 3C7.6555 3 4.02998 6.07831 3.1856 10.1728Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12 3C14 3 15.5 4.26953 15.5 5.71181C15.5 6.64505 15.0282 8 13.5 8C12.6809 8 12.1578 7.39447 12 7" />
 </vector>

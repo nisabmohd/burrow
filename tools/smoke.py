@@ -803,7 +803,7 @@ def licences_open_their_text():
     d.scroll_to("Licences")
     d.tap("Licences")
     assert d.exists("GNU General Public License v3.0", timeout=5), "Burrow's own licence missing"
-    for row, words in [("Burrow", "GNU GENERAL PUBLIC LICENSE"), ("Phosphor Icons", "Permission is hereby granted"), ("Lexend font", "SIL Open Font License")]:
+    for row, words in [("Burrow", "GNU GENERAL PUBLIC LICENSE"), ("Hugeicons", "Permission is hereby granted"), ("Lexend font", "SIL Open Font License")]:
         d.tap(row, contains=True)
         assert d.exists(words, contains=True, timeout=5), f"{row}: licence text not shown in the app"
         assert d.PACKAGE + "/" in d.shell("dumpsys window | grep mCurrentFocus"), f"{row}: left the app"

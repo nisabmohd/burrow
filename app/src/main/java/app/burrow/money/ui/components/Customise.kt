@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import app.burrow.money.R
@@ -93,9 +96,17 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
         }
         return
     }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.small)) {
-        // Large text: at most two a row, so a word never breaks inside a tile.
-        val perRow = if (isLargeText()) minOf(columns, 2) else columns
+    val measurer = rememberTextMeasurer()
+    val titleStyle = BurrowType.label
+    val density = LocalDensity.current
+    BoxWithConstraints(modifier) {
+    // Large text: at most two a row, so a word never breaks inside a tile. A small phone (320 dp) or a
+    // long word: fewer a row until the widest title fits beside the check at its smallest size.
+    val widest = with(density) { options.maxOf { measurer.measure(it.title, titleStyle, maxLines = 1).size.width }.toDp() }
+    val need = widest + Space.group + Size.checkBadge + Space.block * 2
+    val fits = (minOf(columns, if (isLargeText()) 2 else columns) downTo 1).firstOrNull { n -> (maxWidth - Space.small * (n - 1)) / n >= need } ?: 1
+    Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
+        val perRow = fits
         options.chunked(perRow).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                 row.forEach { o ->
@@ -111,9 +122,23 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
                         Column(Modifier.align(Alignment.CenterStart).fillMaxWidth()) {
                             // The check sits on the title's line only; the value below gets the full
                             // width and shrinks to fit instead of clipping ("1,240.00" in a third).
-                            Row(Modifier.fillMaxWidth().heightIn(min = Size.checkBadge), verticalAlignment = Alignment.CenterVertically) {
-                                Text(o.title, style = if (o.line != null) BurrowType.label else BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                CheckBadge(on)
+                            // The title shrinks to fit before it would ellipsize; the gap keeps heavier
+                            // fonts (Atkinson) from drawing under the check. A title-only pill keeps no
+                            // empty space for a check it doesn't show: label (and check, when chosen)
+                            // centred together, like the button group.
+                            val pill = o.line == null
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = Size.checkBadge),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Space.group, if (pill) Alignment.CenterHorizontally else Alignment.Start),
+                            ) {
+                                val style = if (o.line != null) BurrowType.label else BurrowType.button
+                                androidx.compose.foundation.text.BasicText(
+                                    o.title, style = style.copy(color = fg), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = BurrowType.label.fontSize, maxFontSize = style.fontSize),
+                                    modifier = Modifier.weight(1f, fill = !pill),
+                                )
+                                if (on) CheckBadge(true)
                             }
                             o.line?.let {
                                 androidx.compose.foundation.text.BasicText(
@@ -127,6 +152,7 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
                 repeat(perRow - row.size) { Box(Modifier.weight(1f)) }
             }
         }
+    }
     }
 }
 

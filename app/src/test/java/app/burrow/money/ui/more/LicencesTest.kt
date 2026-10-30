@@ -25,7 +25,7 @@ class LicencesTest {
         val raw = File(root, "app/src/main/res/raw")
         val ends = mapOf(
             "licence_gpl3.txt" to "why-not-lgpl.html>.", "licence_apache2.txt" to "limitations under the License.",
-            "licence_phosphor_mit.txt" to "SOFTWARE.",
+            "licence_hugeicons_mit.txt" to "SOFTWARE.",
         )
         for ((f, end) in ends) assertTrue("$f is cut short", File(raw, f).readText().trimEnd().endsWith(end))
         raw.listFiles().orEmpty().filter { it.name.startsWith("licence_ofl_") }.forEach {

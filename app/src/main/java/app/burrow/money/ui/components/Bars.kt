@@ -131,11 +131,11 @@ fun ScreenTopBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Space.grid),
                 ) {
-                    Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+                    TopBarTitle(title, Modifier.weight(1f, fill = false))
                     androidx.compose.material3.Icon(painterResource(app.burrow.money.R.drawable.ic_expand_more_regular), null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(Size.icon))
                 }
             } else if (title != null) {
-                Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
+                TopBarTitle(title)
             }
         }
         actions()
@@ -254,4 +254,14 @@ fun BurrowNavRail(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, 
         }
         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
     }
+}
+
+/** The bar title: shrinks a step on a small phone (320 dp, "New expense ▾" beside Close and Save) before it cuts off. */
+@Composable
+private fun TopBarTitle(title: String, modifier: Modifier = Modifier) {
+    androidx.compose.foundation.text.BasicText(
+        title, style = BurrowType.title.copy(color = MaterialTheme.colorScheme.onSurface), maxLines = 1, overflow = TextOverflow.Ellipsis,
+        autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = BurrowType.titleSmall.fontSize, maxFontSize = BurrowType.title.fontSize),
+        modifier = modifier.semantics { heading() },
+    )
 }

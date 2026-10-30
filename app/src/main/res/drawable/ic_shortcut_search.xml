@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- App shortcut icon (02): the white Phosphor glyph on the Burrow rose circle. -->
+<!-- App shortcut icon (02): the white Hugeicons glyph on the Burrow rose circle. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">

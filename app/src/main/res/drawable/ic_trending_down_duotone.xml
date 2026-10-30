@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phosphor Icons (duotone), MIT. Tint it: Icon(painterResource(R.drawable.ic_trending_down_duotone), tint = …) -->
+<!-- Hugeicons TrendingDown (stroke rounded), MIT. Tint it: Icon(painterResource(R.drawable.ic_trending_down_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="@android:color/white" android:fillAlpha="0.2" android:pathData="M232,128v64H168Z" />
-    <path android:fillColor="@android:color/white" android:pathData="M235.06,120.61a8,8,0,0,0-8.72,1.73L200,148.69,141.66,90.34a8,8,0,0,0-11.32,0L96,124.69,29.66,58.34A8,8,0,0,0,18.34,69.66l72,72a8,8,0,0,0,11.32,0L136,107.31,188.69,160l-26.35,26.34A8,8,0,0,0,168,200h64a8,8,0,0,0,8-8V128A8,8,0,0,0,235.06,120.61ZM224,184H187.31L224,147.31Z" />
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M3 7L7 11C7.88256 11.8826 8.32385 12.3238 8.86543 12.3726C8.95496 12.3807 9.04504 12.3807 9.13457 12.3726C9.67615 12.3238 10.1174 11.8826 11 11C11.8826 10.1174 12.3238 9.67615 12.8654 9.62737C12.955 9.6193 13.045 9.6193 13.1346 9.62737C13.6762 9.67615 14.1174 10.1174 15 11L20 16" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M20.7234 12C20.7234 12 21.3457 16.101 20.7234 16.7234C20.101 17.3458 16 16.7234 16 16.7234" />
 </vector>

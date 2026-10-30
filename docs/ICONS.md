@@ -1,11 +1,15 @@
 # Icons
 
-**Phosphor Icons** (MIT, phosphoricons.com). Chosen over Material Symbols for a warmer, rounder look (user, 2026-10-19).
-All 151 icons the design uses are already converted to vector drawables in `starter/app/src/main/res/drawable/`,
-three weights each: `ic_<name>_regular.xml`, `ic_<name>_fill.xml`, `ic_<name>_duotone.xml`.
-`isShrinkResources` drops every one the app doesn't reference, so unused files cost nothing in the APK.
+**Hugeicons** free set, stroke rounded (MIT, hugeicons.com, npm `@hugeicons/core-free-icons`). Chosen over
+Phosphor for its look (user, 2026-10-30). Licence text: `res/raw/licence_hugeicons_mit.txt` (shown in About › Licences).
 
-## Which weight where
+Every icon is a vector drawable in `app/src/main/res/drawable/`, named by meaning: `ic_<meaning>_<weight>.xml`
+with weights `regular`, `fill`, `duotone`. The free set has **one style**, so the three files are the same
+stroke icon (1.5 stroke, round caps, viewport 24). The weight names stay so screens pick a weight by role; the
+selected or tinted state comes from the container (the nav pill, the tonal circle), never from the glyph.
+`isShrinkResources` drops every file the app doesn't reference, so unused weights cost nothing in the APK.
+
+## Which weight where (kept by role)
 | Where | Weight | Size |
 |---|---|---|
 | Inside a tonal circle (rows, widgets, notes, headers), widget labels | **duotone** | 22 dp in a 40 dp circle, 36 dp in a 64 dp circle |
@@ -13,200 +17,225 @@ three weights each: `ic_<name>_regular.xml`, `ic_<name>_fill.xml`, `ic_<name>_du
 | Selected bottom-nav tab, status icons, the check in a selected chip | **fill** | 24 dp |
 
 Tint every icon (`tint =`): the files are white so one drawable serves every colour.
-Never mix icon sets. Never draw an icon with emoji. A new icon: take it from Phosphor, convert the same way
-(paths only, viewport 256, `fillAlpha` for duotone opacity), name it by meaning (`ic_<meaning>_<weight>`):
-`python3 tools/phosphor_icon.py <meaning> <PhosphorName> <path to @phosphor-icons/react>` writes all three weights.
-Added 2026-10-24: `ic_hand_tap_*` (Phosphor HandTap) — the Teach button on Not understood (116).
+Never mix icon sets. Never draw an icon with emoji. Never use the Pro styles (solid, duotone, bulk): they are
+not MIT and can't ship in a GPL repo.
 
-## Names (design name → Phosphor icon)
-| Name in the design | Phosphor |
+## Adding or changing an icon
+The map meaning → Hugeicons name lives in `ICONS` in `tools/hugeicons_icon.py` (single source; the table below
+is a copy). Add a line there, then:
+```sh
+npm pack @hugeicons/core-free-icons && tar xzf hugeicons-core-free-icons-*.tgz   # anywhere outside the repo
+python3 tools/hugeicons_icon.py <path>/package <meaning>        # one icon, all three weights
+python3 tools/hugeicons_icon.py <path>/package                  # regenerate every icon
+```
+Browse names at hugeicons.com (free filter) or `ls <path>/package/dist/esm | grep -i <word>`.
+The free set has no keyboard-backspace glyph: the keypad uses ArrowLeft04.
+
+## Names (meaning → Hugeicons)
+| Meaning | Hugeicons |
 |---|---|
-| `account_balance` | bank |
-| `account_balance_wallet` | wallet |
-| `add` | plus |
-| `alarm` | alarm |
-| `arrow_back` | arrow-left |
-| `arrow_drop_down` | caret-down |
-| `arrow_forward` | arrow-right |
-| `arrow_upward` | arrow-up |
-| `arrow_upward_alt` | arrow-up |
-| `attach_money` | currency-dollar |
-| `autorenew` | arrows-clockwise |
-| `backspace` | backspace |
-| `backup` | cloud-arrow-up |
-| `balance` | scales |
-| `bar_chart` | chart-bar |
-| `battery_full` | battery-full |
-| `bolt` | lightning |
-| `bug_report` | bug |
-| `calendar_month` | calendar-blank |
-| `calendar_view_day` | calendar |
-| `calendar_view_month` | squares-four |
-| `category` | shapes |
-| `celebration` | confetti |
-| `check` | check |
-| `check_circle` | check-circle |
-| `checkroom` | t-shirt |
-| `chevron_left` | caret-left |
-| `chevron_right` | caret-right |
-| `child_care` | baby |
-| `close` | x |
-| `cloud` | cloud |
-| `cloud_done` | cloud-check |
-| `cloud_upload` | cloud-arrow-up |
-| `code` | code |
-| `coffee` | coffee |
-| `content_copy` | copy |
-| `content_paste` | clipboard-text |
-| `credit_card` | credit-card |
-| `currency_exchange` | currency-circle-dollar |
-| `currency_pound` | currency-gbp |
-| `currency_rupee` | currency-inr |
-| `dark_mode` | moon |
-| `dashboard_customize` | squares-four |
-| `date` | calendar |
-| `date_range` | calendar-dots |
-| `delete` | trash |
-| `delete_forever` | trash-simple |
-| `description` | file-text |
-| `directions_car` | car-profile |
-| `donut_large` | chart-donut |
-| `drag_indicator` | dots-six-vertical |
-| `edit` | pencil-simple |
-| `edit_note` | note-pencil |
-| `error` | warning-circle |
-| `euro` | currency-eur |
-| `event` | calendar-check |
-| `event_available` | calendar-check |
-| `event_busy` | calendar-x |
-| `event_repeat` | calendar-dots |
-| `expand_more` | caret-down |
-| `favorite` | heartbeat |
-| `filter_alt_off` | funnel-x |
-| `filter_list` | funnel |
-| `fingerprint` | fingerprint |
-| `fitness_center` | barbell |
-| `flag` | flag-banner |
-| `flight` | airplane-tilt |
-| `folder` | folder |
-| `format_list_bulleted` | list-bullets |
-| `grid_view` | squares-four |
-| `group` | users |
-| `handshake` | handshake |
-| `help` | question |
-| `history` | clock-counter-clockwise |
-| `home` | house |
-| `info` | info |
-| `insights` | sparkle |
-| `ios_share` | export |
-| `key` | key |
-| `laptop_mac` | laptop |
-| `light_mode` | sun |
-| `lightbulb` | lightbulb |
-| `local_gas_station` | gas-pump |
-| `local_mall` | shopping-bag |
-| `lock` | lock |
-| `more_horiz` | dots-three |
-| `movie` | film-slate |
-| `notes` | note |
-| `notifications` | bell |
-| `notifications_active` | bell-ringing |
-| `notifications_off` | bell-slash |
-| `notifications_paused` | bell-z |
-| `palette` | palette |
-| `pause` | pause |
-| `pause_circle` | pause-circle |
-| `pause_circle_filled` | pause-circle |
-| `payments` | money |
-| `percent` | percent |
-| `pets` | paw-print |
-| `pie` | chart-pie |
-| `pie_chart` | chart-pie-slice |
-| `pin` | password |
-| `play_arrow` | play |
-| `public` | globe-hemisphere-east |
-| `real_estate_agent` | house-line |
-| `receipt_long` | receipt |
-| `redeem` | gift |
-| `redeem2` | gift |
-| `redo` | arrow-u-up-right |
-| `remove` | minus |
-| `restaurant` | fork-knife |
-| `rule` | list-checks |
-| `savings` | piggy-bank |
-| `schedule` | clock |
-| `school` | graduation-cap |
-| `science` | flask |
-| `search` | magnifying-glass |
-| `search_off` | magnifying-glass-minus |
-| `settings_backup_restore` | clock-counter-clockwise |
-| `shield` | shield-check |
-| `shield_check` | shield-check |
-| `shopping_cart` | shopping-cart |
-| `signal_cellular_4_bar` | cell-signal-full |
-| `smartphone` | device-mobile |
-| `sms` | chat-text |
-| `spa` | flower-lotus |
-| `star` | star |
-| `storefront` | storefront |
-| `summarize` | article |
-| `swap_horiz` | arrows-left-right |
-| `swap_vert` | arrows-down-up |
-| `table` | table |
-| `table_view` | table |
-| `tag` | hash |
-| `task_alt` | check-circle |
-| `text_fields` | text-aa |
-| `timer` | timer |
-| `today` | calendar-dot |
-| `translate` | translate |
-| `travel` | airplane-tilt |
-| `trending_down` | trend-down |
-| `trending_up` | trend-up |
-| `tune` | funnel-simple |
-| `undo` | arrow-counter-clockwise |
-| `upload_file` | upload-simple |
-| `download` (added: CSV import) | download-simple |
-| `attach_file` (added: Attach, 76) | paperclip |
-| `block` (added: Repeat › Never, 75) | prohibit |
-| `visibility_off` | eye-slash |
-| `volunteer_activism` | hand-heart |
-| `wallet` | wallet |
-| `wallpaper` | paint-brush |
-| `wifi` | wifi-high |
-| `wifi_off` | wifi-slash |
+| `account_balance` | Bank |
+| `account_balance_wallet` | Wallet01 |
+| `add` | Add01 |
+| `alarm` | AlarmClock |
+| `apartment` | Building03 |
+| `arrow_back` | ArrowLeft02 |
+| `arrow_downward` | ArrowDown02 |
+| `arrow_drop_down` | ArrowDown01 |
+| `arrow_forward` | ArrowRight02 |
+| `arrow_upward` | ArrowUp02 |
+| `arrow_upward_alt` | ArrowUp02 |
+| `attach_file` | Attachment01 |
+| `attach_money` | DollarCircle |
+| `autorenew` | Refresh |
+| `backspace` | ArrowLeft04 |
+| `backup` | CloudUpload |
+| `balance` | BalanceScale |
+| `bar_chart` | ChartColumn |
+| `battery_full` | BatteryFull |
+| `block` | Unavailable |
+| `bolt` | Flash |
+| `books` | Books01 |
+| `bug_report` | Bug01 |
+| `bus` | Bus01 |
+| `calendar_month` | Calendar03 |
+| `calendar_view_day` | Calendar01 |
+| `calendar_view_month` | GridView |
+| `call_split` | Split |
+| `category` | Shapes |
+| `celebration` | Party |
+| `check` | Tick02 |
+| `check_circle` | CheckmarkCircle02 |
+| `checkroom` | TShirt |
+| `chevron_left` | ArrowLeft01 |
+| `chevron_right` | ArrowRight01 |
+| `child_care` | Baby01 |
+| `close` | Cancel01 |
+| `cloud` | Cloud |
+| `cloud_done` | CloudSavingDone01 |
+| `cloud_upload` | CloudUpload |
+| `code` | SourceCode |
+| `coffee` | Coffee02 |
+| `content_copy` | Copy01 |
+| `content_paste` | Clipboard |
+| `cooking_gas` | Fire |
+| `credit_card` | CreditCard |
+| `currency_exchange` | Exchange01 |
+| `currency_pound` | Pound |
+| `currency_rupee` | Rupee |
+| `dark_mode` | Moon02 |
+| `dashboard_customize` | DashboardSquare02 |
+| `date` | Calendar01 |
+| `date_range` | Calendar02 |
+| `delete` | Delete02 |
+| `delete_forever` | Delete01 |
+| `delivery` | Scooter02 |
+| `description` | File02 |
+| `directions_car` | Car01 |
+| `doctor` | Stethoscope |
+| `donut_large` | ChartRing |
+| `download` | Download04 |
+| `drag_indicator` | DragDropVertical |
+| `edit` | PencilEdit02 |
+| `edit_note` | NoteEdit |
+| `envelope` | Mail01 |
+| `error` | AlertCircle |
+| `euro` | Euro |
+| `event` | CalendarCheckIn01 |
+| `event_available` | CalendarCheckIn01 |
+| `event_busy` | CalendarRemove01 |
+| `event_repeat` | Repeat |
+| `event_upcoming` | CalendarClock |
+| `expand_less` | ArrowUp01 |
+| `expand_more` | ArrowDown01 |
+| `export` | Share05 |
+| `fastfood` | Hamburger01 |
+| `favorite` | Favourite |
+| `filter_alt_off` | FilterRemove |
+| `filter_list` | FilterHorizontal |
+| `fingerprint` | FingerPrint |
+| `fitness_center` | Dumbbell01 |
+| `flag` | Flag02 |
+| `flight` | Airplane01 |
+| `folder` | Folder01 |
+| `format_list_bulleted` | LeftToRightListBullet |
+| `gadgets` | Headphones |
+| `games` | GameController03 |
+| `gold` | GoldIngots |
+| `grid_view` | GridView |
+| `group` | UserGroup |
+| `hand_tap` | Touch01 |
+| `handshake` | Agreement02 |
+| `help` | HelpCircle |
+| `history` | History |
+| `home` | Home01 |
+| `hospital` | FirstAidKit |
+| `hotel` | BedDouble |
+| `house_help` | Clean |
+| `image` | Image01 |
+| `import` | InboxDownload |
+| `info` | InformationCircle |
+| `insights` | Sparkles |
+| `insurance` | Umbrella |
+| `investment` | ChartIncrease |
+| `ios_share` | Share05 |
+| `jewellery` | Diamond01 |
+| `key` | Key01 |
+| `laptop_mac` | Laptop |
+| `light_mode` | Sun03 |
+| `lightbulb` | Idea01 |
+| `loan_emi` | HandCoins |
+| `local_bar` | Beer |
+| `local_gas_station` | FuelStation |
+| `local_mall` | ShoppingBag02 |
+| `lock` | SquareLock02 |
+| `medicine` | Medicine02 |
+| `more_horiz` | MoreHorizontal |
+| `movie` | Film02 |
+| `notes` | Note01 |
+| `notifications` | Notification03 |
+| `notifications_active` | Notification01 |
+| `notifications_off` | NotificationOff03 |
+| `notifications_paused` | NotificationSnooze03 |
+| `palette` | PaintBoard |
+| `pause` | Pause |
+| `pause_circle` | PauseCircle |
+| `pause_circle_filled` | PauseCircle |
+| `payments` | Money03 |
+| `percent` | Percent |
+| `person` | User |
+| `pets` | PawPrint |
+| `photo_camera` | Camera01 |
+| `pie` | PieChart |
+| `pie_chart` | PieChart |
+| `pin` | PasswordValidation |
+| `plants` | Plant02 |
+| `play_arrow` | Play |
+| `public` | Globe02 |
+| `real_estate_agent` | RealEstate02 |
+| `receipt_long` | Invoice01 |
+| `redeem` | Gift |
+| `redeem2` | GiftCard |
+| `redo` | Redo03 |
+| `refund` | ArrowTurnBackward |
+| `remove` | MinusSign |
+| `repairs` | Wrench01 |
+| `restaurant` | Restaurant01 |
+| `rule` | CheckList |
+| `salon` | Scissors |
+| `savings` | PiggyBank |
+| `scales` | BalanceScale |
+| `schedule` | Clock01 |
+| `school` | Mortarboard02 |
+| `science` | TestTube01 |
+| `search` | Search01 |
+| `search_off` | SearchRemove |
+| `settings_backup_restore` | History |
+| `shield` | SecurityCheck |
+| `shield_check` | SecurityCheck |
+| `shoes` | RunningShoes |
+| `shopping_cart` | ShoppingCart01 |
+| `signal_cellular_4_bar` | SignalFull02 |
+| `smartphone` | Smartphone |
+| `sms` | Message01 |
+| `spa` | Flower |
+| `star` | Star |
+| `storefront` | Store01 |
+| `summarize` | News01 |
+| `swap_horiz` | ArrowDataTransferHorizontal |
+| `swap_vert` | ArrowDataTransferVertical |
+| `table` | LayoutTable01 |
+| `table_view` | LayoutTable01 |
+| `tag` | Tag01 |
+| `task_alt` | CheckmarkCircle02 |
+| `tax` | Taxes |
+| `taxi` | Taxi |
+| `text_fields` | TextFont |
+| `tickets` | Ticket01 |
+| `timer` | Timer02 |
+| `today` | Calendar04 |
+| `toys` | Puzzle |
+| `train` | Train01 |
+| `translate` | Translate |
+| `travel` | Luggage01 |
+| `trending_down` | TrendingDown |
+| `trending_up` | TrendingUp |
+| `tune` | SlidersHorizontal |
+| `tv` | Tv01 |
+| `two_wheeler` | Motorbike02 |
+| `undo` | Undo03 |
+| `upload_file` | Upload04 |
+| `vegetables` | Carrot |
+| `visibility_off` | ViewOff |
+| `volunteer_activism` | HandHeart |
+| `wallet` | Wallet01 |
+| `wallpaper` | PaintBrush02 |
+| `water` | Droplet |
+| `wifi` | Wifi01 |
+| `wifi_off` | WifiOff01 |
 
-## Added 2026-10-22 (burrow-next)
-| Name | Phosphor | Where |
-|---|---|---|
-| `call_split` | arrows-split | Split across categories (07, 08) |
-| `refund` | arrow-u-up-left | Add a refund (07, 09) |
-| `import` | tray-arrow-down | Import or export (10, 11), More row |
-| `export` | export | Export to CSV (10) |
-| `ic_shortcut_*` | layer-list: white glyph on the rose circle | app shortcuts (launchers draw them as they are) |
+`ic_shortcut_*`: layer-list, a white glyph on the rose circle (app shortcuts; launchers draw them as they are).
+`ic_notification`, `ic_launcher_*`, `ic_mid_apps`: the Burrow and mid apps marks, not icons from the set.
 
-## Category icons added 2026-10-22 (where money goes)
-The Edit category picker (62) lists 60 icons (10 full rows of 6) grouped by kind of spending; order lives in `CATEGORY_ICONS`
-(`ui/components/AppIcons.kt`). New ones:
-
-| Name | Phosphor | | Name | Phosphor |
-|---|---|---|---|---|
-| `fastfood` | hamburger | | `shoes` | sneaker |
-| `local_bar` | beer-stein | | `jewellery` | diamond |
-| `vegetables` | carrot | | `salon` | scissors |
-| `delivery` | moped | | `medicine` | pill |
-| `two_wheeler` | motorcycle | | `hospital` | first-aid-kit |
-| `taxi` | taxi | | `games` | game-controller |
-| `train` | train | | `tickets` | ticket |
-| `bus` | bus | | `books` | books |
-| `hotel` | bed | | `toys` | puzzle-piece |
-| `apartment` | building-apartment | | `loan_emi` | hand-coins |
-| `water` | drop | | `insurance` | umbrella |
-| `cooking_gas` | flame | | `tax` | calculator |
-| `tv` | television-simple | | `investment` | chart-line-up |
-| `repairs` | wrench | | `gold` | coins |
-| `house_help` | broom | | `gadgets` | headphones |
-| `doctor` | stethoscope | | `plants` | plant |
-
-Also offered in the picker (drawables already there): `smartphone` (recharge), `wifi`, `volunteer_activism`
-(donations), `autorenew` (subscriptions), `payments` (cash), `account_balance` (bank charges), `credit_card`, `savings`, `percent` (fees, interest).
+The Edit category picker (62) lists 60 icons grouped by kind of spending; order lives in `CATEGORY_ICONS`
+(`ui/components/AppIcons.kt`).

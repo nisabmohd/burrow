@@ -14,6 +14,8 @@
 - Swipes on Coming up stay quiet until you've dragged far enough, then show what letting go will do.
 - Buttons grow with large text instead of cutting their label.
 - "Rate on Play Store" in About, now that Burrow is on Play.
+- New icons: Burrow now uses Hugeicons, a lighter rounded line set, everywhere in the app.
+- Small phones: pick-one pills ("Opens as") go two to a row when a word and its check don't fit, and centre their label. Settings rows wrap a long name to a second line, and titles shrink a step instead of being cut off.
 
 ## 0.2.1
 - Auto-capture shows what it really does: More says "Paused · Needs access" when Android blocks it, the same as Today and Auto-capture.

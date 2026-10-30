@@ -31,7 +31,7 @@ investments with live prices, tax module, document vault, multiple ledgers.
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first.
 - Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete and replace data; a wrong password shows in its sheet (144).
-- Icons: Phosphor vector drawables only (`ic_<name>_<regular|fill|duotone>`), see `docs/ICONS.md`.
+- Icons: Hugeicons free stroke-rounded vector drawables only (`ic_<name>_<regular|fill|duotone>`, user, 2026-10-30), see `docs/ICONS.md`.
 - Release: R8 full, minify + shrink resources, baseline profile committed. APK < 5 MB.
 - Build and run after every change; one commit per working step. Never `./gradlew clean` bare: use `:app:clean`.
 - Release files go in `build/dist/v<version>/`.
@@ -90,7 +90,7 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 - Refunds lower their category's spending, never count as income. Split payments stay one row in
   Activity; each part counts in its own category and budget.
 - Notifications: app name + time, title, one line, no buttons (except the capture notification).
-  Small icon is always the Burrow mark, `R.drawable.ic_notification` (user, 2026-10-20), never a Phosphor glyph.
+  Small icon is always the Burrow mark, `R.drawable.ic_notification` (user, 2026-10-20), never an icon-set glyph.
 
 ## Working with Claude
 - Start each session with `TODO.md`: pick the next unticked day, build it screen by screen against its PNGs.
