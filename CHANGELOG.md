@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.2
 - Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.
 - Words in a message pick the category ("petrol", "medicines", "Swiggy"), and the expense is named by them; the merchant shows on the transaction.
 - Message rules for the UAE and the UK, on only in their country, and community packs anyone can import.
