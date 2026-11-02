@@ -121,6 +121,8 @@
     <string name="notif_to">%1$s an %2$s</string>
     <string name="notif_from">%1$s von %2$s</string>
     <string name="notif_spent">%1$s ausgegeben</string>
+    <string name="notif_on">%1$s für %2$s</string>
+    <string name="merchant">Händler</string>
     <string name="notif_received">%1$s erhalten</string>
     <string name="notif_which_category">%1$s · welche Kategorie?</string>
     <string name="ignore">Ignorieren</string>
@@ -192,7 +194,6 @@
     <string name="rules_header_line">eigene · %1$d aktiv · plus das eingebaute Paket</string>
     <string name="yours">Deine</string>
     <string name="built_in_packs">Eingebaute Pakete</string>
-    <string name="pack_india">Indien</string>
     <plurals name="pack_rules">
         <item quantity="one">%d Regel · Banken und UPI-Apps</item>
         <item quantity="other">%d Regeln · Banken und UPI-Apps</item>
@@ -716,8 +717,8 @@
     <string name="keep_last_7_line">Ältere Backups werden entfernt</string>
     <string name="restore">Wiederherstellen</string>
     <plurals name="n_transactions">
-        <item quantity="one">%1$d Buchung</item>
-        <item quantity="other">%1$d Buchungen</item>
+        <item quantity="one">%1$,d Buchung</item>
+        <item quantity="other">%1$,d Buchungen</item>
     </plurals>
     <string name="restore_from_file">Aus einer anderen Datei wiederherstellen</string>
     <string name="backup_explain">Backups werden mit deinem Passwort verschlüsselt und in einem Ordner deiner Wahl gespeichert, etwa einem, den deine Cloud-App synchronisiert. Burrow lädt nie etwas hoch.</string>
@@ -733,8 +734,8 @@
     <string name="not_a_backup">Diese Datei ist kein Burrow-Backup</string>
     <string name="replace_title">Alles ersetzen?</string>
     <plurals name="replace_text">
-        <item quantity="one">Die Daten auf diesem Handy werden durch das Backup ersetzt (%1$d Buchung).</item>
-        <item quantity="other">Die Daten auf diesem Handy werden durch das Backup ersetzt (%1$d Buchungen).</item>
+        <item quantity="one">Die Daten auf diesem Handy werden durch das Backup ersetzt (%1$,d Buchung).</item>
+        <item quantity="other">Die Daten auf diesem Handy werden durch das Backup ersetzt (%1$,d Buchungen).</item>
     </plurals>
     <string name="replace">Ersetzen</string>
     <string name="restored">Wiederhergestellt</string>
@@ -1029,8 +1030,8 @@
     <string name="nothing_to_import_line">Diese Datei enthält keine Zahlungen, die Burrow lesen kann. Prüfe, ob es der CSV-Export aus %1$s ist.</string>
     <string name="pick_another_file">Andere Datei wählen</string>
     <plurals name="import_n">
-        <item quantity="one">%d Buchung importieren</item>
-        <item quantity="other">%d Buchungen importieren</item>
+        <item quantity="one">%,d Buchung importieren</item>
+        <item quantity="other">%,d Buchungen importieren</item>
     </plurals>
     <plurals name="n_accounts">
         <item quantity="one">%d Konto</item>
@@ -1099,13 +1100,13 @@
     <string name="already_here">Was schon da ist</string>
     <string name="import_add">Zum Vorhandenen hinzufügen</string>
     <plurals name="import_add_line">
-        <item quantity="one">Deine %1$d Buchung bleibt</item>
-        <item quantity="other">Deine %1$d Buchungen bleiben</item>
+        <item quantity="one">Deine %1$,d Buchung bleibt</item>
+        <item quantity="other">Deine %1$,d Buchungen bleiben</item>
     </plurals>
     <string name="import_replace">Deine Buchungen ersetzen</string>
     <plurals name="import_replace_line">
-        <item quantity="one">Deine %1$d Buchung wird zuerst gelöscht; Konten und Kategorien bleiben</item>
-        <item quantity="other">Deine %1$d Buchungen werden zuerst gelöscht; Konten und Kategorien bleiben</item>
+        <item quantity="one">Deine %1$,d Buchung wird zuerst gelöscht; Konten und Kategorien bleiben</item>
+        <item quantity="other">Deine %1$,d Buchungen werden zuerst gelöscht; Konten und Kategorien bleiben</item>
     </plurals>
     <plurals name="replace_title">
         <item quantity="one">Deine %1$d Buchung löschen?</item>
@@ -1177,7 +1178,7 @@
     <string name="capture_off_line">Schalte Bank-SMS oder Zahlungs-Apps ein, damit Zahlungen sich selbst erfassen</string>
     <string name="capture_off_line_apps">Schalte Zahlungs-Apps ein, damit Zahlungen sich selbst erfassen</string>
     <string name="restricted_title">Android blockiert den Zugriff</string>
-    <string name="restricted_line">Burrow wurde aus einer Datei installiert. Tippe in den App-Infos auf ⋮ › Eingeschränkte Einstellungen zulassen und schalte es hier wieder ein</string>
+    <string name="restricted_line">Burrow wurde aus einer Datei installiert. Tippe einmal auf den Schalter in den Android-Einstellungen, dann in den App-Infos auf ⋮ › Eingeschränkte Einstellungen zulassen und schalte es hier wieder ein</string>
     <string name="app_info">App-Infos</string>
     <string name="check_for_updates">Nach Updates suchen</string>
     <string name="checking_updates">Wird geprüft…</string>

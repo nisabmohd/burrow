@@ -70,6 +70,10 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
     /** Every transaction, newest first, with splits and refunds unfolded for the numbers. */
     val stats: Flow<List<TxnView>> = combine(money.latest(), seeded { db.next().splits() }) { views, parts -> expandForStats(views, parts) }
 
+    /** [stats] for payments dated in [from, to) only: Insights reads the days it shows, not all history (20k test, 2026-11-02). */
+    fun statsBetween(from: Long, to: Long): Flow<List<TxnView>> =
+        combine(money.between(from, to), seeded { db.next().splits() }) { views, parts -> expandForStats(views, parts) }
+
     // Splits (07, 08)
     fun splitsOf(txnId: Long): Flow<List<SplitEntity>> = seeded { db.next().splitsOf(txnId) }
 

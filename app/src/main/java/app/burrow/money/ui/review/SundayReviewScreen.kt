@@ -48,7 +48,7 @@ class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
         val waiting = app.capture.toReview.first()
         val saved = waiting.mapNotNull { c ->
             val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-            val category = c.categoryId ?: app.capture.suggestions(c.payee, type).firstOrNull()
+            val category = c.categoryId ?: app.capture.suggestions(c.payee, type, c.body).firstOrNull()
             app.capture.save(c.id, category)?.let { c.id }
         }
         onDone(saved.size, if (saved.isEmpty()) null else ({ saved.forEach { app.capture.unsave(it) } }))

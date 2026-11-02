@@ -147,6 +147,35 @@ class Saved(val type: String, val wasEdit: Boolean, val upcoming: Boolean = fals
  * one with today's date; [captureId] starts from a found payment ("Open it to edit first");
  * otherwise a new one of [startType] (blank = Customise › Expense › Opens as).
  */
+/**
+ * What New expense can ask of its form: [AddViewModel] does it for real, a screen test with a fake.
+ * The screen draws from [AddUiState] only and sends every change here.
+ */
+interface AddActions {
+    fun setType(type: String)
+    fun setInput(input: AmountInput)
+    fun evaluate()
+    fun setCategory(id: Long)
+    fun setAccount(id: Long)
+    fun setToAccount(id: Long)
+    fun setNote(text: String)
+    fun setPayee(text: String)
+    fun pickPayee(s: PayeeSuggestion)
+    fun pickRecent(r: RecentSuggestion, accounts: List<AccountWithBalance>)
+    fun toggleTag(tag: String)
+    fun setRepeat(every: String)
+    fun setSubscription(on: Boolean)
+    fun setLend(kind: String?)
+    fun setPerson(name: String)
+    fun spendFavourite(f: app.burrow.money.data.FavouriteView, label: String, onSaved: (Saved) -> Unit)
+    fun addAttachment(p: Attachments.Pending)
+    fun removePending(p: Attachments.Pending)
+    fun removeKept(a: AttachmentEntity)
+    fun setDate(date: LocalDate)
+    fun setTime(time: LocalTime)
+    fun save(onSaved: (Saved) -> Unit)
+}
+
 class AddViewModel(
     private val app: AppContainer,
     private val editId: Long,
@@ -157,7 +186,7 @@ class AddViewModel(
     /** Start with this account (Account › Transfer). */
     private val startAccountId: Long = 0L,
     private val captureId: Long = 0L,
-) : ViewModel() {
+) : ViewModel(), AddActions {
     private val repo = app.money
     private val form = MutableStateFlow<AddForm?>(null)
     private val suggestions = MutableStateFlow<List<PayeeSuggestion>>(emptyList())
@@ -203,10 +232,12 @@ class AddViewModel(
                 )
                 capture != null -> {
                     val type = if (capture.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-                    val payee = capture.payee?.let(::tidyPayee).orEmpty()
+                    val merchant = capture.payee?.let(::tidyPayee).orEmpty()
+                    // Named by the message's words ("Petrol") when it had some; the merchant is kept hidden.
+                    val payee = capture.name ?: merchant
                     AddForm(
                         type = type, input = AmountInput.of(capture.amount ?: 0, digits),
-                        categoryId = capture.categoryId ?: payee.takeIf { it.isNotBlank() }?.let { repo.usualCategoryFor(it, type, raw = capture.payee.orEmpty()) },
+                        categoryId = capture.categoryId ?: merchant.takeIf { it.isNotBlank() }?.let { repo.usualCategoryFor(it, type, raw = capture.payee.orEmpty()) },
                         accountId = app.capture.accountFor(capture) ?: pay.firstOrNull()?.account?.id,
                         at = capture.receivedAt, payee = payee, note = capture.sender,
                     )
@@ -229,7 +260,7 @@ class AddViewModel(
 
     private fun edit(change: (AddForm) -> AddForm) = form.update { it?.let(change) }
 
-    fun setType(type: String) {
+    override fun setType(type: String) {
         edit {
             // A category of the other kind no longer fits.
             val cat = state.value?.categories?.firstOrNull { c -> c.id == it.categoryId }
@@ -239,21 +270,21 @@ class AddViewModel(
         refreshSuggestions()
     }
 
-    fun setInput(input: AmountInput) = edit { it.copy(input = input) }
-    fun evaluate() = edit { it.copy(input = it.input.evaluated()) }
-    fun setCategory(id: Long) { picked = true; edit { it.copy(categoryId = id) } }
-    fun setAccount(id: Long) = edit { it.copy(accountId = id) }
-    fun setToAccount(id: Long) = edit { it.copy(toAccountId = id) }
-    fun setNote(text: String) = edit { it.copy(note = text) }
+    override fun setInput(input: AmountInput) = edit { it.copy(input = input) }
+    override fun evaluate() = edit { it.copy(input = it.input.evaluated()) }
+    override fun setCategory(id: Long) { picked = true; edit { it.copy(categoryId = id) } }
+    override fun setAccount(id: Long) = edit { it.copy(accountId = id) }
+    override fun setToAccount(id: Long) = edit { it.copy(toAccountId = id) }
+    override fun setNote(text: String) = edit { it.copy(note = text) }
 
     /** Typing in Paid to: the suggestions follow what was typed. */
-    fun setPayee(text: String) {
+    override fun setPayee(text: String) {
         edit { it.copy(payee = text) }
         refreshSuggestions()
     }
 
     /** A suggestion chip: the payee, and their usual category unless one was picked by hand. */
-    fun pickPayee(s: PayeeSuggestion) {
+    override fun pickPayee(s: PayeeSuggestion) {
         edit { it.copy(payee = s.name, categoryId = if (picked || s.categoryId == null) it.categoryId else s.categoryId) }
         refreshSuggestions()
     }
@@ -274,7 +305,7 @@ class AddViewModel(
     }
 
     /** A Recent chip: the amount, payee, category and account of that entry; the date stays now. */
-    fun pickRecent(r: RecentSuggestion, accounts: List<AccountWithBalance>) {
+    override fun pickRecent(r: RecentSuggestion, accounts: List<AccountWithBalance>) {
         picked = true
         // The account only if it can still pay (not closed or turned into a loan since).
         val account = r.accountId.takeIf { id -> accounts.any { it.account.id == id } }
@@ -282,42 +313,42 @@ class AddViewModel(
         refreshSuggestions()
     }
 
-    fun toggleTag(tag: String) = edit { it.copy(tags = if (tag in it.tags) it.tags - tag else it.tags + tag) }
-    fun setRepeat(every: String) = edit { it.copy(repeat = every) }
-    fun setSubscription(on: Boolean) = edit { it.copy(subscription = on) }
+    override fun toggleTag(tag: String) = edit { it.copy(tags = if (tag in it.tags) it.tags - tag else it.tags + tag) }
+    override fun setRepeat(every: String) = edit { it.copy(repeat = every) }
+    override fun setSubscription(on: Boolean) = edit { it.copy(subscription = on) }
     fun setRepeatRemind(on: Boolean) = edit { it.copy(repeatRemind = on) }
-    fun setLend(kind: String?) = edit { it.copy(lend = kind) }
-    fun setPerson(name: String) = edit { it.copy(person = name) }
+    override fun setLend(kind: String?) = edit { it.copy(lend = kind) }
+    override fun setPerson(name: String) = edit { it.copy(person = name) }
     fun setSettleRemind(on: Boolean) = edit { it.copy(settleRemind = on) }
     fun setFavourite(on: Boolean) = edit { it.copy(favourite = on) }
 
     /** One tap on a favourite chip (04): saved to now, with Undo. */
-    fun spendFavourite(f: app.burrow.money.data.FavouriteView, label: String, onSaved: (Saved) -> Unit) {
+    override fun spendFavourite(f: app.burrow.money.data.FavouriteView, label: String, onSaved: (Saved) -> Unit) {
         viewModelScope.launch {
             val id = app.next.spendFavourite(f.favourite)
             onSaved(Saved(TxnType.EXPENSE, wasEdit = false, label = label) { repo.delete(id) })
         }
     }
 
-    fun addAttachment(p: Attachments.Pending) = edit { it.copy(attachments = it.attachments + p) }
-    fun removePending(p: Attachments.Pending) = edit { p.file.delete(); it.copy(attachments = it.attachments - p) }
-    fun removeKept(a: AttachmentEntity) = edit { it.copy(kept = it.kept - a, removed = it.removed + a) }
+    override fun addAttachment(p: Attachments.Pending) = edit { it.copy(attachments = it.attachments + p) }
+    override fun removePending(p: Attachments.Pending) = edit { p.file.delete(); it.copy(attachments = it.attachments - p) }
+    override fun removeKept(a: AttachmentEntity) = edit { it.copy(kept = it.kept - a, removed = it.removed + a) }
 
     /** Keeps the time of day, changes the day (any day: a future one makes it upcoming). */
-    fun setDate(date: LocalDate) = edit {
+    override fun setDate(date: LocalDate) = edit {
         val zone = ZoneId.systemDefault()
         val time = Instant.ofEpochMilli(it.at).atZone(zone).toLocalTime()
         it.copy(at = date.atTime(time).atZone(zone).toInstant().toEpochMilli())
     }
 
-    fun setTime(time: LocalTime) = edit {
+    override fun setTime(time: LocalTime) = edit {
         val zone = ZoneId.systemDefault()
         val day = Instant.ofEpochMilli(it.at).atZone(zone).toLocalDate()
         it.copy(at = day.atTime(time).atZone(zone).toInstant().toEpochMilli())
     }
 
     /** Saves, or marks what is missing. [onSaved] runs once the row is written. */
-    fun save(onSaved: (Saved) -> Unit) {
+    override fun save(onSaved: (Saved) -> Unit) {
         val s = state.value ?: return
         if (!s.canSave) {
             edit { it.copy(tried = true) }
@@ -341,6 +372,8 @@ class AddViewModel(
                 categoryId = if (f.type == TxnType.TRANSFER) null else f.categoryId,
                 payee = f.payee.trim().ifBlank { null },
                 note = f.note.trim().ifBlank { null },
+                // Hidden: kept through edits, set once from the message.
+                merchant = base?.merchant ?: if (captureId != 0L) app.capture.get(captureId)?.payee?.let(::tidyPayee) else null,
                 at = f.at,
                 source = base?.source ?: if (captureId != 0L) app.capture.get(captureId)?.source ?: "MANUAL" else "MANUAL",
                 // Money lent out isn't spending; money borrowed isn't income.

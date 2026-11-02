@@ -1,13 +1,10 @@
 package app.burrow.money.ui.review
 
 import app.burrow.money.ui.components.MessageCard
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -15,9 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,16 +19,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
 import app.burrow.money.data.tidyPayee
@@ -46,16 +35,11 @@ import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.LocalSnackbar
 import app.burrow.money.ui.components.MessageBox
 import app.burrow.money.ui.components.ScreenTopBar
-import app.burrow.money.ui.components.TonalIconButton
 import app.burrow.money.ui.components.confirm
 import app.burrow.money.ui.components.marksFor
-import app.burrow.money.ui.components.threshold
 import app.burrow.money.ui.pickers.CategoryCircle
 import app.burrow.money.ui.pickers.CategorySheet
 import app.burrow.money.ui.rememberDateText
-import app.burrow.money.ui.shortName
-import app.burrow.money.ui.theme.BurrowType
-import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
 
@@ -150,8 +134,9 @@ private fun ReviewCard(item: ReviewItem, modifier: Modifier, onIgnore: () -> Uni
     val when_ = dates.day(dates.date(cap.receivedAt)).let { d -> if (d == stringResource(R.string.today)) dates.time(cap.receivedAt) else d }
     MessageCard(
         lead = { CategoryCircle(item.category?.icon, item.category?.colorHue) },
-        title = cap.payee?.let { tidyPayee(it) } ?: item.from,
-        line = listOfNotNull(item.accountName, when_).joinToString(" · "),
+        // The expense name ("Medicines") over its merchant ("Apollo Pharmacy"), when the message had both.
+        title = cap.name ?: cap.payee?.let { tidyPayee(it) } ?: item.from,
+        line = listOfNotNull(cap.payee?.takeIf { cap.name != null }?.let { tidyPayee(it) }, item.accountName, when_).joinToString(" · "),
         amount = amount,
         ignoreLabel = stringResource(R.string.ignore), onIgnore = onIgnore,
         button = stringResource(R.string.save), buttonIcon = painterResource(R.drawable.ic_check_regular), onButton = onSave,

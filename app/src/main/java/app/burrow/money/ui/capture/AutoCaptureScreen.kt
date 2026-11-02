@@ -20,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import app.burrow.money.ui.components.Note
 import app.burrow.money.ui.components.NoteKind
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -29,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.R
 import app.burrow.money.capture.CaptureAccess
+import app.burrow.money.capture.CaptureStatus
 import app.burrow.money.ui.components.BurrowSwitch
 import app.burrow.money.ui.components.CenterTitleHeader
 import app.burrow.money.ui.components.Chevron
@@ -38,7 +38,6 @@ import app.burrow.money.ui.components.ListRow
 import app.burrow.money.ui.components.LocalSnackbar
 import app.burrow.money.ui.components.ScreenTopBar
 import app.burrow.money.ui.theme.Space
-import kotlinx.coroutines.launch
 
 /**
  * Auto-capture (48): how many payments it recorded, the Bank SMS and Payment apps switches,
@@ -59,25 +58,61 @@ fun AutoCaptureScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val context = LocalContext.current
-    val snackbar = LocalSnackbar.current
-    val scope = rememberCoroutineScope()
     // The same answer as the More tile and Today's note: saved switches against what Android allows.
     val status = rememberCaptureStatus(s.sms, s.apps)
-    val smsAccess = status.smsAllowed
-    val appsAccess = status.appsAllowed
     // Set when a switch was turned on but Android still says no: on a downloaded APK that is
-    // Restricted settings, and the note below shows the way out.
+    // Restricted settings, and the note shows the way out.
     var smsRefused by rememberSaveable { mutableStateOf(false) }
     val askSms = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         val granted = CaptureAccess.smsGranted(context)
         smsRefused = !granted
         vm.setSms(granted)
     }
+    val restricted = remember { CaptureAccess.restrictedSettingsLikely(context) }
+    AutoCaptureContent(
+        s, status, restricted, smsRefused,
+        onSms = { on -> if (on && !status.smsAllowed) askSms.launch(CaptureAccess.permissionsToAsk()) else vm.setSms(on) },
+        onApps = { on ->
+            // Saved as wanted; it shows on once access is given in system settings.
+            if (on && !status.appsAllowed) runCatching { context.startActivity(CaptureAccess.listenerSettings()) }
+            vm.setApps(on)
+        },
+        onAppInfo = { runCatching { context.startActivity(CaptureAccess.appInfo(context)) } },
+        onTryIt = vm::tryIt,
+        onBack = onBack, onTeach = onTeach, onRules = onRules, onHowItWorks = onHowItWorks,
+        paymentFound = paymentFound, onPaymentFound = onPaymentFound,
+    )
+}
+
+/**
+ * Auto-capture drawn from [s] and [status] (what Android allows) alone, so tests can hand it any
+ * state. [restricted]: installed from a file; [smsRefused]: Android just said no to SMS.
+ */
+@Composable
+fun AutoCaptureContent(
+    s: AutoCaptureState,
+    status: CaptureStatus,
+    restricted: Boolean,
+    smsRefused: Boolean,
+    onSms: (Boolean) -> Unit,
+    onApps: (Boolean) -> Unit,
+    onAppInfo: () -> Unit,
+    onTryIt: () -> Unit,
+    onBack: () -> Unit,
+    onTeach: (Long) -> Unit,
+    onRules: () -> Unit,
+    onHowItWorks: () -> Unit,
+    paymentFound: String = app.burrow.money.data.PaymentFound.ASK,
+    onPaymentFound: () -> Unit = {},
+) {
+    val context = LocalContext.current
+    val snackbar = LocalSnackbar.current
+    val smsAccess = status.smsAllowed
+    val appsAccess = status.appsAllowed
     // A switch shows on only when it is on AND Android lets it read: never "on" with nothing recorded.
     val smsOn = status.smsOn
     val appsOn = status.appsOn
     val anyOn = status.anyOn
-    val restricted = remember { CaptureAccess.restrictedSettingsLikely(context) }
     val blocked = restricted && ((smsRefused && !smsAccess) || (s.apps && !appsAccess))
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
@@ -91,12 +126,12 @@ fun AutoCaptureScreen(
                 Note(
                     NoteKind.WARN, painterResource(R.drawable.ic_error_regular), stringResource(R.string.restricted_title),
                     line = stringResource(R.string.restricted_line),
-                    action = stringResource(R.string.app_info), onAction = { runCatching { context.startActivity(CaptureAccess.appInfo(context)) } },
+                    action = stringResource(R.string.app_info), onAction = onAppInfo,
                 )
             } else if (!anyOn) {
                 Note(
                     NoteKind.INFO, painterResource(R.drawable.ic_sms_regular), stringResource(R.string.capture_off_title),
-                    line = stringResource(if (CaptureAccess.smsInThisBuild) R.string.capture_off_line else R.string.capture_off_line_apps),
+                    line = stringResource(if (status.smsInBuild) R.string.capture_off_line else R.string.capture_off_line_apps),
                 )
             }
             // Off or blocked (145, 146): the note, the two switches and How it works only; no header.
@@ -123,15 +158,13 @@ fun AutoCaptureScreen(
                 )
             }
             val switches = buildList<@Composable (Int, Int) -> Unit> {
-                if (CaptureAccess.smsInThisBuild) add { i, n ->
+                if (status.smsInBuild) add { i, n ->
                     ListRow(
                         stringResource(R.string.bank_sms), i, n,
                         supporting = stringResource(R.string.bank_sms_line), // one fixed line: the list of banks seen changed and got cut off
                         lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
                         trailing = {
-                            BurrowSwitch(smsOn, { on ->
-                                if (on && !smsAccess) askSms.launch(CaptureAccess.permissionsToAsk()) else vm.setSms(on)
-                            })
+                            BurrowSwitch(smsOn, onSms)
                         },
                     )
                 }
@@ -140,11 +173,7 @@ fun AutoCaptureScreen(
                         stringResource(R.string.payment_apps), i, n, supporting = stringResource(R.string.payment_apps_line),
                         lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
                         trailing = {
-                            BurrowSwitch(appsOn, { on ->
-                                // Saved as wanted; it shows on once access is given in system settings.
-                                if (on && !appsAccess) runCatching { context.startActivity(CaptureAccess.listenerSettings()) }
-                                vm.setApps(on)
-                            })
+                            BurrowSwitch(appsOn, onApps)
                         },
                     )
                 }
@@ -181,7 +210,7 @@ fun AutoCaptureScreen(
                 if (anyOn) ListRow(
                     stringResource(R.string.try_it), 0, n, supporting = stringResource(R.string.try_it_line),
                     lead = { IconCircle(painterResource(R.drawable.ic_play_arrow_duotone)) },
-                    onClick = { vm.tryIt(); snackbar.show(context.getString(R.string.sample_sent)) },
+                    onClick = { onTryIt(); snackbar.show(context.getString(R.string.sample_sent)) },
                 )
                 ListRow(
                     stringResource(R.string.how_it_works), n - 1, n,

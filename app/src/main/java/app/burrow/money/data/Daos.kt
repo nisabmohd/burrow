@@ -242,13 +242,29 @@ interface TxnDao {
         """
         SELECT categoryId FROM TxnEntity
         WHERE type = :type AND categoryId IS NOT NULL AND (
-            payee = :payee COLLATE NOCASE OR
+            payee = :payee COLLATE NOCASE OR merchant = :payee COLLATE NOCASE OR
             id IN (SELECT txnId FROM CaptureEntity WHERE txnId IS NOT NULL AND payee = :raw COLLATE NOCASE)
         )
         GROUP BY categoryId ORDER BY COUNT(*) DESC, MAX(at) DESC LIMIT :limit
         """,
     )
     suspend fun usualCategoriesFor(payee: String, raw: String, type: String, limit: Int): List<Long>
+
+    /**
+     * The name you last gave a payment from this merchant (its alias): "thirdwave@okicici" saved as
+     * "Third Wave Coffee". Reads the hidden merchant, and older payments through their message.
+     */
+    @Query(
+        """
+        SELECT payee FROM TxnEntity
+        WHERE payee IS NOT NULL AND isSample = 0 AND (
+            merchant = :merchant COLLATE NOCASE OR
+            id IN (SELECT txnId FROM CaptureEntity WHERE txnId IS NOT NULL AND payee = :raw COLLATE NOCASE)
+        )
+        ORDER BY updatedAt DESC LIMIT 1
+        """,
+    )
+    suspend fun aliasFor(merchant: String, raw: String): String?
 
     @Query("SELECT categoryId FROM TxnEntity WHERE type = :type AND categoryId IS NOT NULL AND isSample = 0 ORDER BY at DESC LIMIT 1")
     suspend fun lastCategory(type: String): Long?

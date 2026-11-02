@@ -2,6 +2,8 @@ package app.burrow.money.ui.components
 
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -30,8 +32,10 @@ class ValueSheetTest {
     @Test fun aChipSetsTheValueAndShowsItsCheck() {
         var done: Long? = null
         rule.show { AmountSheet("Food & drinks", 9_000_00, { done = it }, {}, chips = listOf("₹2,000" to 2_000_00L, "₹4,000" to 4_000_00L), digits = 2, cancel = true, confirm = "Save") }
-        rule.onNodeWithText("₹4,000").performClick()
-        assertEquals(true, rule.onNodeWithText("₹4,000").isSelected())
+        // Once picked, the big amount reads "₹4,000" too: the chip is the selectable one.
+        val chip = hasText("₹4,000") and isSelectable()
+        rule.onNode(chip).performClick()
+        assertEquals(true, rule.onNode(chip).isSelected())
         rule.onNodeWithText("Save").performClick()
         rule.runOnIdle { assertEquals(4_000_00L, done) }
     }

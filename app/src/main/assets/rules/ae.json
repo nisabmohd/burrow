@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "name": "United Arab Emirates",
+  "country": "AE",
+  "rules": [
+    {
+      "id": "ae.enbd.card",
+      "name": "Emirates NBD",
+      "sender": "(?i)EmiratesNBD|ENBD|com\\.emiratesnbd\\.android",
+      "pattern": "(?i)Purchase of (?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) with (?:Credit|Debit) Card ending (?<account>\\d{2,}) at (?<payee>[^,.]+?)(?:,|\\.)",
+      "example": "Purchase of AED 45.50 with Credit Card ending 1234 at CARREFOUR MOE, DUBAI. Avl Cr. Limit is AED 12,345.67.",
+      "currency": "AED"
+    },
+    {
+      "id": "ae.enbd.debit",
+      "name": "Emirates NBD",
+      "sender": "(?i)EmiratesNBD|ENBD|com\\.emiratesnbd\\.android",
+      "pattern": "(?i)(?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) has been debited from (?:your )?account (?:no\\. )?[Xx*•.]*(?<account>\\d{2,})(?: towards| for| to)? (?<payee>[^.\\n]+?)\\.",
+      "example": "AED 1,200.00 has been debited from your account XXX1234 towards DEWA BILL PAYMENT. Available balance is AED 8,400.00.",
+      "currency": "AED"
+    },
+    {
+      "id": "ae.adcb.card",
+      "name": "ADCB",
+      "sender": "(?i)ADCB|com\\.adcb\\.bank",
+      "pattern": "(?i)Your (?:Cr\\.|Credit |Debit |Db\\.)?Card [Xx*•.]*(?<account>\\d{2,}) was used for (?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) on \\S+(?: \\S+)? at (?<payee>[^,]+?),",
+      "example": "Your Cr.Card XXX1234 was used for AED45.00 on 02/11/2026 10:20:11 at TALABAT,DUBAI-AE. Avl.Cr.limit is AED 9,876.00.",
+      "currency": "AED"
+    },
+    {
+      "id": "ae.fab.card",
+      "name": "First Abu Dhabi Bank",
+      "sender": "(?i)^FAB$|FABank|com\\.fab\\.personalbanking",
+      "pattern": "(?i)Card ending (?<account>\\d{2,}) (?:was )?used for (?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) at (?<payee>.+?) on ",
+      "example": "Card ending 1234 used for AED 89.00 at LULU HYPERMARKET on 02 NOV 2026 18:40. Available limit AED 5,110.00.",
+      "currency": "AED"
+    },
+    {
+      "id": "ae.mashreq.card",
+      "name": "Mashreq",
+      "sender": "(?i)Mashreq|com\\.mashreq\\.neo",
+      "pattern": "(?i)(?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) was spent on your Mashreq (?:Credit |Debit )?Card ending (?<account>\\d{2,}) at (?<payee>.+?) on ",
+      "example": "AED 230.00 was spent on your Mashreq Card ending 1234 at AMAZON.AE on 02-NOV-2026. Available limit AED 4,770.00.",
+      "currency": "AED"
+    },
+    {
+      "id": "ae.any.credit",
+      "name": "Any bank (UAE)",
+      "sender": "(?i)EmiratesNBD|ENBD|ADCB|^FAB$|FABank|Mashreq|DIB|RAKBANK|CBD|ADIB|HSBC",
+      "direction": "IN",
+      "pattern": "(?i)(?<currency>AED)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) (?:has been |was )?credited to (?:your )?(?:account|a/c) (?:no\\. )?[Xx*•.]*(?<account>\\d{2,})",
+      "example": "AED 15,000.00 has been credited to your account XXX1234 on 01-NOV-2026. Available balance is AED 23,400.00.",
+      "currency": "AED"
+    }
+  ]
+}

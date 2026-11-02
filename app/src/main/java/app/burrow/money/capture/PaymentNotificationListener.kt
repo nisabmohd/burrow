@@ -44,6 +44,22 @@ class PaymentNotificationListener : NotificationListenerService() {
             "com.sbi.lotusintouch",
             "com.msf.kbank.mobile",
             "com.axis.mobile",
+            // UAE (ae pack)
+            "com.emiratesnbd.android",
+            "com.adcb.bank",
+            "com.fab.personalbanking",
+            "com.mashreq.neo",
+            // UK (gb pack)
+            "co.uk.getmondo", // Monzo
+            "com.starlingbank.android",
+            "com.revolut.revolut",
+            "com.barclays.android.barclaysmobilebanking",
+            "uk.co.hsbc.hsbcukmobilebanking",
+            "com.grppl.android.shell.CMBlloydsTSB73", // Lloyds
+            "co.uk.Nationwide.Mobile",
+            "com.rbs.mobile.android.natwest",
+            "uk.co.santander.santanderUK",
+            "com.chase.uk",
         )
     }
 }

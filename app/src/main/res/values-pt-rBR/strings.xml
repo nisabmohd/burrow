@@ -122,6 +122,8 @@
     <string name="notif_to">%1$s para %2$s</string>
     <string name="notif_from">%1$s de %2$s</string>
     <string name="notif_spent">%1$s gastos</string>
+    <string name="notif_on">%1$s em %2$s</string>
+    <string name="merchant">Estabelecimento</string>
     <string name="notif_received">%1$s recebidos</string>
     <string name="notif_which_category">%1$s · qual categoria?</string>
     <string name="ignore">Ignorar</string>
@@ -198,7 +200,6 @@
     <string name="rules_header_line">suas · %1$d ativas · mais o pacote incluído</string>
     <string name="yours">Suas</string>
     <string name="built_in_packs">Pacotes incluídos</string>
-    <string name="pack_india">Índia</string>
     <plurals name="pack_rules">
         <item quantity="one">%d regra · bancos e apps UPI</item>
         <item quantity="many">%d regras · bancos e apps UPI</item>
@@ -746,9 +747,9 @@
     <string name="keep_last_7_line">Backups mais antigos são removidos</string>
     <string name="restore">Restaurar</string>
     <plurals name="n_transactions">
-        <item quantity="one">%1$d transação</item>
-        <item quantity="many">%1$d transações</item>
-        <item quantity="other">%1$d transações</item>
+        <item quantity="one">%1$,d transação</item>
+        <item quantity="many">%1$,d transações</item>
+        <item quantity="other">%1$,d transações</item>
     </plurals>
     <string name="restore_from_file">Restaurar de outro arquivo</string>
     <string name="backup_explain">Os backups são criptografados com sua senha e salvos na pasta que você escolher, como uma sincronizada pelo seu app de nuvem. O Burrow nunca envia nada.</string>
@@ -764,9 +765,9 @@
     <string name="not_a_backup">Esse arquivo não é um backup do Burrow</string>
     <string name="replace_title">Substituir tudo?</string>
     <plurals name="replace_text">
-        <item quantity="one">Os dados deste celular são substituídos pelo backup (%1$d transação).</item>
-        <item quantity="many">Os dados deste celular são substituídos pelo backup (%1$d transações).</item>
-        <item quantity="other">Os dados deste celular são substituídos pelo backup (%1$d transações).</item>
+        <item quantity="one">Os dados deste celular são substituídos pelo backup (%1$,d transação).</item>
+        <item quantity="many">Os dados deste celular são substituídos pelo backup (%1$,d transações).</item>
+        <item quantity="other">Os dados deste celular são substituídos pelo backup (%1$,d transações).</item>
     </plurals>
     <string name="replace">Substituir</string>
     <string name="restored">Restaurado</string>
@@ -1069,9 +1070,9 @@
     <string name="nothing_to_import_line">Este arquivo não tem pagamentos que o Burrow consiga ler. Confira se é a exportação CSV do %1$s.</string>
     <string name="pick_another_file">Escolher outro arquivo</string>
     <plurals name="import_n">
-        <item quantity="one">Importar %d transação</item>
-        <item quantity="many">Importar %d transações</item>
-        <item quantity="other">Importar %d transações</item>
+        <item quantity="one">Importar %,d transação</item>
+        <item quantity="many">Importar %,d transações</item>
+        <item quantity="other">Importar %,d transações</item>
     </plurals>
     <plurals name="n_accounts">
         <item quantity="one">%d conta</item>
@@ -1148,15 +1149,15 @@
     <string name="already_here">O que já está aqui</string>
     <string name="import_add">Adicionar ao que está aqui</string>
     <plurals name="import_add_line">
-        <item quantity="one">Sua %1$d transação fica</item>
-        <item quantity="many">Suas %1$d transações ficam</item>
-        <item quantity="other">Suas %1$d transações ficam</item>
+        <item quantity="one">Sua %1$,d transação fica</item>
+        <item quantity="many">Suas %1$,d transações ficam</item>
+        <item quantity="other">Suas %1$,d transações ficam</item>
     </plurals>
     <string name="import_replace">Substituir suas transações</string>
     <plurals name="import_replace_line">
-        <item quantity="one">Sua %1$d transação é apagada antes; contas e categorias ficam</item>
-        <item quantity="many">Suas %1$d transações são apagadas antes; contas e categorias ficam</item>
-        <item quantity="other">Suas %1$d transações são apagadas antes; contas e categorias ficam</item>
+        <item quantity="one">Sua %1$,d transação é apagada antes; contas e categorias ficam</item>
+        <item quantity="many">Suas %1$,d transações são apagadas antes; contas e categorias ficam</item>
+        <item quantity="other">Suas %1$,d transações são apagadas antes; contas e categorias ficam</item>
     </plurals>
     <plurals name="replace_title">
         <item quantity="one">Apagar sua %1$d transação?</item>
@@ -1232,7 +1233,7 @@
     <string name="capture_off_line">Ligue SMS do banco ou Apps de pagamento para os pagamentos se registrarem sozinhos</string>
     <string name="capture_off_line_apps">Ligue Apps de pagamento para os pagamentos se registrarem sozinhos</string>
     <string name="restricted_title">O Android está bloqueando o acesso</string>
-    <string name="restricted_line">O Burrow foi instalado de um arquivo. Em Informações do app, toque em ⋮ › Permitir configurações restritas e ligue aqui de novo</string>
+    <string name="restricted_line">O Burrow foi instalado de um arquivo. Tente uma vez o botão nas configurações do Android e, em Informações do app, toque em ⋮ › Permitir configurações restritas e ligue aqui de novo</string>
     <string name="app_info">Informações do app</string>
     <string name="check_for_updates">Procurar atualizações</string>
     <string name="checking_updates">Verificando…</string>
@@ -1300,6 +1301,7 @@
     <string name="every_sunday">Todo domingo</string>
     <plurals name="n_not_understood">
         <item quantity="one">%d mensagem não entendida</item>
+        <item quantity="many">%d mensagens não entendidas</item>
         <item quantity="other">%d mensagens não entendidas</item>
     </plurals>
     <string name="teach_once_line">Ensine uma vez e mensagens assim serão lidas</string>
@@ -1321,6 +1323,7 @@
     <string name="teach_category_in_review">Os pagamentos lidos vão para Revisar com a categoria habitual do destinatário; você escolhe lá.</string>
     <plurals name="teach_n_missed">
         <item quantity="one">Ensinar %d mensagem não entendida</item>
+        <item quantity="many">Ensinar %d mensagens não entendidas</item>
         <item quantity="other">Ensinar %d mensagens não entendidas</item>
     </plurals>
     <string name="about_contact">Contato: %1$s</string>

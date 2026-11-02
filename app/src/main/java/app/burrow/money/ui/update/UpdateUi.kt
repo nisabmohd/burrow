@@ -78,7 +78,8 @@ fun UpdateSheet(update: AppUpdate, updates: UpdateManager, onLater: () -> Unit, 
 
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.update_available), onDismiss, stringResource(R.string.update_version_line, update.version, currentVersion))
-        SheetBody {
+        // Long notes scroll; reaching the top again must not close the sheet.
+        SheetBody(keepScroll = true) {
             if (update.notes.isNotEmpty()) {
                 Column(
                     Modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(Space.card),

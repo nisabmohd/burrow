@@ -5,7 +5,7 @@ import org.junit.Test
 import java.util.Locale
 
 class MoneyFormatTest {
-    private val inr = MoneyFormat.of("INR", Locale("en", "IN"))
+    private val inr = MoneyFormat.of("INR", Locale.forLanguageTag("en-IN"))
     private val usd = MoneyFormat.of("USD", Locale.US)
     private val eurDe = MoneyFormat.of("EUR", Locale.GERMANY)
 
@@ -67,7 +67,7 @@ class MoneyFormatTest {
     }
 
     @Test fun customiseChoices() {
-        val en = Locale("en", "IN")
+        val en = Locale.forLanguageTag("en-IN")
         assertEquals("INR 1,240", MoneyFormat.of("INR", en, null, "CODE", "AUTO").plain(1_240_00))
         assertEquals("₹1,240.00", MoneyFormat.of("INR", en, null, "SYMBOL", "ALWAYS").plain(1_240_00))
         assertEquals("₹1,240", MoneyFormat.of("INR", en, null, "SYMBOL", "NONE").plain(1_240_49))

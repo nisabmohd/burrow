@@ -31,7 +31,8 @@ fun BurrowTheme(settings: ThemeSettings = ThemeSettings(), content: @Composable 
         dynamic -> dynamicLightColorScheme(context)
         else -> remember(settings.accentHue, dark) { seedColorScheme(settings.accentHue, dark) }
     }
-    val type = remember(settings.font, settings.textSize) { burrowTypography(settings.font, settings.textSize.scale) }
+    val rtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+    val type = remember(settings.font, settings.textSize, rtl) { burrowTypography(settings.font, settings.textSize.scale, rtl) }
     CompositionLocalProvider(LocalDarkTheme provides dark) {
         MaterialTheme(colorScheme = colors, typography = type, content = content)
     }

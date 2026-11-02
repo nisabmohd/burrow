@@ -8,32 +8,23 @@ Screen numbers point to `design/screens/`.
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
 
 ## Features
-- [ ] **Google Drive backup**: encrypted backup to the user's own Drive next to the folder backup. Decide the approach
-      first (INTERNET + Google sign-in in play; foss can't use Google code). Then update PRIVACY.md, data safety, About
-- [ ] Payee names for UPI ids ("thirdwave@okicici" → "Third Wave Coffee") and payee aliases
-- [ ] More country rule packs (UAE, UK first; only India is built in), and community packs
-
+- [ ] **Google Drive sync** (`play` and `github` only; `foss` keeps the folder backup, no Google code): encrypted
+      backup to the user's own Drive next to the folder backup, as Weft 1.5.0 does. Needs INTERNET + Google sign-in in
+      play (github already has INTERNET). Then update PRIVACY.md, data safety, About
+- [ ] **In-app review and rate** (`play` only): Play In-App Review prompt at a calm moment, and "Rate on Play Store"
+      in About opens it, as Weft 1.5.0 does. Ask before adding the Play review library; check the merged manifests
 
 ## Tests
-- [ ] Fix the 10 component tests that fail (first run 2026-10-30, API 35 emulator; API 36.1 can't run Espresso:
-      `InputManager.getInstance` is gone): ButtonGroup "Überweisungen" at 1.3×/2×, PillTabs "Coming up" at 2× and
-      scrolling to "Region", ChoiceTiles row heights at 1.3×/2×, Chips (48 dp target, "Food & drinks" overflow),
-      ValueSheet (two "₹4,000" nodes). Some may be the Material Button false positive (see FollowUpsTest); then
-      `python3 tools/smoke.py`
-- [ ] Smoke (0.3.0 run: 50/61 with animations on for the first 19 checks): `split_needs_parts_that_add_up` looks for a
-      clickable node with "₹" text, but the amount pill's clickable node has no text (the pill works by hand). The suite
-      is slow (3 min a check) where the blinking caret keeps `uiautomator dump` waiting; turning animations off made
-      it fast but broke scrolling in More (swipes fling to the end, `scroll_to` only goes down)
-- [ ] Baseline profile: the play variant fails in under a second (foss and github pass), so 0.3.0 shipped the 25 Oct profile
-- [ ] Screen-level tests (Today, New expense, Auto-capture with fake state) once those screens take state instead of view models
+- [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
+      `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso
+      (`InputManager.getInstance` is gone)
 
 ## Check on a real phone
-- [ ] Backup → restore round trip, CSV export / import (system pickers)
-- [ ] Budget alerts (80% / 100%) and bill match from a real bank SMS
-- [ ] Restricted settings note after installing the APK from a file (Android 13+)
+Done on the emulator with `tools/phone_checks.py` (2026-11-02, 8/8): backup ↔ restore, CSV, budget alerts, bill match,
+category words, restricted settings note, RTL (ar-XB pseudolocale), 20k transactions. Still needs real hardware:
+- [ ] Budget alerts and bill match from a real bank SMS (the emulator's SMS follow the banks' published shapes)
 - [ ] Haptics on a phone without vibration primitives (Vivo / Oppo / Realme)
-- [ ] RTL with an RTL language (the emulator falls back to English)
-- [ ] 20k-transaction performance test: Activity scrolling and Insights
+- [ ] Activity scroll jank with 20k transactions (the emulator draws in software: its frame times mean nothing)
 
 ## Every change
 - [ ] `playDebug` and `fossDebug` build; unit tests pass

@@ -1,8 +1,6 @@
 package app.burrow.money.ui.txn
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -136,6 +134,12 @@ fun TxnScreen(
                             who, i, n, supporting = stringResource(if (t.txn.lend == app.burrow.money.data.Lend.BORROWED) R.string.borrowed_from else R.string.lent_to),
                             lead = { IconCircle(painterResource(R.drawable.ic_handshake_duotone)) },
                         )
+                    }
+                }
+                // The merchant the bank message named, when the expense has its own name ("Medicines").
+                t.txn.merchant?.takeIf { !it.equals(t.txn.payee, ignoreCase = true) }?.let { m ->
+                    add { i, n ->
+                        ListRow(m, i, n, supporting = stringResource(R.string.merchant), lead = { IconCircle(painterResource(R.drawable.ic_storefront_duotone)) })
                     }
                 }
                 if (extras.tags.isNotEmpty()) {

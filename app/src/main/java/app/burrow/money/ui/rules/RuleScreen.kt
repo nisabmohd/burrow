@@ -123,7 +123,7 @@ fun RuleScreen(vm: RuleViewModel, onBack: () -> Unit) {
                 }
             } else {
                 Text(
-                    stringResource(R.string.built_in_rule, stringResource(R.string.pack_india)),
+                    stringResource(R.string.built_in_rule, packName(rule.id)),
                     style = BurrowType.body, color = c.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(top = Space.sectionTop),
                 )

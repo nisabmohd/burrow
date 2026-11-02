@@ -11,6 +11,8 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import app.burrow.money.R
@@ -46,7 +48,7 @@ fun BodyFont.family(): FontFamily = when (this) {
     BodyFont.SYSTEM -> FontFamily.Default
 }
 
-fun burrowTypography(font: BodyFont, scale: Float): Typography {
+fun burrowTypography(font: BodyFont, scale: Float, rtl: Boolean = false): Typography {
     val f = font.family()
     // Line height as a ratio (em), not sp: Android 14+ scales big sp values less than small ones
     // (non-linear font scaling), so a 24 sp line under 16 sp text crowded wrapped lines into each
@@ -54,6 +56,13 @@ fun burrowTypography(font: BodyFont, scale: Float): Typography {
     fun s(size: Int, line: Int, w: FontWeight, tracking: Float = 0f) = TextStyle(
         fontFamily = f, fontWeight = w, fontSize = (size * scale).sp, lineHeight = (line.toFloat() / size).em,
         letterSpacing = tracking.sp, fontFeatureSettings = "tnum",
+        // Each paragraph takes the direction of its first letter, and a bare number reads left to right.
+        // Compose's default is the layout's direction, so on a right-to-left phone (English text, mirrored
+        // layout) "−₹1,100" showed as "₹1,100−" and "99% of this month's spending" came out reordered (2026-11-02).
+        textDirection = TextDirection.ContentOrLtr,
+        // ...but lines still start on the layout's side, as in Android's own views: TextAlign.Start would
+        // follow the text, putting English titles on the left of a mirrored screen.
+        textAlign = if (rtl) TextAlign.Right else TextAlign.Left,
     )
     val display = s(44, 52, FontWeight.Medium, -0.5f)
     val headline = s(28, 36, FontWeight.Medium)

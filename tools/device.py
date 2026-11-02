@@ -93,6 +93,23 @@ def swipe(x1, y1, x2, y2, ms=300):
     time.sleep(0.8)
 
 
+def drag(x1, y1, x2, y2, steps=8):
+    """A finger that moves, stops, then lifts: no fling. With animations off a fling ends at once at
+    the list's end, so lists are scrolled with this, a page at a time."""
+    shell(f"input motionevent DOWN {x1} {y1}")
+    for i in range(1, steps + 1):
+        shell(f"input motionevent MOVE {x1 + (x2 - x1) * i // steps} {y1 + (y2 - y1) * i // steps}")
+    time.sleep(0.3)
+    shell(f"input motionevent UP {x2} {y2}")
+    time.sleep(0.6)
+
+
+def animations(on):
+    """Window, transition and animator scales: off makes dumps fast (no blinking caret to wait for)."""
+    for k in ("window_animation_scale", "transition_animation_scale", "animator_duration_scale"):
+        shell(f"settings put global {k} {1 if on else 0}")
+
+
 def long_press(label, contains=False):
     n = find(label, contains)
     if n is None:
@@ -102,24 +119,32 @@ def long_press(label, contains=False):
 
 
 def scroll_to(label, contains=False, max_swipes=6):
-    """Scrolls down the current list until [label] is on screen; returns its node or None."""
+    """Scrolls the current list until [label] is on screen, down first, then back up; returns its
+    node or None."""
     w, h = screen_size()
-    for _ in range(max_swipes + 1):
+
+    def visible():
         n = find(label, contains, timeout=0.5)
         # Off-screen nodes can still be listed, with empty bounds; they aren't on screen yet.
-        if n and n.bounds[3] <= n.bounds[1]:
-            n = None
-        if n and n.center[1] < h * 0.7:
-            return n
-        if n:
-            # Found low on screen, where a nav bar or button may cover it: bring it up.
-            for _ in range(3):
-                swipe(w // 2, int(h * 0.6), w // 2, int(h * 0.4), 300)
-                n = find(label, contains, timeout=1.0) or n
-                if n.center[1] < h * 0.7:
-                    break
-            return n
-        swipe(w // 2, int(h * 0.75), w // 2, int(h * 0.35), 300)
+        return n if n and n.bounds[3] > n.bounds[1] else None
+
+    for direction in (1, -1):
+        for _ in range(max_swipes + 1):
+            n = visible()
+            if n and n.center[1] < h * 0.7:
+                return n
+            if n:
+                # Found low on screen, where a nav bar or button may cover it: bring it up.
+                for _ in range(3):
+                    drag(w // 2, int(h * 0.6), w // 2, int(h * 0.4))
+                    n = visible() or n
+                    if n.center[1] < h * 0.7:
+                        break
+                return n
+            if direction == 1:
+                drag(w // 2, int(h * 0.75), w // 2, int(h * 0.35))
+            else:
+                drag(w // 2, int(h * 0.35), w // 2, int(h * 0.75))
     return None
 
 
@@ -127,7 +152,7 @@ def scroll_to_top(swipes=4):
     """Scrolls the current list back to its top (headers there, like +, may be scrolled away)."""
     w, h = screen_size()
     for _ in range(swipes):
-        swipe(w // 2, int(h * 0.35), w // 2, int(h * 0.85), 200)
+        drag(w // 2, int(h * 0.3), w // 2, int(h * 0.85))
 
 
 def type_text(text):
@@ -160,10 +185,25 @@ def density():
     return int(_read("wm density", r"(\d+)").group(1)) / 160
 
 
+def on_tab(nodes=None):
+    """On one of the five tabs: the nav bar's labels in a row at the bottom of the screen (at large
+    text the bar shows one label: then the same tab's title at the top). Not a screen whose chips
+    happen to say "More" (To review's category chips fooled a plain count, 2026-11-02)."""
+    nodes = nodes if nodes is not None else dump()
+    h = screen_size()[1]
+    tabs = [n for n in nodes if n.label in TABS and n.package == PACKAGE and n.bounds[3] > n.bounds[1]]
+    bar = [n for n in tabs if n.center[1] > h * 0.88]
+    if len({n.center[1] // 20 for n in bar}) != 1:
+        return False
+    if len(bar) >= 2:
+        return True
+    return any(n.label == bar[0].label and n.center[1] < h * 0.2 for n in tabs)
+
+
 def nav(tab):
     """Taps a bottom-bar tab by its label (the bar's labels are always the last matches)."""
-    end = time.time() + 3
-    while True:  # retry briefly: the bar may still be sliding in after a page transition
+    end = time.time() + 8  # a few dumps (~2.5 s each): the app may be starting, or a page sliding in
+    while True:
         nodes = [n for n in dump() if n.label == tab and n.package == PACKAGE]
         if nodes or time.time() > end:
             break

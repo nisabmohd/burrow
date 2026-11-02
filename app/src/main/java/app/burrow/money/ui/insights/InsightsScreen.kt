@@ -56,7 +56,6 @@ import app.burrow.money.ui.components.SectionHeader
 import app.burrow.money.ui.components.Sparkline
 import app.burrow.money.ui.components.StackBar
 import app.burrow.money.ui.components.TabScreen
-import app.burrow.money.ui.components.TonalIconButton
 import app.burrow.money.ui.components.Widget
 import app.burrow.money.ui.components.heatColor
 import app.burrow.money.ui.components.heatLevel
@@ -75,7 +74,6 @@ import app.burrow.money.ui.theme.categoryColors
 import app.burrow.money.ui.txn.TxnRow
 import java.time.LocalDate
 import java.time.format.TextStyle
-import java.time.temporal.WeekFields
 import java.util.Locale
 
 private enum class InsightsSheet { FILTER, DATES }
@@ -131,7 +129,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
                             visual = {
                                 if (big != null) Row(verticalAlignment = Alignment.CenterVertically) {
                                     CategoryCircle(big.categoryIcon, big.categoryHue)
-                                    Text(big.categoryName.orEmpty(), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                    Text(big.categoryName.orEmpty(), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) TextAlign.Left else TextAlign.Right, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                                 }
                             },
                         )

@@ -130,6 +130,8 @@
     <string name="notif_to">%1$s to %2$s</string>
     <string name="notif_from">%1$s from %2$s</string>
     <string name="notif_spent">%1$s spent</string>
+    <string name="notif_on">%1$s on %2$s</string>
+    <string name="merchant">Merchant</string>
     <string name="notif_received">%1$s received</string>
     <string name="notif_which_category">%1$s · which category?</string>
     <string name="ignore">Ignore</string>
@@ -194,7 +196,7 @@
     <string name="update_failed">The download didn\'t finish.</string>
     <string name="open_release_page">Open release page</string>
     <string name="restricted_title">Android is blocking access</string>
-    <string name="restricted_line">Burrow was installed from a file. In App info tap ⋮ › Allow restricted settings, then turn it on here again</string>
+    <string name="restricted_line">Burrow was installed from a file. Try the switch in Android\'s settings once, then in App info tap ⋮ › Allow restricted settings and turn it on here again</string>
     <string name="app_info">App info</string>
     <string name="capture_off_line_apps">Turn on Payment apps to record payments by themselves</string>
     <string name="fix_it">Fix it</string>
@@ -228,7 +230,6 @@
     <string name="rules_header_line">yours · %1$d on · plus the built-in pack</string>
     <string name="yours">Yours</string>
     <string name="built_in_packs">Built-in packs</string>
-    <string name="pack_india">India</string>
     <plurals name="pack_rules">
         <item quantity="one">%d rule · banks and UPI apps</item>
         <item quantity="other">%d rules · banks and UPI apps</item>
@@ -781,8 +782,8 @@
     <string name="keep_last_7_line">Older backups are removed</string>
     <string name="restore">Restore</string>
     <plurals name="n_transactions">
-        <item quantity="one">%1$d transaction</item>
-        <item quantity="other">%1$d transactions</item>
+        <item quantity="one">%1$,d transaction</item>
+        <item quantity="other">%1$,d transactions</item>
     </plurals>
     <string name="restore_from_file">Restore from another file</string>
     <string name="backup_explain">Backups are encrypted with your password and saved in a folder you pick, such as one your cloud app syncs. Burrow never uploads anything.</string>
@@ -798,8 +799,8 @@
     <string name="not_a_backup">That file isn\'t a Burrow backup</string>
     <string name="replace_title">Replace everything?</string>
     <plurals name="replace_text">
-        <item quantity="one">The data on this phone is replaced with the backup (%1$d transaction).</item>
-        <item quantity="other">The data on this phone is replaced with the backup (%1$d transactions).</item>
+        <item quantity="one">The data on this phone is replaced with the backup (%1$,d transaction).</item>
+        <item quantity="other">The data on this phone is replaced with the backup (%1$,d transactions).</item>
     </plurals>
     <string name="replace">Replace</string>
     <string name="restored">Restored</string>
@@ -1108,8 +1109,8 @@
     <string name="nothing_to_import_line">This file has no payments Burrow can read. Check it is the CSV export from %1$s.</string>
     <string name="pick_another_file">Pick another file</string>
     <plurals name="import_n">
-        <item quantity="one">Import %d transaction</item>
-        <item quantity="other">Import %d transactions</item>
+        <item quantity="one">Import %,d transaction</item>
+        <item quantity="other">Import %,d transactions</item>
     </plurals>
     <plurals name="n_accounts">
         <item quantity="one">%d account</item>
@@ -1182,13 +1183,13 @@
     <string name="already_here">What is already here</string>
     <string name="import_add">Add to what is here</string>
     <plurals name="import_add_line">
-        <item quantity="one">Your %1$d transaction stays</item>
-        <item quantity="other">Your %1$d transactions stay</item>
+        <item quantity="one">Your %1$,d transaction stays</item>
+        <item quantity="other">Your %1$,d transactions stay</item>
     </plurals>
     <string name="import_replace">Replace your transactions</string>
     <plurals name="import_replace_line">
-        <item quantity="one">Your %1$d transaction is deleted first; accounts and categories stay</item>
-        <item quantity="other">Your %1$d transactions are deleted first; accounts and categories stay</item>
+        <item quantity="one">Your %1$,d transaction is deleted first; accounts and categories stay</item>
+        <item quantity="other">Your %1$,d transactions are deleted first; accounts and categories stay</item>
     </plurals>
     <plurals name="replace_title">
         <item quantity="one">Delete your %1$d transaction?</item>
@@ -1225,7 +1226,7 @@
     <string name="swipe_hint">Swipe right to mark paid, left to skip.</string>
     <string name="nothing_coming_up">Nothing coming up</string>
     <string name="nothing_coming_up_line">Bills and future-dated payments show here.</string>
-    <string name="emis_month_paid">%1$s a month · %2$d of %3$d paid</string>
+    <string name="emis_month_paid" tools:ignore="PluralsCandidate">%1$s a month · %2$d of %3$d paid</string>
     <string name="add_now">Add now</string>
     <string name="added_now">Added</string>
     <string name="upcoming_added_title">%1$s %2$s added today</string>

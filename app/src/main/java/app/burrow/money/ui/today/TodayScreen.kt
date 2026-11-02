@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -61,6 +59,35 @@ fun TodayScreen(
     scrollToTop: Int = 0,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    TodayContent(
+        state, onAdd, onAccounts, onOpen, onSeeAll, onReview, onMissed, onCaptureIntro, onFixCapture, onBill, onCategory, onGoal,
+        onComingUp, scrollToTop, onRemoveSamples = vm::removeSamples, onMarkPaid = vm::markPaid,
+    )
+}
+
+/**
+ * Today drawn from [state] alone (null: still loading, nothing drawn), so tests can hand it any
+ * state. [onMarkPaid] gets the bill and a callback with its Undo.
+ */
+@Composable
+fun TodayContent(
+    state: TodayUiState?,
+    onAdd: () -> Unit,
+    onAccounts: () -> Unit,
+    onOpen: (Long) -> Unit,
+    onSeeAll: () -> Unit,
+    onReview: () -> Unit,
+    onMissed: () -> Unit,
+    onCaptureIntro: () -> Unit,
+    onFixCapture: () -> Unit,
+    onBill: (Long) -> Unit,
+    onCategory: (Long) -> Unit,
+    onGoal: (Long) -> Unit,
+    onComingUp: () -> Unit,
+    scrollToTop: Int,
+    onRemoveSamples: () -> Unit,
+    onMarkPaid: (Long, (undo: suspend () -> Unit) -> Unit) -> Unit,
+) {
     val dates = rememberDateText()
     val money = app.burrow.money.ui.LocalMoney.current
     val today = remember { LocalDate.now() }
@@ -76,7 +103,10 @@ fun TodayScreen(
     ) { padding ->
         val s = state ?: return@TabScreen // nothing drawn until the data is in: no "₹0" flash
         val paused = rememberCapturePaused(s.smsCapture, s.appCapture)
-        if (s.isEmpty) {
+        // No transactions yet, but payments the app found wait: show Today with its note to them,
+        // not "Nothing here yet" (2026-11-02).
+        val waiting = s.showReview && (s.toReview > 0 || s.notUnderstood > 0)
+        if (s.isEmpty && !waiting) {
             EmptyState(
                 shape = { Cookie(painterResource(R.drawable.ic_receipt_long_regular)) },
                 title = stringResource(R.string.empty_title),
@@ -111,7 +141,7 @@ fun TodayScreen(
                         line = stringResource(R.string.sample_line),
                         action = stringResource(R.string.remove),
                         onAction = {
-                            vm.removeSamples()
+                            onRemoveSamples()
                             snackbar.show(context.getString(R.string.samples_removed))
                         },
                         modifier = Modifier.animateItem(),
@@ -163,12 +193,12 @@ fun TodayScreen(
                 TodayWidgets(
                     s.widgets, s.shown, s.order, s.hero,
                     onWeek = onSeeAll, onBill = onBill,
-                    onMarkPaid = { id -> vm.markPaid(id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } },
+                    onMarkPaid = { id -> onMarkPaid(id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } },
                     onNetWorth = onAccounts, onCategory = onCategory, onGoal = onGoal,
                 )
             }
             // Header and rows as one block, so the rows keep the group's 2 dp gap.
-            item(key = "recent", contentType = "recent") {
+            if (s.recent.isNotEmpty()) item(key = "recent", contentType = "recent") {
                 Column(Modifier.animateItem()) {
                     SectionHeader(stringResource(R.string.recent), trailing = { LinkButton(stringResource(R.string.see_all), onSeeAll) })
                     ListGroup {

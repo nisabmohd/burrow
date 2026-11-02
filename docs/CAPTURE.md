@@ -19,8 +19,16 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
    name as saved and the message's own spelling, so "thirdwave@okicici" saved as "Third Wave Coffee" is still known.
    Account digits: banks show 2 to 6 last digits behind X, *, • or dots; rules read any of them and
    matching compares the digits both sides have (at least 2), the longest overlap winning.
+   **Category words** (`capture/CategoryWords.kt`): plain words ("petrol", "medicines", "groceries") and brands
+   ("Swiggy", "Indian Oil", "Apollo") in the merchant, then the message, point at a default category by its icon
+   (so a renamed category is still found). The merchant's usual category comes first (what you chose wins), then
+   the words' category, then your most used. Whole words only.
+   **Merchant and expense name**: the merchant the message named is kept on the payment, hidden (`TxnEntity.merchant`);
+   the expense is named by its plain word when there is one ("Medicines"), else by the merchant. The notification,
+   To review and the Transaction screen (a Merchant row) show both; with no merchant the title is "₹500 on Petrol".
+   Usual categories and bill matching read the hidden merchant too.
    **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
-   with two category pills (the payee's usual category first, then your most used), then Ignore and Edit (opens New expense
+   with two category pills (the payee's usual category first, then the words' category, then your most used), then Ignore and Edit (opens New expense
    pre-filled, for when neither category fits). One tap saves. The pop-up is shorter: pills + Edit; Ignore is in the shade.
 7. **Review**: anything not acted on waits in To review. Messages no rule could read go to
    "messages not understood" → Teach.
@@ -73,6 +81,12 @@ Built-in packs ship as `assets/rules/<country>.json` in the same format; the Ind
 banks and UPI apps (30 rules: money out and money in for HDFC, ICICI, SBI, Axis, Kotak, IDFC FIRST, YES, Bank of
 Baroda, PNB, Canara; Google Pay, PhonePe, Paytm; last, `in.any.credit` reads "credited to your A/c" from any bank's
 SMS header). On only when the phone is in India. Each rule carries an anonymised `example`, and `IndiaPackTest` checks every one. Every pack has tests in `src/test/…/capture/` with real (anonymised) examples.
+The **UAE pack** (`ae.json`: Emirates NBD, ADCB, FAB, Mashreq, any bank's credit SMS) and the **UK pack** (`gb.json`:
+Monzo, Starling, Revolut app notifications, then any UK bank app's "£X spent at Y") are on only in their country;
+`WorldPacksTest` checks them. Their examples follow the banks' published shapes and still need real messages to confirm.
+A pack's name is its country in the phone's language (`ui/rules/PackName.kt`).
+**Community packs** live in `community-rules/` in the repository: rules files anyone can send as a pull request
+and anyone can open with Import. The app never fetches them (it never goes online).
 Import validates every regex (compile + a 50 ms timeout guard against catastrophic patterns) before saving.
 
 ## Privacy promises (say them in the intro, keep them in code)

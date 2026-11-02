@@ -96,7 +96,7 @@ class PlanTest {
     }
 
     @Test fun shortAmounts() {
-        val inr = MoneyFormat.of("INR", Locale("en", "IN"))
+        val inr = MoneyFormat.of("INR", Locale.forLanguageTag("en-IN"))
         assertEquals("₹6.84L", inr.short(6_84_250_00))
         assertEquals("₹1.1L", inr.short(1_10_000_00))
         assertEquals("₹21.41L", inr.short(21_40_560_00))

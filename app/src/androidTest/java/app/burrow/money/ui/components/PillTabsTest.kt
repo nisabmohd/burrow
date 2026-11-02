@@ -10,7 +10,9 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
@@ -78,7 +80,9 @@ class PillTabsTest(private val widthDp: Float, private val fontScale: Float) {
             var sel by remember { mutableStateOf("Today") }
             PillTabs(customise, sel, { it }, { sel = it }, scrolling = true)
         }
-        rule.onNodeWithText("Region").performScrollTo().performClick()
+        // A lazy row composes only what shows: scroll the row to the tab, then tap it.
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Region"))
+        rule.onNodeWithText("Region").performClick()
         rule.waitForIdle()
         assertTrue(rule.onNodeWithText("Region").isSelected())
     }

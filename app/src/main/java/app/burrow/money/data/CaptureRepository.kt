@@ -10,6 +10,7 @@ import app.burrow.money.capture.RuleEngine
 import app.burrow.money.capture.RuleFile
 import app.burrow.money.capture.RuleFiles
 import app.burrow.money.capture.Seen
+import app.burrow.money.capture.categoryWords
 import app.burrow.money.capture.findDuplicate
 import app.burrow.money.capture.looksLikePayment
 import app.burrow.money.capture.matchAccount
@@ -109,21 +110,34 @@ class CaptureRepository(
             status = if (dup != null) CaptureStatus.MERGED else CaptureStatus.REVIEW,
             amount = parsed.amountMinor, currency = parsed.currency ?: main, payee = parsed.payee, account = parsed.account,
             direction = parsed.direction.name, ruleId = parsed.ruleId, reference = reference,
-            categoryId = suggestions(parsed.payee, type).firstOrNull(),
+            categoryId = suggestions(parsed.payee, type, body).firstOrNull(),
+            name = nameFor(parsed.payee, body),
         )
         val id = db.captures().insert(capture)
         if (dup != null) CaptureResult.Duplicate else CaptureResult.Found(capture.copy(id = id))
     }
 
     /**
-     * Two or three categories to offer: the ones usually picked for this payee first (most often,
-     * then latest), then the most used overall, then the defaults.
+     * Two or three categories to offer: the ones usually picked for this merchant first (most often,
+     * then latest: what you chose wins), then the one the words in the message point at ("petrol",
+     * "medicines", "Swiggy"), then the most used overall, then the defaults.
      */
-    suspend fun suggestions(payee: String?, type: String, count: Int = 3): List<Long> {
+    suspend fun suggestions(payee: String?, type: String, body: String = "", count: Int = 3): List<Long> {
         val usual = payee?.let { db.txns().usualCategoriesFor(tidyPayee(it), it.trim(), type, count) }.orEmpty()
+        val ofKind = money.categories.first().filter { !it.archived && it.kind == if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE }
+        val words = categoryWords(payee, body)?.let { w -> ofKind.filter { it.icon == w.icon }.minByOrNull { it.sortOrder }?.id }
         val top = db.txns().topCategories(type, count + 1)
-        val fallback = money.categories.first().filter { it.kind == if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE }.map { it.id }
-        return (usual + top + fallback).distinct().take(count)
+        return (usual + listOfNotNull(words) + top + ofKind.map { it.id }).distinct().take(count)
+    }
+
+    /**
+     * The expense's own name: what you called this merchant last time (its alias), else the message's
+     * plain word ("Petrol"), else a readable UPI id ("third.wave@okicici" → "Third Wave"). Null keeps the merchant.
+     */
+    suspend fun nameFor(merchant: String?, body: String): String? {
+        val alias = merchant?.let { db.txns().aliasFor(tidyPayee(it), it.trim()) }
+        return (alias ?: categoryWords(merchant, body)?.name ?: merchant?.let(::upiName))
+            ?.takeIf { merchant == null || !it.equals(tidyPayee(merchant), ignoreCase = true) }
     }
 
     /** The account a capture is about, from its digits or its bank's name. */
@@ -143,7 +157,9 @@ class CaptureRepository(
         val txnId = money.save(
             TxnEntity(
                 type = type, amount = c.amount, currency = c.currency ?: "INR", baseAmount = c.amount,
-                accountId = accountId, categoryId = categoryId ?: c.categoryId, payee = c.payee?.let(::tidyPayee),
+                accountId = accountId, categoryId = categoryId ?: c.categoryId,
+                // The expense is named by the message's words when it had some; the merchant stays hidden.
+                payee = c.name ?: c.payee?.let(::tidyPayee), merchant = c.payee?.let(::tidyPayee),
                 at = c.receivedAt, source = c.source, createdAt = now, updatedAt = now,
             ),
         )
@@ -210,7 +226,7 @@ class CaptureRepository(
                 c.copy(
                     status = CaptureStatus.REVIEW, amount = p.amountMinor, currency = p.currency ?: main, payee = p.payee,
                     account = p.account, direction = p.direction.name, ruleId = p.ruleId, reference = referenceIn(c.body),
-                    categoryId = suggestions(p.payee, type).firstOrNull(),
+                    categoryId = suggestions(p.payee, type, c.body).firstOrNull(), name = nameFor(p.payee, c.body),
                 ),
             )
             moved++
@@ -223,6 +239,21 @@ class CaptureRepository(
 fun tidyPayee(raw: String): String =
     if (raw.contains('@') || raw.any { it.isLowerCase() }) raw.trim()
     else raw.trim().lowercase().split(' ').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+
+/**
+ * A readable name from a UPI id: "third.wave@okicici" → "Third Wave", "thirdwave@okicici" → "Thirdwave".
+ * Phone numbers and machine ids ("paytmqr281005050101@paytm", "9876543210@ybl") give null. Pure: unit-tested.
+ */
+fun upiName(raw: String): String? {
+    val id = raw.trim()
+    val at = id.indexOf('@')
+    if (at <= 0 || id.any { it.isWhitespace() }) return null
+    val local = id.substring(0, at)
+    if (local.count { it.isDigit() } >= 4) return null
+    val words = local.split('.', '_', '-').filter { it.isNotBlank() && it.any(Char::isLetter) }
+    if (words.isEmpty()) return null
+    return words.joinToString(" ") { w -> w.filter { it.isLetterOrDigit() }.lowercase().replaceFirstChar { it.uppercase() } }
+}
 
 /** Longest rule name kept (it shows as a row title and a header). */
 const val RULE_NAME_MAX = 40

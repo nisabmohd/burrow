@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+- Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.
+- Words in a message pick the category ("petrol", "medicines", "Swiggy"), and the expense is named by them; the merchant shows on the transaction.
+- Message rules for the UAE and the UK, on only in their country, and community packs anyone can import.
+- Today points to payments waiting in To review even before your first transaction.
+- ✕ in Paid to clears it while you type.
+- Large text: tabs and settings buttons wrap or stack instead of cutting words; choice tiles in a row stay the same height.
+- Insights loads only the dates it shows: fast with 20,000 transactions.
+
 ## 0.3.1
 - New icons: Burrow now uses Solar outline icons (by 480 Design) everywhere, one clean line style. Credited in About › Licences.
 - Swipe the Undo bar sideways to dismiss it. The change stays.

@@ -181,7 +181,9 @@ class PlanRepository(
         val date = txn.at.date()
         val due = db.bills().occurrences(date.minusDays(4).millis(), date.plusDays(4).millis()).first()
             .filter { it.occurrence.status == OccurrenceStatus.UPCOMING }
-        val hit = matchBill(txn.payee, txn.amount, date, due.map { DueBill(it.occurrence.id, it.name, it.amount, it.occurrence.dueDate.date()) }) ?: return false
+        val bills = due.map { DueBill(it.occurrence.id, it.name, it.amount, it.occurrence.dueDate.date()) }
+        // The hidden merchant ("BESCOM") first: the expense may be named by its words ("Electricity").
+        val hit = txn.merchant?.let { matchBill(it, txn.amount, date, bills) } ?: matchBill(txn.payee, txn.amount, date, bills) ?: return false
         val o = db.bills().occurrence(hit.occurrenceId) ?: return false
         db.bills().updateOccurrence(o.copy(status = OccurrenceStatus.PAID, txnId = txn.id, amount = txn.amount))
         return true

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "name": "United Kingdom",
+  "country": "GB",
+  "rules": [
+    {
+      "id": "gb.monzo.spent",
+      "name": "Monzo",
+      "sender": "(?i)co\\.uk\\.getmondo",
+      "pattern": "(?i)You (?:spent|paid) (?<currency>£)(?<amount>[\\d,]+(?:\\.\\d{1,2})?) (?:at|to) (?<payee>[^.\\n]+?)(?:\\.|\\n|$)",
+      "example": "You spent £4.50 at Pret A Manger",
+      "currency": "GBP"
+    },
+    {
+      "id": "gb.starling.spent",
+      "name": "Starling",
+      "sender": "(?i)com\\.starlingbank\\.android",
+      "pattern": "(?i)You(?:'ve| have) (?:spent|paid) (?<currency>£)(?<amount>[\\d,]+(?:\\.\\d{1,2})?) (?:at|to) (?<payee>[^.\\n]+?)(?:\\.|\\n|$)",
+      "example": "You've spent £8.20 at Tesco.",
+      "currency": "GBP"
+    },
+    {
+      "id": "gb.revolut.paid",
+      "name": "Revolut",
+      "sender": "(?i)com\\.revolut\\.revolut",
+      "pattern": "(?i)(?:Paid|Spent) (?<currency>£)(?<amount>[\\d,]+(?:\\.\\d{1,2})?) at (?<payee>[^.\\n]+?)(?:\\.|\\n|$)",
+      "example": "Paid £12.40 at Sainsbury's",
+      "currency": "GBP"
+    },
+    {
+      "id": "gb.any.card",
+      "name": "Any bank (UK)",
+      "sender": "(?i)co\\.uk\\.getmondo|com\\.starlingbank\\.android|com\\.revolut\\.revolut|com\\.barclays|uk\\.co\\.hsbc|com\\.grppl|co\\.uk\\.Nationwide|com\\.natwest|com\\.rbs|uk\\.co\\.santander|com\\.chase\\.uk|Barclays|HSBC|NatWest|Lloyds|Santander|Halifax",
+      "pattern": "(?i)(?<currency>£|GBP)\\s?(?<amount>[\\d,]+(?:\\.\\d{1,2})?) (?:was )?(?:spent|paid|payment) (?:at|to) (?<payee>[^.\\n]+?)(?: on (?:your )?(?:card|account) (?:ending )?[Xx*•.]*(?<account>\\d{2,}))?(?:\\.|\\n|$)",
+      "example": "£23.99 spent at AMAZON UK on your card ending 1234.",
+      "currency": "GBP"
+    },
+    {
+      "id": "gb.any.received",
+      "name": "Any bank (UK)",
+      "sender": "(?i)co\\.uk\\.getmondo|com\\.starlingbank\\.android|com\\.revolut\\.revolut|com\\.barclays|uk\\.co\\.hsbc|com\\.grppl|co\\.uk\\.Nationwide|com\\.natwest|com\\.rbs|uk\\.co\\.santander|com\\.chase\\.uk",
+      "direction": "IN",
+      "pattern": "(?i)(?:You(?:'ve| have)? received|Received) (?<currency>£)(?<amount>[\\d,]+(?:\\.\\d{1,2})?) from (?<payee>[^.\\n]+?)(?:\\.|\\n|$)",
+      "example": "You received £50.00 from Sam Taylor",
+      "currency": "GBP"
+    }
+  ]
+}

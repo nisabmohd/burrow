@@ -116,6 +116,8 @@
     <string name="notif_to">%2$s को %1$s</string>
     <string name="notif_from">%2$s से %1$s</string>
     <string name="notif_spent">%1$s खर्च हुए</string>
+    <string name="notif_on">%2$s पर %1$s</string>
+    <string name="merchant">व्यापारी</string>
     <string name="notif_received">%1$s मिले</string>
     <string name="notif_which_category">%1$s · कौन-सी श्रेणी?</string>
     <string name="ignore">छोड़ें</string>
@@ -183,7 +185,6 @@
     <string name="rules_header_line">आपके · %1$d चालू · साथ में पहले से बना पैक</string>
     <string name="yours">आपके</string>
     <string name="built_in_packs">पहले से बने पैक</string>
-    <string name="pack_india">भारत</string>
     <plurals name="pack_rules">
         <item quantity="one">%d नियम · बैंक और UPI ऐप</item>
         <item quantity="other">%d नियम · बैंक और UPI ऐप</item>
@@ -689,8 +690,8 @@
     <string name="keep_last_7_line">पुराने बैकअप हटा दिए जाते हैं</string>
     <string name="restore">रीस्टोर</string>
     <plurals name="n_transactions">
-        <item quantity="one">%1$d लेन-देन</item>
-        <item quantity="other">%1$d लेन-देन</item>
+        <item quantity="one">%1$,d लेन-देन</item>
+        <item quantity="other">%1$,d लेन-देन</item>
     </plurals>
     <string name="restore_from_file">किसी और फ़ाइल से रीस्टोर करें</string>
     <string name="backup_explain">बैकअप आपके पासवर्ड से एन्क्रिप्ट होकर आपके चुने फ़ोल्डर में सेव होते हैं, जैसे वह फ़ोल्डर जिसे आपका क्लाउड ऐप सिंक करता है। Burrow कभी कुछ अपलोड नहीं करता।</string>
@@ -706,8 +707,8 @@
     <string name="not_a_backup">यह फ़ाइल Burrow बैकअप नहीं है</string>
     <string name="replace_title">सब कुछ बदलें?</string>
     <plurals name="replace_text">
-        <item quantity="one">इस फ़ोन का डेटा बैकअप से बदल दिया जाएगा (%1$d लेन-देन)।</item>
-        <item quantity="other">इस फ़ोन का डेटा बैकअप से बदल दिया जाएगा (%1$d लेन-देन)।</item>
+        <item quantity="one">इस फ़ोन का डेटा बैकअप से बदल दिया जाएगा (%1$,d लेन-देन)।</item>
+        <item quantity="other">इस फ़ोन का डेटा बैकअप से बदल दिया जाएगा (%1$,d लेन-देन)।</item>
     </plurals>
     <string name="replace">बदलें</string>
     <string name="restored">रीस्टोर हो गया</string>
@@ -1000,8 +1001,8 @@
     <string name="nothing_to_import_line">इस फ़ाइल में Burrow के पढ़ने लायक भुगतान नहीं हैं। देखें कि यह %1$s की CSV फ़ाइल है।</string>
     <string name="pick_another_file">दूसरी फ़ाइल चुनें</string>
     <plurals name="import_n">
-        <item quantity="one">%d लेन-देन इंपोर्ट करें</item>
-        <item quantity="other">%d लेन-देन इंपोर्ट करें</item>
+        <item quantity="one">%,d लेन-देन इंपोर्ट करें</item>
+        <item quantity="other">%,d लेन-देन इंपोर्ट करें</item>
     </plurals>
     <plurals name="n_accounts">
         <item quantity="one">%d खाता</item>
@@ -1072,13 +1073,13 @@
     <string name="already_here">जो पहले से है</string>
     <string name="import_add">जो है उसमें जोड़ें</string>
     <plurals name="import_add_line">
-        <item quantity="one">आपका %1$d लेन-देन रहेगा</item>
-        <item quantity="other">आपके %1$d लेन-देन रहेंगे</item>
+        <item quantity="one">आपका %1$,d लेन-देन रहेगा</item>
+        <item quantity="other">आपके %1$,d लेन-देन रहेंगे</item>
     </plurals>
     <string name="import_replace">अपने लेन-देन बदलें</string>
     <plurals name="import_replace_line">
-        <item quantity="one">पहले आपका %1$d लेन-देन हटेगा; खाते और श्रेणियाँ रहेंगी</item>
-        <item quantity="other">पहले आपके %1$d लेन-देन हटेंगे; खाते और श्रेणियाँ रहेंगी</item>
+        <item quantity="one">पहले आपका %1$,d लेन-देन हटेगा; खाते और श्रेणियाँ रहेंगी</item>
+        <item quantity="other">पहले आपके %1$,d लेन-देन हटेंगे; खाते और श्रेणियाँ रहेंगी</item>
     </plurals>
     <plurals name="replace_title">
         <item quantity="one">अपना %1$d लेन-देन हटाएँ?</item>
@@ -1150,7 +1151,7 @@
     <string name="capture_off_line">पेमेंट अपने-आप दर्ज हों, इसके लिए बैंक SMS या पेमेंट ऐप चालू करें</string>
     <string name="capture_off_line_apps">पेमेंट अपने-आप दर्ज हों, इसके लिए पेमेंट ऐप चालू करें</string>
     <string name="restricted_title">Android ऐक्सेस रोक रहा है</string>
-    <string name="restricted_line">Burrow एक फ़ाइल से इंस्टॉल हुआ है। ऐप की जानकारी में ⋮ › प्रतिबंधित सेटिंग की अनुमति दें पर टैप करें, फिर यहाँ दोबारा चालू करें</string>
+    <string name="restricted_line">Burrow एक फ़ाइल से इंस्टॉल हुआ है। एक बार Android की सेटिंग में स्विच आज़माएँ, फिर ऐप की जानकारी में ⋮ › प्रतिबंधित सेटिंग की अनुमति दें पर टैप करें और यहाँ दोबारा चालू करें</string>
     <string name="app_info">ऐप की जानकारी</string>
     <string name="check_for_updates">अपडेट देखें</string>
     <string name="checking_updates">देख रहे हैं…</string>

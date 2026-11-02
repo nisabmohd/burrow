@@ -2,7 +2,6 @@ package app.burrow.money.ui.rules
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -109,7 +108,7 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit, onOpen: (String) -> Unit
                 ListGroup {
                     s.packs.forEachIndexed { i, p ->
                         ListRow(
-                            stringResource(R.string.pack_india), i, s.packs.size,
+                            packName(p.id), i, s.packs.size,
                             supporting = pluralStringResource(R.plurals.pack_rules, p.ruleCount, p.ruleCount),
                             lead = { IconCircle(painterResource(R.drawable.ic_public_duotone)) },
                             trailing = { BurrowSwitch(p.on, { vm.setPack(p.id, it) }) },
@@ -181,7 +180,7 @@ fun PackRulesScreen(vm: RulesViewModel, packId: String, onBack: () -> Unit, onOp
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen)) {
             CenterHeader(
                 icon = { HeaderIcon(painterResource(R.drawable.ic_public_regular), neutral = true) },
-                title = stringResource(R.string.pack_india),
+                title = packName(pack.id),
                 value = rules.size.toString(),
                 line = stringResource(R.string.built_in_pack_line),
             )

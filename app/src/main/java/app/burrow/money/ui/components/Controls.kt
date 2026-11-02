@@ -4,10 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.background
-import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -51,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -163,34 +163,52 @@ fun BurrowButton(
  */
 @Composable
 fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
-    val c = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
-    Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
-        options.forEach { option ->
-            val on = option == selected
-            Row(
-                Modifier
-                    .weight(1f)
-                    .height(Size.button)
-                    .clip(Shapes.pill)
-                    .background(if (on) c.primary else c.surfaceContainer)
-                    .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onSelect(option) } }
-                    .padding(horizontal = Space.small),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val fg = if (on) c.onPrimary else c.onSurfaceVariant
-                if (on) {
-                    Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
-                    Spacer(Modifier.width(Space.group))
-                }
-                // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
-                androidx.compose.foundation.text.BasicText(
-                    label(option), style = BurrowType.button.copy(color = fg), maxLines = 1,
-                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
-                )
+    val labels = options.map { label(it) }
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        // Side by side while every label fits a pill at its smallest size with the check; else
+        // (a long translation, a small phone, large text) one pill a row, full width: never clipped.
+        val each = (maxWidth - Space.group * (options.size - 1)) / options.size
+        val widest = with(density) { labels.maxOf { measurer.measure(it, BurrowType.button.copy(fontSize = ButtonMinText), maxLines = 1).size.width }.toDp() }
+        val stacked = widest + Size.iconSmall + Space.group + Space.small * 2 > each
+        val pill: @Composable (Int, Modifier) -> Unit = { i, m -> GroupPill(labels[i], options[i] == selected, { onSelect(options[i]) }, m) }
+        if (stacked) {
+            Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Space.group)) {
+                options.indices.forEach { pill(it, Modifier.fillMaxWidth()) }
+            }
+        } else {
+            Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
+                options.indices.forEach { pill(it, Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+@Composable
+private fun GroupPill(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    val c = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    Row(
+        modifier
+            .heightIn(min = Size.button)
+            .clip(Shapes.pill)
+            .background(if (on) c.primary else c.surfaceContainer)
+            .selectable(selected = on, role = Role.RadioButton) { if (!on) { haptics.tick(); onClick() } }
+            .padding(horizontal = Space.small),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val fg = if (on) c.onPrimary else c.onSurfaceVariant
+        if (on) {
+            Icon(painterResource(R.drawable.ic_check_regular), null, tint = fg, modifier = Modifier.size(Size.iconSmall))
+            Spacer(Modifier.width(Space.group))
+        }
+        // Long translations and large text shrink to fit instead of clipping (never below 10 sp).
+        androidx.compose.foundation.text.BasicText(
+            text, style = BurrowType.button.copy(color = fg), maxLines = 1,
+            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+        )
     }
 }
 
@@ -203,8 +221,25 @@ fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> Str
 @Composable
 fun <T> PillTabs(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier, scrolling: Boolean = false) {
     if (!scrolling) {
-        Row(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
-            options.forEach { o -> PillTab(label(o), o == selected, { onSelect(o) }, Modifier.weight(1f), Size.pillTab, Space.inline) }
+        val labels = options.map { label(it) }
+        val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+        val density = androidx.compose.ui.platform.LocalDensity.current
+        BoxWithConstraints(modifier.fillMaxWidth()) {
+            // One line, shrinking to fit; only a label that can't fit even at its smallest size
+            // ("Coming up" in a third of a small phone at 2× text) takes two lines, and the tabs
+            // grow together. Never a word split across lines when one line would do.
+            val room = (maxWidth - Space.inline * (options.size - 1)) / options.size - Space.inline * 2
+            val button = BurrowType.button
+            fun width(text: String, size: androidx.compose.ui.unit.TextUnit) =
+                with(density) { measurer.measure(text, button.copy(fontSize = size), maxLines = 1).size.width.toDp() }
+            val lines = if (labels.all { width(it, ButtonMinText) <= room }) 1 else 2
+            // On two lines, no bigger than lets the longest word fit a line whole.
+            val longestWord = labels.flatMap { it.split(' ') }.maxBy { width(it, button.fontSize) }
+            val wordScale = (room / width(longestWord, button.fontSize)).coerceAtMost(1f)
+            val max = if (lines == 1) button.fontSize else maxOf(ButtonMinText.value, button.fontSize.value * wordScale).let { androidx.compose.ui.unit.TextUnit(it, androidx.compose.ui.unit.TextUnitType.Sp) }
+            Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
+                options.forEachIndexed { i, o -> PillTab(labels[i], o == selected, { onSelect(o) }, Modifier.weight(1f).fillMaxHeight(), Size.pillTab, Space.inline, lines, max) }
+            }
         }
         return
     }
@@ -221,12 +256,12 @@ fun <T> PillTabs(options: List<T>, selected: T, label: @Composable (T) -> String
 }
 
 @Composable
-private fun PillTab(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier, height: androidx.compose.ui.unit.Dp, inset: androidx.compose.ui.unit.Dp) {
+private fun PillTab(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier, height: androidx.compose.ui.unit.Dp, inset: androidx.compose.ui.unit.Dp, lines: Int = 1, maxFont: androidx.compose.ui.unit.TextUnit = BurrowType.button.fontSize) {
     val c = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
     Box(
         modifier
-            .height(height)
+            .heightIn(min = height)
             .clip(Shapes.pill)
             .background(if (on) c.primary else c.surfaceContainerHigh)
             .selectable(selected = on, role = Role.Tab) { if (!on) { haptics.tick(); onClick() } }
@@ -234,8 +269,8 @@ private fun PillTab(text: String, on: Boolean, onClick: () -> Unit, modifier: Mo
         contentAlignment = Alignment.Center,
     ) {
         androidx.compose.foundation.text.BasicText(
-            text, style = BurrowType.button.copy(color = if (on) c.onPrimary else c.onSurfaceVariant, textAlign = TextAlign.Center), maxLines = 1,
-            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+            text, style = BurrowType.button.copy(color = if (on) c.onPrimary else c.onSurfaceVariant, textAlign = TextAlign.Center), maxLines = lines,
+            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = maxFont),
         )
     }
 }

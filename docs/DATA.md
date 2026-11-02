@@ -25,6 +25,9 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 - **Net worth**: `account.includeInNetWorth` (cards and loans default false).
 - **Shared credit line** (v6): `account.sharesLimitWith` = the card whose `creditLimit` this card uses (its own is
   cleared). Available = that limit − what every card on the line owes. One step only (`creditLine()`), so no loops.
+- **Merchant and expense name** (v7): `txn.merchant` = the merchant the bank message named, kept out of sight (the
+  payee is the expense's own name, "Medicines"); usual categories, aliases and bill matching read it. `capture.name` =
+  the expense name the message's words gave ("Petrol"), when they gave one. See CAPTURE.md.
 - **Exchange rates**: `rate` (currency, perPrimary as BigDecimal text, setAt); each txn keeps its own `fxRate`.
 
 ## Entities
@@ -52,7 +55,8 @@ homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 
 ## Sample data
 First open seeds a realistic month (flagged `isSample`), with the "These are sample transactions"
-note. Removed on the first real transaction or by "Remove".
+note. Removed on the first real transaction or by "Remove". The Electricity bill's last due date before today
+stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue example, early in the month too.
 
 ## v5 (2026-10-22, burrow-next)
 - `TxnEntity.refundOf` + type `REFUND`: money back for an expense. Raises its account, lowers that

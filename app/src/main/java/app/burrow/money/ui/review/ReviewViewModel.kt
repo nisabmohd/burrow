@@ -53,7 +53,7 @@ class ReviewViewModel(private val capture: CaptureRepository, private val money:
             val kind = if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
             val ofKind = cats.filter { it.kind == kind }
             val chosen = cats.firstOrNull { it.id == c.categoryId }
-            val suggested = capture.suggestions(c.payee, type).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
+            val suggested = capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
             val rule = rules.firstOrNull { it.id == c.ruleId }
             val accountId = capture.accountFor(c)
             ReviewItem(

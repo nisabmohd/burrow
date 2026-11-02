@@ -354,12 +354,12 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         NewGoalScreen(vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() })
                     }
                     composable<InsightsRoute> {
-                        val vm = viewModel { InsightsViewModel(container.money, container.filters, settings.monthStartDay, container.next.stats) }
+                        val vm = viewModel { InsightsViewModel(container.money, container.filters, settings.monthStartDay, container.next::statsBetween) }
                         InsightsScreen(vm, onCategory = { nav.navigate(CategoryInsightsRoute(it)) }, onDayInActivity = { nav.openTab(ActivityRoute) })
                     }
                     composable<CategoryInsightsRoute> { e ->
                         val id = e.toRoute<CategoryInsightsRoute>().categoryId
-                        val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id, container.next.stats) }
+                        val vm = viewModel { CategoryInsightsViewModel(container.money, container.filters, settings.monthStartDay, id, container.next::statsBetween) }
                         CategoryInsightsScreen(vm, onBack = { nav.popBackStack() }, onOpenTxn = openTxn)
                     }
                     composable<MoreRoute> {

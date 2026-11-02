@@ -8,16 +8,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,7 +24,6 @@ import app.burrow.money.data.Lend
 import app.burrow.money.data.TxnType
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
-import app.burrow.money.ui.components.BurrowSwitch
 import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.Chip
 import app.burrow.money.ui.components.IconCircle
@@ -41,16 +35,10 @@ import app.burrow.money.ui.components.SheetBody
 import app.burrow.money.ui.components.SheetFooter
 import app.burrow.money.ui.components.SheetHeader
 import app.burrow.money.ui.components.TonalIconButton
-import app.burrow.money.ui.rememberDateText
 import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.temporal.TemporalAdjusters
 
 /** Tags offered on the Note sheet before the user has any of their own. */
 private val STARTER_TAGS = listOf("Work", "Trip", "Family", "Reimbursable")
@@ -64,7 +52,7 @@ private fun DoneFooter(onDone: () -> Unit) = SheetFooter {
 /** Note (74): Paid to, the note, tags. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun NoteSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
+fun NoteSheet(vm: AddActions, s: AddUiState, onDismiss: () -> Unit) {
     val f = s.form
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.note), onDismiss, stringResource(R.string.optional))
@@ -89,7 +77,7 @@ fun NoteSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
 
 /** Attach (76): take or choose a photo, or a file; kept only on this phone. */
 @Composable
-fun AttachSheet(app: AppContainer, vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
+fun AttachSheet(app: AppContainer, vm: AddActions, s: AddUiState, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var cameraFile by remember { mutableStateOf<java.io.File?>(null) }
@@ -166,7 +154,7 @@ fun TypeSheet(type: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
  * income has no Subscription; Customise › Expense decides whether repeat and lend show.
  */
 @Composable
-fun RepeatOrLendSheet(vm: AddViewModel, s: AddUiState, onDismiss: () -> Unit) {
+fun RepeatOrLendSheet(vm: AddActions, s: AddUiState, onDismiss: () -> Unit) {
     val f = s.form
     val choice = when {
         f.lend != null -> f.lend

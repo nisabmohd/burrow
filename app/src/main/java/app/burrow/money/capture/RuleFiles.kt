@@ -23,4 +23,4 @@ object RuleFiles {
 /** A built-in pack: [id] is the file name in assets/rules; on by default only in its [country]. */
 data class PackInfo(val id: String, val country: String)
 
-val BUILT_IN_PACKS = listOf(PackInfo("in", "IN"))
+val BUILT_IN_PACKS = listOf(PackInfo("in", "IN"), PackInfo("ae", "AE"), PackInfo("gb", "GB"))

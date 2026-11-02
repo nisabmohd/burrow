@@ -40,8 +40,8 @@ if something is missing, add a component here first.
 | `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
-| `ButtonGroup` | settings choices only (theme, text size, week start, Recent 3 / 5 / 10, Bill / Subscription, Repeat every): 2–3 options, 48 dp pills 4 dp apart; selected = primary **with a check**, check + label centred together. Never tabs | Controls.kt |
-| `PillTabs` | **tabs** (§ Pill tabs): Plan (22–24) fixed = equal widths, 44 dp; Customise (80–85) `scrolling` = own widths, 40 dp, open tab scrolled into view. 8 dp apart, selected primary / onPrimary, others `surfaceContainerHigh` / onSurfaceVariant, label centred, no check | Controls.kt |
+| `ButtonGroup` | settings choices only (theme, text size, week start, Recent 3 / 5 / 10, Bill / Subscription, Repeat every): 2–3 options, 48 dp pills 4 dp apart; selected = primary **with a check**, check + label centred together. Labels shrink to 10 sp; when one still can't fit beside the check (a long translation, a small phone, large text) the pills stack, one a row, full width. Never tabs | Controls.kt |
+| `PillTabs` | **tabs** (§ Pill tabs): Plan (22–24) fixed = equal widths, 44 dp; Customise (80–85) `scrolling` = own widths, 40 dp, open tab scrolled into view. Fixed labels shrink to 10 sp on one line; only a label that can't fit even then takes two lines ("Coming / up"), the tabs growing together, a word never split. 8 dp apart, selected primary / onPrimary, others `surfaceContainerHigh` / onSurfaceVariant, label centred, no check | Controls.kt |
 | `Chip` / `ChipWrap` | 36 dp pills; selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar; **icon only at large text** (150–152) | Bars.kt |
@@ -67,7 +67,7 @@ if something is missing, add a component here first.
 | `BurrowNavBar` | 5 items, 80 dp on `surfaceContainerLow`, selected icon fill + `secondaryContainer` pill; labels shrink to 10 sp, capped at 1.3×; **at large text only the selected tab shows its label** (150–152) | Bars.kt |
 | `FormChip` / `FormChipRow` | New expense's one chip (17): 36 dp pill in a 48 dp target; outlined (a choice), selected (`secondaryContainer`), tonal (an extra: Note · Time · Receipt · Repeat or lend), filled (a favourite: `surfaceContainerHigh`, amount first in bold, then the name, no icon); optional 24 dp category circle and a quieter trailing amount (favourites "Chai ₹20"); the row scrolls sideways | PayeeField.kt |
 | `PayeeField` | Paid to: 56 dp pill, storefront or the category circle, 2 dp primary ring while typing, ✕ clears; payee matches show as `FormChip`s under it | PayeeField.kt |
-| `ChoiceTiles` (`Choice`) | pick one: equal tiles (`columns` per row; a line shows big as the value, "₹1,240"), or full-width rows when options have icons; selected = `primaryContainer` + `CheckBadge` | Customise.kt |
+| `ChoiceTiles` (`Choice`) | pick one: equal tiles (`columns` per row; a line shows big as the value, "₹1,240"), or full-width rows when options have icons; selected = `primaryContainer` + `CheckBadge`; tiles in a row share one height | Customise.kt |
 | `ToggleTiles` (`Toggle`) | pick many: 3-column 112 dp tiles, icon circle + name, check badge when on (empty ring when off), on = `secondaryContainer` | Customise.kt |
 | `OrderedRow` | ⠿ drag handle · 40 dp icon · name · switch, inside `DragColumn`; a hidden row's icon dims to 55%. No up/down arrows anywhere (16) | Customise.kt |
 | `DragColumn` | reorder by drag (16): hold the ⠿ handle, the row lifts (`surfaceContainerHigh` + shadow), the others slide to make room; saved on drop; TalkBack gets "Move … up / down" actions | DragList.kt |
@@ -100,6 +100,7 @@ title = the example value (tabular figures), subtitle = what it is, trailing rou
 ## Pill tabs
 `PillTabs`: 44 dp pills, 8 dp gap. Fixed set (Plan) = equal widths; scrolling set (Customise) = own widths, 40 dp. Selected =
 primary/onPrimary, others surfaceContainerHigh/onSurfaceVariant. No check mark. Settings choices stay a `ButtonGroup` (with a check).
+Large text: fixed labels shrink on one line first; a label that can't fit at 10 sp wraps to two lines and every tab grows to match.
 
 ## Round check (pick one)
 24 dp ring (outline) → filled primary with a 14 dp ✓. Used by every pick-one list, sheet or screen, and by Teach rows (C1).

@@ -2,6 +2,7 @@ package app.burrow.money.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,8 +32,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -87,7 +89,14 @@ fun TimeWheelSheet(title: String, line: String?, time: LocalTime, onPick: (Local
     val haptics = LocalHapticFeedback.current
     BurrowSheet(onDismiss) {
         SheetHeader(title, onDismiss, line)
-        Box(Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.small), contentAlignment = Alignment.Center) {
+        // Drags in the wheel area belong to the wheels: the sheet must not move or close when a
+        // wheel runs past its first or last row, or when the drag starts between the columns (as Weft).
+        Box(
+            Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.small)
+                .nestedScroll(KeepScrollInside)
+                .pointerInput(Unit) { detectVerticalDragGestures { change, _ -> change.consume() } },
+            contentAlignment = Alignment.Center,
+        ) {
             // The band behind the middle row.
             Box(Modifier.fillMaxWidth().height(Size.wheelRow).clip(Shapes.pill).background(MaterialTheme.colorScheme.surfaceContainerHigh))
             Row(

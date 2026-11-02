@@ -32,15 +32,8 @@ class CaptureNotifier(private val context: Context) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
         createChannel()
-        val money = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount)
-        val amount = money.plain(capture.amount ?: 0)
-        val incoming = capture.direction == Direction.IN.name
-        val title = when {
-            capture.payee == null -> context.getString(if (incoming) R.string.notif_received else R.string.notif_spent, amount)
-            incoming -> context.getString(R.string.notif_from, amount, app.burrow.money.data.tidyPayee(capture.payee))
-            else -> context.getString(R.string.notif_to, amount, app.burrow.money.data.tidyPayee(capture.payee))
-        }
-        val line = context.getString(R.string.notif_which_category, from ?: context.getString(R.string.app_name))
+        val title = titleFor(capture, hideAmount)
+        val line = context.getString(R.string.notif_which_category, withName(capture, from))
         val id = notificationId(capture.id)
         // Design 43 needs filled pills, which Android's action buttons can't draw (they come out as
         // outlined, upper-case chips), so the body is our own layout inside Android's frame. Collapsed:
@@ -93,7 +86,7 @@ class CaptureNotifier(private val context: Context) {
         if (!allowed()) return
         createChannel()
         val title = titleFor(capture, hideAmount)
-        val line = context.getString(R.string.notif_tap_to_check, from ?: context.getString(R.string.app_name))
+        val line = context.getString(R.string.notif_tap_to_check, withName(capture, from))
         post(notificationId(capture.id), title, line, open(MainActivity.ACTION_OPEN_CAPTURE, capture.id))
     }
 
@@ -111,10 +104,18 @@ class CaptureNotifier(private val context: Context) {
         val amount = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount).plain(capture.amount ?: 0)
         val incoming = capture.direction == Direction.IN.name
         return when {
+            // No merchant: the words say what it was ("₹500 on Petrol").
+            capture.payee == null && capture.name != null -> context.getString(R.string.notif_on, amount, capture.name)
             capture.payee == null -> context.getString(if (incoming) R.string.notif_received else R.string.notif_spent, amount)
             incoming -> context.getString(R.string.notif_from, amount, app.burrow.money.data.tidyPayee(capture.payee))
             else -> context.getString(R.string.notif_to, amount, app.burrow.money.data.tidyPayee(capture.payee))
         }
+    }
+
+    /** "Medicines · HDFC ••1234": the expense name beside the merchant in the title, when they differ. */
+    private fun withName(capture: CaptureEntity, from: String?): String {
+        val name = capture.name?.takeIf { capture.payee != null && !it.equals(capture.payee.trim(), ignoreCase = true) }
+        return listOfNotNull(name, from ?: context.getString(R.string.app_name)).joinToString(" · ")
     }
 
     private fun open(action: String, id: Long) = PendingIntent.getActivity(

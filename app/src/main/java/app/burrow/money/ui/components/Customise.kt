@@ -3,6 +3,8 @@ package app.burrow.money.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -100,19 +102,21 @@ fun <T> ChoiceTiles(options: List<Choice<T>>, selected: T, onSelect: (T) -> Unit
     val titleStyle = BurrowType.label
     val density = LocalDensity.current
     BoxWithConstraints(modifier) {
+    val width = maxWidth // read here, not only inside the lambda below, so the scope counts as used
     // Large text: at most two a row, so a word never breaks inside a tile. A small phone (320 dp) or a
     // long word: fewer a row until the widest title fits beside the check at its smallest size.
     val widest = with(density) { options.maxOf { measurer.measure(it.title, titleStyle, maxLines = 1).size.width }.toDp() }
     val need = widest + Space.group + Size.checkBadge + Space.block * 2
-    val fits = (minOf(columns, if (isLargeText()) 2 else columns) downTo 1).firstOrNull { n -> (maxWidth - Space.small * (n - 1)) / n >= need } ?: 1
+    val fits = (minOf(columns, if (isLargeText()) 2 else columns) downTo 1).firstOrNull { n -> (width - Space.small * (n - 1)) / n >= need } ?: 1
     Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
         val perRow = fits
         options.chunked(perRow).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+            // One height for the row: a value that shrank to fit leaves its tile no shorter.
+            Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                 row.forEach { o ->
                     val on = o.key == selected
                     Box(
-                        Modifier.weight(1f).heightIn(min = if (o.line != null) Size.choiceTile else Size.button)
+                        Modifier.weight(1f).fillMaxHeight().heightIn(min = if (o.line != null) Size.choiceTile else Size.button)
                             .clip(Shapes.surface).background(if (on) c.primaryContainer else c.surfaceContainerLow)
                             .semantics { this.selected = on }
                             .clickable(role = Role.RadioButton) { haptics.tick(); onSelect(o.key) }
@@ -168,7 +172,8 @@ fun ToggleTiles(options: List<Toggle>, onToggle: (String, Boolean) -> Unit, onLa
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Space.small)) {
         val perRow = if (isLargeText()) 2 else 3
         options.chunked(perRow).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+            // One height for the row: a value that shrank to fit leaves its tile no shorter.
+            Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                 row.forEach { o ->
                     Box(
                         Modifier.weight(1f).heightIn(min = Size.toggleTile).clip(Shapes.surface)

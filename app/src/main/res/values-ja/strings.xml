@@ -120,6 +120,8 @@
     <string name="notif_to">%2$s へ %1$s</string>
     <string name="notif_from">%2$s から %1$s</string>
     <string name="notif_spent">%1$s 支出</string>
+    <string name="notif_on">%2$s に %1$s</string>
+    <string name="merchant">店舗</string>
     <string name="notif_received">%1$s 受取</string>
     <string name="notif_which_category">%1$s · どのカテゴリ？</string>
     <string name="ignore">無視</string>
@@ -186,7 +188,6 @@
     <string name="rules_header_line">件の自分のルール · %1$d 件オン · 内蔵パック付き</string>
     <string name="yours">自分のルール</string>
     <string name="built_in_packs">内蔵パック</string>
-    <string name="pack_india">インド</string>
     <plurals name="pack_rules">
         <item quantity="other">%d 件のルール · 銀行と UPI アプリ</item>
     </plurals>
@@ -686,7 +687,7 @@
     <string name="keep_last_7_line">古いバックアップは削除されます</string>
     <string name="restore">復元</string>
     <plurals name="n_transactions">
-        <item quantity="other">%1$d 件の取引</item>
+        <item quantity="other">%1$,d 件の取引</item>
     </plurals>
     <string name="restore_from_file">別のファイルから復元</string>
     <string name="backup_explain">バックアップはパスワードで暗号化され、選んだフォルダー（クラウドアプリが同期するフォルダーなど）に保存されます。Burrow が何かをアップロードすることはありません。</string>
@@ -702,7 +703,7 @@
     <string name="not_a_backup">このファイルは Burrow のバックアップではありません</string>
     <string name="replace_title">すべて置き換えますか？</string>
     <plurals name="replace_text">
-        <item quantity="other">このスマホのデータがバックアップ（%1$d 件の取引）で置き換えられます。</item>
+        <item quantity="other">このスマホのデータがバックアップ（%1$,d 件の取引）で置き換えられます。</item>
     </plurals>
     <string name="replace">置き換える</string>
     <string name="restored">復元しました</string>
@@ -989,7 +990,7 @@
     <string name="nothing_to_import_line">このファイルには Burrow が読める支払いがありません。%1$s の CSV 書き出しか確認してください。</string>
     <string name="pick_another_file">別のファイルを選ぶ</string>
     <plurals name="import_n">
-        <item quantity="other">%d 件の取引を読み込む</item>
+        <item quantity="other">%,d 件の取引を読み込む</item>
     </plurals>
     <plurals name="n_accounts">
         <item quantity="other">%d 口座</item>
@@ -1050,11 +1051,11 @@
     <string name="already_here">既にあるデータ</string>
     <string name="import_add">今のデータに追加</string>
     <plurals name="import_add_line">
-        <item quantity="other">今の %1$d 件の取引はそのまま</item>
+        <item quantity="other">今の %1$,d 件の取引はそのまま</item>
     </plurals>
     <string name="import_replace">取引を置き換える</string>
     <plurals name="import_replace_line">
-        <item quantity="other">今の %1$d 件の取引を先に削除します。口座とカテゴリは残ります</item>
+        <item quantity="other">今の %1$,d 件の取引を先に削除します。口座とカテゴリは残ります</item>
     </plurals>
     <plurals name="replace_title">
         <item quantity="other">%1$d 件の取引を削除しますか？</item>
@@ -1122,7 +1123,7 @@
     <string name="capture_off_line">銀行 SMS か支払いアプリをオンにすると支払いが自動で記録されます</string>
     <string name="capture_off_line_apps">支払いアプリをオンにすると支払いが自動で記録されます</string>
     <string name="restricted_title">Android がアクセスをブロックしています</string>
-    <string name="restricted_line">Burrow はファイルからインストールされました。アプリ情報で ⋮ › 制限付き設定を許可 をタップしてから、ここでもう一度オンにしてください</string>
+    <string name="restricted_line">Burrow はファイルからインストールされました。Android の設定でスイッチを一度試してから、アプリ情報で ⋮ › 制限付き設定を許可 をタップし、ここでもう一度オンにしてください</string>
     <string name="app_info">アプリ情報</string>
     <string name="check_for_updates">アップデートを確認</string>
     <string name="checking_updates">確認中…</string>
@@ -1189,7 +1190,6 @@
     <string name="sunday_review_time">日曜の振り返りの時刻</string>
     <string name="every_sunday">毎週日曜</string>
     <plurals name="n_not_understood">
-        <item quantity="one">%d 件のメッセージを読み取れません</item>
         <item quantity="other">%d 件のメッセージを読み取れません</item>
     </plurals>
     <string name="teach_once_line">一度教えれば、同じ形のメッセージを読み取ります</string>
@@ -1210,7 +1210,6 @@
     <string name="teach_the_ones_missed">読めなかったものを教える</string>
     <string name="teach_category_in_review">読み取った支払いは相手のいつものカテゴリで「確認待ち」に入ります。カテゴリはそこで選びます。</string>
     <plurals name="teach_n_missed">
-        <item quantity="one">読めなかった%d件を教える</item>
         <item quantity="other">読めなかった%d件を教える</item>
     </plurals>
     <string name="about_contact">連絡先: %1$s</string>

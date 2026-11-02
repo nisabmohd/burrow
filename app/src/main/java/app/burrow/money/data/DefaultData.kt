@@ -126,6 +126,8 @@ class SampleData(
             }
             fun randomTime() = LocalTime.of(8 + r.nextInt(14), r.nextInt(60))
             val first = today.withDayOfMonth(1).minusMonths(2)
+            // The electricity bill due on the 17th before today stays unpaid (overdue on Plan).
+            val lastElectricity = today.withDayOfMonth(17).let { if (it.isBefore(today)) it else it.minusMonths(1) }
             var day = first
             while (!day.isAfter(today)) {
                 val d = day.dayOfMonth
@@ -140,8 +142,8 @@ class SampleData(
                 if (d == 2) add(day, LocalTime.of(6, 0), TxnType.EXPENSE, "Spotify", cat(7), "icici", money(119))
                 if (d == 5) add(day, LocalTime.of(11, 20), TxnType.EXPENSE, "Airtel", cat(4), "hdfc", money(499))
                 if (d == 12 && day != today) add(day, LocalTime.of(21, 10), TxnType.EXPENSE, "Hotstar", cat(7), "icici", money(299)) // looks like a subscription
-                // This month's electricity is still unpaid: the overdue bill on Plan.
-                if (d == 17 && !thisMonth) add(day, LocalTime.of(11, 0), TxnType.EXPENSE, "BESCOM", cat(4), "hdfc", money(1100 + r.nextInt(31) * 10))
+                // The last electricity bill is still unpaid: the overdue bill on Plan.
+                if (d == 17 && day != lastElectricity) add(day, LocalTime.of(11, 0), TxnType.EXPENSE, "BESCOM", cat(4), "hdfc", money(1100 + r.nextInt(31) * 10))
                 if (d == 20 && !thisMonth) add(day, LocalTime.of(6, 0), TxnType.EXPENSE, "Netflix", cat(7), "icici", money(649))
                 if (d == 18 && thisMonth && day != today) add(day, LocalTime.of(19, 30), TxnType.TRANSFER, null, null, "hdfc", money(8_120), to = "icici")
                 day = day.plusDays(1)
@@ -168,10 +170,10 @@ class SampleData(
             )
 
             // Bills: due dates from the first sample month to two months ahead; the past ones are paid
-            // except this month's electricity (overdue).
+            // except the last electricity bill (overdue).
             fun bill(
                 kind: String, name: String, amount: Long, acc: String, cat: Int?, repeat: Repeat, onDue: String = "ASK",
-                icon: String? = null, hue: Float? = null, to: String? = null, overdueThisMonth: Boolean = false,
+                icon: String? = null, hue: Float? = null, to: String? = null, overdue: Boolean = false,
             ): SampleBill {
                 val start = first.minusMonths(if (repeat is Repeat.Yearly) 12 else 0)
                 val dates = repeat.between(start, today.plusDays(62))
@@ -180,15 +182,17 @@ class SampleData(
                     repeatRule = repeat.encode(), startDate = millis(start), onDue = onDue, icon = icon, colorHue = hue,
                     toAccountId = to?.let { accIndex.getValue(it) }, isSample = true,
                 )
+                // [overdue]: the last due date before today stays unpaid, so Coming up always shows an
+                // Overdue example (it used to be this month's only, so none before the 17th).
+                val lastPast = dates.filter { it.isBefore(today) }.maxOrNull()
                 val occ = dates.map { d ->
-                    val past = d.isBefore(today)
-                    val overdue = overdueThisMonth && d.month == today.month && d.year == today.year
-                    BillOccurrenceEntity(billId = 0, dueDate = millis(d), status = if (past && !overdue) "PAID" else "UPCOMING", amount = if (past && !overdue) b.amount else null)
+                    val paid = d.isBefore(today) && !(overdue && d == lastPast)
+                    BillOccurrenceEntity(billId = 0, dueDate = millis(d), status = if (paid) "PAID" else "UPCOMING", amount = if (paid) b.amount else null)
                 }
                 return SampleBill(b, occ)
             }
             val bills = listOf(
-                bill("BILL", "Electricity", 1_800, "hdfc", 4, Repeat.Monthly(17), overdueThisMonth = true),
+                bill("BILL", "Electricity", 1_800, "hdfc", 4, Repeat.Monthly(17), overdue = true),
                 bill("SUBSCRIPTION", "Netflix", 649, "icici", 7, Repeat.Monthly(19)),
                 bill("SUBSCRIPTION", "Spotify", 119, "icici", 7, Repeat.Monthly(2)),
                 bill("BILL", "Airtel", 499, "hdfc", 4, Repeat.Monthly(5)),

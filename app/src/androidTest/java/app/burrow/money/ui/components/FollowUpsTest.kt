@@ -159,7 +159,8 @@ class FollowUpsTest {
 
     // Swipe (171–173)
 
-    @Test fun theLabelShowsOnlyOnceArmedAndLettingGoThenRunsIt() {
+    @Test fun theLabelShowsFromTheFirstTouchAndLettingGoArmedRunsIt() {
+        // Like Sprout (0.3.1): colour, icon and label from the first touch; it runs only once armed.
         var paid = 0
         rule.show {
             SwipeRow(SwipeAction(null, "Mark paid", SwipeTone.SUCCESS) { paid++ }, null, Shapes.surface) {
@@ -169,7 +170,7 @@ class FollowUpsTest {
         val row = rule.onNodeWithText("Netflix")
         val density = rule.density
         row.performTouchInput { down(centerLeft + Offset(8f, 0f)); moveBy(Offset(with(density) { 40.dp.toPx() }, 0f)) }
-        rule.onNodeWithText("Mark paid").assertDoesNotExist()
+        rule.onNodeWithText("Mark paid").assertExists()
         row.performTouchInput { moveBy(Offset(with(density) { 160.dp.toPx() }, 0f)) }
         rule.onNodeWithText("Mark paid").assertExists()
         row.performTouchInput { up() }

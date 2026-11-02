@@ -1,5 +1,6 @@
 package app.burrow.money.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
@@ -56,6 +62,7 @@ private val DRAG_HANDLE = 12.dp
  * the bottom edge. It uses the room the sheet really has, because before Android 9 the sheet's
  * window shrinks to fit above the keyboard.
  */
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun BurrowSheet(onDismissRequest: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
@@ -104,11 +111,24 @@ fun SheetHeader(title: String, onClose: () -> Unit, line: String? = null) {
     }
 }
 
-/** A sheet's scrolling body: 16 dp sides, takes what room is left, so the footer stays pinned. */
+/**
+ * Takes whatever scroll and fling a scrolling part leaves over, so none of it reaches the sheet: the
+ * sheet doesn't move or close when the part runs past its top or end (time wheels, Update's notes).
+ */
+val KeepScrollInside: NestedScrollConnection = object : NestedScrollConnection {
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset = available
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity = available
+}
+
+/**
+ * A sheet's scrolling body: 16 dp sides, takes what room is left, so the footer stays pinned. With
+ * [keepScroll], scrolling back to the top stops there instead of dragging the sheet closed (long
+ * text, like Update's notes); the header still drags it.
+ */
 @Composable
-fun ColumnScope.SheetBody(content: @Composable ColumnScope.() -> Unit) {
+fun ColumnScope.SheetBody(keepScroll: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Column(
-        Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.small),
+        Modifier.weight(1f, fill = false).then(if (keepScroll) Modifier.nestedScroll(KeepScrollInside) else Modifier).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.small),
         verticalArrangement = Arrangement.spacedBy(Space.block),
         content = content,
     )

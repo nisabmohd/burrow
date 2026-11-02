@@ -35,3 +35,12 @@ description: Build the app and check every feature on an emulator with the smoke
 6. Check the play and foss merged manifests have no INTERNET (github has it for the update check only): `grep -c INTERNET app/build/intermediates/merged_manifests/playDebug/*/AndroidManifest.xml` must print 0 (or only the `tools:node="remove"` line before merging).
 7. Compare the changed screens with their PNGs in `design/screens/` (light), then check them in dark mode on the device.
 8. Test SMS capture on an emulator: `adb emu sms send HDFCBK "Rs.240.00 debited from A/c XX1234 to VPA thirdwave@okicici. UPI Ref 4821."`
+
+## Notes (2026-11-02)
+- Instrumented tests (components and screens, `ui/screens/*ScreenTest`) need an API 35 emulator: API 36.1 can't run
+  Espresso. Screens are tested through their `…Content(state, callbacks)`, never their view model.
+- Smoke turns animations off for the run (and back on): ~2 h for all 83 on the emulator, each dump ~2.5 s. Many checks
+  build on earlier ones (capture on, widgets pinned): to re-run a failure, include the checks it builds on. A failure
+  saves its screen to `build/smoke/<check>.png`. With two emulators, set `ANDROID_SERIAL`.
+- `tools/phone_checks.py`: the "Check on a real phone" list on the emulator (backup, CSV, alerts, bill match, words,
+  restricted settings, RTL in the ar-XB pseudolocale, 20k transactions); screens at `build/phone_checks/<check>.png`.

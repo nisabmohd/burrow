@@ -18,7 +18,7 @@ suspend fun AppContainer.onMessage(
     if (result is CaptureResult.Found) {
         val c = result.capture
         val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-        val ids = capture.suggestions(c.payee, type)
+        val ids = capture.suggestions(c.payee, type, c.body)
         val categories = money.categories.first()
         val suggested = ids.mapNotNull { id -> categories.firstOrNull { it.id == id } }
         val account = capture.accountFor(c)?.let { id -> money.accounts.first().firstOrNull { it.account.id == id }?.account }

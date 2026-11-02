@@ -9,8 +9,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -80,7 +77,7 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
                     field()
                 }
                 if (text.field.text.isNotEmpty()) {
-                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(c.surfaceContainerHigh).clickable(role = Role.Button) { text.set(""); onChange(""); focus.clearFocus() }, contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(Size.iconCircle).clip(Shapes.pill).background(c.surfaceContainerHigh).clickable(role = Role.Button) { focus.clearFocus(); text.set(""); onChange("") }, contentAlignment = Alignment.Center) {
                         Icon(painterResource(R.drawable.ic_close_regular), clearLabel, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconButton20))
                     }
                 }
@@ -116,8 +113,9 @@ fun FormChip(
     // 48 dp tap target, but the press ripple stays inside the 36 dp pill (never a square around it).
     val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Box(
-        Modifier.minimumInteractiveComponentSize()
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button) { haptics.tick(); onClick() },
+        // clickable first, so the tap target node itself is the 48 dp box (not only the 36 dp pill).
+        Modifier.clickable(interactionSource = interaction, indication = null, role = Role.Button) { haptics.tick(); onClick() }
+            .minimumInteractiveComponentSize(),
         contentAlignment = Alignment.Center,
     ) {
         Row(

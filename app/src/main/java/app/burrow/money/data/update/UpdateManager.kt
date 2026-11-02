@@ -1,10 +1,9 @@
 package app.burrow.money.data.update
 
+import androidx.core.net.toUri
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import app.burrow.money.BuildConfig
@@ -135,15 +134,12 @@ class UpdateManager(private val context: Context, private val settings: Settings
         }
     }.flowOn(Dispatchers.IO)
 
-    /** False on Android 8+ until the user allows Burrow to install apps; see [openInstallPermission]. */
-    fun canInstall(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
+    /** False until the user allows Burrow to install apps; see [openInstallPermission]. */
+    fun canInstall(): Boolean = context.packageManager.canRequestPackageInstalls()
 
     /** Opens "Install unknown apps" for Burrow. */
     fun openInstallPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            start(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
-        }
+        start(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri()))
     }
 
     /** Hands the downloaded APK to Android's installer. */

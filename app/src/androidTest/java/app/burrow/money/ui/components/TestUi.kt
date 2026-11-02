@@ -53,13 +53,23 @@ fun SemanticsNodeInteraction.assertNotClipped(tolerance: Dp = 0.5.dp): Semantics
     return this
 }
 
-/** The text fits: no ellipsis, no overflow (the "1,240...." bug). */
+/**
+ * The text fits: no ellipsis, no line cut off, every line inside the text's own box (the "1,240...."
+ * bug). Not [TextLayoutResult.hasVisualOverflow]: a one-line text laid out against a wider cap
+ * reports overflow although every letter shows (the cap's width against the box's).
+ */
 fun SemanticsNodeInteraction.assertTextFits(): SemanticsNodeInteraction {
     val results = mutableListOf<TextLayoutResult>()
     fetchSemanticsNode().config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(results)
     val r = results.firstOrNull() ?: return this
-    assertFalse("text overflows: ${r.layoutInput.text}", r.hasVisualOverflow)
-    for (line in 0 until r.lineCount) assertFalse("line $line is ellipsized: ${r.layoutInput.text}", r.isLineEllipsized(line))
+    val what = "${r.layoutInput.text} (box ${r.size}, ${r.lineCount} lines, ${r.layoutInput.style.fontSize})"
+    assertFalse("more lines than allowed: $what", r.multiParagraph.didExceedMaxLines)
+    assertFalse("taller than its box: $what", r.multiParagraph.height > r.size.height + 1)
+    for (line in 0 until r.lineCount) {
+        assertFalse("line $line is ellipsized: $what", r.isLineEllipsized(line))
+        val width = r.getLineRight(line) - r.getLineLeft(line)
+        assertFalse("line $line is wider than its box ($width): $what", width > r.size.width + 1)
+    }
     return this
 }
 

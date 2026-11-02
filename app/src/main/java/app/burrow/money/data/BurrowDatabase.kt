@@ -101,6 +101,8 @@ data class TxnEntity(
     val lend: String? = null,
     /** v5: a REFUND row points at the expense it pays back (lowers that category, never income). */
     val refundOf: Long? = null,
+    /** v7: the merchant the bank message named, kept out of sight: the payee is the expense's own name. */
+    val merchant: String? = null,
 )
 
 @kotlinx.serialization.Serializable
@@ -202,6 +204,8 @@ data class CaptureEntity(
     val reference: String? = null,
     /** The category the capture notification or To review will save with. */
     val categoryId: Long? = null,
+    /** v7: the expense name from the words in the message ("Petrol"), when they had one. */
+    val name: String? = null,
 )
 
 /** v4: someone money was lent to or borrowed from. */
@@ -289,7 +293,7 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
         PersonEntity::class, AttachmentEntity::class, TagEntity::class, TxnTagEntity::class, RateEntity::class,
         SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
@@ -297,6 +301,7 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
         AutoMigration(from = 3, to = 4, spec = V3To4::class), // customise: net worth, upcoming, lend, tags, files, rates
         AutoMigration(from = 4, to = 5), // next: refunds, split parts, favourites, import mappings
         AutoMigration(from = 5, to = 6), // cards sharing one credit limit
+        AutoMigration(from = 6, to = 7), // hidden merchant on payments, expense name on captures
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {

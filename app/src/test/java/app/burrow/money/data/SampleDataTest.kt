@@ -52,6 +52,19 @@ class SampleDataTest {
         assertTrue(electricity.occurrences.filter { it.dueDate < thisMonth.dueDate }.all { it.status == "PAID" })
     }
 
+    @Test fun earlyInTheMonthLastMonthsElectricityIsOverdue() {
+        // Before the 17th (2026-11-02): October's bill waits, with no BESCOM payment that month.
+        val early = LocalDate.of(2026, 11, 2)
+        val data = SampleData.build(early, early.atTime(9, 30).toInstant(ZoneOffset.UTC).toEpochMilli(), "INR", digits = 2, monthStartDay = 1, categoryIds = ids, zone = ZoneOffset.UTC)
+        val october = LocalDate.of(2026, 10, 17).atTime(12, 0).toInstant(ZoneOffset.UTC).toEpochMilli()
+        val electricity = data.bills.first { it.bill.name == "Electricity" }
+        assertEquals("UPCOMING", electricity.occurrences.first { it.dueDate == october }.status)
+        assertTrue(electricity.occurrences.filter { it.dueDate < october }.all { it.status == "PAID" })
+        val octStart = LocalDate.of(2026, 10, 1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+        val novStart = LocalDate.of(2026, 11, 1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+        assertTrue(data.txns.none { it.payee == "BESCOM" && it.at in octStart until novStart })
+    }
+
     @Test fun goalsAddUp() {
         val japan = build().goals.first { it.goal.name == "Japan trip" }
         assertEquals(1_10_000_00L, japan.added.sumOf { it.amount })

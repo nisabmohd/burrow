@@ -19,8 +19,12 @@ import app.burrow.money.ui.filters.Filters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.DayOfWeek
 import java.time.Instant
@@ -67,17 +71,42 @@ data class InsightsState(
 
 private val zone = ZoneId.systemDefault()
 internal fun TxnView.day(): LocalDate = Instant.ofEpochMilli(txn.at).atZone(zone).toLocalDate()
+
+/** Payments dated in [from, to) (epoch ms), splits expanded: NextRepository.statsBetween. */
+typealias StatsBetween = (from: Long, to: Long) -> Flow<List<TxnView>>
+
+/** The days from the first to the last of [ranges], as [from, to) in epoch ms. */
+private fun window(vararg ranges: DayRange): Pair<Long, Long> {
+    val start = ranges.minOf { it.start }
+    val end = ranges.maxOf { it.end }.plusDays(1)
+    return start.atStartOfDay(zone).toInstant().toEpochMilli() to end.atStartOfDay(zone).toInstant().toEpochMilli()
+}
 internal fun TxnView.isSpending() = txn.type == TxnType.EXPENSE && !txn.excludeFromStats
 
 /**
  * Insights (36–41): spending in the picked dates (this month by default) against the period before,
  * a day on average, the biggest payment, by category, patterns and the month heatmap. One page.
  */
-class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int, stats: kotlinx.coroutines.flow.Flow<List<TxnView>> = money.latest()) : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int, stats: StatsBetween) : ViewModel() {
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 
-    val state: StateFlow<InsightsState?> = combine(stats, store.insights, money.accounts, money.categories) { all, f, accounts, categories ->
+    /** The range, the one before it and the heatmap's month: all Insights shows. */
+    private fun shown(f: Filters): Array<DayRange> {
+        val range = f.range ?: defaultRange
+        val month = YearMonth.from(range.end)
+        return arrayOf(range, range.previous(), DayRange(month.atDay(1), month.atEndOfMonth()))
+    }
+
+    // Only the days on screen come from the database: loading every payment ever made took
+    // seconds with 20,000 of them (2026-11-02).
+    private val inWindow: Flow<Pair<Filters, List<TxnView>>> = store.insights.flatMapLatest { f ->
+        val (from, to) = window(*shown(f))
+        stats(from, to).map { f to it }
+    }
+
+    val state: StateFlow<InsightsState?> = combine(inWindow, money.accounts, money.categories) { (f, all), accounts, categories ->
         val range = f.range ?: defaultRange
         val prev = range.previous()
         val matching = all.filter { f.copy(range = null).matches(it, zone, withRange = false) }
@@ -140,11 +169,18 @@ data class CategoryInsightsState(
 )
 
 /** Category insights (42): one category in the picked dates, by day, and its transactions. */
-class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: kotlinx.coroutines.flow.Flow<List<TxnView>> = money.latest()) : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: StatsBetween) : ViewModel() {
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 
-    val state: StateFlow<CategoryInsightsState?> = combine(stats, store.insights, money.categories) { all, f, cats ->
+    private val inWindow: Flow<Pair<Filters, List<TxnView>>> = store.insights.flatMapLatest { f ->
+        val range = f.range ?: defaultRange
+        val (from, to) = window(range, range.previous())
+        stats(from, to).map { f to it }
+    }
+
+    val state: StateFlow<CategoryInsightsState?> = combine(inWindow, money.categories) { (f, all), cats ->
         val cat = cats.firstOrNull { it.id == categoryId } ?: return@combine null
         val range = f.range ?: defaultRange
         val mine = all.filter { it.isSpending() && it.txn.categoryId == categoryId && f.copy(categories = emptySet(), range = null).matches(it, zone, withRange = false) }

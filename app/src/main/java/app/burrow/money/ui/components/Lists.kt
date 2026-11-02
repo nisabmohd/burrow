@@ -205,7 +205,11 @@ fun KeepTopVisible(state: androidx.compose.foundation.lazy.LazyListState, topKey
     val last = androidx.compose.runtime.remember { arrayOf(topKey) }
     if (last[0] != topKey) {
         last[0] = topKey
-        if (state.firstVisibleItemIndex <= 1 && state.firstVisibleItemScrollOffset == 0) state.requestScrollToItem(0)
+        // Read without observing: subscribing here would recompose the screen on every scroll frame.
+        val atTop = androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation {
+            state.firstVisibleItemIndex <= 1 && state.firstVisibleItemScrollOffset == 0
+        }
+        if (atTop) state.requestScrollToItem(0)
     }
 }
 

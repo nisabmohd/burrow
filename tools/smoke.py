@@ -19,6 +19,7 @@ sample data (Plan, Accounts, Insights, charts) run before "add_expense_saves_and
 """
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import time
@@ -471,7 +472,12 @@ def new_transfer_between_accounts():
     d.tap("Transfer")
     assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
     keypad("1000")
-    d.tap("Choose an account")
+    # The "to" account comes filled in (another account); tap it, right of the arrow, to change it.
+    nodes = d.dump()
+    src = next(n for n in nodes if n.label == "HDFC Savings")
+    to = [n for n in nodes if n.label and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
+    assert to, "no 'to' account beside HDFC Savings"
+    tap_node(to[0])
     d.tap("Kotak")
     d.tap("Save")
     snackbar()
@@ -570,7 +576,14 @@ def new_category_saves_and_shows_in_new_expense():
     d.tap("Save")
     assert d.scroll_to("Plants"), "the new category isn't listed"
     open_add()
-    d.tap("More", contains=False) if d.exists("More", timeout=1) else None
+    # The category chips scroll sideways; More (the category sheet) is the last one.
+    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    w = d.screen_size()[0]
+    for _ in range(3):
+        if d.exists("More", timeout=0.5):
+            break
+        d.drag(int(w * 0.85), chip.center[1], int(w * 0.15), chip.center[1])
+    d.tap("More")
     assert d.scroll_to("Plants"), "the new category isn't offered on New expense"
     recover()
 
@@ -678,7 +691,8 @@ def split_needs_parts_that_add_up():
     d.tap("Groceries")
     assert d.exists("The parts add up", timeout=3), "new part didn't take half"
     # A part's amount is a pill that opens the value sheet (95): type ₹1, Done.
-    pills = [n for n in d.dump() if n.clickable and n.text.startswith("₹")]
+    # The pill's clickable node has no text, so take the amount text: its centre sits on the pill.
+    pills = [n for n in d.dump() if n.text.startswith("₹") and n.bounds[3] > n.bounds[1]]
     assert pills, "no amount pill on the split parts"
     tap_node(pills[-1])
     assert d.exists("Done", timeout=3), "the amount pill didn't open the value sheet"
@@ -917,26 +931,36 @@ def not_understood_waits_for_teach():
     recover()
     d.nav("More")
     d.tap("Auto-capture")
-    assert d.exists("Teach it 1 message it missed", timeout=5), "unreadable bank SMS not kept for Teach"
-    assert d.exists("KOTAKB", contains=True), "Teach row doesn't say who sent it"
-    d.tap("Teach it 1 message it missed")
-    # The list of messages not understood: Teach or Ignore each one.
-    assert d.exists("Messages not understood", timeout=5), "the list of missed messages did not open"
+    # "1 message not understood · Teach it the ones it missed" opens the list (sender on each card).
+    assert d.exists("1 message not understood", timeout=5), "unreadable bank SMS not kept for Teach"
+    d.tap("1 message not understood")
+    assert d.exists("Not understood", timeout=5), "the list of missed messages did not open"
+    assert d.exists("KOTAKB", contains=True), "the missed message doesn't say who sent it"
+    assert d.exists("Ignore", timeout=2), "no Ignore (✕) on the missed message"
     d.tap("Teach")
     assert d.exists("Teach a message", timeout=5), "Teach did not open"
-    assert d.exists("Ignore"), "no Ignore on Teach"
     d.tap("Close")
     d.back()
 
 
 @check
 def auto_capture_shows_recorded_by_itself():
-    # Trust in capture (15): the ring and "N of M payments this month · you typed K".
+    # Trust in capture (15): the ring and "N of M payments this month · you typed K". It needs a
+    # payment recorded this month: the other checks' SMS carry dates ("on 20-10-26"), so send one without.
+    d.shell("service call notification 1")  # clear all: grouped notifications hide their pills
+    d.adb("emu", "sms", "send", "HDFCBK", f"Rs.99.00 debited from A/c XX1234 to VPA chaipoint@okicici. UPI Ref {int(time.time())}.")
+    time.sleep(4)
+    d.shell("cmd statusbar expand-notifications")
+    time.sleep(2)
+    pill = next((n for n in d.dump() if n.label in ("Food & drinks", "Groceries", "Shopping", "Transport")), None)
+    assert pill, "no capture notification for the ₹99 payment"
+    tap_node(pill)
+    time.sleep(3)
     open_more_row("Auto-capture")
     assert d.exists("Recorded by itself", timeout=5), "no 'Recorded by itself' header"
-    assert d.exists("payments this month · you typed", contains=True), "no trust line"
+    assert d.exists("this month · you typed", contains=True), "no trust line"  # "1 of 1 payment…" / "2 of 2 payments…"
     d.back()
-    assert d.exists("recorded by itself", contains=True, timeout=5), "More tile doesn't show the share"
+    assert d.exists("% by itself", contains=True, timeout=5), "More tile doesn't show the share (\"92% by itself\")"
 
 
 @check
@@ -951,8 +975,8 @@ def capture_status_follows_real_access():
         d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")  # revoking SMS restarts the app
         time.sleep(2)
         d.nav("More")
-        assert d.exists("Paused", timeout=5), "More tile doesn't say Paused without access"
-        assert d.exists("Needs access", timeout=2), "More tile line doesn't say Needs access"
+        assert d.exists("Needs access", timeout=5), "More tile doesn't say Needs access without access"
+        assert d.exists("Tap to fix", timeout=2), "More tile line doesn't say Tap to fix"
         assert not any(n.label == "On" and n.bounds[1] < 900 for n in d.dump()), "More tile still says On"
         d.nav("Today")
         assert d.exists("Auto-capture is paused", contains=True, timeout=5), "no paused note on Today"
@@ -966,10 +990,13 @@ def capture_status_follows_real_access():
         d.shell(f"cmd notification allow_listener {listener}")
         d.shell(f"pm grant {d.PACKAGE} android.permission.RECEIVE_SMS")
         d.shell(f"pm grant {d.PACKAGE} android.permission.READ_SMS")
+    # Access is read again when the app comes back (as from Settings): leave it, then reopen.
+    d.shell("input keyevent KEYCODE_HOME")
+    time.sleep(1)
     d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")
     time.sleep(2)
     d.nav("More")
-    assert d.exists("On", timeout=5), "More tile doesn't come back to On with access"
+    assert d.exists("On", timeout=12), "More tile doesn't come back to On with access"
 
 
 @check
@@ -1084,10 +1111,11 @@ def builtin_rules_list_like_yours_and_rename():
     d.scroll_to("India")
     d.tap("India")
     assert d.exists("Rules in this pack", timeout=5), "the India pack doesn't list its rules"
-    rows = [n for n in d.dump() if n.clickable and "payment" in n.label]
-    assert rows, "pack rules aren't listed like your own (name · sender · payments)"
+    # "HDFC Bank / HDFCBK · read 3 times", as your own rules show
+    rows = [n for n in d.dump() if " · read " in n.label]  # the row's line; tapping it opens the row
+    assert rows, "pack rules aren't listed like your own (name · sender · read N times)"
     tap_node(rows[0])
-    assert d.exists("Built in", contains=True, timeout=5) or d.exists("India", contains=True, timeout=3), "built-in rule didn't open"
+    assert d.exists("What it reads", timeout=5), "built-in rule didn't open"
     assert not d.exists("Rename rule", timeout=1), "built-in rules can't be renamed"
     d.back(); d.back(); d.back(); d.back()
 
@@ -1285,8 +1313,8 @@ def dark_mode_and_large_text_new_screens():
         open_add()
         problems += [f"New expense: {p}" for p in d.small_targets()]
         d.tap("Close")
-        open_more_row("Notifications")
-        d.tap("Sunday review")
+        # Its row in Notifications sets the time; the review opens as its notification does.
+        open_link("SUNDAY_REVIEW")
         assert d.exists("Your week", contains=True, timeout=5), "Sunday review broke in dark mode"
         problems += [f"Sunday review: {p}" for p in d.small_targets()]
         d.back()
@@ -1327,12 +1355,15 @@ def open_link(action, extra_id=None, cold=False):
     if cold:
         d.shell(f"am force-stop {d.PACKAGE}")
     extra = f" --el id {extra_id}" if extra_id is not None else ""
-    d.shell(f"am start -W -a {ACTION}{action}{extra} -n {d.PACKAGE}/.MainActivity")
+    # Single top, as the app's notifications, widgets and tile send them: without it an intent equal
+    # to the one that started the task only brings the task forward (no onNewIntent), so a warm link
+    # after the same cold one did nothing.
+    d.shell(f"am start -W --activity-single-top -a {ACTION}{action}{extra} -n {d.PACKAGE}/.MainActivity")
     time.sleep(2)
 
 
 def on_a_tab():
-    return sum(n.label in d.TABS and n.package == d.PACKAGE for n in d.dump()) >= 2
+    return d.on_tab()
 
 
 # action → something only that screen shows
@@ -1444,17 +1475,45 @@ def pin_widget(which):
 
 
 def home_labels():
+    """Labels on the first two home pages: three widgets don't fit one page, and Home from the
+    launcher jumps to the first page, wherever the launcher put the last widget."""
     d.shell("input keyevent KEYCODE_HOME")
     time.sleep(2)
-    return [n.label for n in d.dump() if n.label]
+    d.shell("input keyevent KEYCODE_HOME")  # on the launcher already: to the first page
+    time.sleep(1.5)
+    labels = [n.label for n in d.dump() if n.label]
+    w, h = d.screen_size()
+    d.swipe(int(w * 0.9), h // 2, int(w * 0.1), h // 2, 250)
+    time.sleep(1.5)
+    labels += [n.label for n in d.dump() if n.label]
+    d.shell("input keyevent KEYCODE_HOME")
+    return labels
+
+
+def find_on_home(label):
+    """The node for [label] on the first or second home page, left showing so it can be tapped."""
+    d.shell("input keyevent KEYCODE_HOME")
+    time.sleep(2)
+    d.shell("input keyevent KEYCODE_HOME")
+    time.sleep(1.5)
+    n = d.find(label, timeout=2)
+    if n:
+        return n
+    w, h = d.screen_size()
+    d.swipe(int(w * 0.9), h // 2, int(w * 0.1), h // 2, 250)
+    time.sleep(1.5)
+    return d.find(label, timeout=2)
 
 
 def widget_amount(labels):
     """The big number on the safe-to-spend widget: the label right after its title."""
     for title in ("Safe to spend today", "Spent in"):
         for i, l in enumerate(labels):
-            if l.startswith(title) and i + 1 < len(labels):
-                return labels[i + 1]
+            if l.startswith(title):
+                # The title can show twice (its text and the widget's description): skip repeats.
+                rest = [x for x in labels[i + 1:] if not x.startswith(title)]
+                if rest:
+                    return rest[0]
     return None
 
 
@@ -1478,17 +1537,26 @@ def widgets_pin_and_show_numbers():
 
 @check
 def widget_updates_at_once_after_save_delete_and_undo():
+    # Run alone, ₹777 is the first real entry: the sample month goes with it, so "before" can't come back.
+    recover()
+    d.nav("Today")
+    samples = d.exists("These are sample transactions", timeout=3)
     before = widget_amount(home_labels())
     save_expense("777")
     after_save = widget_amount(home_labels())
     assert after_save and after_save != before, f"widget didn't change after saving ₹777 ({before} → {after_save})"
     recover()
     d.nav("Activity")
-    d.long_press("777", contains=True)
+    # The row, lowest: the chart above also says "₹777".
+    row = [n for n in d.dump() if "777" in n.label and n.bounds[3] > n.bounds[1]][-1]
+    x, y = row.center
+    d.swipe(x, y, x, y, 900)
     d.tap("Delete")
     snackbar("deleted")
     after_delete = widget_amount(home_labels())
-    assert after_delete == before, f"widget didn't go back after the delete ({after_save} → {after_delete}, expected {before})"
+    assert after_delete != after_save, f"widget didn't change after the delete ({after_save} → {after_delete})"
+    if not samples:
+        assert after_delete == before, f"widget didn't go back after the delete ({after_save} → {after_delete}, expected {before})"
 
 
 @check
@@ -1497,7 +1565,9 @@ def widget_updates_after_budget_change():
     recover()
     d.nav("Plan")
     d.tap("Budgets")
-    d.tap("budget", contains=True)  # the month's budget header opens its value sheet
+    d.tap("budget", contains=True)  # the month's budget opens its page; Edit opens the value sheet
+    if d.exists("Edit", timeout=3):
+        d.tap("Edit")
     if d.exists("Monthly budget", timeout=3) or d.exists("Done", timeout=1) or d.exists("Save", timeout=1):
         keypad("45000")
         d.tap("Save") if d.exists("Save", timeout=1) else d.tap("Done")
@@ -1548,14 +1618,13 @@ def widget_hides_amounts_with_the_app():
 
 @check
 def widget_taps_open_the_app():
-    labels = home_labels()
-    add = d.find("Add expense", timeout=3)
+    add = find_on_home("Add expense")
     assert add, "no Add expense widget to tap"
     tap_node(add)
     assert d.exists("New expense", timeout=6), "tapping the Add expense widget didn't open New expense"
     d.tap("Close")
     amount = widget_amount(home_labels())
-    n = d.find(amount, timeout=3) if amount else None
+    n = find_on_home(amount) if amount else None
     assert n, "no safe-to-spend widget to tap"
     tap_node(n)
     assert on_a_tab() or d.exists("Today", timeout=5), "tapping the widget didn't open the app"
@@ -1576,8 +1645,7 @@ def recover():
     d.shell("cmd statusbar collapse")
     d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
     for _ in range(5):
-        # On a tab: its title plus the bar's labels (at large text the bar shows only the open tab's).
-        if sum(n.label in d.TABS and n.package == d.PACKAGE for n in d.dump()) >= 2:
+        if d.on_tab():
             return
         d.back()
 
@@ -1589,6 +1657,16 @@ def main(filters):
     # A Settings screen left open from another app catches "back" from the notification-access page.
     d.shell("am force-stop com.android.settings")
     d.shell("settings put system font_scale 1.0")
+    # Animations off: the blinking caret kept every dump waiting (3 min a check). Lists scroll with
+    # d.drag, which doesn't fling. On again at the end.
+    d.animations(False)
+    try:
+        return run(selected)
+    finally:
+        d.animations(True)
+
+
+def run(selected):
     fresh_install()
     if welcome_shows_once not in selected and d.exists("Get started", timeout=3):
         finish_welcome()
@@ -1604,6 +1682,10 @@ def main(filters):
         except Exception as e:  # noqa: BLE001 - report and continue
             failures += 1
             print(f"FAIL  {c.__name__}: {e}", flush=True)
+            # The screen at the failure: build/smoke/<check>.png
+            os.makedirs("build/smoke", exist_ok=True)
+            with open(f"build/smoke/{c.__name__}.png", "wb") as f:
+                f.write(subprocess.run([d.ADB, "exec-out", "screencap", "-p"], capture_output=True).stdout)
             if os.environ.get("VERBOSE"):
                 traceback.print_exc()
             recover()

@@ -83,6 +83,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // ar-XB (right-to-left English) and en-XA for checks: tools/phone_checks.py rtl.
+            isPseudoLocalesEnabled = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

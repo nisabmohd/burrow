@@ -1,11 +1,7 @@
 package app.burrow.money.ui.add
 
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -76,7 +71,6 @@ import app.burrow.money.ui.theme.BurrowType
 import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
-import app.burrow.money.ui.theme.caretBlinkSpec
 
 private enum class AddSheet { TYPE, CATEGORY, ACCOUNT, TO_ACCOUNT, DATE, TIME, NOTE, REPEAT_OR_LEND, ATTACH }
 
@@ -91,6 +85,23 @@ private enum class AddSheet { TYPE, CATEGORY, ACCOUNT, TO_ACCOUNT, DATE, TIME, N
 @Composable
 fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit, onFavourites: () -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
+    AddContent(state, vm, onClose, onSaved, onFavourites) { s, dismiss -> AttachSheet(app, vm, s, dismiss) }
+}
+
+/**
+ * New expense drawn from [state] alone (null: still loading, nothing drawn); every change goes to
+ * [vm]. [attach] is the Receipt sheet, which needs the app's files.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun AddContent(
+    state: AddUiState?,
+    vm: AddActions,
+    onClose: () -> Unit,
+    onSaved: (Saved) -> Unit,
+    onFavourites: () -> Unit = {},
+    attach: @Composable (AddUiState, onDismiss: () -> Unit) -> Unit,
+) {
     val s = state ?: return // nothing drawn until the form has loaded
     val f = s.form
     val c = MaterialTheme.colorScheme
@@ -160,7 +171,7 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
         AddSheet.TIME -> TimeSheet(java.time.Instant.ofEpochMilli(f.at).atZone(java.time.ZoneId.systemDefault()).toLocalTime(), { vm.setTime(it); sheet = null }, { sheet = null })
         AddSheet.NOTE -> NoteSheet(vm, s) { sheet = null }
         AddSheet.REPEAT_OR_LEND -> RepeatOrLendSheet(vm, s) { sheet = null }
-        AddSheet.ATTACH -> AttachSheet(app, vm, s) { sheet = null }
+        AddSheet.ATTACH -> attach(s) { sheet = null }
         null -> Unit
     }
 }
@@ -169,7 +180,7 @@ fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved:
 @Composable
 private fun Form(
     s: AddUiState,
-    vm: AddViewModel,
+    vm: AddActions,
     caret: Boolean,
     open: (AddSheet) -> Unit,
     onSaved: (Saved) -> Unit,
