@@ -21,7 +21,14 @@ Screen numbers point to `design/screens/`.
       card's digits, "Paid with"), and restoring a v3 backup (cards come back from the accounts' digits)
 
 ## Savings (designs 202–213, built 2026-11-08)
-- [ ] Design review: New deposit sheet (205 › "tap to change": Interest and Matures rows), Edit savings (New savings form + Colour, Icon, Count in net worth, Archive)
+- [ ] Design review: New deposit sheet (205 › "tap to change": Interest and Matures rows)
+- [ ] Design review: Edit savings (New savings form + Colour, Icon, Count in net worth, Archive)
+- [ ] Design review: market value with Once or Any time (as 211 without Next on; Add money; Money added)
+- [ ] Design review: Every month with no end date ("₹5,000 every month · 13 paid"; Accounts shows the amount, no ring)
+- [ ] Design review: empty Instalments / Money added on a new account (section hidden, no empty state)
+- [ ] Design review: New savings starts with no rate ("Type the rate"), not 7.1%
+- [ ] Design review: Sunday review with 2+ stale investments (names listed; opens Accounts)
+- [ ] Accounts › Loans as 210: "SBI · 8.5% · ends Aug 2038" with a ring of EMIs paid (app shows "Loan" and the amount left)
 - [ ] Smoke checks: New savings (Once, Every month, Any time, market value), Add money → new deposit, Pay instalment, Update value, Sunday review "Update 1 investment"
 
 ## Tests
