@@ -103,9 +103,10 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
             )
         }
         SectionHeader(stringResource(R.string.settings_section))
+        val folderName = remember(settings.backupFolder) { settings.backupFolder?.let { app.backup.folderLabel(it) } }
         ListGroup {
             ListRow(
-                settings.backupFolder?.let { app.backup.folderLabel(it) } ?: stringResource(R.string.pick_a_folder), 0, 4,
+                folderName ?: stringResource(R.string.pick_a_folder), 0, 4,
                 supporting = stringResource(R.string.folder), lead = { IconCircle(painterResource(R.drawable.ic_folder_duotone)) },
                 onClick = { pickFolder.launch(null) },
             )

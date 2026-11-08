@@ -5,6 +5,7 @@
 - Google Drive backup (Google Play and GitHub builds): back up to your own Drive, encrypted with your backup password, by hand or on your backup schedule while charging; restore any of the last 10.
 - Rate in About opens Google Play's rating card (Google Play build).
 - Search in the category sheet.
+- Backup and restore shows the folder's name instead of a number.
 - Scrolling a list in a sheet back to its top no longer drags the sheet closed.
 - A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.
 - Play Console fixes (as Weft): edge-to-edge without the deprecated status and navigation bar colour calls, R8 shrinks resources with the code, Android Gradle plugin 9.1. The APK is a little smaller (3.2 MB).

@@ -159,7 +159,16 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
     }
 
     /** "Documents/Burrow" from the folder the user picked. */
-    fun folderLabel(uri: String): String = runCatching { DocumentsContract.getTreeDocumentId(uri.toUri()).substringAfter(':').ifEmpty { "/" } }.getOrDefault(uri)
+    /** The folder's name as the system shows it ("Download", "Burrow"); some document IDs are only numbers. */
+    fun folderLabel(uri: String): String = runCatching {
+        val tree = uri.toUri()
+        val id = DocumentsContract.getTreeDocumentId(tree)
+        val doc = DocumentsContract.buildDocumentUriUsingTree(tree, id)
+        context.contentResolver.query(doc, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)
+            ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+            ?.takeIf { it.isNotBlank() }
+            ?: id.substringAfter(':').substringAfterLast('/').ifEmpty { "/" }
+    }.getOrDefault(uri)
 
     suspend fun read(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("can't read file")
