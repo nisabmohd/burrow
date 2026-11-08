@@ -77,4 +77,21 @@ class RuleBuilderTest {
         val pack = RuleFiles.decode(java.io.File("src/main/assets/rules/in.json").readText())
         assertEquals(RuleSafety.Check.Ok, RuleSafety.checkAll(pack.rules))
     }
+
+    @Test fun senderCoreDropsPrefixAndTypeTag() {
+        assertEquals("HDFCBK", RuleBuilder.senderCore("JM-HDFCBK-S"))
+        assertEquals("KOTAKB", RuleBuilder.senderCore("AX-KOTAKB"))
+        assertEquals("ICICIT", RuleBuilder.senderCore("VM-ICICIT-T"))
+        assertEquals("HDFCBK", RuleBuilder.senderCore("HDFCBK"))
+        assertEquals("com.snapwork.hdfc", RuleBuilder.senderCore("com.snapwork.hdfc"))
+    }
+
+    @Test fun senderPatternIgnoresTypeTagButNotOtherBanks() {
+        val p = Regex(RuleBuilder.senderPattern("JM-HDFCBK-S"))
+        assertTrue(p.containsMatchIn("JM-HDFCBK-S"))
+        assertTrue(p.containsMatchIn("AX-HDFCBK-T"))
+        assertTrue(p.containsMatchIn("VM-HDFCBK"))
+        assertFalse(p.containsMatchIn("JM-ICICIB-S"))
+        assertFalse(p.containsMatchIn("AX-SBIUPI-S"))
+    }
 }

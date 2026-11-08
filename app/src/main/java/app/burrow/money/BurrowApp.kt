@@ -24,7 +24,7 @@ class BurrowApp : Application() {
         // Before anything reads the settings: the region's currency comes from the SIM country.
         app.burrow.money.data.Region.detect(this)
         // Message text older than 30 days goes (docs/CAPTURE.md § Keep). Off the main thread.
-        container.appScope.launch { container.capture.forgetOldText() }
+        container.appScope.launch { container.capture.forgetOldText(); container.capture.repairShortSenders() }
         // Payment notifications for payments already saved or ignored (on another screen, or before
         // an update) go; the ones still in To review stay.
         container.appScope.launch {

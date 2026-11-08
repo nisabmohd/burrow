@@ -69,5 +69,5 @@ private val SAMPLE_RULE = app.burrow.money.capture.Rule(
     pattern = "Card [Xx]*(?<account>\\d{2,}) paid (?<amount>\\d+) at (?<payee>.+?)\\.$",
 )
 
-/** "AX-HDFCBK" → "HDFCBK", "VM-KOTAKB" → "KOTAKB": the sender without its operator prefix. */
-fun senderName(sender: String): String = sender.substringAfter('-', sender).ifBlank { sender }
+/** "AX-HDFCBK" → "HDFCBK", "JM-KOTAKB-S" → "KOTAKB": the sender without its operator prefix and type tag. */
+fun senderName(sender: String): String = app.burrow.money.capture.RuleBuilder.senderCore(sender)

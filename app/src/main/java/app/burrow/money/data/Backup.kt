@@ -14,11 +14,10 @@ import android.util.Base64
 import androidx.room.withTransaction
 import app.burrow.money.BurrowApp
 import app.burrow.money.domain.BackupCrypto
+import app.burrow.money.notify.runBillReminders
 import app.burrow.money.notify.runMonthlySummary
+import app.burrow.money.notify.scheduleWeeklyReview
 import app.burrow.money.notify.runSettleReminders
-import app.burrow.money.ui.theme.BodyFont
-import app.burrow.money.ui.theme.TextSize
-import app.burrow.money.ui.theme.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -35,7 +34,12 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** The settings a backup carries (not the lock, the PIN or the backup folder: those belong to the phone). */
+/**
+ * The settings a backup carries: everything the user chose, so a restore brings the app back as it was.
+ * Not the lock, the PIN, the backup folder and password, the Drive account or the capture switches:
+ * those belong to the phone (capture needs its permissions granted again).
+ * Fields after [enabledPacks] came in backup v5; null = an older backup, the setting stays as it is.
+ */
 @Serializable
 data class BackupSettings(
     val mainCurrency: String,
@@ -47,12 +51,58 @@ data class BackupSettings(
     val textSize: String,
     val homeWidgets: Set<String>,
     val enabledPacks: Set<String>,
+    // v5: More, notifications and every Customise tab.
+    val hideAmounts: Boolean? = null,
+    val hideInNotifications: Boolean? = null,
+    val notifyCapture: Boolean? = null,
+    val notifyBills: Boolean? = null,
+    val notifyBudgets: Boolean? = null,
+    val notifySummary: Boolean? = null,
+    val notifyWeekly: Boolean? = null,
+    val billReminderMinutes: Int? = null,
+    val weeklyReviewMinutes: Int? = null,
+    val homeTopCard: String? = null,
+    val homeWidgetOrder: List<String>? = null,
+    val homeRecentCount: Int? = null,
+    val homeShowReview: Boolean? = null,
+    val formExtras: Set<String>? = null,
+    val formDefaultType: String? = null,
+    /** 0 = no default account. */
+    val formDefaultAccount: Long? = null,
+    val onPaymentFound: String? = null,
+    val showTime: Boolean? = null,
+    val countUpcoming: Boolean? = null,
+    val upcomingLowersSafe: Boolean? = null,
+    val confirmDelete: Boolean? = null,
+    val swipeRight: String? = null,
+    val swipeLeft: String? = null,
+    /** "AUTO" = from the language. */
+    val numberFormat: String? = null,
+    val dateFormat: String? = null,
+    val weekStart: String? = null,
+    val currencyDisplay: String? = null,
+    val decimals: String? = null,
+)
+
+/** The backed-up part of [Settings]. */
+fun Settings.toBackup() = BackupSettings(
+    mainCurrency, monthStartDay, theme.mode.name, theme.accentHue, theme.dynamicColor, theme.font.name, theme.textSize.name,
+    homeWidgets, enabledPacks,
+    hideAmounts = hideAmounts, hideInNotifications = hideInNotifications,
+    notifyCapture = notifyCapture, notifyBills = notifyBills, notifyBudgets = notifyBudgets, notifySummary = notifySummary,
+    notifyWeekly = notifyWeekly, billReminderMinutes = billReminderMinutes, weeklyReviewMinutes = weeklyReviewMinutes,
+    homeTopCard = homeTopCard, homeWidgetOrder = homeWidgetOrder, homeRecentCount = homeRecentCount, homeShowReview = homeShowReview,
+    formExtras = formExtras, formDefaultType = formDefaultType, formDefaultAccount = formDefaultAccount ?: 0L,
+    onPaymentFound = onPaymentFound, showTime = showTime, countUpcoming = countUpcoming, upcomingLowersSafe = upcomingLowersSafe,
+    confirmDelete = confirmDelete, swipeRight = swipeRight, swipeLeft = swipeLeft,
+    numberFormat = numberFormat ?: "AUTO", dateFormat = dateFormat, weekStart = weekStart,
+    currencyDisplay = currencyDisplay, decimals = decimals,
 )
 
 /** Everything in a backup file, as JSON before it is sealed. Message text is never included. */
 @Serializable
 data class BackupData(
-    val version: Int = 4,
+    val version: Int = 5,
     val createdAt: Long,
     val settings: BackupSettings,
     val accounts: List<AccountEntity>,
@@ -97,10 +147,7 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
         val b = db.backup()
         BackupData(
             createdAt = System.currentTimeMillis(),
-            settings = BackupSettings(
-                s.mainCurrency, s.monthStartDay, s.theme.mode.name, s.theme.accentHue, s.theme.dynamicColor,
-                s.theme.font.name, s.theme.textSize.name, s.homeWidgets, s.enabledPacks,
-            ),
+            settings = s.toBackup(),
             accounts = b.accounts(), categories = b.categories(), txns = b.txns(), bills = b.bills(),
             occurrences = b.occurrences(), budgets = b.budgets(), goals = b.goals(), rules = b.rules(),
             people = b.people(), tags = b.tags(), txnTags = b.txnTags(), attachments = b.attachments(), rates = b.rates(),
@@ -207,16 +254,15 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
                 f.writeBytes(Base64.decode(blob.data, Base64.NO_WRAP))
             }
         }
-        val s = data.settings
-        settings.setMainCurrency(s.mainCurrency)
-        settings.setMonthStartDay(s.monthStartDay)
-        ThemeMode.entries.firstOrNull { it.name == s.theme }?.let { settings.setThemeMode(it) }
-        settings.setAccentHue(s.accentHue)
-        settings.setDynamicColor(s.dynamicColor)
-        BodyFont.entries.firstOrNull { it.name == s.font }?.let { settings.setFont(it) }
-        TextSize.entries.firstOrNull { it.name == s.textSize }?.let { settings.setTextSize(it) }
+        settings.restore(data.settings)
         settings.setSamplesDone()
         settings.setOnboarded()
+        // Restored reminder times and switches take effect now, not at the next app start.
+        (context.applicationContext as? BurrowApp)?.container?.let { c ->
+            runCatching { c.capture.repairShortSenders() }
+            runCatching { c.runBillReminders() }
+            runCatching { c.scheduleWeeklyReview() }
+        }
     }
 
     suspend fun setPassword(password: String) = settings.setSealedBackupPassword(PasswordVault.seal(password))

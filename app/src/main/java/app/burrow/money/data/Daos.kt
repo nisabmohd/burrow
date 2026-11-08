@@ -556,6 +556,10 @@ interface CaptureDao {
     /** The 30-day promise (docs/CAPTURE.md § Keep): message text goes, the transaction stays. */
     @Query("UPDATE CaptureEntity SET body = '' WHERE receivedAt < :before AND body != ''")
     suspend fun forgetTextBefore(before: Long)
+
+    /** The first message a rule read: the one it was taught from. */
+    @Query("SELECT sender FROM CaptureEntity WHERE ruleId = :ruleId ORDER BY receivedAt ASC LIMIT 1")
+    suspend fun firstSenderFor(ruleId: String): String?
 }
 
 @Dao

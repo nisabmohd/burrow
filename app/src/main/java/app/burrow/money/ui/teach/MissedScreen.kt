@@ -113,7 +113,7 @@ private fun MissedCard(m: CaptureEntity, modifier: Modifier, onTeach: () -> Unit
     // "AX-HDFCBK-S" → "HDFCBK"; a notification → its app's name, not the package.
     val context = LocalContext.current
     val from = remember(m.sender, m.source) {
-        if (m.source == "SMS") senderName(m.sender).substringBefore('-')
+        if (m.source == "SMS") senderName(m.sender)
         else runCatching { context.packageManager.run { getApplicationLabel(getApplicationInfo(m.sender, 0)).toString() } }
             .getOrElse { m.sender.substringAfterLast('.') }
     }

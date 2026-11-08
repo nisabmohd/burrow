@@ -71,15 +71,33 @@ object RuleBuilder {
 
     private val IN_STEMS = listOf("credit", "receiv", "deposit", "refund", "added", "cashback", "reversal", "jama")
 
-    /** "AX-KOTAKB" → any sender ending in KOTAKB; a package name exactly; nothing → any sender. */
+    /**
+     * "AX-KOTAKB" or "JM-HDFCBK-S" → any sender with KOTAKB / HDFCBK as its name part (the operator
+     * prefix and the -S / -T / -P / -G type tag change); a package name exactly; nothing → any sender.
+     */
     fun senderPattern(sender: String?): String {
         val s = sender?.trim().orEmpty()
         return when {
             s.isEmpty() -> "(?s).*"
-            s.contains('.') && !s.contains(' ') -> "^" + escape(s) + "$"
-            else -> "(?i)" + escape(s.substringAfterLast('-')) + "$"
+            isPackage(s) -> "^" + escape(s) + "$"
+            else -> "(?i)" + escape(senderCore(s)) + TYPE_TAG + "$"
         }
     }
+
+    /** "JM-HDFCBK-S" → "HDFCBK", "AX-KOTAKB" → "KOTAKB": the bank's part of an SMS sender. A package stays whole. */
+    fun senderCore(sender: String): String {
+        val s = sender.trim()
+        if (isPackage(s)) return s
+        var parts = s.split('-').filter { it.isNotBlank() }
+        if (parts.size > 1 && parts.last().length == 1) parts = parts.dropLast(1)
+        if (parts.size > 1 && parts.first().length == 2) parts = parts.drop(1)
+        return parts.joinToString("-").ifBlank { s }
+    }
+
+    /** The optional "-S" / "-T" / "-P" / "-G" an Indian sender ends with. */
+    const val TYPE_TAG = "(?:-[A-Z])?"
+
+    fun isPackage(s: String) = s.contains('.') && !s.contains(' ')
 
     private fun group(part: Part, token: String): String = when (part) {
         Part.AMOUNT -> {

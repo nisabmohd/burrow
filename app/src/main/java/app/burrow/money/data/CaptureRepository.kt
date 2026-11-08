@@ -9,6 +9,7 @@ import app.burrow.money.capture.withCards
 import app.burrow.money.capture.BUILT_IN_PACKS
 import app.burrow.money.capture.Direction
 import app.burrow.money.capture.Rule
+import app.burrow.money.capture.RuleBuilder
 import app.burrow.money.capture.RuleEngine
 import app.burrow.money.capture.RuleFile
 import app.burrow.money.capture.RuleFiles
@@ -216,6 +217,57 @@ class CaptureRepository(
     suspend fun saveRule(rule: Rule) = db.rules().upsert(
         CaptureRuleEntity(id = rule.id, json = RuleFiles.encodeRule(rule.copy(userMade = true)), enabled = rule.enabled, userMade = true, createdAt = System.currentTimeMillis()),
     )
+
+    /**
+     * A new rule's name from its sender: the bank a built-in pack knows it as ("JM-HDFCBK-S" →
+     * "HDFC Bank"), else the app's name for a notification, else the sender's own name ("JIOPAY").
+     * A second rule from the same bank gets "HDFC Bank 2". Null without a sender.
+     */
+    suspend fun ruleNameFor(sender: String): String? = withContext(Dispatchers.IO) {
+        val s = sender.trim().ifBlank { return@withContext null }
+        val base = bankRules().firstOrNull { r -> runCatching { Regex(r.sender).containsMatchIn(s) }.getOrDefault(false) }?.name
+            ?: if (RuleBuilder.isPackage(s)) runCatching {
+                context.packageManager.run { getApplicationLabel(getApplicationInfo(s, 0)).toString() }
+            }.getOrElse { s.substringAfterLast('.').replaceFirstChar { it.uppercase() } }
+            else RuleBuilder.senderCore(s)
+        uniqueName(base)
+    }
+
+    /** Built-in rules for one bank or app (not the "Any bank" ones), in pack order. */
+    private fun bankRules(): Sequence<Rule> = packs.values.asSequence().flatMap { it.rules }
+        .filter { !it.id.contains(".any.") && !it.name.startsWith("Any ", ignoreCase = true) && it.name != "Bank" }
+
+    /** [base], or "HDFC Bank 2" when one of your rules already has that name. */
+    private suspend fun uniqueName(base: String, except: String? = null): String {
+        val taken = userRules.first().filter { it.id != except }.map { it.name.lowercase() }.toSet()
+        return (sequenceOf(base) + generateSequence(2) { it + 1 }.map { "$base $it" })
+            .first { it.lowercase() !in taken }.take(RULE_NAME_MAX)
+    }
+
+    /**
+     * Rules taught from a sender like "JM-HDFCBK-S" before 0.4.0 matched any sender ending in "S" and
+     * were named "S". Each gets its bank back: from the first message it read, else from its example
+     * message (a built-in rule that reads it, or the bank's name in the text). Run on app start and after a restore.
+     */
+    suspend fun repairShortSenders() = withContext(Dispatchers.IO) {
+        val short = Regex("""\(\?i\)[A-Za-z0-9]\$""")
+        for (e in db.backup().rules()) {
+            if (!e.userMade) continue
+            val rule = runCatching { RuleFiles.decodeRule(e.json) }.getOrNull() ?: continue
+            if (!short.matches(rule.sender)) continue
+            val fixed: Pair<String, String>? = db.captures().firstSenderFor(rule.id)
+                ?.takeIf { RuleBuilder.senderCore(it).length >= 2 }
+                ?.let { sender -> RuleBuilder.senderPattern(sender) to (bankRules().firstOrNull { r -> runCatching { Regex(r.sender).containsMatchIn(sender) }.getOrDefault(false) }?.name ?: RuleBuilder.senderCore(sender)) }
+                ?: rule.example?.let { text ->
+                    val bank = bankRules().firstOrNull { r -> runCatching { Regex(r.pattern).containsMatchIn(text) }.getOrDefault(false) }
+                        ?: bankRules().firstOrNull { r -> text.contains(r.name, ignoreCase = true) }
+                    bank?.let { it.sender to it.name }
+                }
+            fixed ?: continue
+            val name = if (rule.name.length <= 1) uniqueName(fixed.second, except = rule.id) else rule.name
+            db.rules().setJson(rule.id, RuleFiles.encodeRule(rule.copy(sender = fixed.first, name = name, userMade = true)))
+        }
+    }
 
     suspend fun setRuleEnabled(id: String, on: Boolean) = db.rules().setEnabled(id, on)
 

@@ -56,6 +56,11 @@ homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 - Saved by hand or on a schedule to a folder the user picks (Storage Access Framework). Pointing it at a
   cloud app's folder keeps a copy off the phone without Burrow going online. Keep last 7.
 - Restore replaces everything after a confirm dialog; wrong password = dialog, nothing changes.
+- A backup carries every table (rules included; message text never) and every setting the user chose:
+  theme, currency, month start, Today widgets, rule packs, hide amounts, notifications and their times, and
+  every Customise tab (v5). Left out, as they belong to the phone: PIN / app lock, backup folder and password,
+  Drive account, the capture switches (permissions are granted again). Older backups keep today's values for
+  what they don't carry.
 - CSV export/import of transactions (date, payee, amount, currency, category, account, note).
 - Android Auto Backup is OFF (`allowBackup=false`, data extraction rules exclude everything).
 

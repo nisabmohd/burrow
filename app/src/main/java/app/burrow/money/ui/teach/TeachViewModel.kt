@@ -46,11 +46,15 @@ class TeachViewModel(
     private val _state = MutableStateFlow<TeachState?>(null)
     val state: StateFlow<TeachState?> = _state.asStateFlow()
 
+    /** "HDFC Bank" for a message from JM-HDFCBK-S; looked up once the message is loaded. */
+    private var ruleName: String = fallbackName
+
     fun setUseRule(on: Boolean) = _state.update { it?.copy(useRule = on) }
 
     init {
         viewModelScope.launch {
             val c = if (captureId != 0L) capture.get(captureId) else null
+            ruleName = capture.ruleNameFor(c?.sender ?: pastedSender) ?: fallbackName
             _state.value = TeachState(
                 text = c?.body ?: pastedText,
                 sender = c?.sender ?: pastedSender,
@@ -86,7 +90,7 @@ class TeachViewModel(
     private fun rebuild(s: TeachState): TeachState {
         val amount = s.picks[Part.AMOUNT] ?: return s.copy(rule = null)
         val rule = RuleBuilder.build(
-            id = "user.${System.currentTimeMillis()}", name = name(s.sender), sender = s.sender.ifBlank { null },
+            id = "user.${System.currentTimeMillis()}", name = ruleName, sender = s.sender.ifBlank { null },
             text = s.text, amount = amount, payee = s.picks[Part.PAYEE], account = s.picks[Part.ACCOUNT],
             directionWord = s.picks[Part.DIRECTION],
         )
@@ -96,8 +100,6 @@ class TeachViewModel(
         return s.copy(rule = if (ok) rule else null)
     }
 
-    private fun name(sender: String): String =
-        sender.substringAfterLast('-').trim().ifBlank { fallbackName }
 
     /** A message from the inbox can be ignored instead (not a payment, or not worth a rule). */
     val canIgnore get() = captureId != 0L

@@ -269,6 +269,51 @@ class SettingsRepository(context: Context) {
         prefs[SAMPLES_DONE] = true
     }
 
+    /** Puts back the settings from a backup in one write; a missing (older-backup) field keeps today's value. */
+    suspend fun restore(b: BackupSettings) = store.edit { p ->
+        p[MAIN_CURRENCY] = b.mainCurrency
+        p[MONTH_START_DAY] = b.monthStartDay.coerceIn(1, 28)
+        ThemeMode.entries.firstOrNull { it.name == b.theme }?.let { p[THEME] = it.name }
+        p[ACCENT_HUE] = b.accentHue
+        p[DYNAMIC_COLOR] = b.dynamicColor
+        BodyFont.entries.firstOrNull { it.name == b.font }?.let { p[FONT] = it.name }
+        TextSize.entries.firstOrNull { it.name == b.textSize }?.let { p[TEXT_SIZE] = it.name }
+        p[HOME_WIDGETS] = b.homeWidgets.filter { it in ALL_HOME_WIDGETS }.toSet()
+        p[ENABLED_PACKS] = b.enabledPacks.filter { id -> app.burrow.money.capture.BUILT_IN_PACKS.any { it.id == id } }.toSet()
+        b.hideAmounts?.let { p[HIDE_AMOUNTS] = it }
+        b.hideInNotifications?.let { p[HIDE_IN_NOTIFICATIONS] = it }
+        b.notifyCapture?.let { p[NOTIFY_CAPTURE] = it }
+        b.notifyBills?.let { p[NOTIFY_BILLS] = it }
+        b.notifyBudgets?.let { p[NOTIFY_BUDGETS] = it }
+        b.notifySummary?.let { p[NOTIFY_SUMMARY] = it }
+        b.notifyWeekly?.let { p[NOTIFY_WEEKLY] = it }
+        b.billReminderMinutes?.let { p[BILL_REMINDER_MINUTES] = it.coerceIn(0, 24 * 60 - 1) }
+        b.weeklyReviewMinutes?.let { p[WEEKLY_REVIEW_MINUTES] = it.coerceIn(0, 24 * 60 - 1) }
+        b.homeTopCard?.let { p[TOP_CARD] = it }
+        b.homeWidgetOrder?.let { p[WIDGET_ORDER] = it.joinToString(",") }
+        b.homeRecentCount?.let { p[RECENT_COUNT] = it }
+        b.homeShowReview?.let { p[SHOW_REVIEW] = it }
+        b.formExtras?.let { x ->
+            p[FORM_EXTRAS] = x - FormExtra.FAVOURITE - FormExtra.RECENT
+            p[FAVOURITE_OFF] = FormExtra.FAVOURITE !in x
+            p[RECENT_OFF] = FormExtra.RECENT !in x
+        }
+        b.formDefaultType?.let { p[FORM_TYPE] = it }
+        b.formDefaultAccount?.let { if (it == 0L) p.remove(FORM_ACCOUNT) else p[FORM_ACCOUNT] = it }
+        b.onPaymentFound?.let { p[PAYMENT_FOUND] = it }
+        b.showTime?.let { p[SHOW_TIME] = it }
+        b.countUpcoming?.let { p[COUNT_UPCOMING] = it }
+        b.upcomingLowersSafe?.let { p[UPCOMING_LOWERS_SAFE] = it }
+        b.confirmDelete?.let { p[CONFIRM_DELETE] = it }
+        b.swipeRight?.let { p[SWIPE_RIGHT] = it }
+        b.swipeLeft?.let { p[SWIPE_LEFT] = it }
+        b.numberFormat?.let { if (it == "AUTO") p.remove(NUMBER_FORMAT) else p[NUMBER_FORMAT] = it }
+        b.dateFormat?.let { p[DATE_FORMAT] = it }
+        b.weekStart?.let { p[WEEK_START] = it }
+        b.currencyDisplay?.let { p[CURRENCY_DISPLAY] = it }
+        b.decimals?.let { p[DECIMALS] = it }
+    }
+
     /** True once the sample month was seeded or declined: it never comes back after Delete all data. */
     suspend fun samplesDone(): Boolean = store.data.first()[SAMPLES_DONE] == true
     suspend fun setSamplesDone() = store.edit { it[SAMPLES_DONE] = true }
