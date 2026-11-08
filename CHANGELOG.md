@@ -10,6 +10,7 @@
 - Add account opens a sheet of kinds (Bank account, Credit card, Cash or wallet, Loan, Savings).
 - Cards from before can be named (Edit account › Tap to name it).
 - Backup and restore shows the folder's name instead of a number.
+- Switch account in Google Drive uses a one-person icon; category rows say "Nothing this month".
 - Scrolling a list in a sheet back to its top no longer drags the sheet closed.
 - A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.
 - Play Console fixes (as Weft): edge-to-edge without the deprecated status and navigation bar colour calls, R8 shrinks resources with the code, Android Gradle plugin 9.1. The APK is a little smaller (3.2 MB).

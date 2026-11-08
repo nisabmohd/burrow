@@ -80,7 +80,7 @@
     <string name="category_sheet_line">Spent this month shown under each</string>
     <string name="account_sheet_line">Balance shown under each</string>
     <string name="spent_this_month">%1$s this month</string>
-    <string name="nothing_this_month">No spending this month</string>
+    <string name="nothing_this_month">Nothing this month</string>
     <string name="dot_join" translatable="false">%1$s · %2$s</string>
     <string name="account_bank">Bank</string>
     <string name="account_cash">Cash</string>

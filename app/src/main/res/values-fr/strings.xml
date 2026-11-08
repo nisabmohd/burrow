@@ -75,7 +75,7 @@
     <string name="category_sheet_line">Dépensé ce mois-ci sous chacune</string>
     <string name="account_sheet_line">Solde sous chacun</string>
     <string name="spent_this_month">%1$s ce mois-ci</string>
-    <string name="nothing_this_month">Aucune dépense ce mois-ci</string>
+    <string name="nothing_this_month">Rien ce mois-ci</string>
     <string name="account_bank">Banque</string>
     <string name="account_cash">Espèces</string>
     <string name="account_wallet">Portefeuille</string>

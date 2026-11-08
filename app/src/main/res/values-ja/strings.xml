@@ -75,7 +75,7 @@
     <string name="category_sheet_line">各カテゴリの下に今月の支出</string>
     <string name="account_sheet_line">各口座の下に残高</string>
     <string name="spent_this_month">今月 %1$s</string>
-    <string name="nothing_this_month">今月の支出はありません</string>
+    <string name="nothing_this_month">今月はなし</string>
     <string name="account_bank">銀行</string>
     <string name="account_cash">現金</string>
     <string name="account_wallet">電子マネー</string>

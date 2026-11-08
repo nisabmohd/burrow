@@ -79,6 +79,7 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `cloud_done` | cloud-check |
 | `cloud_upload` | cloud-upload |
 | `cloud_download` | cloud-download |
+| `account_switch` | user-rounded |
 | `logout` | logout-2 |
 | `code` | code |
 | `coffee` | cup-hot |

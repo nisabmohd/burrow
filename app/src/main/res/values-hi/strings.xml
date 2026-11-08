@@ -73,7 +73,7 @@
     <string name="category_sheet_line">हर एक के नीचे इस महीने का खर्च</string>
     <string name="account_sheet_line">हर एक के नीचे बैलेंस</string>
     <string name="spent_this_month">इस महीने %1$s</string>
-    <string name="nothing_this_month">इस महीने कोई खर्च नहीं</string>
+    <string name="nothing_this_month">इस महीने कुछ नहीं</string>
     <string name="account_bank">बैंक</string>
     <string name="account_cash">नक़द</string>
     <string name="account_wallet">वॉलेट</string>

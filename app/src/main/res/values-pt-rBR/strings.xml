@@ -75,7 +75,7 @@
     <string name="category_sheet_line">Abaixo de cada uma, o gasto deste mês</string>
     <string name="account_sheet_line">Abaixo de cada uma, o saldo</string>
     <string name="spent_this_month">%1$s neste mês</string>
-    <string name="nothing_this_month">Nenhum gasto neste mês</string>
+    <string name="nothing_this_month">Nada este mês</string>
     <string name="account_bank">Banco</string>
     <string name="account_cash">Dinheiro</string>
     <string name="account_wallet">Carteira</string>

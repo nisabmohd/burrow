@@ -75,7 +75,7 @@
     <string name="category_sheet_line">Darunter: diesen Monat ausgegeben</string>
     <string name="account_sheet_line">Darunter: aktueller Kontostand</string>
     <string name="spent_this_month">%1$s diesen Monat</string>
-    <string name="nothing_this_month">Diesen Monat keine Ausgaben</string>
+    <string name="nothing_this_month">Nichts diesen Monat</string>
     <string name="account_bank">Bank</string>
     <string name="account_cash">Bargeld</string>
     <string name="account_wallet">Wallet</string>
