@@ -33,7 +33,7 @@ fun duotoneIcon(name: String?): Int = when (name) {
     "shield" -> R.drawable.ic_shield_duotone
     "laptop_mac" -> R.drawable.ic_laptop_mac_duotone
     "flag" -> R.drawable.ic_flag_duotone
-    "event_repeat" -> R.drawable.ic_event_repeat_duotone
+    "event_repeat", "calendar_month" -> R.drawable.ic_calendar_month_duotone
     "bar_chart" -> R.drawable.ic_bar_chart_duotone
     "pets" -> R.drawable.ic_pets_duotone
     "fitness_center" -> R.drawable.ic_fitness_center_duotone

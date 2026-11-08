@@ -1429,4 +1429,26 @@
         <item quantity="one">%d निवेश अपडेट करें</item>
         <item quantity="other">%d निवेश अपडेट करें</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">%1$s में · अपनी दर और परिपक्वता</string>
+    <string name="matures_in">परिपक्वता</string>
+    <string name="interest_rate_title">ब्याज दर</string>
+    <string name="rate_sheet_sub">सालाना · बैंक रसीद के अनुसार</string>
+    <string name="new_deposit_line_date">%1$s%% पर · %2$s को परिपक्व · बदलने के लिए टैप करें</string>
+    <string name="edit_savings">बचत बदलें</string>
+    <string name="included_in_net_worth">कुल संपत्ति में शामिल</string>
+    <string name="put_in_once">एक बार डाला</string>
+    <string name="amount_on">%2$s को %1$s</string>
+    <string name="add_any_time">कभी भी डालें</string>
+    <string name="no_end_stop">कोई अंतिम तिथि नहीं · कभी भी रोकें</string>
+    <string name="no_instalments">अभी कोई किस्त नहीं</string>
+    <string name="first_due">पहली %1$s को देय है</string>
+    <string name="nothing_added">अभी कुछ नहीं डाला</string>
+    <string name="money_shows_here">आप जो पैसा डालेंगे वह यहाँ दिखेगा</string>
+    <string name="add_the_rate">दर डालें</string>
+    <string name="rate_needed">ब्याज · मूल्य निकालने के लिए ज़रूरी</string>
+    <string name="oldest_from">%1$s · सबसे पुराना %2$s का</string>
+    <string name="update_values">मूल्य अपडेट करें</string>
+    <string name="update_values_line">हर एक का आज का मूल्य लिखें</string>
+    <string name="value_from_short">%1$s · %2$s से</string>
 </resources>

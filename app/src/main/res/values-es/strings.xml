@@ -1513,4 +1513,26 @@
         <item quantity="one">Actualizar %d inversión</item>
         <item quantity="other">Actualizar %d inversiones</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">Dentro de %1$s · con su tasa y vencimiento</string>
+    <string name="matures_in">Vence en</string>
+    <string name="interest_rate_title">Tasa de interés</string>
+    <string name="rate_sheet_sub">Al año · como en el recibo del banco</string>
+    <string name="new_deposit_line_date">Al %1$s %% · vence %2$s · toca para cambiar</string>
+    <string name="edit_savings">Editar ahorro</string>
+    <string name="included_in_net_worth">Incluido en el patrimonio</string>
+    <string name="put_in_once">Puesto una vez</string>
+    <string name="amount_on">%1$s el %2$s</string>
+    <string name="add_any_time">Añade cuando quieras</string>
+    <string name="no_end_stop">Sin fecha de fin · detenlo cuando quieras</string>
+    <string name="no_instalments">Aún no hay cuotas</string>
+    <string name="first_due">La primera vence el %1$s</string>
+    <string name="nothing_added">Aún no has añadido nada</string>
+    <string name="money_shows_here">El dinero que añadas aparece aquí</string>
+    <string name="add_the_rate">Añade la tasa</string>
+    <string name="rate_needed">Interés · necesario para calcular el valor</string>
+    <string name="oldest_from">%1$s · el más antiguo del %2$s</string>
+    <string name="update_values">Actualizar valores</string>
+    <string name="update_values_line">Escribe cuánto vale cada uno hoy</string>
+    <string name="value_from_short">%1$s · del %2$s</string>
 </resources>

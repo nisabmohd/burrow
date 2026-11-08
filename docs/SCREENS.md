@@ -224,6 +224,13 @@ Rule: same bill → add the card to the existing account; own bill → a new car
 | 211-savings-market-value | Savings · Market value | header worth, "+₹7,200 on ₹54,000 put in" (never coloured); Next on (Every month), Value updated; Update value row; Pay instalment / Add money |
 | 212-update-value-sheet | Update value | value sheet, line "Index fund · was ₹61,200 on 5 Oct", "+₹9,500 on ₹54,000 put in"; Cancel · Save |
 | 213-new-savings-market | New savings, market value | no Interest; Ends "No end date · tap to set one" |
+| 214-new-deposit-sheet / 215-add-money-custom-deposit | New deposit | line "Inside Fixed deposit · its own rate and maturity"; rate row (value sheet, 226); Matures in 1 · 2 · 3 · 5 years; Matures row (calendar); Done back to Add money with the amount kept |
+| 216 / 217-edit-savings | Edit savings | New savings form prefilled; Colour; Icon (6 savings icons); Count in net worth "Included in net worth"; Archive. No Opening balance row |
+| 218-market-value-once / 219-market-value-any-time | Market value, Once / Any time | Once: "Put in once · ₹54,000 on 3 Mar 2025", Value updated, button Update value, no list. Any time: "₹54k put in · Add any time", Value updated, Update value row, Add money, Money added |
+| 220 / 221 | Every month, no end date | "₹5,000 every month · 13 paid"; "No end date · stop it any time"; Accounts shows the amount, no ring |
+| 222 / 223 | Empty lists | "No instalments yet · The first one is due on 12 Nov"; "Nothing added yet · Money you add shows here", no total |
+| 224 / 225 / 226 | Rate required | "Add the rate"; Save off until set; tapped Save marks "Interest · needed to work out the value" red; Interest rate sheet "A year · as on the bank receipt" |
+| 227 / 228 | Sunday review, 2+ investments | "Update 2 investments · Index fund, Gold · oldest from 1 Oct" → Update values sheet → Update value (212); updated rows drop off |
 
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.
 

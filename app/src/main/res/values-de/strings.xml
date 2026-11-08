@@ -1456,4 +1456,26 @@
         <item quantity="one">%d Anlage aktualisieren</item>
         <item quantity="other">%d Anlagen aktualisieren</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">In %1$s · eigener Zins und eigene Fälligkeit</string>
+    <string name="matures_in">Fällig in</string>
+    <string name="interest_rate_title">Zinssatz</string>
+    <string name="rate_sheet_sub">Pro Jahr · wie auf dem Bankbeleg</string>
+    <string name="new_deposit_line_date">Zu %1$s %% · fällig %2$s · zum Ändern tippen</string>
+    <string name="edit_savings">Sparkonto bearbeiten</string>
+    <string name="included_in_net_worth">Im Vermögen enthalten</string>
+    <string name="put_in_once">Einmal eingezahlt</string>
+    <string name="amount_on">%1$s am %2$s</string>
+    <string name="add_any_time">Jederzeit einzahlen</string>
+    <string name="no_end_stop">Kein Enddatum · jederzeit beenden</string>
+    <string name="no_instalments">Noch keine Raten</string>
+    <string name="first_due">Die erste ist am %1$s fällig</string>
+    <string name="nothing_added">Noch nichts eingezahlt</string>
+    <string name="money_shows_here">Was du einzahlst, steht hier</string>
+    <string name="add_the_rate">Zinssatz eingeben</string>
+    <string name="rate_needed">Zinsen · nötig, um den Wert zu berechnen</string>
+    <string name="oldest_from">%1$s · ältester vom %2$s</string>
+    <string name="update_values">Werte aktualisieren</string>
+    <string name="update_values_line">Gib ein, was jede heute wert ist</string>
+    <string name="value_from_short">%1$s · vom %2$s</string>
 </resources>

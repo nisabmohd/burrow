@@ -1515,4 +1515,26 @@
         <item quantity="one">Update %d investment</item>
         <item quantity="other">Update %d investments</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">Inside %1$s · its own rate and maturity</string>
+    <string name="matures_in">Matures in</string>
+    <string name="interest_rate_title">Interest rate</string>
+    <string name="rate_sheet_sub">A year · as on the bank receipt</string>
+    <string name="new_deposit_line_date">At %1$s%% · matures %2$s · tap to change</string>
+    <string name="edit_savings">Edit savings</string>
+    <string name="included_in_net_worth">Included in net worth</string>
+    <string name="put_in_once">Put in once</string>
+    <string name="amount_on">%1$s on %2$s</string>
+    <string name="add_any_time">Add any time</string>
+    <string name="no_end_stop">No end date · stop it any time</string>
+    <string name="no_instalments">No instalments yet</string>
+    <string name="first_due">The first one is due on %1$s</string>
+    <string name="nothing_added">Nothing added yet</string>
+    <string name="money_shows_here">Money you add shows here</string>
+    <string name="add_the_rate">Add the rate</string>
+    <string name="rate_needed">Interest · needed to work out the value</string>
+    <string name="oldest_from">%1$s · oldest from %2$s</string>
+    <string name="update_values">Update values</string>
+    <string name="update_values_line">Type what each is worth today</string>
+    <string name="value_from_short">%1$s · from %2$s</string>
 </resources>

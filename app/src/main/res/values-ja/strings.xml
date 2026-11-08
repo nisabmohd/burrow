@@ -1396,4 +1396,26 @@
         <item quantity="one">%d件の投資を更新</item>
         <item quantity="other">%d件の投資を更新</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">%1$s内 · 独自の利率と満期</string>
+    <string name="matures_in">満期まで</string>
+    <string name="interest_rate_title">利率</string>
+    <string name="rate_sheet_sub">年率 · 銀行の控えのとおり</string>
+    <string name="new_deposit_line_date">%1$s%% · 満期 %2$s · タップで変更</string>
+    <string name="edit_savings">貯蓄を編集</string>
+    <string name="included_in_net_worth">純資産に含む</string>
+    <string name="put_in_once">一度に入金</string>
+    <string name="amount_on">%2$sに%1$s</string>
+    <string name="add_any_time">いつでも入金</string>
+    <string name="no_end_stop">終了日なし · いつでも停止</string>
+    <string name="no_instalments">まだ積立はありません</string>
+    <string name="first_due">初回は%1$s</string>
+    <string name="nothing_added">まだ入金はありません</string>
+    <string name="money_shows_here">入金はここに表示されます</string>
+    <string name="add_the_rate">利率を入力</string>
+    <string name="rate_needed">利息 · 価値の計算に必要</string>
+    <string name="oldest_from">%1$s · 最も古いのは%2$s</string>
+    <string name="update_values">評価額を更新</string>
+    <string name="update_values_line">それぞれの今日の評価額を入力</string>
+    <string name="value_from_short">%1$s · %2$s時点</string>
 </resources>

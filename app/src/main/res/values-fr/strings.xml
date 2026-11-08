@@ -1513,4 +1513,26 @@
         <item quantity="one">Mettre à jour %d placement</item>
         <item quantity="other">Mettre à jour %d placements</item>
     </plurals>
+    <!-- Savings final (214–228) -->
+    <string name="new_deposit_sub">Dans %1$s · son propre taux et sa propre échéance</string>
+    <string name="matures_in">Échéance dans</string>
+    <string name="interest_rate_title">Taux d’intérêt</string>
+    <string name="rate_sheet_sub">Par an · comme sur le reçu de la banque</string>
+    <string name="new_deposit_line_date">À %1$s %% · échéance %2$s · touchez pour changer</string>
+    <string name="edit_savings">Modifier l’épargne</string>
+    <string name="included_in_net_worth">Inclus dans le patrimoine</string>
+    <string name="put_in_once">Versé une fois</string>
+    <string name="amount_on">%1$s le %2$s</string>
+    <string name="add_any_time">Ajoutez à tout moment</string>
+    <string name="no_end_stop">Pas de date de fin · arrêtez quand vous voulez</string>
+    <string name="no_instalments">Pas encore d’échéance</string>
+    <string name="first_due">La première est due le %1$s</string>
+    <string name="nothing_added">Rien d’ajouté pour l’instant</string>
+    <string name="money_shows_here">L’argent ajouté apparaît ici</string>
+    <string name="add_the_rate">Ajoutez le taux</string>
+    <string name="rate_needed">Intérêts · nécessaire pour calculer la valeur</string>
+    <string name="oldest_from">%1$s · le plus ancien du %2$s</string>
+    <string name="update_values">Mettre à jour les valeurs</string>
+    <string name="update_values_line">Saisissez la valeur de chacun aujourd’hui</string>
+    <string name="value_from_short">%1$s · du %2$s</string>
 </resources>

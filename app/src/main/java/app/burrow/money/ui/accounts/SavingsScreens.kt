@@ -99,11 +99,18 @@ fun SavingsContent(
         val gain = sv.worth - sv.putIn
         CenterHeader(icon, a.name, money.plain(sv.worth), line = stringResource(R.string.gain_line, money.signed(gain), money.plain(sv.putIn)))
         ListGroup {
-            val n = if (monthly) 2 else 1
+            val n = 2
             if (monthly) ListRow(
                 sv.next?.let { stringResource(R.string.savings_next_on, dates.shortDay(it)) } ?: stringResource(R.string.no_end_date), 0, n,
                 supporting = stringResource(R.string.from_line_paid, each, from, sv.paid),
                 lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
+            ) else if (sv.mode == SavingsMode.ONCE) ListRow(
+                stringResource(R.string.put_in_once), 0, n,
+                supporting = stringResource(R.string.amount_on, money.plain(sv.putIn), dates.fullDay(a.startDate?.let { dates.date(it) } ?: dates.date(a.createdAt))),
+                lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
+            ) else ListRow(
+                stringResource(R.string.put_in, money.short(sv.putIn)), 0, n, supporting = stringResource(R.string.add_any_time),
+                lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
             )
             ListRow(
                 a.valueUpdatedAt?.let { stringResource(R.string.value_updated, dates.shortDay(dates.date(it))) } ?: stringResource(R.string.market_value), n - 1, n,
@@ -111,7 +118,8 @@ fun SavingsContent(
                 lead = { IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
             )
         }
-        ListGroup(Modifier.padding(top = Space.block)) {
+        // Once (218): Update value is the main button, so no row.
+        if (sv.mode != SavingsMode.ONCE) ListGroup(Modifier.padding(top = Space.block)) {
             ListRow(
                 stringResource(R.string.update_value), 0, 1, supporting = stringResource(R.string.update_value_line),
                 lead = { IconCircle(painterResource(R.drawable.ic_edit_duotone)) }, trailing = { Chevron() }, onClick = onUpdateValue,
@@ -150,7 +158,7 @@ fun SavingsContent(
                 )
                 ListRow(
                     stringResource(R.string.rate_a_year, rate), 1, 3,
-                    supporting = if (sv.atEnd != null && sv.end != null) stringResource(R.string.when_it_ends, money.plain(sv.atEnd), dates.monthYear(sv.end)) else stringResource(R.string.no_end_date),
+                    supporting = if (sv.atEnd != null && sv.end != null) stringResource(R.string.when_it_ends, money.plain(sv.atEnd), dates.monthYear(sv.end)) else stringResource(R.string.no_end_stop),
                     lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
                 )
                 ListRow(
@@ -176,19 +184,28 @@ fun SavingsContent(
             }
         }
     }
+    val updateOnly = sv.market && sv.mode == SavingsMode.ONCE
     BurrowButton(
-        stringResource(if (monthly) R.string.pay_instalment else R.string.add_money), onAdd,
+        stringResource(if (updateOnly) R.string.update_value else if (monthly) R.string.pay_instalment else R.string.add_money), if (updateOnly) onUpdateValue else onAdd,
         Modifier.fillMaxWidth().padding(top = Space.block),
-        icon = painterResource(if (monthly) R.drawable.ic_payments_regular else R.drawable.ic_add_regular),
+        icon = painterResource(if (updateOnly) R.drawable.ic_edit_regular else if (monthly) R.drawable.ic_payments_regular else R.drawable.ic_add_regular),
     )
     when {
+        updateOnly -> Unit
         monthly -> {
             // Next first ("Next"), then paid ones newest first with a round check.
             val upcoming = sv.instalments.filter { it.status == OccurrenceStatus.UPCOMING }.sortedBy { it.dueDate }.take(1)
             val done = sv.instalments.filter { it.status != OccurrenceStatus.UPCOMING && it.dueDate <= System.currentTimeMillis() + 86_400_000L }.sortedByDescending { it.dueDate }
             val rows = upcoming + done
-            if (rows.isNotEmpty()) {
-                SectionHeader(stringResource(R.string.instalments))
+            SectionHeader(stringResource(R.string.instalments))
+            // A new account (222): nothing paid yet, one muted row with the first due date.
+            if (done.isEmpty()) ListGroup {
+                ListRow(
+                    stringResource(R.string.no_instalments), 0, 1,
+                    supporting = sv.next?.let { stringResource(R.string.first_due, dates.shortDay(it)) },
+                    lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
+                )
+            } else run {
                 ListGroup {
                     rows.forEachIndexed { i, o ->
                         val day = dates.shortDay(dates.date(o.dueDate))
@@ -221,7 +238,17 @@ fun SavingsContent(
                 }
             }
         }
-        else -> if (sv.moneyIn.isNotEmpty()) {
+        sv.moneyIn.isEmpty() -> {
+            // A new account (223): one row, no total.
+            SectionHeader(stringResource(R.string.money_added))
+            ListGroup {
+                ListRow(
+                    stringResource(R.string.nothing_added), 0, 1, supporting = stringResource(R.string.money_shows_here),
+                    lead = { IconCircle(painterResource(R.drawable.ic_add_regular)) },
+                )
+            }
+        }
+        else -> {
             SectionHeader(stringResource(R.string.money_added), meta = money.short(sv.moneyIn.sumOf { it.amount }))
             ListGroup {
                 sv.moneyIn.take(30).forEachIndexed { i, m ->
@@ -252,42 +279,58 @@ fun UpdateValueSheet(a: AccountEntity, sv: SavingsInfo, onDismiss: () -> Unit, o
 
 /** A rate typed in the value sheet ("7.1%"): Interest on New savings (208) and a new deposit (205). */
 @Composable
-fun PercentSheet(title: String, rate: String, onDone: (String) -> Unit, onDismiss: () -> Unit) {
+fun PercentSheet(rate: String, onDone: (String) -> Unit, onDismiss: () -> Unit, title: String = stringResource(R.string.interest_rate_title), line: String? = stringResource(R.string.rate_sheet_sub)) {
     var text by rememberSaveable { mutableStateOf(rate) }
     var fresh by rememberSaveable { mutableStateOf(true) }
     val ok = text.toBigDecimalOrNull()?.let { it.signum() >= 0 && it < java.math.BigDecimal(100) } == true
     app.burrow.money.ui.components.ValueSheet(
-        title = title, value = stringResource(R.string.rate_pct, text.ifEmpty { "0" }),
+        title = title, line = line, value = stringResource(R.string.rate_pct, text.ifEmpty { "0" }),
         onKey = { key -> text = app.burrow.money.ui.components.typeRate(if (fresh && key != app.burrow.money.ui.components.Key.Backspace) "" else text, key); fresh = false },
         confirm = stringResource(R.string.done), confirmEnabled = ok, onConfirm = { if (ok) onDone(text) }, onDismiss = onDismiss,
     )
 }
 
-/** A new deposit's rate and maturity (205 › "tap to change"). Design review: no PNG. */
+/**
+ * New deposit (214): its own rate (value sheet), Matures in 1 · 2 · 3 · 5 years, and the maturity day
+ * (tap for the calendar, an exact date). Done goes back to Add money with the amount kept (215).
+ */
 @Composable
-fun NewDepositSheet(rate: String, maturity: LocalDate, onRate: () -> Unit, onMaturity: () -> Unit, onDismiss: () -> Unit) {
+fun NewDepositSheet(
+    accountName: String, payout: String, rate: String, years: Int?, maturity: LocalDate,
+    onRate: () -> Unit, onYears: (Int) -> Unit, onMaturity: () -> Unit, onDone: () -> Unit,
+) {
     val dates = rememberDateText()
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.new_deposit), onDismiss)
+    BurrowSheet(onDone) {
+        SheetHeader(stringResource(R.string.new_deposit), onDone, stringResource(R.string.new_deposit_sub, accountName))
         SheetBody {
             ListGroup {
                 ListRow(
-                    stringResource(R.string.rate_a_year, rate), 0, 2, supporting = stringResource(R.string.interest),
+                    if (rate.isNotBlank()) stringResource(R.string.rate_a_year, rate) else stringResource(R.string.add_the_rate), 0, 1,
+                    supporting = stringResource(R.string.interest),
                     lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) }, onClick = onRate,
                 )
+            }
+            LabeledField(stringResource(R.string.matures_in)) {
+                ButtonGroup(listOf(1, 2, 3, 5), years ?: -1, { pluralStringResource(R.plurals.n_years, it, it) }, onYears)
+            }
+            ListGroup {
                 ListRow(
-                    stringResource(R.string.matures_month, dates.fullDay(maturity)), 1, 2, supporting = stringResource(R.string.ends_tap_change),
+                    stringResource(R.string.matures_month, dates.fullDay(maturity)), 0, 1, supporting = stringResource(R.string.pays_into, payout),
                     lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) }, onClick = onMaturity,
                 )
             }
         }
+        app.burrow.money.ui.components.SheetFooter {
+            BurrowButton(stringResource(R.string.done), onDone, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+        }
     }
 }
 
-/** The extra row in Add money for a Once account (205). */
+/** The extra row in Add money for a Once account (205, 215). */
 @Composable
-fun NewDepositRow(rate: String, months: Int, i: Int, n: Int, onClick: () -> Unit) = ListRow(
-    stringResource(R.string.starts_new_deposit), i, n, supporting = stringResource(R.string.new_deposit_line, rate, termText(months)),
+fun NewDepositRow(rate: String, maturity: LocalDate, i: Int, n: Int, onClick: () -> Unit) = ListRow(
+    stringResource(R.string.starts_new_deposit), i, n,
+    supporting = stringResource(R.string.new_deposit_line_date, rate.ifBlank { "–" }, rememberDateText().fullDay(maturity)),
     lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) }, onClick = onClick,
 )
 
@@ -309,6 +352,7 @@ fun SavingsFormFields(
     onEnds: () -> Unit,
     onFrom: () -> Unit,
     amountMissing: Boolean,
+    rateMissing: Boolean = false,
 ) {
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -327,8 +371,7 @@ fun SavingsFormFields(
     helper(if (f.market) R.string.market_value_line else R.string.fixed_rate_line)
     val amount = app.burrow.money.domain.AmountInput(f.balance, money.digits).minor()
     val monthly = f.savingsMode == SavingsMode.MONTHLY
-    // Editing Once or Any time: what was put in is the opening balance (below), not typed again.
-    val showAmount = !isEdit || monthly
+    val showAmount = true
     val rows = buildList<@Composable (Int, Int) -> Unit> {
         if (showAmount) add { i, n ->
             ListRow(
@@ -340,8 +383,9 @@ fun SavingsFormFields(
         }
         if (!f.market) add { i, n ->
             ListRow(
-                if (f.rate.isNotBlank()) stringResource(R.string.rate_a_year, f.rate) else stringResource(R.string.type_the_rate), i, n,
-                supporting = stringResource(R.string.interest),
+                if (f.rate.isNotBlank()) stringResource(R.string.rate_a_year, f.rate) else stringResource(R.string.add_the_rate), i, n,
+                supporting = stringResource(if (f.rate.isNotBlank()) R.string.interest else R.string.rate_needed),
+                supportingColor = if (rateMissing) c.error else c.onSurfaceVariant,
                 lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) }, onClick = onRate,
             )
         }
@@ -364,5 +408,27 @@ fun SavingsFormFields(
 }
 
 /** Sunday review (101): market-value accounts whose value is 30+ days old. */
-fun staleInvestments(accounts: List<AccountWithBalance>, now: Long = System.currentTimeMillis()): List<AccountEntity> =
-    accounts.map { it.account }.filter { it.type == app.burrow.money.data.AccountType.SAVINGS && it.marketValue && !it.archived && (it.valueUpdatedAt ?: 0) < now - 30L * 86_400_000L }
+fun staleInvestments(accounts: List<AccountWithBalance>, now: Long = System.currentTimeMillis()): List<AccountWithBalance> =
+    accounts.filter { it.account.type == app.burrow.money.data.AccountType.SAVINGS && it.account.marketValue && !it.account.archived && (it.account.valueUpdatedAt ?: 0) < now - 30L * 86_400_000L }
+        .sortedBy { it.account.valueUpdatedAt ?: 0 }
+
+/** Update values (228): each market-value account with its worth and date; a row opens Update value (212). */
+@Composable
+fun UpdateValuesSheet(list: List<AccountWithBalance>, onPick: (AccountWithBalance) -> Unit, onDismiss: () -> Unit) {
+    val money = LocalMoney.current
+    val dates = rememberDateText()
+    BurrowSheet(onDismiss) {
+        SheetHeader(stringResource(R.string.update_values), onDismiss, stringResource(R.string.update_values_line))
+        SheetBody {
+            ListGroup {
+                list.forEachIndexed { i, a ->
+                    ListRow(
+                        a.account.name, i, list.size,
+                        supporting = stringResource(R.string.value_from_short, money.plain(a.worth), a.account.valueUpdatedAt?.let { dates.shortDay(dates.date(it)) }.orEmpty()),
+                        lead = { CategoryCircle(a.account.icon, a.account.colorHue) }, trailing = { Chevron() }, onClick = { onPick(a) },
+                    )
+                }
+            }
+        }
+    }
+}

@@ -350,8 +350,11 @@ fun defaultAccountIcon(type: String) = when (type) {
 val ACCOUNT_ICONS = listOf(
     "account_balance", "credit_card", "account_balance_wallet", "payments", "savings", "real_estate_agent",
     "smartphone", "home", "shield", "flight", "school", "redeem",
-    "event_repeat", "bar_chart", "flag", "gold", "investment", "child_care",
+    "calendar_month", "bar_chart", "flag", "gold", "investment", "child_care",
 )
+
+/** Icons a savings account can have (217). */
+val SAVINGS_ICONS = listOf("savings", "calendar_month", "flag", "bar_chart", "home", "school")
 
 /**
  * The credit line [cardId] is on: the id of the card that holds the limit. A card shares with one
@@ -414,7 +417,11 @@ class NewAccountViewModel(
                     sharesLimitWith = it.sharesLimitWith,
                     cards = money.cards.first().filter { c -> c.accountId == it.id }.map { c -> CardDraft(c.id, c.name, c.number) },
                     savingsMode = app.burrow.money.data.savingsModeOf(it), market = it.marketValue, fromId = it.payoutAccountId,
-                ).let { f -> if (it.type == AccountType.SAVINGS && f.savingsMode == app.burrow.money.data.SavingsMode.MONTHLY) f.copy(balance = txt(it.emi)) else f }
+                ).let { f ->
+                    // Edit savings (216): the amount row shows the instalment, or the first deposit / starting amount.
+                    if (it.type != AccountType.SAVINGS) f
+                    else f.copy(balance = txt(if (f.savingsMode == app.burrow.money.data.SavingsMode.MONTHLY) it.emi else it.principal ?: it.openingBalance))
+                }
             } ?: AccountForm(type = startType ?: AccountType.BANK).let { f ->
                 if (f.type != AccountType.SAVINGS) f
                 else f.copy(maturity = LocalDate.now().plusYears(2), fromId = money.accounts.first().firstOrNull { it.account.type == AccountType.BANK }?.account?.id)
@@ -426,7 +433,7 @@ class NewAccountViewModel(
 
     /** A new card needs its name and 4 digits (191/192); everything else a name. */
     fun canSave(f: AccountForm) = f.name.isNotBlank() && (isEdit || f.type != AccountType.CARD || f.number.length == 4) &&
-        (f.type != AccountType.SAVINGS || (isEdit && f.savingsMode != app.burrow.money.data.SavingsMode.MONTHLY) || TypedAmount.parse(f.balance, digits) > 0)
+        (f.type != AccountType.SAVINGS || (TypedAmount.parse(f.balance, digits) > 0 && (f.market || f.rate.isNotBlank())))
 
     /** How money goes in / how it grows (208, 213): Any time and market value start with no end date. */
     fun setSavingsMode(mode: String) = edit {
@@ -524,14 +531,15 @@ private fun savingsAccount(a: AccountEntity, f: AccountForm, amount: Long): Acco
     val new = a.id == 0L
     val look = when {
         f.market -> "bar_chart" to 140f
-        monthly -> "event_repeat" to 168f
+        monthly -> "calendar_month" to 168f
         f.savingsMode == app.burrow.money.data.SavingsMode.ANY -> "flag" to 245f
         else -> "savings" to 50f
     }
     return a.copy(
         savingsMode = f.savingsMode, marketValue = f.market,
-        openingBalance = if (new) (if (monthly) 0 else amount) else a.openingBalance,
-        principal = if (f.savingsMode == app.burrow.money.data.SavingsMode.ONCE) (a.principal?.takeIf { !new } ?: amount) else null,
+        // Editing changes the first deposit / starting amount; money added later keeps its values.
+        openingBalance = if (monthly) (if (new) 0 else a.openingBalance) else amount,
+        principal = if (f.savingsMode == app.burrow.money.data.SavingsMode.ONCE) amount else null,
         emi = if (monthly) amount.takeIf { it > 0 } ?: a.emi else null,
         interestRate = if (f.market) null else f.rate.trim().ifEmpty { null },
         maturityDate = f.maturity?.atStartOfDay(java.time.ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -48,9 +49,14 @@ class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
     val state: StateFlow<WeeklySummary?> = app.weeklySummaryFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Market-value savings last updated 30+ days ago (101: "Update 1 investment"). */
-    val stale: StateFlow<List<app.burrow.money.data.AccountEntity>> = app.money.accounts
+    val stale: StateFlow<List<app.burrow.money.data.AccountWithBalance>> = app.money.accounts
         .map { list -> staleInvestments(list) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Update value (212) from Update values (228): the gain over what was put in, dated now. */
+    fun updateValue(a: app.burrow.money.data.AccountWithBalance, value: Long) = viewModelScope.launch {
+        app.money.updateAccount(a.account.copy(marketGain = value - a.balance, valueUpdatedAt = System.currentTimeMillis()))
+    }
 
     /** The review is finished ("Save N and finish" or "Done"): the calm moment for Play's rating card. */
     fun finished(activity: android.app.Activity?) {
@@ -87,6 +93,8 @@ fun SundayReviewScreen(
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val stale by vm.stale.collectAsStateWithLifecycle()
+    var updating by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    var picked by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<Long?>(null) }
     val s = state ?: return
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -154,14 +162,16 @@ fun SundayReviewScreen(
                 )
             }
             if (stale.isNotEmpty()) add { i, n ->
-                val first = stale.first()
+                val first = stale.first().account
+                val oldest = first.valueUpdatedAt?.let { dates.shortDay(dates.date(it)) }.orEmpty()
                 ListRow(
                     pluralStringResource(R.plurals.update_investments, stale.size, stale.size), i, n,
-                    supporting = if (stale.size == 1) stringResource(R.string.value_from, first.name, first.valueUpdatedAt?.let { dates.shortDay(dates.date(it)) }.orEmpty())
-                    else stale.joinToString(", ") { it.name },
+                    // 227: "Index fund, Gold · oldest from 1 Oct"; one opens its account, two or more the Update values sheet.
+                    supporting = if (stale.size == 1) stringResource(R.string.value_from, first.name, oldest)
+                    else stringResource(R.string.oldest_from, stale.joinToString(", ") { it.account.name }, oldest),
                     lead = { IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
                     trailing = { Chevron() },
-                    onClick = { onAccount(if (stale.size == 1) first.id else null) },
+                    onClick = { if (stale.size == 1) onAccount(first.id) else updating = true },
                 )
             }
             add { i, n ->
@@ -175,5 +185,12 @@ fun SundayReviewScreen(
             }
         }
         ListGroup(Modifier.padding(top = Space.block)) { rows.forEachIndexed { i, r -> r(i, rows.size) } }
+    }
+    val pick = stale.firstOrNull { it.account.id == picked }
+    when {
+        pick != null -> app.burrow.money.ui.accounts.UpdateValueSheet(
+            pick.account, app.burrow.money.ui.accounts.SavingsInfo(app.burrow.money.data.SavingsMode.ANY, true, pick.worth, pick.balance, null), { picked = null },
+        ) { v -> vm.updateValue(pick, v); picked = null }
+        updating && stale.isNotEmpty() -> app.burrow.money.ui.accounts.UpdateValuesSheet(stale, { picked = it.account.id }, { updating = false })
     }
 }
