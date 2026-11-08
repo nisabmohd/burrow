@@ -137,14 +137,39 @@ fun loanSchedule(outstanding: Long, annualRatePercent: BigDecimal, emi: Long, fi
  * A fixed deposit's value on [on], compounded quarterly like Indian banks; at most its value at
  * [maturity]. Rounded once, HALF_EVEN.
  */
-fun depositValue(principal: Long, annualRatePercent: BigDecimal, start: LocalDate, maturity: LocalDate, on: LocalDate, unit: Long = 1): Long {
+fun depositValue(principal: Long, annualRatePercent: BigDecimal, start: LocalDate, maturity: LocalDate, on: LocalDate, unit: Long = 1): Long =
+    BigDecimal(principal).multiply(depositGrowth(annualRatePercent, start, maturity, on), MathContext.DECIMAL64)
+        .divide(BigDecimal(unit), 0, RoundingMode.HALF_EVEN).toLong() * unit
+
+/** What 1 put in on [start] grows to on [on] (at most [maturity]), compounded quarterly. */
+private fun depositGrowth(annualRatePercent: BigDecimal, start: LocalDate, maturity: LocalDate, on: LocalDate): BigDecimal {
     val end = if (on.isAfter(maturity)) maturity else on
     val days = ChronoUnit.DAYS.between(start, end).coerceAtLeast(0)
     val quarters = BigDecimal(days).divide(BigDecimal("91.3125"), MathContext.DECIMAL64)
     val q = BigDecimal.ONE + annualRatePercent.divide(BigDecimal(400), MathContext.DECIMAL64)
-    val growth = Math.pow(q.toDouble(), quarters.toDouble())
-    return BigDecimal(principal).multiply(BigDecimal(growth), MathContext.DECIMAL64).divide(BigDecimal(unit), 0, RoundingMode.HALF_EVEN).toLong() * unit
+    return BigDecimal(Math.pow(q.toDouble(), quarters.toDouble()))
 }
+
+/** How many monthly instalments fall from [start] (the first) to [end], both included (203: "of 36"). */
+fun instalmentCount(start: LocalDate, end: LocalDate): Int {
+    var n = 0
+    while (!start.plusMonths(n.toLong()).isAfter(end)) n++
+    return n
+}
+
+/**
+ * Every month savings at a fixed rate (203): [each] paid on [start] and monthly after, [count] times,
+ * each growing like a deposit until [end]. Its value on [end], rounded once, HALF_EVEN.
+ */
+fun recurringValue(each: Long, annualRatePercent: BigDecimal, start: LocalDate, count: Int, end: LocalDate, unit: Long = 1): Long {
+    var growth = BigDecimal.ZERO
+    for (i in 0 until count) growth += depositGrowth(annualRatePercent, start.plusMonths(i.toLong()), end, end)
+    return BigDecimal(each).multiply(growth, MathContext.DECIMAL64).divide(BigDecimal(unit), 0, RoundingMode.HALF_EVEN).toLong() * unit
+}
+
+/** A year's interest on [balance] at [annualRatePercent] (204: "₹13,100 a year at this rate"), to whole units. */
+fun yearlyInterest(balance: Long, annualRatePercent: BigDecimal, unit: Long = 1): Long =
+    BigDecimal(balance).multiply(annualRatePercent, MathContext.DECIMAL64).divide(BigDecimal(100L * unit), 0, RoundingMode.HALF_EVEN).toLong() * unit
 
 /** A budget at a moment: spent against [amount]. */
 data class BudgetStatus(val spent: Long, val amount: Long) {

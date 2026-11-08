@@ -323,7 +323,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<AccountRoute> { e ->
                         val id = e.toRoute<AccountRoute>().id
-                        val vm = viewModel { AccountViewModel(container.money, container.strings, id) { container.runBillReminders() } }
+                        val vm = viewModel { AccountViewModel(container.money, container.strings, id, container.plan) { container.runBillReminders() } }
                         AccountScreen(
                             vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewAccountRoute(it)) },
                             onTransfer = { nav.navigate(AddRoute(type = "TRANSFER", accountId = it)) }, onOpenTxn = openTxn,
@@ -332,7 +332,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<NewAccountRoute> { e ->
                         val r = e.toRoute<NewAccountRoute>()
                         val vm = viewModel {
-                            NewAccountViewModel(container.money, container.strings, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) { container.runBillReminders() }
+                            NewAccountViewModel(container.money, container.strings, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }, container.plan) { container.runBillReminders() }
                                 .also { v -> v.loadBanks { container.capture.cardBanks(settings.enabledPacks) } }
                         }
                         val saved = stringResource(R.string.saved)
@@ -574,6 +574,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBills = { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) },
                             onBudget = { nav.navigate(BudgetRoute()) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
+                            onAccount = { id -> if (id == null) nav.navigate(AccountsRoute) else nav.navigate(AccountRoute(id)) },
                         )
                     }
                     composable<ImportRoute> {

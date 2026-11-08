@@ -56,6 +56,32 @@ object AccountType {
     const val SAVINGS = "SAVINGS"
 }
 
+/** Savings: how money goes in (202–204). */
+object SavingsMode {
+    /** One amount; more money later starts a new deposit. */
+    const val ONCE = "ONCE"
+    /** A fixed amount every month (an instalment bill). */
+    const val MONTHLY = "MONTHLY"
+    /** Any amount, any time, no end date. */
+    const val ANY = "ANY"
+}
+
+/** A savings account's mode; one made before v9 is Once with a maturity date, else Any time. */
+fun savingsModeOf(a: AccountEntity): String = a.savingsMode ?: if (a.maturityDate != null) SavingsMode.ONCE else SavingsMode.ANY
+
+/** Money put into a savings account: a transfer in, the account it came from, and its deposit's own rate and maturity (Once). */
+data class SavingsIn(
+    val txnId: Long,
+    val amount: Long,
+    val at: Long,
+    val fromId: Long,
+    val fromName: String,
+    val fromIcon: String,
+    val fromHue: Float,
+    val rate: String?,
+    val maturity: Long?,
+)
+
 /** A transaction with the names a row needs, joined in one query. */
 data class TxnView(
     @Embedded val txn: TxnEntity,
@@ -785,6 +811,9 @@ interface BackupDao {
     @Query("DELETE FROM GoalEntity") suspend fun clearGoals()
     @Query("DELETE FROM CaptureRuleEntity") suspend fun clearRules()
     @Query("DELETE FROM CaptureEntity") suspend fun clearCaptures()
+    @Query("SELECT * FROM DepositEntity") suspend fun deposits(): List<DepositEntity>
+    @Insert suspend fun putDeposits(l: List<DepositEntity>)
+    @Query("DELETE FROM DepositEntity") suspend fun clearDeposits()
     @Query("SELECT * FROM CardEntity") suspend fun cards(): List<CardEntity>
     @Insert suspend fun putCards(l: List<CardEntity>)
     @Query("DELETE FROM CardEntity") suspend fun clearCards()
@@ -816,4 +845,44 @@ interface CardDao {
 
     /** Cards of accounts that are gone (deleted samples) — run at app start. */
     @Query("DELETE FROM CardEntity WHERE accountId NOT IN (SELECT id FROM AccountEntity)") suspend fun cleanOrphans()
+}
+
+@Dao
+interface SavingsDao {
+    /** Transfers into [accountId], newest first, each with its deposit row if it has one. */
+    @Query(
+        """
+        SELECT t.id AS txnId, t.amount AS amount, t.at AS at, t.accountId AS fromId, a.name AS fromName, a.icon AS fromIcon,
+               a.colorHue AS fromHue, d.interestRate AS rate, d.maturityDate AS maturity
+        FROM TxnEntity t
+        JOIN AccountEntity a ON a.id = t.accountId
+        LEFT JOIN DepositEntity d ON d.txnId = t.id
+        WHERE t.toAccountId = :accountId AND t.type = 'TRANSFER' AND t.status = 'POSTED'
+        ORDER BY t.at DESC, t.id DESC
+        """,
+    )
+    fun moneyIn(accountId: Long): Flow<List<SavingsIn>>
+
+    @Upsert suspend fun putDeposit(d: DepositEntity)
+
+    @Query("DELETE FROM DepositEntity WHERE txnId = :txnId") suspend fun deleteDeposit(txnId: Long)
+
+    /** Every deposit row, for the maturity reminders. */
+    @Query("SELECT * FROM DepositEntity") suspend fun deposits(): List<DepositEntity>
+
+    /** A savings account's instalment bill (archived too, so it comes back on undo). */
+    @Query("SELECT * FROM BillEntity WHERE kind = 'SAVINGS' AND toAccountId = :accountId ORDER BY id LIMIT 1")
+    suspend fun bill(accountId: Long): BillEntity?
+
+    @Query("SELECT * FROM BillEntity WHERE kind = 'SAVINGS' AND toAccountId = :accountId AND archived = 0 ORDER BY id LIMIT 1")
+    fun billFlow(accountId: Long): Flow<BillEntity?>
+
+    /** Instalments paid, by savings account (Accounts' ring, 210). */
+    @Query(
+        """
+        SELECT b.toAccountId AS accountId, COUNT(*) AS total FROM BillOccurrenceEntity o JOIN BillEntity b ON b.id = o.billId
+        WHERE b.kind = 'SAVINGS' AND b.archived = 0 AND b.toAccountId IS NOT NULL AND o.status = 'PAID' GROUP BY b.toAccountId
+        """,
+    )
+    fun paidCounts(): Flow<List<AccountInSum>>
 }

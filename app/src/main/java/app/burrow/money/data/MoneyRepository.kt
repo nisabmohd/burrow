@@ -20,7 +20,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @Immutable
-data class AccountWithBalance(val account: AccountEntity, val balance: Long)
+data class AccountWithBalance(val account: AccountEntity, val balance: Long) {
+    /** What it is worth: the balance, and for a market-value savings account the gain typed last (211). */
+    val worth: Long get() = balance + if (account.marketValue) account.marketGain ?: 0L else 0L
+}
 
 /** Someone money was lent to or borrowed from: what they owe (positive) or you owe (negative), since when. */
 @Immutable
@@ -110,7 +113,7 @@ class MoneyRepository(
     val netWorth: Flow<NetWorth> = combine(accounts, goalsSavedFlow(), rates, settings.settings.map { it.mainCurrency }.distinctUntilChanged()) { accs, goals, rates, main ->
         val rateOf = rates.associate { it.currency to it.perPrimary }
         val counted = accs.filter { it.account.includeInNetWorth }
-        val total = counted.sumOf { app.burrow.money.domain.Fx.toMain(it.balance, it.account.currency, main, rateOf[it.account.currency]) ?: 0L } + goals
+        val total = counted.sumOf { app.burrow.money.domain.Fx.toMain(it.worth, it.account.currency, main, rateOf[it.account.currency]) ?: 0L } + goals
         NetWorth(total, accs.filter { !it.account.includeInNetWorth }.map { it.account }, accs.size)
     }
 
@@ -215,6 +218,18 @@ class MoneyRepository(
     private fun goalsSavedFlow(): Flow<Long> = seededFlow { db.txns().goalSums() }.map { l -> l.sumOf { it.total } }
 
     suspend fun updateAccount(account: AccountEntity) = db.accounts().update(account)
+
+    /** Savings (202–204, 211): money put in, newest first; its instalment bill; instalments paid by account. */
+    fun moneyIn(accountId: Long): Flow<List<SavingsIn>> = seededFlow { db.savings().moneyIn(accountId) }
+    fun savingsBill(accountId: Long): Flow<BillEntity?> = seededFlow { db.savings().billFlow(accountId) }
+    val savingsPaid: Flow<List<AccountInSum>> = seededFlow { db.savings().paidCounts() }
+
+    /** Add money to a Once savings account (205): the transfer and its new deposit. */
+    suspend fun addDeposit(txn: TxnEntity, rate: String, maturity: Long): Long = db.withTransaction {
+        val id = save(txn)
+        db.savings().putDeposit(DepositEntity(id, txn.toAccountId!!, rate, maturity))
+        id
+    }
 
     /** A new account; a card's digits become its first card, named [cardName] ("Sapphiro"; "" shows as "Card"). */
     suspend fun addAccount(account: AccountEntity, cardName: String = ""): Long = db.withTransaction {

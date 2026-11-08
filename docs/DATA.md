@@ -115,3 +115,12 @@ stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue 
   Repeating ones are `bill`s. Upcoming items never show in Activity's history or any total.
 - DataStore: `upcomingLowersSafe` (true): Safe to spend takes off unpaid expenses due before the period ends
   (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.
+
+## Savings (Room v9, backup v6)
+- `AccountEntity.savingsMode` ONCE / MONTHLY / ANY (null = before v9: ONCE with a maturity date, else ANY); `marketValue`,
+  `marketGain` (typed value minus balance at the time) and `valueUpdatedAt`. Worth = balance + marketGain.
+- ONCE: the first deposit is the account's principal / interestRate / startDate / maturityDate; each later Add money is a
+  transfer in with a `DepositEntity(txnId, accountId, interestRate, maturityDate)`. A transfer in without one uses the account's rate and term.
+- MONTHLY: emi = each month, payoutAccountId = from; one `BillEntity(kind = SAVINGS, toAccountId = account)`; paying is a transfer.
+  Savings instalments never lower safe to spend.
+- All money in is a transfer, never spending. Opening a Once or Any time account moves no money (its amount is the opening balance).

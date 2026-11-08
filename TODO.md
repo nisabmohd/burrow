@@ -20,6 +20,10 @@ Screen numbers point to `design/screens/`.
 - [ ] Smoke check in `tools/smoke.py` for two cards on one bill (Add account › Credit card › Same bill, SMS from each
       card's digits, "Paid with"), and restoring a v3 backup (cards come back from the accounts' digits)
 
+## Savings (designs 202–213, built 2026-11-08)
+- [ ] Design review: New deposit sheet (205 › "tap to change": Interest and Matures rows), Edit savings (New savings form + Colour, Icon, Count in net worth, Archive)
+- [ ] Smoke checks: New savings (Once, Every month, Any time, market value), Add money → new deposit, Pay instalment, Update value, Sunday review "Update 1 investment"
+
 ## Tests
 - [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
       `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso

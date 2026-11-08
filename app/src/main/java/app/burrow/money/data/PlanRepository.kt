@@ -25,6 +25,8 @@ object BillKind {
     const val SUBSCRIPTION = "SUBSCRIPTION"
     const val EMI = "EMI"
     const val CARD = "CARD"
+    /** Every month savings (203): paying an instalment is a transfer into the savings account. */
+    const val SAVINGS = "SAVINGS"
 }
 
 object OnDue {
@@ -162,7 +164,7 @@ class PlanRepository(
                     if (interest > 0) money.save(txn(TxnType.EXPENSE, interest, category = feesCategory())) else null,
                 )
             }
-            BillKind.CARD -> listOf(money.save(txn(TxnType.TRANSFER, amount, to = b.toAccountId)))
+            BillKind.CARD, BillKind.SAVINGS -> listOf(money.save(txn(TxnType.TRANSFER, amount, to = b.toAccountId)))
             else -> listOf(money.save(txn(TxnType.EXPENSE, amount, category = b.categoryId)))
         }
         db.bills().updateOccurrence(o.copy(status = OccurrenceStatus.PAID, txnId = ids.first(), amount = amount))
@@ -170,6 +172,56 @@ class PlanRepository(
             db.withTransaction {
                 db.txns().deleteIds(ids)
                 db.bills().updateOccurrence(o)
+            }
+        }
+        undo
+    }
+
+    /**
+     * Every month savings (203, 209): its instalments are one bill from the account money comes from
+     * into the savings account, due on the first instalment's day each month until it ends. Any other
+     * savings account (or an archived one) has none; a paid instalment keeps its row.
+     */
+    suspend fun syncSavingsBill(a: AccountEntity) {
+        val existing = db.savings().bill(a.id)
+        val monthly = a.type == AccountType.SAVINGS && !a.archived && savingsModeOf(a) == SavingsMode.MONTHLY
+        val from = a.payoutAccountId
+        val each = a.emi
+        if (!monthly || from == null || each == null || each <= 0 || a.startDate == null) {
+            if (existing != null && !existing.archived) db.bills().archive(existing.id)
+            return
+        }
+        val start = a.startDate.date()
+        saveBill(
+            (existing ?: BillEntity(kind = BillKind.SAVINGS, name = a.name, amount = each, accountId = from, categoryId = null, repeatRule = "", startDate = a.startDate))
+                .copy(
+                    name = a.name, amount = each, accountId = from, toAccountId = a.id, repeatRule = Repeat.Monthly(start.dayOfMonth).encode(),
+                    startDate = start.millis(), endDate = a.maturityDate, icon = a.icon, colorHue = a.colorHue,
+                    remindersOn = a.remind, remindDaysBefore = 1, archived = false, isSample = a.isSample,
+                ),
+        )
+    }
+
+    /**
+     * Pay instalment (206): [amount] from [from] into savings account [accountId] on [at], marking its
+     * earliest unpaid instalment Paid (none left: just the transfer). Returns how to undo it.
+     */
+    suspend fun payInstalment(accountId: Long, from: Long, amount: Long, at: Long): suspend () -> Unit = db.withTransaction {
+        val bill = db.savings().bill(accountId)?.takeIf { !it.archived }
+        val o = bill?.let { b -> db.bills().occurrencesOf(b.id).first().map { it.occurrence }.filter { it.status == OccurrenceStatus.UPCOMING }.minByOrNull { it.dueDate } }
+        val account = db.accounts().all().first().first { it.id == accountId }
+        val id = money.save(
+            TxnEntity(
+                type = TxnType.TRANSFER, amount = amount, currency = account.currency, baseAmount = amount, accountId = from, toAccountId = accountId,
+                payee = bill?.name, at = at, source = if (o != null) "BILL" else "MANUAL", billOccurrenceId = o?.id,
+                isSample = account.isSample, createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis(),
+            ),
+        )
+        if (o != null) db.bills().updateOccurrence(o.copy(status = OccurrenceStatus.PAID, txnId = id, amount = amount))
+        val undo: suspend () -> Unit = {
+            db.withTransaction {
+                db.txns().deleteIds(listOf(id))
+                if (o != null) db.bills().updateOccurrence(o)
             }
         }
         undo

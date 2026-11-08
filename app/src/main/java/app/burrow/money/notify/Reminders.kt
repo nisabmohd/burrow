@@ -42,14 +42,20 @@ private fun events(list: List<OccurrenceView>, zone: ZoneId, atMinutes: Int): Li
     .sortedBy { it.at }
 
 /** A deposit with "Remind me a week before": one note at the reminder time, 7 days before it matures. */
-internal data class DepositEvent(val at: Long, val deposit: AccountEntity)
+internal data class DepositEvent(val at: Long, val deposit: AccountEntity, val principal: Long, val rate: String?, val start: Long?, val maturity: Long, val key: Long)
 
-internal fun depositEvents(accounts: List<AccountEntity>, zone: ZoneId, atMinutes: Int): List<DepositEvent> = accounts
-    .filter { it.type == AccountType.SAVINGS && it.remind && !it.archived && !it.isSample && it.maturityDate != null }
-    .map { a ->
-        val maturity = Instant.ofEpochMilli(a.maturityDate!!).atZone(zone).toLocalDate()
-        DepositEvent(maturity.minusDays(7).atStartOfDay(zone).plusMinutes(atMinutes.toLong()).toInstant().toEpochMilli(), a)
+/** Each Once savings account's first deposit and every one added after it (205). */
+internal fun depositEvents(accounts: List<AccountEntity>, zone: ZoneId, atMinutes: Int, extra: List<app.burrow.money.data.DepositEntity> = emptyList(), starts: Map<Long, Pair<Long, Long>> = emptyMap()): List<DepositEvent> {
+    val ok = accounts.filter { it.type == AccountType.SAVINGS && it.remind && !it.archived && !it.isSample && app.burrow.money.data.savingsModeOf(it) == app.burrow.money.data.SavingsMode.ONCE && !it.marketValue }
+    fun at(m: Long) = Instant.ofEpochMilli(m).atZone(zone).toLocalDate().minusDays(7).atStartOfDay(zone).plusMinutes(atMinutes.toLong()).toInstant().toEpochMilli()
+    val first = ok.filter { it.maturityDate != null }.map { a -> DepositEvent(at(a.maturityDate!!), a, a.principal ?: 0, a.interestRate, a.startDate, a.maturityDate, a.id) }
+    val more = extra.mapNotNull { d ->
+        val a = ok.firstOrNull { it.id == d.accountId } ?: return@mapNotNull null
+        val (amount, start) = starts[d.txnId] ?: return@mapNotNull null
+        DepositEvent(at(d.maturityDate), a, amount, d.interestRate, start, d.maturityDate, 1_000_000 + d.txnId)
     }
+    return first + more
+}
 
 /**
  * Bill reminders (Day 11). Runs what came due since the last run (at app start and when the alarm
@@ -62,7 +68,9 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
     val list = plan.occurrences(today.minusDays(7), today.plusDays(62)).first()
     val all = events(list, zone, settings.settings.first().billReminderMinutes)
     val accounts = money.accounts.first().map { it.account }
-    val deposits = depositEvents(accounts, zone, settings.settings.first().billReminderMinutes)
+    val extra = database.savings().deposits()
+    val starts = extra.mapNotNull { d -> database.txns().get(d.txnId)?.let { d.txnId to (it.amount to it.at) } }.toMap()
+    val deposits = depositEvents(accounts, zone, settings.settings.first().billReminderMinutes, extra, starts)
     val last = settings.billsCheckedAt()
     // Upcoming one-offs whose day has come are added, with a quiet note each (115).
     val posted = money.postDueList(now)
@@ -99,19 +107,19 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
         for (e in deposits.filter { it.at in (last + 1)..now }) {
             val a = e.deposit
             val zoneDay = { ms: Long -> Instant.ofEpochMilli(ms).atZone(zone).toLocalDate() }
-            val maturity = zoneDay(a.maturityDate!!)
+            val maturity = zoneDay(e.maturity)
             var unit = 1L
             repeat(app.burrow.money.data.minorDigits(a.currency)) { unit *= 10 }
             val total = depositValue(
-                a.principal ?: 0, a.interestRate?.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
-                a.startDate?.let(zoneDay) ?: maturity, maturity, maturity, unit,
+                e.principal, e.rate?.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
+                e.start?.let(zoneDay) ?: maturity, maturity, maturity, unit,
             )
             val fmt = MoneyFormat.of(a.currency).withHidden(st.hideInNotifications)
             val payout = accounts.firstOrNull { it.id == a.payoutAccountId }?.name
             // "₹1,12,000 goes to HDFC Savings on Mon, 26 Oct" (166).
             val day = app.burrow.money.ui.DateText(context, java.util.Locale.getDefault(), st.dateFormat).weekdayDay(maturity)
             val line = if (payout != null) string(R.string.deposit_reminder_line, fmt.plain(total), payout, day) else string(R.string.deposit_reminder_line_alone, fmt.plain(total), day)
-            notifier?.show(60_000 + (a.id % 10_000).toInt(), string(R.string.deposit_reminder, a.name), line, Notifier.openAccounts(context))
+            notifier?.show(60_000 + (e.key % 10_000).toInt(), string(R.string.deposit_reminder, a.name), line, Notifier.openAccounts(context))
         }
     }
     settings.setBillsCheckedAt(now)

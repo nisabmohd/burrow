@@ -181,13 +181,23 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: (String) ->
                     ListRow(
                         a.account.name, i, list.size,
                         // Two or more cards on one bill (193): "RuPay ••1234 · Visa ••5678".
-                        supporting = s.cards[a.account.id]?.takeIf { it.size > 1 }?.let { cardsLine(it) } ?: accountLine(a.account),
+                        supporting = when {
+                            a.account.type == AccountType.SAVINGS -> savingsLine(a.account)
+                            else -> s.cards[a.account.id]?.takeIf { it.size > 1 }?.let { cardsLine(it) } ?: accountLine(a.account)
+                        },
                         lead = { CategoryCircle(a.account.icon, a.account.colorHue) },
                         trailing = {
-                            AmountTrailing(
+                            // Every month savings at a fixed rate with an end (210): a ring of instalments paid.
+                            val total = a.account.takeIf { it.type == AccountType.SAVINGS && !it.marketValue && app.burrow.money.data.savingsModeOf(it) == app.burrow.money.data.SavingsMode.MONTHLY }
+                                ?.let { x -> x.startDate?.let { st -> x.maturityDate?.let { m -> app.burrow.money.domain.instalmentCount(dates.date(st), dates.date(m)) } } }
+                            if (total != null && total > 0) {
+                                val hue = app.burrow.money.ui.theme.categoryColors(a.account.colorHue)
+                                app.burrow.money.ui.components.RingPercent((s.paid[a.account.id] ?: 0).toFloat() / total, hue.solid, hue.track)
+                            } else AmountTrailing(
                                 when (a.account.type) {
                                     AccountType.CARD -> stringResource(R.string.amount_due, money.plain(-a.balance))
                                     AccountType.LOAN -> money.short(-a.balance)
+                                    AccountType.SAVINGS -> money.short(a.worth)
                                     else -> money.balance(a.balance)
                                 },
                             )
@@ -228,7 +238,7 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: (String) ->
     }
 }
 
-private enum class AccountSheet { FIX, PAY, PREPAY, ADD_CARD }
+private enum class AccountSheet { FIX, PAY, PREPAY, ADD_CARD, ADD_MONEY, UPDATE_VALUE }
 
 /**
  * One account: bank, cash or wallet (56) with Fix balance and Transfer; card (57) with what is due,
@@ -238,13 +248,17 @@ private enum class AccountSheet { FIX, PAY, PREPAY, ADD_CARD }
 @Composable
 fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onTransfer: (Long) -> Unit, onOpenTxn: (Long) -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val savingsState by vm.savings.collectAsStateWithLifecycle()
     val s = state ?: return
+    val sv = savingsState
     val money = LocalMoney.current
     val dates = rememberDateText()
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     var sheet by rememberSaveable { mutableStateOf<AccountSheet?>(null) }
     val a = s.account
+    // Nothing under the header until its numbers are in (no "₹0" flash).
+    if (a.type == AccountType.SAVINGS && sv == null) return
     DetailFrame(onBack, actions = {
         TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(a.id) })
     }) {
@@ -323,26 +337,9 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                     }
                 }
             }
-            s.deposit != null -> {
-                val d = s.deposit
-                CenterHeader(icon, a.name, money.plain(d.atMaturity), line = d.maturity?.let { stringResource(R.string.at_maturity, dates.fullDay(it)) })
-                ListGroup {
-                    ListRow(
-                        stringResource(R.string.put_in, money.short(d.putIn)), 0, 3, supporting = stringResource(R.string.earned_so_far, money.plain(d.earned)),
-                        lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-                    )
-                    ListRow(
-                        stringResource(R.string.credit_to, d.payout?.name ?: stringResource(R.string.an_account)), 1, 3,
-                        supporting = d.maturity?.let { stringResource(R.string.asks_you_on, dates.fullDay(it)) },
-                        lead = { CategoryCircle(d.payout?.icon, d.payout?.colorHue) },
-                    )
-                    ListRow(
-                        stringResource(R.string.remind_week_before), 2, 3,
-                        lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
-                        trailing = { BurrowSwitch(a.remind, vm::setRemind) },
-                    )
-                }
-            }
+            sv != null -> SavingsContent(
+                a, sv, icon, vm::setRemind, { sheet = AccountSheet.ADD_MONEY }, { sheet = AccountSheet.UPDATE_VALUE },
+            )
             else -> {
                 CenterHeader(icon, a.name, money.balance(s.balance), line = accountLine(a))
                 ListGroup {
@@ -372,7 +369,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 trailing = { BurrowSwitch(a.includeInNetWorth, vm::setInNetWorth) },
             )
         }
-        if (s.deposit == null) {
+        if (a.type != AccountType.SAVINGS) {
             val today = LocalDate.now()
             s.txns.groupBy { dates.date(it.txn.at) }.entries.take(30).forEach { (day, list) ->
                 SectionHeader(dates.day(day, today))
@@ -412,6 +409,38 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 sheet = null
                 vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.prepaid), undo) }
             }
+        }
+        AccountSheet.ADD_MONEY -> if (sv != null) {
+            val monthly = sv.mode == app.burrow.money.data.SavingsMode.MONTHLY
+            val newDeposit = sv.mode == app.burrow.money.data.SavingsMode.ONCE && !sv.market
+            var rate by rememberSaveable { mutableStateOf(a.interestRate.orEmpty()) }
+            var maturity by rememberSaveable { mutableStateOf(LocalDate.now().plusMonths(sv.termMonths.toLong())) }
+            var step by rememberSaveable { mutableStateOf<String?>(null) }
+            when (step) {
+                "deposit" -> NewDepositSheet(rate, maturity, { step = "rate" }, { step = "date" }, { step = null })
+                "rate" -> PercentSheet(stringResource(R.string.interest), rate, { rate = it; step = "deposit" }, { step = "deposit" })
+                "date" -> DateSheet(maturity, { maturity = it; step = "deposit" }, { step = "deposit" }, future = true, title = stringResource(R.string.matures_on))
+                else -> PayInSheet(
+                    stringResource(if (monthly) R.string.pay_instalment else R.string.add_money), a.name,
+                    if (monthly) a.emi ?: unit else unit * 10_000,
+                    payFrom.sortedByDescending { it.account.id == a.payoutAccountId }, { sheet = null },
+                    confirm = stringResource(if (monthly) R.string.pay else R.string.add),
+                    extra = if (newDeposit) ({ i, n ->
+                        val months = java.time.temporal.ChronoUnit.MONTHS.between(LocalDate.now(), maturity).toInt().coerceAtLeast(1)
+                        NewDepositRow(rate, months, i, n) { step = "deposit" }
+                    }) else null,
+                ) { from, amount, day ->
+                    sheet = null
+                    if (monthly) vm.payInstalment(from, amount, day) { undo -> snackbar.show(context.getString(R.string.instalment_paid), undo) }
+                    else vm.addMoney(from, amount, day, rate.ifEmpty { null }, maturity) { undo ->
+                        snackbar.show(if (newDeposit) context.getString(R.string.deposit_added, a.name) else context.getString(R.string.money_added_to, money.plain(amount), a.name), undo)
+                    }
+                }
+            }
+        }
+        AccountSheet.UPDATE_VALUE -> if (sv != null) UpdateValueSheet(a, sv, { sheet = null }) { v ->
+            sheet = null
+            vm.updateValue(v) { undo -> snackbar.show(context.getString(R.string.value_saved), undo) }
         }
         AccountSheet.ADD_CARD -> CardSheet(
             stringResource(R.string.add_another_card), stringResource(R.string.add_another_card_sheet_line, a.name), stringResource(R.string.add_card),
@@ -464,6 +493,9 @@ private fun PayInSheet(
     accountLabel: Int = R.string.from_account,
     accountLine: Int = R.string.a_transfer_not_spending,
     chips: List<Pair<String, Long>> = emptyList(),
+    confirm: String = stringResource(R.string.save),
+    /** A third row (205: "Starts a new deposit"), given its index and the row count. */
+    extra: (@Composable (Int, Int) -> Unit)? = null,
     onPay: (Long, Long, LocalDate) -> Unit,
 ) {
     val money = LocalMoney.current
@@ -479,21 +511,23 @@ private fun PayInSheet(
     }
     app.burrow.money.ui.components.AmountSheet(
         title = title, line = line, amount = amount, onChange = { amount = it }, chips = chips,
-        confirm = stringResource(R.string.save), cancel = true, min = 1,
+        confirm = confirm, cancel = true, min = 1,
         onDone = { a -> fromId?.let { onPay(it, a, day) } }, onDismiss = onDismiss,
         rows = {
+            val n = if (extra != null) 3 else 2
             ListGroup {
                 ListRow(
-                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, 2,
+                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, n,
                     supporting = listOfNotNull(account?.let { money.plain(it.balance) }, stringResource(accountLine)).joinToString(" · "),
                     lead = { CategoryCircle(account?.account?.icon, account?.account?.colorHue) },
                     onClick = { picking = "account" },
                 )
                 ListRow(
-                    dates.day(day), 1, 2, supporting = stringResource(R.string.date),
+                    dates.day(day), 1, n, supporting = stringResource(R.string.date),
                     lead = { IconCircle(painterResource(R.drawable.ic_schedule_duotone)) },
                     onClick = { picking = "date" },
                 )
+                extra?.invoke(2, n)
             }
         },
     )
@@ -501,7 +535,7 @@ private fun PayInSheet(
 
 private val TYPES = listOf(AccountType.BANK, AccountType.CASH, AccountType.WALLET, AccountType.CARD, AccountType.LOAN, AccountType.SAVINGS)
 
-private enum class FormSheet { STATEMENT, DUE, MATURITY, LIMIT, LIMIT_AMOUNT, DUE_AMOUNT, BANK, CARD, CARD_NAME }
+private enum class FormSheet { STATEMENT, DUE, MATURITY, LIMIT, LIMIT_AMOUNT, DUE_AMOUNT, BANK, CARD, CARD_NAME, SAVINGS_AMOUNT, SAVINGS_RATE, SAVINGS_FROM }
 
 /**
  * New account / edit account: type, name, balance, last digits, and the type's own details.
@@ -525,12 +559,15 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
     val newCard = !vm.isEdit && f.type == AccountType.CARD
     val joins = if (newCard) vm.cardOfBank(f, otherCards) else null
     val sameBill = joins != null && f.sameBill
+    val savings = f.type == AccountType.SAVINGS
+    val payAccounts by vm.payAccounts.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         ScreenTopBar(
             painterResource(R.drawable.ic_close_regular), stringResource(R.string.close), onClose,
             title = when {
                 sameBill -> stringResource(R.string.add_card_to, app.burrow.money.ui.shortName(joins!!.name))
                 newCard -> stringResource(R.string.new_credit_card)
+                savings && !vm.isEdit -> stringResource(R.string.new_savings)
                 vm.isEdit -> stringResource(R.string.edit_account)
                 else -> stringResource(R.string.new_account)
             },
@@ -564,7 +601,16 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
         app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
         ) {
-            if (newCard) {
+            if (savings) {
+                SavingsFormFields(
+                    f, vm.isEdit, payAccounts.firstOrNull { it.account.id == f.fromId },
+                    { v -> vm.edit { it.copy(name = v) } }, vm::setSavingsMode, vm::setMarket,
+                    { sheet = FormSheet.SAVINGS_AMOUNT }, { sheet = FormSheet.SAVINGS_RATE }, { sheet = FormSheet.MATURITY }, { sheet = FormSheet.SAVINGS_FROM },
+                    amountMissing = f.tried && !vm.canSave(f) && f.name.isNotBlank(),
+                )
+                // New savings (208) ends here; editing keeps colour, icon, net worth and Archive.
+                if (!vm.isEdit) return@BlockColumn
+            } else if (newCard) {
                 // The bank (191/192): a card from a bank you already have a card from may join that card's bill.
                 // Names only, no lead: a letter or a generic icon looks like a placeholder (196, user 2026-11-08).
                 app.burrow.money.ui.components.SelectField(stringResource(R.string.bank), f.bank, stringResource(R.string.choose_bank), { sheet = FormSheet.BANK })
@@ -630,7 +676,8 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                         lead = { IconCircle(painterResource(R.drawable.ic_payments_duotone)) }, onClick = { sheet = FormSheet.DUE_AMOUNT },
                     )
                 }
-            } else {
+            }
+            if (!savings && !newCard) {
                 // A preview of how it looks in lists (106): icon in its colour, name with the last digits, kind.
                 Column(Modifier.fillMaxWidth().padding(top = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
                     app.burrow.money.ui.pickers.CategoryCircle(f.shownIcon, f.hue, Size.iconCircleBig)
@@ -816,7 +863,15 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                 vm.setCards(if (card == null) f.cards + CardDraft(name = name, number = number) else f.cards.map { if (it === card) it.copy(name = name, number = number) else it })
             }
         }
-        FormSheet.MATURITY -> DateSheet(f.maturity ?: LocalDate.now().plusYears(1), { d -> vm.edit { it.copy(maturity = d) }; sheet = null }, { sheet = null }, future = true, title = stringResource(R.string.matures_on))
+        FormSheet.MATURITY -> DateSheet(f.maturity ?: LocalDate.now().plusYears(1), { d -> vm.edit { it.copy(maturity = d) }; sheet = null }, { sheet = null }, future = true, title = stringResource(if (savings) R.string.ends else R.string.matures_on))
+        FormSheet.SAVINGS_AMOUNT -> app.burrow.money.ui.components.AmountSheet(
+            title = stringResource(if (f.savingsMode == app.burrow.money.data.SavingsMode.MONTHLY) R.string.each_month else R.string.amount),
+            amount = app.burrow.money.domain.AmountInput(f.balance, money.digits).minor(),
+            onDone = { m -> vm.edit { it.copy(balance = app.burrow.money.domain.AmountInput.of(m, money.digits).text) }; sheet = null },
+            onDismiss = { sheet = null },
+        )
+        FormSheet.SAVINGS_RATE -> PercentSheet(stringResource(R.string.interest), f.rate, { r -> vm.edit { it.copy(rate = r) }; sheet = null }, { sheet = null })
+        FormSheet.SAVINGS_FROM -> AccountSheet(payAccounts, f.fromId, { a -> vm.edit { it.copy(fromId = a.account.id) }; sheet = null }, { sheet = null })
         null -> Unit
     }
 }

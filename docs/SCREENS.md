@@ -213,6 +213,17 @@ Rule: same bill → add the card to the existing account; own bill → a new car
 | 199-one-card-bill | One-card bill | header "Card ••5521 · due Tue, 28 Oct"; Cards on this bill without the meta; the card row says "Credit card" |
 | 200-edit-one-card-unnamed | Edit account, card from before v8 | "Card ••5521" with "Tap to name it" in primary; no ✕ with one card |
 | 201-name-a-card-sheet | Card name | line "••5521 · HDFC Regalia"; field with ✕; Save (filled once typed). Any card row in Edit account opens it |
+| 202-savings-once | Savings · Once | header worth today, "₹X at maturity"; put in · rate (or "2 deposits"), Pays into, Remind me a week before; Add money; Deposits (amount at rate, from → matures, value at maturity) |
+| 203-savings-every-month | Savings · Every month | header saved so far, "₹5,000 every month · 13 of 36 paid"; Next on, rate + value when it ends, Remind me the day before; Pay instalment; Instalments (Next, paid = round check) |
+| 204-savings-any-time | Savings · Any time | header balance, "grows at 7.1% a year · add any time"; added this year + a year at this rate, No end date; Add money; Money added |
+| 205-add-money-new-deposit | Add money (Once) | value sheet; From (a transfer); Date; "Starts a new deposit · At 7.1% · matures in 2 years · tap to change" (opens New deposit: Interest, Matures — design review) |
+| 206-pay-instalment | Pay instalment | value sheet with the monthly amount; From; Date; Cancel · Pay. Marks the next instalment Paid |
+| 207-add-money-any-time | Add money (Any time) | value sheet; From; Date; Cancel · Add |
+| 208-new-savings / 209-new-savings-every-month | New savings | Name; How money goes in (Once · Every month · Any time) + helper; How it grows (Fixed rate · Market value) + helper; Amount / Each month / Starting amount, Interest, Ends, From |
+| 210-accounts-savings | Accounts › Savings | "Once · 7.1% · matures Mar 2027"; Every month at a fixed rate: ring of instalments paid; market value: worth |
+| 211-savings-market-value | Savings · Market value | header worth, "+₹7,200 on ₹54,000 put in" (never coloured); Next on (Every month), Value updated; Update value row; Pay instalment / Add money |
+| 212-update-value-sheet | Update value | value sheet, line "Index fund · was ₹61,200 on 5 Oct", "+₹9,500 on ₹54,000 put in"; Cancel · Save |
+| 213-new-savings-market | New savings, market value | no Interest; Ends "No end date · tap to set one" |
 
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.
 

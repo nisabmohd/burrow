@@ -258,6 +258,7 @@ fun kindLabel(kind: String): String = stringResource(
         "SUBSCRIPTION" -> R.string.subscription
         "EMI" -> R.string.emi
         "CARD" -> R.string.card_bill
+        "SAVINGS" -> R.string.account_savings
         else -> R.string.bill
     },
 )

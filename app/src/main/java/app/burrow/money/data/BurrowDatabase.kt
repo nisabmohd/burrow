@@ -54,6 +54,31 @@ data class AccountEntity(
     @ColumnInfo(defaultValue = "1") val includeInNetWorth: Boolean = true,
     /** v6, CARD: the card whose credit limit this one uses (cards on one credit line, add-on cards). */
     val sharesLimitWith: Long? = null,
+    /**
+     * v9, SAVINGS: how money goes in, [SavingsMode] (null: made before v9, see [savingsModeOf]).
+     * ONCE keeps its first deposit in principal / interestRate / startDate / maturityDate; MONTHLY
+     * keeps the instalment in emi, the first due date in startDate and the end in maturityDate.
+     * Both use payoutAccountId for the account money comes from and goes back to.
+     */
+    val savingsMode: String? = null,
+    /** v9, SAVINGS: grows at a market value the user types now and then, not a fixed rate. */
+    @ColumnInfo(defaultValue = "0") val marketValue: Boolean = false,
+    /** v9, market value: what it was worth minus what was put in, when the value was last typed. */
+    val marketGain: Long? = null,
+    val valueUpdatedAt: Long? = null,
+)
+
+/**
+ * v9: a deposit added to a Once savings account after its first (205): the transfer that put the money
+ * in, with its own rate and maturity. A transfer in without a row uses the account's rate and term.
+ */
+@kotlinx.serialization.Serializable
+@Entity(indices = [Index("accountId")])
+data class DepositEntity(
+    @PrimaryKey val txnId: Long,
+    val accountId: Long,
+    val interestRate: String,
+    val maturityDate: Long,
 )
 
 @kotlinx.serialization.Serializable
@@ -322,8 +347,9 @@ const val CARDS_FROM_ACCOUNTS =
         CaptureRuleEntity::class, CaptureEntity::class,
         PersonEntity::class, AttachmentEntity::class, TagEntity::class, TxnTagEntity::class, RateEntity::class,
         SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class, CardEntity::class,
+        DepositEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
@@ -333,6 +359,7 @@ const val CARDS_FROM_ACCOUNTS =
         AutoMigration(from = 5, to = 6), // cards sharing one credit limit
         AutoMigration(from = 6, to = 7), // hidden merchant on payments, expense name on captures
         AutoMigration(from = 7, to = 8, spec = V7To8::class), // two cards, one bill: card rows, the card a payment used
+        AutoMigration(from = 8, to = 9), // savings: once / every month / any time, market value, deposits
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {
@@ -348,6 +375,7 @@ abstract class BurrowDatabase : RoomDatabase() {
     abstract fun extras(): ExtrasDao
     abstract fun next(): NextDao
     abstract fun cards(): CardDao
+    abstract fun savings(): SavingsDao
 
     companion object {
         fun create(context: Context): BurrowDatabase =

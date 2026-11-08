@@ -37,9 +37,9 @@ data class ComingItem(
     val txn: TxnView? = null,
 ) {
     val repeats get() = occurrence != null
-    /** Expenses only lower "safe to spend"; transfers (card bill, EMI) and income don't. */
+    /** Expenses only lower "safe to spend"; transfers (card bill, EMI, savings instalment) and income don't. */
     val countsAsSpending get() = !income && (txn?.txn?.type ?: TxnType.EXPENSE) == TxnType.EXPENSE &&
-        occurrence?.kind.let { it != "EMI" && it != "CARD" }
+        occurrence?.kind.let { it != "EMI" && it != "CARD" && it != "SAVINGS" }
 }
 
 private fun Long.date(zone: ZoneId): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()

@@ -15,6 +15,8 @@
 - A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.
 - Play Console fixes (as Weft): edge-to-edge without the deprecated status and navigation bar colour calls, R8 shrinks resources with the code, Android Gradle plugin 9.1. The APK is a little smaller (3.2 MB).
 - New store screenshots.
+- Savings, one kind with one choice, How money goes in: Once (a deposit; adding more starts a new deposit with its own rate and maturity), Every month (instalments in Coming up, Pay instalment, a ring of instalments paid) or Any time (add whatever, whenever; what it earns a year at its rate). All money in is a transfer, never spending.
+- How it grows: Fixed rate, or Market value for funds, shares, gold or crypto. You type the value now and then (Update value); Burrow never looks it up. Net worth counts what it is worth, and Sunday review reminds you when a value is a month old.
 
 ## 0.3.2
 - Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.

@@ -37,6 +37,8 @@ import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import app.burrow.money.ui.accounts.staleInvestments
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -44,6 +46,11 @@ import java.time.LocalDate
 /** Sunday review (14): the week in four rows, and one button that saves what waits in To review. */
 class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
     val state: StateFlow<WeeklySummary?> = app.weeklySummaryFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Market-value savings last updated 30+ days ago (101: "Update 1 investment"). */
+    val stale: StateFlow<List<app.burrow.money.data.AccountEntity>> = app.money.accounts
+        .map { list -> staleInvestments(list) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** The review is finished ("Save N and finish" or "Done"): the calm moment for Play's rating card. */
     fun finished(activity: android.app.Activity?) {
@@ -76,8 +83,10 @@ fun SundayReviewScreen(
     onBills: () -> Unit,
     onBudget: () -> Unit,
     onCategory: (Long) -> Unit,
+    onAccount: (Long?) -> Unit = {},
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val stale by vm.stale.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -142,6 +151,17 @@ fun SundayReviewScreen(
                     supportingColor = if (s.left < 0) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     lead = { IconCircle(painterResource(R.drawable.ic_donut_large_duotone)) },
                     onClick = onBudget,
+                )
+            }
+            if (stale.isNotEmpty()) add { i, n ->
+                val first = stale.first()
+                ListRow(
+                    pluralStringResource(R.plurals.update_investments, stale.size, stale.size), i, n,
+                    supporting = if (stale.size == 1) stringResource(R.string.value_from, first.name, first.valueUpdatedAt?.let { dates.shortDay(dates.date(it)) }.orEmpty())
+                    else stale.joinToString(", ") { it.name },
+                    lead = { IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
+                    trailing = { Chevron() },
+                    onClick = { onAccount(if (stale.size == 1) first.id else null) },
                 )
             }
             add { i, n ->

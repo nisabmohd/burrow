@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -65,16 +66,19 @@ data class AccountsState(
     val payAccounts: List<AccountWithBalance>,
     /** Card accounts' cards (193: "RuPay ••1234 · Visa ••5678" when a bill has two or more). */
     val cards: Map<Long, List<CardEntity>> = emptyMap(),
+    /** Every month savings: instalments paid, by account (210's ring). */
+    val paid: Map<Long, Int> = emptyMap(),
 )
 
 /** Accounts (55): grouped, net worth (the accounts it counts plus goals), lent and borrowed. */
 class AccountsViewModel(private val money: MoneyRepository) : ViewModel() {
-    val state: StateFlow<AccountsState?> = combine(money.accounts, money.netWorth, money.people, money.cards) { accs, nw, people, cards ->
+    val state: StateFlow<AccountsState?> = combine(money.accounts, money.netWorth, money.people, money.cards, money.savingsPaid) { accs, nw, people, cards, paid ->
         AccountsState(
             AccountGroup.entries.map { g -> g to accs.filter { it.account.type in g.types } }.filter { it.second.isNotEmpty() },
             nw.total, accs.size, nw.excluded, people,
             accs.filter { it.account.type == AccountType.BANK || it.account.type == AccountType.CASH || it.account.type == AccountType.WALLET },
             cards.groupBy { it.accountId },
+            paid.associate { it.accountId to it.total.toInt() },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -105,9 +109,33 @@ data class CardInfo(
 @Immutable
 data class LoanInfo(val left: Long, val emi: Long, val paid: Int, val total: Int, val ends: LocalDate?, val interestLeft: Long, val next: List<Instalment>)
 
-/** A deposit's numbers (59). */
+/** One deposit in a Once savings account (202). */
 @Immutable
-data class DepositInfo(val putIn: Long, val atMaturity: Long, val earned: Long, val maturity: LocalDate?, val payout: AccountEntity?)
+data class DepositRow(val amount: Long, val rate: String, val start: LocalDate, val maturity: LocalDate, val atMaturity: Long)
+
+/** A savings account's numbers (202–204, 211). */
+@Immutable
+data class SavingsInfo(
+    val mode: String,
+    val market: Boolean,
+    /** Worth today: deposits' value (Once, fixed), the typed value plus money since (market), else the balance. */
+    val worth: Long,
+    val putIn: Long,
+    val payout: AccountEntity?,
+    val deposits: List<DepositRow> = emptyList(),
+    val atMaturity: Long = 0,
+    /** Months a new deposit runs, from the first one's term (205). */
+    val termMonths: Int = 12,
+    val moneyIn: List<app.burrow.money.data.SavingsIn> = emptyList(),
+    val addedThisYear: Long = 0,
+    val yearly: Long = 0,
+    val instalments: List<app.burrow.money.data.BillOccurrenceEntity> = emptyList(),
+    val paid: Int = 0,
+    val total: Int? = null,
+    val next: LocalDate? = null,
+    val atEnd: Long? = null,
+    val end: LocalDate? = null,
+)
 
 @Immutable
 data class AccountState(
@@ -117,7 +145,6 @@ data class AccountState(
     val others: List<AccountWithBalance>,
     val card: CardInfo?,
     val loan: LoanInfo?,
-    val deposit: DepositInfo?,
     /** A card account's cards (186) and each one's payments this month. */
     val cards: List<CardEntity> = emptyList(),
     val cardCounts: Map<Long, Int> = emptyMap(),
@@ -125,7 +152,13 @@ data class AccountState(
 
 /** One account (56–59). */
 /** [onDepositChanged] sets the reminder alarm again after a deposit's "Remind me a week before" changes. */
-class AccountViewModel(private val money: MoneyRepository, private val strings: Strings, val id: Long, private val onDepositChanged: suspend () -> Unit = {}) : ViewModel() {
+class AccountViewModel(
+    private val money: MoneyRepository,
+    private val strings: Strings,
+    val id: Long,
+    private val plan: app.burrow.money.data.PlanRepository? = null,
+    private val onDepositChanged: suspend () -> Unit = {},
+) : ViewModel() {
     private val today = LocalDate.now(zone)
 
     private val monthStart = YearMonth.from(today).atDay(1).millis()
@@ -141,7 +174,6 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
             others = accs.filter { it.account.id != id },
             card = if (a.type == AccountType.CARD) card(a, me.balance, mine, accs) else null,
             loan = if (a.type == AccountType.LOAN) loan(a, me.balance) else null,
-            deposit = if (a.type == AccountType.SAVINGS && a.maturityDate != null) deposit(a, accs) else null,
             cards = cards.filter { it.accountId == id },
             cardCounts = counts,
         )
@@ -167,14 +199,17 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
 
     private fun loan(a: AccountEntity, balance: Long): LoanInfo? = loanInfo(a, balance, today)
 
-    private fun deposit(a: AccountEntity, accs: List<AccountWithBalance>): DepositInfo {
-        val putIn = a.principal ?: 0
-        val rate = a.interestRate?.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
-        val start = a.startDate?.day() ?: today
-        val maturity = a.maturityDate!!.day()
-        val u = unit(a.currency)
-        return DepositInfo(putIn, depositValue(putIn, rate, start, maturity, maturity, u), depositValue(putIn, rate, start, maturity, today, u) - putIn, maturity, accs.firstOrNull { it.account.id == a.payoutAccountId }?.account)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val occurrences = money.savingsBill(id).flatMapLatest { b ->
+        if (b == null || plan == null) kotlinx.coroutines.flow.flowOf(emptyList()) else plan.occurrencesOf(b.id).map { l -> l.map { it.occurrence } }
     }
+
+    val savings: StateFlow<SavingsInfo?> = combine(money.accounts, money.moneyIn(id), occurrences) { accs, ins, occ ->
+        val me = accs.firstOrNull { it.account.id == id } ?: return@combine null
+        val a = me.account
+        if (a.type != AccountType.SAVINGS) return@combine null
+        savingsInfo(me, ins, occ, accs.firstOrNull { it.account.id == a.payoutAccountId }?.account, today)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Fix balance: one adjustment row so the balance matches the bank. Returns how to undo it. */
     fun fixBalance(actual: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
@@ -209,7 +244,44 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
     }
 
     fun setRemind(on: Boolean) = viewModelScope.launch {
-        state.value?.account?.let { money.updateAccount(it.copy(remind = on)); onDepositChanged() }
+        state.value?.account?.let { val a = it.copy(remind = on); money.updateAccount(a); plan?.syncSavingsBill(a); onDepositChanged() }
+    }
+
+    private fun atMillis(day: LocalDate) = if (day == LocalDate.now()) System.currentTimeMillis()
+        else day.atTime(java.time.LocalTime.NOON).atZone(zone).toInstant().toEpochMilli()
+
+    /** Add money (205, 207): a transfer in; to a Once account at a fixed rate it starts a new deposit. */
+    fun addMoney(from: Long, amount: Long, day: LocalDate, rate: String?, maturity: LocalDate?, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        val s = state.value ?: return@launch
+        val sv = savings.value
+        if (sv == null || sv.mode != app.burrow.money.data.SavingsMode.ONCE || sv.market || rate == null || maturity == null) {
+            payIn(from, amount, day, onDone)
+            return@launch
+        }
+        val now = System.currentTimeMillis()
+        val txnId = money.addDeposit(
+            TxnEntity(
+                type = TxnType.TRANSFER, amount = amount, currency = s.account.currency, baseAmount = amount, accountId = from, toAccountId = id,
+                isSample = s.account.isSample, at = atMillis(day), createdAt = now, updatedAt = now,
+            ),
+            rate, maturity.millis(),
+        )
+        onDepositChanged()
+        onDone { money.delete(txnId) }
+    }
+
+    /** Pay instalment (206): marks the next instalment Paid. */
+    fun payInstalment(from: Long, amount: Long, day: LocalDate, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        val p = plan ?: return@launch
+        onDone(p.payInstalment(id, from, amount, atMillis(day)))
+    }
+
+    /** Update value (212): what it is worth today, typed; kept as the gain over what was put in. */
+    fun updateValue(value: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        val s = state.value ?: return@launch
+        val before = s.account
+        money.updateAccount(before.copy(marketGain = value - s.balance, valueUpdatedAt = System.currentTimeMillis()))
+        onDone { money.updateAccount(before) }
     }
 
     /** Add another card on this bill (189). */
@@ -249,6 +321,10 @@ data class AccountForm(
     /** New CARD (191/192): the bank it is from (null: another bank), and whether it joins that bank's card's bill. */
     val bank: String? = null,
     val sameBill: Boolean = true,
+    /** SAVINGS (208, 209, 213): how money goes in, how it grows, the account money comes from. */
+    val savingsMode: String = app.burrow.money.data.SavingsMode.ONCE,
+    val market: Boolean = false,
+    val fromId: Long? = null,
 )
  {
     val shownIcon get() = icon ?: defaultAccountIcon(type)
@@ -274,6 +350,7 @@ fun defaultAccountIcon(type: String) = when (type) {
 val ACCOUNT_ICONS = listOf(
     "account_balance", "credit_card", "account_balance_wallet", "payments", "savings", "real_estate_agent",
     "smartphone", "home", "shield", "flight", "school", "redeem",
+    "event_repeat", "bar_chart", "flag", "gold", "investment", "child_care",
 )
 
 /**
@@ -295,6 +372,7 @@ class NewAccountViewModel(
     private val currency: String,
     /** Welcome step 2's "+ Card", Add account (190): the type to start with. */
     val startType: String? = null,
+    private val plan: app.burrow.money.data.PlanRepository? = null,
     /** Sets the reminder alarm again after a deposit is saved (its maturity may have moved). */
     private val onDepositChanged: suspend () -> Unit = {},
 ) : ViewModel() {
@@ -313,6 +391,11 @@ class NewAccountViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val isEdit get() = editId != 0L
 
+    /** Accounts money can come from (New savings › From, 208). */
+    val payAccounts: StateFlow<List<AccountWithBalance>> = money.accounts
+        .map { list -> list.filter { it.account.type == AccountType.BANK || it.account.type == AccountType.CASH || it.account.type == AccountType.WALLET } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     /** Your accounts' names, for "Your banks" in the Bank sheet (196). */
     val accountNames: StateFlow<List<String>> = money.accounts
         .map { list -> list.filter { !it.account.archived }.map { it.account.name } }
@@ -330,15 +413,29 @@ class NewAccountViewModel(
                     hue = it.colorHue, icon = it.icon, inNetWorth = it.includeInNetWorth, opening = it.openingBalance,
                     sharesLimitWith = it.sharesLimitWith,
                     cards = money.cards.first().filter { c -> c.accountId == it.id }.map { c -> CardDraft(c.id, c.name, c.number) },
-                )
-            } ?: AccountForm(type = startType ?: AccountType.BANK)
+                    savingsMode = app.burrow.money.data.savingsModeOf(it), market = it.marketValue, fromId = it.payoutAccountId,
+                ).let { f -> if (it.type == AccountType.SAVINGS && f.savingsMode == app.burrow.money.data.SavingsMode.MONTHLY) f.copy(balance = txt(it.emi)) else f }
+            } ?: AccountForm(type = startType ?: AccountType.BANK).let { f ->
+                if (f.type != AccountType.SAVINGS) f
+                else f.copy(maturity = LocalDate.now().plusYears(2), fromId = money.accounts.first().firstOrNull { it.account.type == AccountType.BANK }?.account?.id)
+            }
         }
     }
 
     fun edit(change: (AccountForm) -> AccountForm) = form.update { it?.let(change) }
 
     /** A new card needs its name and 4 digits (191/192); everything else a name. */
-    fun canSave(f: AccountForm) = f.name.isNotBlank() && (isEdit || f.type != AccountType.CARD || f.number.length == 4)
+    fun canSave(f: AccountForm) = f.name.isNotBlank() && (isEdit || f.type != AccountType.CARD || f.number.length == 4) &&
+        (f.type != AccountType.SAVINGS || (isEdit && f.savingsMode != app.burrow.money.data.SavingsMode.MONTHLY) || TypedAmount.parse(f.balance, digits) > 0)
+
+    /** How money goes in / how it grows (208, 213): Any time and market value start with no end date. */
+    fun setSavingsMode(mode: String) = edit {
+        val open = mode == app.burrow.money.data.SavingsMode.ANY || it.market
+        it.copy(savingsMode = mode, maturity = if (open) null else it.maturity ?: LocalDate.now().plusYears(2))
+    }
+    fun setMarket(on: Boolean) = edit {
+        it.copy(market = on, maturity = if (on || it.savingsMode == app.burrow.money.data.SavingsMode.ANY) null else it.maturity ?: LocalDate.now().plusYears(2))
+    }
 
     /** New card from a bank you already have a card from (191): the card account it may join. */
     fun cardOfBank(f: AccountForm, cards: List<AccountEntity>): AccountEntity? = f.bank?.let { b ->
@@ -361,7 +458,8 @@ class NewAccountViewModel(
         val a = original ?: return
         viewModelScope.launch {
             money.updateAccount(a.copy(archived = true))
-            onDone { money.updateAccount(a) }
+            plan?.syncSavingsBill(a.copy(archived = true))
+            onDone { money.updateAccount(a); plan?.syncSavingsBill(a) }
         }
     }
 
@@ -407,12 +505,41 @@ class NewAccountViewModel(
                 maturityDate = if (f.type == AccountType.SAVINGS) f.maturity?.millis() else null,
                 isSample = false,
             )
-            if (original == null) money.addAccount(a, cardName = if (a.type == AccountType.CARD) f.name.trim() else "") else money.updateAccount(a)
+            val saved = if (a.type == AccountType.SAVINGS) savingsAccount(a, f, entered) else a
+            val newId = if (original == null) money.addAccount(saved, cardName = if (a.type == AccountType.CARD) f.name.trim() else "") else { money.updateAccount(saved); saved.id }
+            if (saved.type == AccountType.SAVINGS || original?.type == AccountType.SAVINGS) plan?.syncSavingsBill(saved.copy(id = newId))
             if (isEdit && a.type == AccountType.CARD) money.setCards(a.id, f.cards.map { CardEntity(it.id, a.id, it.name, it.number) })
             if (a.type == AccountType.SAVINGS || original?.type == AccountType.SAVINGS) onDepositChanged()
             onSaved(if (!isEdit && a.type == AccountType.CARD) strings(R.string.card_added) else null)
         }
     }
+}
+
+/**
+ * A savings account from its form (208, 209, 213): Once and Any time start with the amount as the
+ * balance (no money moves); Every month starts at 0 and pays the amount each month from the from account.
+ */
+private fun savingsAccount(a: AccountEntity, f: AccountForm, amount: Long): AccountEntity {
+    val monthly = f.savingsMode == app.burrow.money.data.SavingsMode.MONTHLY
+    val new = a.id == 0L
+    val look = when {
+        f.market -> "bar_chart" to 140f
+        monthly -> "event_repeat" to 168f
+        f.savingsMode == app.burrow.money.data.SavingsMode.ANY -> "flag" to 245f
+        else -> "savings" to 50f
+    }
+    return a.copy(
+        savingsMode = f.savingsMode, marketValue = f.market,
+        openingBalance = if (new) (if (monthly) 0 else amount) else a.openingBalance,
+        principal = if (f.savingsMode == app.burrow.money.data.SavingsMode.ONCE) (a.principal?.takeIf { !new } ?: amount) else null,
+        emi = if (monthly) amount.takeIf { it > 0 } ?: a.emi else null,
+        interestRate = if (f.market) null else f.rate.trim().ifEmpty { null },
+        maturityDate = f.maturity?.atStartOfDay(java.time.ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+        payoutAccountId = f.fromId,
+        icon = if (new) look.first else a.icon, colorHue = if (new) look.second else a.colorHue,
+        marketGain = if (f.market) a.marketGain ?: 0 else null,
+        valueUpdatedAt = if (f.market) a.valueUpdatedAt ?: System.currentTimeMillis() else null,
+    )
 }
 
 /** A loan's EMIs paid, left, interest left and the next three (58; Plan › EMIs widget, 22). */
@@ -427,4 +554,50 @@ fun loanInfo(a: AccountEntity, balance: Long, today: LocalDate = LocalDate.now()
     repeat(app.burrow.money.data.minorDigits(a.currency)) { unit *= 10 }
     val schedule = loanSchedule(-balance, rate, emi, nextDate, paid + 1, unit = unit)
     return LoanInfo((-balance).coerceAtLeast(0), emi, paid, paid + schedule.size, schedule.lastOrNull()?.date, schedule.sumOf { it.interest }, schedule.take(3))
+}
+
+/** A savings account's numbers on [today], from its money in and its instalments (202–204, 211). */
+fun savingsInfo(
+    me: AccountWithBalance,
+    ins: List<app.burrow.money.data.SavingsIn>,
+    occ: List<app.burrow.money.data.BillOccurrenceEntity>,
+    payout: AccountEntity?,
+    today: LocalDate,
+): SavingsInfo {
+    val a = me.account
+    val mode = app.burrow.money.data.savingsModeOf(a)
+    val u = unit(a.currency)
+    val rate = a.interestRate?.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
+    val start = a.startDate?.day() ?: today
+    val end = a.maturityDate?.day()
+    val base = SavingsInfo(mode, a.marketValue, me.worth, me.balance, payout, moneyIn = ins)
+    if (a.marketValue) return base.copy(
+        paid = occ.count { it.status == app.burrow.money.data.OccurrenceStatus.PAID },
+        instalments = occ, next = occ.filter { it.status == app.burrow.money.data.OccurrenceStatus.UPCOMING }.minOfOrNull { it.dueDate }?.day(),
+        end = end, addedThisYear = ins.filter { it.at.day().year == today.year }.sumOf { it.amount },
+    )
+    return when (mode) {
+        app.burrow.money.data.SavingsMode.ONCE -> {
+            val term = end?.let { ChronoUnit.MONTHS.between(start, it).toInt() }?.takeIf { it > 0 } ?: 12
+            val first = end?.let { DepositRow(a.principal ?: a.openingBalance, a.interestRate.orEmpty(), start, it, 0) }
+            val rows = (listOfNotNull(first) + ins.reversed().map { i ->
+                val s = i.at.day()
+                DepositRow(i.amount, i.rate ?: a.interestRate.orEmpty(), s, i.maturity?.day() ?: s.plusMonths(term.toLong()), 0)
+            }).map { d ->
+                val r = d.rate.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
+                d.copy(atMaturity = depositValue(d.amount, r, d.start, d.maturity, d.maturity, u))
+            }
+            val worth = if (me.balance <= 0) 0 else rows.sumOf { d -> depositValue(d.amount, d.rate.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO, d.start, d.maturity, today, u) }
+            base.copy(worth = if (rows.isEmpty()) me.balance else worth, deposits = rows, atMaturity = rows.sumOf { it.atMaturity }, termMonths = term, end = end)
+        }
+        app.burrow.money.data.SavingsMode.MONTHLY -> {
+            val total = end?.let { app.burrow.money.domain.instalmentCount(start, it) }
+            base.copy(
+                instalments = occ, paid = occ.count { it.status == app.burrow.money.data.OccurrenceStatus.PAID }, total = total,
+                next = occ.filter { it.status == app.burrow.money.data.OccurrenceStatus.UPCOMING }.minOfOrNull { it.dueDate }?.day(),
+                atEnd = if (end != null && total != null) app.burrow.money.domain.recurringValue(a.emi ?: 0, rate, start, total, end, u) else null, end = end,
+            )
+        }
+        else -> base.copy(addedThisYear = ins.filter { it.at.day().year == today.year }.sumOf { it.amount }, yearly = app.burrow.money.domain.yearlyInterest(me.balance, rate, u), end = end)
+    }
 }
