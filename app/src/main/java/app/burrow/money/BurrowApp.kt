@@ -25,10 +25,15 @@ class BurrowApp : Application() {
         app.burrow.money.data.Region.detect(this)
         // Message text older than 30 days goes (docs/CAPTURE.md § Keep). Off the main thread.
         container.appScope.launch { container.capture.forgetOldText() }
+        // Payment notifications for payments already saved or ignored (on another screen, or before
+        // an update) go; the ones still in To review stay.
+        container.appScope.launch {
+            container.capture.toReview.collect { list -> container.notifier.clearDone(list.map { it.id }) }
+        }
         // Bill reminders: catch up on anything due and set the next alarm.
         container.appScope.launch { container.runBillReminders() }
         // Scheduled backups: set the next daily check.
-        container.appScope.launch { container.backup.schedule(); container.runMonthlySummary() }
+        container.appScope.launch { container.backup.schedule(); container.drive.ensureScheduled(); container.runMonthlySummary() }
         // Attachment files of deleted transactions (upcoming payments post in runBillReminders).
         container.appScope.launch { container.attachments.cleanOrphans(); container.next.cleanOrphans(); container.runSettleReminders() }
         // Sunday review (13): the next Sunday 6 PM alarm. Home-screen widget and shortcuts: fresh numbers.

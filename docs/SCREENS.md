@@ -174,6 +174,18 @@ width, light (dark mode is checked in the app). "→" means what a tap opens.
 | 145-auto-capture-off | Auto-capture (off) | "Auto-capture is off" note, the two switches, "2 messages not understood · Teach it the ones it missed" (shown even when off), How it works |
 | 171 · 172 · 173 | Coming up swipe | below 96 dp the background stays surfaceContainer with no label; armed it fills (right primaryContainer "Mark paid", left surfaceContainerHighest "Skip") and the label appears |
 
+## Review round (8 Nov) — 179–185 (`burrow-review-1108.zip`)
+| PNG | Screen | Decision |
+|---|---|---|
+| 179-backup-drive-connect | Backup › Google Drive (not connected) | own section "Google Drive" after Settings: one row "Connect Google Drive · Encrypted copy in your own Drive" (cloud) |
+| 180-backup-drive-connected | Backup › Google Drive (connected) | one group: Back up to Drive now (last time) · Restore from Drive (N backups) · Wi-Fi only (switch, "Never uses mobile data") · account row (letter circle, email, "Google account", chevron) |
+| 181-restore-from-drive-sheet | Restore from Drive | sheet "Replaces what is on this phone"; backups as rows (cloud-down, date, "1,236 transactions · 412 KB", chevron) → the same Replace your data? dialog |
+| 182-google-account-sheet | Google account | sheet titled with the email, "Google account for Drive backups": Switch account · Disconnect ("Backups stay in Drive"); separate group with the red Delete backups from Drive ("Removes the 3 Burrow backups"), like the actions sheet (06) |
+| 183-delete-drive-backups-dialog | Delete backups from Drive? | the one dialog style (icon, title, line, Cancel · Delete) |
+| 184-category-search | Category sheet search | pill search field right under the header from 9 categories; filters by name; groups that empty out disappear |
+| 185-category-search-no-results | No match | the shared empty state (cookie, search-off) "No results for “pets”", line, Clear search (tonal) · New category (filled) |
+**Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.
+
 ## Edge cases that must exist (each has a design)
 no data · sample data · auto-capture paused · permission denied · can't save yet · foreign currency ·
 split not balanced · refund larger than payment · nothing to import · search no results · filter shows nothing · after delete (Undo) · no bills · no

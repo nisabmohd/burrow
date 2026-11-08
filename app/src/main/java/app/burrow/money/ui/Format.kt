@@ -145,3 +145,10 @@ fun MoneyFormat.forTxn(type: String, amount: Long): String = when (type) {
     TxnType.INCOME, TxnType.ADJUST_UP, TxnType.REFUND -> signed(amount)
     else -> plain(amount)
 }
+
+/** The activity behind a Compose context (it may be wrapped, e.g. for the app's language). */
+tailrec fun android.content.Context.findActivity(): android.app.Activity? = when (this) {
+    is android.app.Activity -> this
+    is android.content.ContextWrapper -> baseContext.findActivity()
+    else -> null
+}

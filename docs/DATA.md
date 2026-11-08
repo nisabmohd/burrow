@@ -40,10 +40,11 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 ## DataStore keys
 homeTopCard, homeWidgetsOrder, homeRecentCount, homeShowReview, formExtras (note,repeat,attach,lend), formDefaultType, formDefaultAccount, formLastCategory, showTime, onPaymentFound (ASK / EDIT_FIRST / SAVE), countUpcoming, confirmDelete, swipeRight, swipeLeft, numberFormat, dateFormat, weekStart, currencyDisplay (SYMBOL / CODE), decimals (AUTO / 0 / 2), theme, dynamicColor (false), accentHue (345), font ("lexend"), textSize, languageTag, mainCurrency,
 monthStartDay (1), numberStyle, smsCapture, notificationCapture, enabledPacks, appLock, lockAfter,
-hideAmounts, backupFolderUri, backupSchedule, lastBackupAt, firstOpenAt, txnCount, sampleBannerHidden,
+hideAmounts, backupFolderUri, backupSchedule, lastBackupAt, driveAccount, driveWifiOnly (true), lastDriveBackupAt,
+driveBackupError, driveBackupCount, reviewAskedAt, firstOpenAt, txnCount, sampleBannerHidden,
 homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 
-## Backup (no cloud, no sign-in)
+## Backup (folder; Drive below)
 - One encrypted file (`burrow-2026-10-19.burrow`): JSON of all tables, zipped, AES-GCM with a key from
   the user's password (PBKDF2-HMAC-SHA256, 200k iterations, random salt + IV in the header). Uses only
   `javax.crypto`, no library.
@@ -52,6 +53,30 @@ homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 - Restore replaces everything after a confirm dialog; wrong password = dialog, nothing changes.
 - CSV export/import of transactions (date, payee, amount, currency, category, account, note).
 - Android Auto Backup is OFF (`allowBackup=false`, data extraction rules exclude everything).
+
+## Drive backup (play and github, 2026-11-08, ported from Weft 1.5.0)
+- Backup › Google Drive: Connect (Google's account picker; needs the backup password first, then runs a
+  first backup), Back up to Drive now, Restore from Drive (sheet of the last 10, then the same password +
+  "Replace?" flow as a file), Wi-Fi only (on), Google account sheet: Switch account / Disconnect (backups
+  stay) / Delete backups from Drive (confirm dialog). Built only from Backup's own rows and sheets.
+- Each backup is the **same encrypted `.burrow` bytes** as a folder backup (sealed with the backup password),
+  named `burrow-backup-<ISO time>.burrow` in `drive.appdata` (hidden; only Burrow sees it), with
+  `appProperties` device + txns. Newest 10 kept. Google can't read them.
+- Scope `drive.appdata` + `email`; `AuthorizationClient` (play-services-auth) for consent, Drive v3 over plain
+  `HttpURLConnection` (no Google API client). Code: `src/drive` (play, github), stand-in `src/noDrive` (foss).
+- Schedule: Backup's Automatic backup (Daily / Weekly) drives both; Drive uses one persisted JobScheduler job
+  (`DriveBackupJob`, id 3101): next 1 AM (weekly: Monday 1 AM), charging, unmetered when Wi-Fi only. Skipped
+  within 6 h of a manual backup; a dropped connection retries. No WorkManager.
+- Errors (snackbar): offline, Wi-Fi only on mobile data, Drive full, Google needs you to allow Burrow again,
+  couldn't reach Drive, Drive unticked on Google's screen. 401 → token cleared and asked again once; 429/5xx
+  → two retries. One at a time (a mutex).
+- Owner setup: Google Cloud OAuth clients (Android) for `app.burrow.money` with the SHA-1 of the Play app-signing
+  key, the release key and the debug key; Google Drive API on. See TODO.md.
+
+## In-app review (play only)
+About › Rate opens Play's own rating card (`src/play` `PlayReview`; the store page if Play can't show it).
+Play's card also shows once when To review empties, after 30 real transactions and at most every 120 days
+(`domain/ReviewAsk.kt`). Burrow draws nothing of its own for it.
 
 ## Sample data
 First open seeds a realistic month (flagged `isSample`), with the "These are sample transactions"

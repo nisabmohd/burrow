@@ -703,6 +703,8 @@
 
     <!-- Currency (67) -->
     <string name="search_currencies">Search currency</string>
+    <string name="search_categories">Search categories</string>
+    <string name="no_category_match">Try another name, or make a new category.</string>
     <string name="your_region">from your region</string>
     <string name="from_your_region">%1$s · from your region</string>
     <string name="currency_note">Totals and budgets use this. Accounts keep their own currency.</string>
@@ -781,6 +783,14 @@
     <string name="keep_last_7">Keep last 7</string>
     <string name="keep_last_7_line">Older backups are removed</string>
     <string name="restore">Restore</string>
+    <plurals name="removes_n_backups">
+        <item quantity="one">Removes the %1$d Burrow backup</item>
+        <item quantity="other">Removes the %1$d Burrow backups</item>
+    </plurals>
+    <plurals name="n_backups">
+        <item quantity="one">%1$d backup</item>
+        <item quantity="other">%1$d backups</item>
+    </plurals>
     <plurals name="n_transactions">
         <item quantity="one">%1$,d transaction</item>
         <item quantity="other">%1$,d transactions</item>
@@ -1331,4 +1341,42 @@
         <item quantity="other">Teach %d messages it missed</item>
     </plurals>
     <string name="every_weekday_next">Every %1$s · next on %2$s</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="connect_google_drive">Connect Google Drive</string>
+    <string name="connect_google_drive_line">Encrypted copy in your own Drive</string>
+    <string name="connecting">Connecting…</string>
+    <string name="back_up_to_drive">Back up to Drive now</string>
+    <string name="drive_last_failed">Last backup failed. Tap to try again</string>
+    <string name="restore_from_drive">Restore from Drive</string>
+    <string name="restore_from_drive_line">Pick a backup to bring back</string>
+    <string name="wifi_only">Wi-Fi only</string>
+    <string name="wifi_only_line">Never uses mobile data</string>
+    <string name="google_account">Google account</string>
+    <string name="switch_account">Switch account</string>
+    <string name="switch_account_line">Pick another Google account</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="disconnect_line">Backups stay in Drive</string>
+    <string name="delete_drive_backups">Delete backups from Drive</string>
+    <string name="delete_drive_backups_title">Delete backups from Drive?</string>
+    <string name="delete_drive_backups_text">Every Burrow backup in this Google account goes. This can\'t be undone.</string>
+    <string name="loading">Loading…</string>
+    <string name="no_drive_backups">No Burrow backup in this Drive yet</string>
+    <string name="drive_offline">No internet connection. Try again when you\'re online</string>
+    <string name="drive_wifi_needed">Wi-Fi only is on. Connect to Wi-Fi, or turn Wi-Fi only off</string>
+    <string name="drive_full">Your Google Drive is full. Free up space, then try again</string>
+    <string name="drive_allow_again">Google needs you to allow Burrow again</string>
+    <string name="drive_failed">Couldn\'t reach Google Drive. Try again</string>
+    <string name="drive_refused">Burrow needs Google Drive to keep your backups. Connect again and tick Google Drive</string>
+    <string name="drive_backed_up">Backed up to Google Drive</string>
+    <string name="drive_deleted">Backups deleted from Drive</string>
+    <string name="drive_disconnected">Disconnected. Your backups stay in Drive</string>
+    <string name="backing_up_to_drive">Backing up to Drive…</string>
+    <string name="replaces_this_phone">Replaces what is on this phone</string>
+    <string name="google_account_line">Google account for Drive backups</string>
+    <string name="size_kb">%1$,d KB</string>
+    <string name="size_mb">%1$s MB</string>
+    <plurals name="card_payments_month">
+        <item quantity="one">%d payment this month</item>
+        <item quantity="other">%d payments this month</item>
+    </plurals>
 </resources>

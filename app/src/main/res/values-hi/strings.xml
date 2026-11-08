@@ -620,6 +620,8 @@
     <string name="delete_category_title">यह श्रेणी मिटाएँ?</string>
     <string name="delete_category_text">इसके लेन-देन और बिल \'अन्य\' में चले जाएँगे। इसका बजट हट जाएगा।</string>
     <string name="search_currencies">मुद्रा खोजें</string>
+    <string name="search_categories">श्रेणी खोजें</string>
+    <string name="no_category_match">कोई और नाम आज़माएँ, या नई श्रेणी बनाएँ।</string>
     <string name="your_region">आपके क्षेत्र की</string>
     <string name="from_your_region">%1$s · आपके क्षेत्र की</string>
     <string name="currency_note">कुल और बजट इसी में होते हैं। खाते अपनी मुद्रा रखते हैं।</string>
@@ -689,6 +691,14 @@
     <string name="keep_last_7">आख़िरी 7 रखें</string>
     <string name="keep_last_7_line">पुराने बैकअप हटा दिए जाते हैं</string>
     <string name="restore">रीस्टोर</string>
+    <plurals name="removes_n_backups">
+        <item quantity="one">Burrow का %1$d बैकअप मिटाएगा</item>
+        <item quantity="other">Burrow के %1$d बैकअप मिटाएगा</item>
+    </plurals>
+    <plurals name="n_backups">
+        <item quantity="one">%1$d बैकअप</item>
+        <item quantity="other">%1$d बैकअप</item>
+    </plurals>
     <plurals name="n_transactions">
         <item quantity="one">%1$,d लेन-देन</item>
         <item quantity="other">%1$,d लेन-देन</item>
@@ -1245,4 +1255,42 @@
     <string name="about_contact">संपर्क: %1$s</string>
     <string name="made_by">Nisab Mohd और योगदानकर्ताओं द्वारा बनाया गया</string>
     <string name="every_weekday_next">हर %1$s · अगला %2$s को</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="connect_google_drive">Google Drive जोड़ें</string>
+    <string name="connect_google_drive_line">आपकी अपनी Drive में एन्क्रिप्टेड कॉपी</string>
+    <string name="connecting">जोड़ रहे हैं…</string>
+    <string name="back_up_to_drive">अभी Drive पर बैकअप लें</string>
+    <string name="drive_last_failed">पिछला बैकअप नहीं हुआ। फिर से कोशिश के लिए टैप करें</string>
+    <string name="restore_from_drive">Drive से वापस लाएँ</string>
+    <string name="restore_from_drive_line">वापस लाने के लिए बैकअप चुनें</string>
+    <string name="wifi_only">सिर्फ़ Wi-Fi</string>
+    <string name="wifi_only_line">कभी मोबाइल डेटा नहीं लेता</string>
+    <string name="google_account">Google खाता</string>
+    <string name="switch_account">खाता बदलें</string>
+    <string name="switch_account_line">कोई और Google खाता चुनें</string>
+    <string name="disconnect">हटाएँ</string>
+    <string name="disconnect_line">बैकअप Drive में रहेंगे</string>
+    <string name="delete_drive_backups">Drive से बैकअप मिटाएँ</string>
+    <string name="delete_drive_backups_title">Drive से बैकअप मिटाएँ?</string>
+    <string name="delete_drive_backups_text">इस Google खाते के सभी Burrow बैकअप मिट जाएँगे। यह वापस नहीं होगा।</string>
+    <string name="loading">लोड हो रहा है…</string>
+    <string name="no_drive_backups">इस Drive में अभी कोई Burrow बैकअप नहीं</string>
+    <string name="drive_offline">इंटरनेट नहीं है। ऑनलाइन होने पर फिर कोशिश करें</string>
+    <string name="drive_wifi_needed">सिर्फ़ Wi-Fi चालू है। Wi-Fi से जुड़ें या इसे बंद करें</string>
+    <string name="drive_full">आपकी Google Drive भर गई है। जगह खाली करके फिर कोशिश करें</string>
+    <string name="drive_allow_again">Google चाहता है कि आप Burrow को फिर से अनुमति दें</string>
+    <string name="drive_failed">Google Drive तक नहीं पहुँच पाए। फिर कोशिश करें</string>
+    <string name="drive_refused">बैकअप रखने के लिए Burrow को Google Drive चाहिए। फिर से जोड़ें और Google Drive चुनें</string>
+    <string name="drive_backed_up">Google Drive पर बैकअप हो गया</string>
+    <string name="drive_deleted">Drive से बैकअप मिटा दिए</string>
+    <string name="drive_disconnected">हटा दिया। आपके बैकअप Drive में रहेंगे</string>
+    <string name="backing_up_to_drive">Drive पर बैकअप हो रहा है…</string>
+    <string name="replaces_this_phone">इस फ़ोन का डेटा बदल देगा</string>
+    <string name="google_account_line">Drive बैकअप का Google खाता</string>
+    <string name="size_kb">%1$,d KB</string>
+    <string name="size_mb">%1$s MB</string>
+    <plurals name="card_payments_month">
+        <item quantity="one">इस महीने %d भुगतान</item>
+        <item quantity="other">इस महीने %d भुगतान</item>
+    </plurals>
 </resources>

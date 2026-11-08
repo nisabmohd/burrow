@@ -7,12 +7,14 @@ Screen numbers point to `design/screens/`.
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
 
-## Features
-- [ ] **Google Drive sync** (`play` and `github` only; `foss` keeps the folder backup, no Google code): encrypted
-      backup to the user's own Drive next to the folder backup, as Weft 1.5.0 does. Needs INTERNET + Google sign-in in
-      play (github already has INTERNET). Then update PRIVACY.md, data safety, About
-- [ ] **In-app review and rate** (`play` only): Play In-App Review prompt at a calm moment, and "Rate on Play Store"
-      in About opens it, as Weft 1.5.0 does. Ask before adding the Play review library; check the merged manifests
+## Google Drive backup (built 2026-11-08; needs the owner's setup before it works)
+- [ ] Google Cloud: OAuth clients of type Android for `app.burrow.money` with the SHA-1 of the Play app-signing key,
+      the release key and the debug key; turn on the Google Drive API (`drive.appdata` and `email` aren't restricted)
+- [ ] On a phone with a Google account: connect, back up, clear data, restore, compare counts; back up 11 times and
+      check 10 are listed; switch account; disconnect; delete backups; run the job while charging with
+      `adb shell cmd jobscheduler run -f app.burrow.money 3101`
+- [ ] Play Console Data safety for Drive backup (`release/data-safety.md`), as Weft's `docs/PLAY-DATA-SAFETY.md`
+- [ ] Smoke checks: Drive rows (not connected / connected / failed), account sheet, foss without Drive; category search
 
 ## Tests
 - [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with

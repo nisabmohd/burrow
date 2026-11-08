@@ -471,7 +471,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         )
                     }
                     composable<ReviewRoute> {
-                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
+                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules, { a -> container.maybeAskForReview(a, fromToReview = true) }) }
                         ReviewScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onMissed = { nav.navigate(MissedRoute) })
                     }
                     composable<CaptureIntroRoute> {

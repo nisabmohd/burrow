@@ -3,6 +3,11 @@
 Burrow is an open-source Android expense tracker. It records payments by itself from bank messages,
 reminds you of bills and shows what is left. **It never sends your data anywhere.**
 Package `app.burrow.money` · by **mid apps** (developer mark in `design/logo/mid-apps/`) · GNU GPL v3 · Play title "Burrow: Expense Tracker".
+**Logo** (`burrow-icon.zip`, 2026-11-08): three nested arches (a burrow), white on burgundy `#A3294A`. **One geometry,
+`tools/burrow_mark.py`, writes every copy, each centred exactly on its canvas (as Weft's):** launcher foreground and
+monochrome (44 dp of the 108 dp canvas), `ic_notification` (20 of 24; also tinted in `BurrowLogo`, the widget and the
+quick-settings tile), the store icon and feature graphic (`release/`, fastlane, `design/logo/`), the wordmark and SVGs.
+Never hand-edit those files; change the script and run it.
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
 `docs/SCREENS.md` (with `design/screens/*.png`, light only; 89–104 are the burrow-next round), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
@@ -14,22 +19,27 @@ The PNGs are the source of truth for layout, sizes and colours. `design/prototyp
 1. **It records itself.** A payment message asks for a category; one tap saves it; a payment matching a
    due bill marks it Paid. Message rules make it work for any bank, region and language.
 2. **Private by design.** Your data never leaves the phone for us or anyone else. No account, no sync,
-   no AI, no analytics. Say "never sends your data anywhere", not "no internet" (user, 2026-10-24).
+   no AI, no analytics. Optional Drive backup goes encrypted to the user's own Drive. Say "never sends your data anywhere", not "no internet" (user, 2026-10-24).
 3. **One right way to do each thing.** Few settings, calm design, small and fast.
 
 Not in the app: email parsing, OCR, voice, AI, cloud sync, shared household, live exchange rates,
 investments with live prices, tax module, document vault, multiple ledgers.
 
 ## Hard rules
-- **No INTERNET permission** in `play` and `foss`. The `github` build alone has it, only for the GitHub Releases
-  update check (as Sprout; user, 2026-10-24). Google Drive backup is planned (TODO.md); nothing else goes online.
-  No library that needs the network. Check the merged manifests after any dependency.
+- **No INTERNET permission** in `foss`. `github` has it for the GitHub Releases update check (user, 2026-10-24)
+  and Google Drive backup; `play` only for Google Drive backup (user, 2026-11-08, as Weft). Nothing else goes
+  online. Drive code lives in `src/drive` (stand-in `src/noDrive` for foss), Play review in `src/play`
+  (stand-in `src/noPlay`); foss never contains Google code. Libraries approved 2026-11-08: `play-review`
+  (play), `play-services-auth` (play, github).
+  No other library that needs the network. Check the merged manifests after any dependency.
 - **Ask before adding any dependency.** No DI framework (one `AppContainer`), no chart library (Canvas),
   no image library, no networking, no analytics, no WorkManager, no `material-icons-extended`.
 - **Money is `Long` minor units.** Never Float/Double. Interest maths in BigDecimal, round once, HALF_EVEN.
 - All user-facing text in `strings.xml` (plurals for counts). No raw colour outside `Color.kt`, no raw
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
-- Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first.
+- Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first. Never invent a new
+  element or one-off style; copy the nearest existing screen. UI without a PNG goes on TODO.md as
+  "Design review: …" for the user to check (user, 2026-11-08).
 - Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete and replace data; a wrong password shows in its sheet (144).
 - Icons: Solar Linear (outline) vector drawables only, one style everywhere, no duotone (480 Design, CC BY 4.0, credited in About › Licences; `ic_<name>_<regular|fill|duotone>`, user, 2026-10-31), see `docs/ICONS.md`.
 - Release: R8 full, minify + shrink resources, baseline profile committed. APK < 5 MB.

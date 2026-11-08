@@ -672,6 +672,8 @@
     <string name="delete_category_text">Sus movimientos y facturas pasan a Otros. Su presupuesto se elimina.</string>
 
     <string name="search_currencies">Buscar moneda</string>
+    <string name="search_categories">Buscar categorías</string>
+    <string name="no_category_match">Prueba otro nombre o crea una categoría nueva.</string>
     <string name="your_region">de tu región</string>
     <string name="from_your_region">%1$s · de tu región</string>
     <string name="currency_note">Los totales y presupuestos usan esta. Las cuentas mantienen su propia moneda.</string>
@@ -746,6 +748,14 @@
     <string name="keep_last_7">Guardar las 7 últimas</string>
     <string name="keep_last_7_line">Las copias más antiguas se eliminan</string>
     <string name="restore">Restaurar</string>
+    <plurals name="removes_n_backups">
+        <item quantity="one">Borra la %1$d copia de Burrow</item>
+        <item quantity="other">Borra las %1$d copias de Burrow</item>
+    </plurals>
+    <plurals name="n_backups">
+        <item quantity="one">%1$d copia</item>
+        <item quantity="other">%1$d copias</item>
+    </plurals>
     <plurals name="n_transactions">
         <item quantity="one">%1$,d movimiento</item>
         <item quantity="many">%1$,d movimientos</item>
@@ -1329,4 +1339,42 @@
     <string name="about_contact">Contacto: %1$s</string>
     <string name="made_by">Hecho por Nisab Mohd y colaboradores</string>
     <string name="every_weekday_next">Cada %1$s · próximo el %2$s</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="connect_google_drive">Conectar Google Drive</string>
+    <string name="connect_google_drive_line">Copia cifrada en tu propio Drive</string>
+    <string name="connecting">Conectando…</string>
+    <string name="back_up_to_drive">Copiar a Drive ahora</string>
+    <string name="drive_last_failed">La última copia falló. Toca para reintentar</string>
+    <string name="restore_from_drive">Restaurar desde Drive</string>
+    <string name="restore_from_drive_line">Elige una copia para recuperar</string>
+    <string name="wifi_only">Solo Wi-Fi</string>
+    <string name="wifi_only_line">Nunca usa datos móviles</string>
+    <string name="google_account">Cuenta de Google</string>
+    <string name="switch_account">Cambiar de cuenta</string>
+    <string name="switch_account_line">Elige otra cuenta de Google</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="disconnect_line">Las copias se quedan en Drive</string>
+    <string name="delete_drive_backups">Borrar copias de Drive</string>
+    <string name="delete_drive_backups_title">¿Borrar copias de Drive?</string>
+    <string name="delete_drive_backups_text">Se borran todas las copias de Burrow de esta cuenta de Google. No se puede deshacer.</string>
+    <string name="loading">Cargando…</string>
+    <string name="no_drive_backups">Aún no hay copias de Burrow en este Drive</string>
+    <string name="drive_offline">Sin conexión a internet. Inténtalo cuando estés en línea</string>
+    <string name="drive_wifi_needed">Solo Wi-Fi está activado. Conéctate a una Wi-Fi o desactívalo</string>
+    <string name="drive_full">Tu Google Drive está lleno. Libera espacio e inténtalo de nuevo</string>
+    <string name="drive_allow_again">Google necesita que vuelvas a permitir Burrow</string>
+    <string name="drive_failed">No se pudo conectar con Google Drive. Inténtalo de nuevo</string>
+    <string name="drive_refused">Burrow necesita Google Drive para guardar tus copias. Vuelve a conectar y marca Google Drive</string>
+    <string name="drive_backed_up">Copia guardada en Google Drive</string>
+    <string name="drive_deleted">Copias borradas de Drive</string>
+    <string name="drive_disconnected">Desconectado. Tus copias se quedan en Drive</string>
+    <string name="backing_up_to_drive">Copiando a Drive…</string>
+    <string name="replaces_this_phone">Sustituye lo que hay en este teléfono</string>
+    <string name="google_account_line">Cuenta de Google para las copias en Drive</string>
+    <string name="size_kb">%1$,d KB</string>
+    <string name="size_mb">%1$s MB</string>
+    <plurals name="card_payments_month">
+        <item quantity="one">%d pago este mes</item>
+        <item quantity="other">%d pagos este mes</item>
+    </plurals>
 </resources>

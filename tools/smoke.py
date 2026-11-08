@@ -1631,6 +1631,63 @@ def widget_taps_open_the_app():
 
 
 @check
+def category_sheet_search():
+    # 184 / 185: the category sheet filters by name; no match shows the shared empty state.
+    recover()
+    open_add()
+    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    w = d.screen_size()[0]
+    for _ in range(3):
+        if d.exists("More", timeout=0.5):
+            break
+        d.drag(int(w * 0.85), chip.center[1], int(w * 0.15), chip.center[1])
+    d.tap("More")
+    field = next((n for n in d.dump() if n.cls.endswith("EditText")), None)
+    assert field, "the category sheet has no search field"
+    tap_node(field)
+    d.type_text("trans")
+    assert d.exists("Transport", timeout=3), "search didn't find Transport"
+    assert not d.exists("Food & drinks", timeout=1), "search didn't filter the list"
+    d.tap("Clear", contains=True)
+    tap_node(next(n for n in d.dump() if n.cls.endswith("EditText")))
+    d.type_text("zzzz")
+    assert d.exists("No results for", contains=True, timeout=3), "no empty state for a search with no match"
+    assert d.exists("Clear search", timeout=2), "no Clear search button"
+    d.tap("Clear search")
+    assert d.exists("Food & drinks", timeout=3), "Clear search didn't bring the list back"
+    recover()
+
+
+@check
+def foss_backup_has_no_drive():
+    # foss (F-Droid) has no Google code: Backup has no Google Drive section.
+    open_more_row("Backup")
+    assert d.exists("Backup and restore", timeout=5), "Backup didn't open"
+    assert not d.scroll_to("Google Drive"), "foss shows Google Drive"
+    recover()
+
+
+@check
+def play_backup_shows_drive():
+    # 179: the play build has a Google Drive section after Settings. Installed over foss (same debug
+    # key), then the suite goes back to foss with a fresh install.
+    play = os.path.join(ROOT, "app/build/outputs/apk/play/debug/app-play-debug.apk")
+    try:
+        out = d.adb("install", "-r", play)
+        assert "Success" in out, f"play install failed: {out}"
+        d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+        time.sleep(3)
+        open_more_row("Backup")
+        assert d.scroll_to("Google Drive"), "no Google Drive section in the play build"
+        assert d.scroll_to("Connect Google Drive"), "no Connect Google Drive row"
+        assert d.exists("Encrypted copy in your own Drive", timeout=2), "Connect row lost its line"
+    finally:
+        recover()
+        fresh_install()
+        finish_welcome()
+
+
+@check
 def welcome_skip_budget_leaves_none():
     # Last: a second fresh install that skips the budget step. Today then shows what was spent.
     fresh_install()

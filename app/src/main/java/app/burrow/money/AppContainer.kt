@@ -1,5 +1,6 @@
 package app.burrow.money
 
+import kotlinx.coroutines.flow.first
 import android.content.Context
 import app.burrow.money.capture.RuleEngine
 import app.burrow.money.capture.CaptureNotifier
@@ -38,9 +39,11 @@ class AppContainer(val context: Context) {
     val plan: PlanRepository by lazy { PlanRepository(database, money, strings) }
     /** Bill reminders and budget alerts (the capture notification is [notifier]). */
     val planNotifier by lazy { Notifier(context) }
-    val capture by lazy { CaptureRepository(context, database, settings, money, rules) }
+    val capture by lazy { CaptureRepository(context, database, settings, money, rules).also { it.onResolved = { id -> notifier.cancel(id) } } }
     val notifier by lazy { CaptureNotifier(context) }
     val backup by lazy { app.burrow.money.data.BackupManager(context, database, settings) }
+    /** Google Drive backup (play and github); a stand-in that does nothing in foss. */
+    val drive by lazy { app.burrow.money.data.drive.DriveBackup(context, backup, settings) }
     val csv by lazy { app.burrow.money.data.CsvTransfer(money, database) }
     val attachments by lazy { app.burrow.money.data.Attachments(context, database) }
     /** Splits, refunds, favourites, import and trust in capture (burrow-next). */
@@ -53,4 +56,18 @@ class AppContainer(val context: Context) {
 
     /** Lives as long as the process, for work that isn't tied to a screen. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * Play's rating card at a calm moment (play build only; Play decides whether it really shows;
+     * docs/SCREENS.md, 8 Nov): when the Sunday review is finished, or, only while the Sunday review is
+     * off, when To review has just emptied ([fromToReview]). Nothing of Burrow's own is drawn.
+     */
+    suspend fun maybeAskForReview(activity: android.app.Activity, fromToReview: Boolean = false) {
+        if (!app.burrow.money.data.review.PlayReview.enabled) return
+        if (fromToReview && settings.settings.first().notifyWeekly) return
+        val now = System.currentTimeMillis()
+        if (!app.burrow.money.domain.shouldAskForReview(database.txns().realCount(), settings.reviewAskedAt(), now)) return
+        settings.setReviewAskedAt(now)
+        app.burrow.money.data.review.PlayReview.launch(activity)
+    }
 }

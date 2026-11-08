@@ -672,6 +672,8 @@
     <string name="delete_category_text">Ses opérations et factures passent dans Autre. Son budget est supprimé.</string>
 
     <string name="search_currencies">Rechercher une devise</string>
+    <string name="search_categories">Rechercher une catégorie</string>
+    <string name="no_category_match">Essayez un autre nom, ou créez une catégorie.</string>
     <string name="your_region">de votre région</string>
     <string name="from_your_region">%1$s · de votre région</string>
     <string name="currency_note">Totaux et budgets l\'utilisent. Les comptes gardent leur propre devise.</string>
@@ -746,6 +748,14 @@
     <string name="keep_last_7">Garder les 7 dernières</string>
     <string name="keep_last_7_line">Les plus anciennes sont supprimées</string>
     <string name="restore">Restaurer</string>
+    <plurals name="removes_n_backups">
+        <item quantity="one">Supprime la %1$d sauvegarde Burrow</item>
+        <item quantity="other">Supprime les %1$d sauvegardes Burrow</item>
+    </plurals>
+    <plurals name="n_backups">
+        <item quantity="one">%1$d sauvegarde</item>
+        <item quantity="other">%1$d sauvegardes</item>
+    </plurals>
     <plurals name="n_transactions">
         <item quantity="one">%1$,d opération</item>
         <item quantity="many">%1$,d opérations</item>
@@ -1329,4 +1339,42 @@
     <string name="about_contact">Contact : %1$s</string>
     <string name="made_by">Créé par Nisab Mohd et ses contributeurs</string>
     <string name="every_weekday_next">Chaque %1$s · prochain le %2$s</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="connect_google_drive">Connecter Google Drive</string>
+    <string name="connect_google_drive_line">Copie chiffrée dans votre propre Drive</string>
+    <string name="connecting">Connexion…</string>
+    <string name="back_up_to_drive">Sauvegarder sur Drive</string>
+    <string name="drive_last_failed">La dernière sauvegarde a échoué. Touchez pour réessayer</string>
+    <string name="restore_from_drive">Restaurer depuis Drive</string>
+    <string name="restore_from_drive_line">Choisissez une sauvegarde à restaurer</string>
+    <string name="wifi_only">Wi-Fi uniquement</string>
+    <string name="wifi_only_line">N\'utilise jamais les données mobiles</string>
+    <string name="google_account">Compte Google</string>
+    <string name="switch_account">Changer de compte</string>
+    <string name="switch_account_line">Choisir un autre compte Google</string>
+    <string name="disconnect">Déconnecter</string>
+    <string name="disconnect_line">Les sauvegardes restent sur Drive</string>
+    <string name="delete_drive_backups">Supprimer les sauvegardes de Drive</string>
+    <string name="delete_drive_backups_title">Supprimer les sauvegardes de Drive ?</string>
+    <string name="delete_drive_backups_text">Toutes les sauvegardes Burrow de ce compte Google seront supprimées. C\'est définitif.</string>
+    <string name="loading">Chargement…</string>
+    <string name="no_drive_backups">Aucune sauvegarde Burrow sur ce Drive</string>
+    <string name="drive_offline">Pas de connexion internet. Réessayez une fois en ligne</string>
+    <string name="drive_wifi_needed">Wi-Fi uniquement est activé. Connectez-vous au Wi-Fi ou désactivez-le</string>
+    <string name="drive_full">Votre Google Drive est plein. Libérez de l\'espace puis réessayez</string>
+    <string name="drive_allow_again">Google vous demande d\'autoriser Burrow à nouveau</string>
+    <string name="drive_failed">Impossible de joindre Google Drive. Réessayez</string>
+    <string name="drive_refused">Burrow a besoin de Google Drive pour vos sauvegardes. Reconnectez-vous et cochez Google Drive</string>
+    <string name="drive_backed_up">Sauvegardé sur Google Drive</string>
+    <string name="drive_deleted">Sauvegardes supprimées de Drive</string>
+    <string name="drive_disconnected">Déconnecté. Vos sauvegardes restent sur Drive</string>
+    <string name="backing_up_to_drive">Sauvegarde sur Drive…</string>
+    <string name="replaces_this_phone">Remplace ce qui est sur ce téléphone</string>
+    <string name="google_account_line">Compte Google des sauvegardes Drive</string>
+    <string name="size_kb">%1$,d Ko</string>
+    <string name="size_mb">%1$s Mo</string>
+    <plurals name="card_payments_month">
+        <item quantity="one">%d paiement ce mois-ci</item>
+        <item quantity="other">%d paiements ce mois-ci</item>
+    </plurals>
 </resources>

@@ -128,6 +128,16 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
         name
     }
 
+    /**
+     * A backup sealed with the saved password, the same bytes as a folder backup, for Google Drive.
+     * Returns null without a password. The second value is the transaction count, for the Drive list.
+     */
+    suspend fun sealedWithSavedPassword(): Pair<ByteArray, Int>? = withContext(Dispatchers.IO) {
+        val password = settings.sealedBackupPassword()?.let(PasswordVault::open) ?: return@withContext null
+        val data = snapshot()
+        BackupCrypto.seal(json.encodeToString(BackupData.serializer(), data).toByteArray(), password.toCharArray()) to data.txns.count { !it.isSample }
+    }
+
     /** Backups in the folder, newest first. */
     suspend fun list(): List<BackupFile> = withContext(Dispatchers.IO) {
         val folder = settings.settings.first().backupFolder?.let(Uri::parse) ?: return@withContext emptyList()

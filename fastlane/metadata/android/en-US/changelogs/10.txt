@@ -1,0 +1,6 @@
+- New logo.
+- Back up to your own Google Drive, encrypted with your password, and restore any of the last 10.
+- Search categories.
+- Scrolling a list in a sheet no longer closes it.
+- Payments you reviewed no longer leave their notification behind.
+- Rate Burrow from About.

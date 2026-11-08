@@ -70,14 +70,24 @@ class ProjectRulesTest {
     @Test fun notificationsUseTheBurrowMark() = assertNone("setSmallIcon not R.drawable.ic_notification",
         violations { _, _, l -> "setSmallIcon(" in l && "ic_notification" !in l })
 
-    @Test fun noInternetOutsideTheGithubBuild() {
-        for (flavour in listOf("main", "play", "foss")) {
+    /**
+     * main and foss strip INTERNET; github (update check + Drive) and play (Drive backup only, user
+     * 2026-11-08) put it back. Only code in src/drive and src/github may open a connection.
+     */
+    @Test fun noInternetOutsideGithubAndDrive() {
+        for (flavour in listOf("main", "foss")) {
             val m = File(root, "app/src/$flavour/AndroidManifest.xml")
             if (!m.exists()) continue
             m.readLines().filter { "android.permission.INTERNET" in it }.forEach {
                 assertTrue("$flavour manifest may only strip INTERNET: $it", "tools:node=\"remove\"" in it)
             }
         }
+        val opens = File(root, "app/src").walkTopDown()
+            .filter { it.extension == "kt" && "openConnection(" in it.readText() }
+            .map { it.relativeTo(File(root, "app/src")).path }
+            .filterNot { it.startsWith("test/") || it.startsWith("drive/") || it.startsWith("main/java/app/burrow/money/data/update/") }
+            .toList()
+        assertTrue("network calls outside src/drive and the update check: $opens", opens.isEmpty())
     }
 
     @Test fun noPlusMinusSteppers() = assertNone(

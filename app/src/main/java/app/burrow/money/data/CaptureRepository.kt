@@ -164,6 +164,7 @@ class CaptureRepository(
             ),
         )
         db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId ?: c.categoryId))
+        onResolved(captureId)
         return txnId
     }
 
@@ -176,6 +177,7 @@ class CaptureRepository(
 
     suspend fun setStatus(captureId: Long, status: String) {
         db.captures().get(captureId)?.let { db.captures().update(it.copy(status = status)) }
+        if (status != CaptureStatus.REVIEW) onResolved(captureId)
     }
 
     suspend fun setCategory(captureId: Long, categoryId: Long) {
@@ -187,6 +189,7 @@ class CaptureRepository(
     /** "Open it to edit first": the capture was saved from New expense as [txnId]. */
     suspend fun markSaved(captureId: Long, txnId: Long, categoryId: Long?) {
         db.captures().get(captureId)?.let { db.captures().update(it.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId)) }
+        onResolved(captureId)
     }
 
     /** Drops message text older than 30 days (docs/CAPTURE.md § Keep). Run on app start. */

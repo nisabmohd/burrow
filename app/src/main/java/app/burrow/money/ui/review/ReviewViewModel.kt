@@ -17,6 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,7 +41,18 @@ data class ReviewItem(
 
 /** To review (44): payments the app found, each saved with one tap, or all at once. */
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReviewViewModel(private val capture: CaptureRepository, private val money: MoneyRepository, private val engine: RuleEngine) : ViewModel() {
+class ReviewViewModel(
+    private val capture: CaptureRepository,
+    private val money: MoneyRepository,
+    private val engine: RuleEngine,
+    /** Play's rating card at a calm moment (play build; AppContainer.maybeAskForReview). */
+    private val reviewPrompt: suspend (android.app.Activity) -> Unit = {},
+) : ViewModel() {
+
+    fun askForReview(activity: android.app.Activity) {
+        viewModelScope.launch { reviewPrompt(activity) }
+    }
+
 
     /** Messages no rule could read: a row to Not understood, so they are one tap away from here. */
     val notUnderstood: StateFlow<Int> = capture.notUnderstoodCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -89,8 +101,8 @@ class ReviewViewModel(private val capture: CaptureRepository, private val money:
     /** "Save N payments": every one with its chosen category. */
     fun saveAll(onDone: (Int, suspend () -> Unit) -> Unit) {
         viewModelScope.launch {
-            val ids = state.value.orEmpty().map { it.capture.id }
-            ids.forEach { capture.save(it, null) }
+            // Read the list fresh (the screen's copy may lag a save a moment ago); count only what saved.
+            val ids = capture.toReview.first().map { it.id }.filter { capture.save(it, null) != null }
             onDone(ids.size) { ids.forEach { capture.unsave(it) } }
         }
     }

@@ -1,5 +1,7 @@
 package app.burrow.money.ui.review
 
+import app.burrow.money.ui.findActivity
+
 import app.burrow.money.ui.filters.range
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,6 +45,12 @@ import java.time.LocalDate
 class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
     val state: StateFlow<WeeklySummary?> = app.weeklySummaryFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** The review is finished ("Save N and finish" or "Done"): the calm moment for Play's rating card. */
+    fun finished(activity: android.app.Activity?) {
+        activity ?: return
+        app.appScope.launch { app.maybeAskForReview(activity) }
+    }
+
     /** "Save N and finish": every payment waiting in To review, with its chosen or suggested category. */
     fun saveAll(onDone: (Int, (suspend () -> Unit)?) -> Unit) = viewModelScope.launch {
         val waiting = app.capture.toReview.first()
@@ -83,11 +91,12 @@ fun SundayReviewScreen(
                 BurrowButton(pluralStringResource(R.plurals.save_n_and_finish, s.toReview, s.toReview), {
                     vm.saveAll { n, undo ->
                         if (n > 0) snackbar.show(context.resources.getQuantityString(R.plurals.n_payments_saved, n, n), undo)
+                        vm.finished(context.findActivity())
                         onBack()
                     }
                 }, Modifier.fillMaxWidth(), icon = painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom)
             } else {
-                BurrowButton(stringResource(R.string.done), onBack, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+                BurrowButton(stringResource(R.string.done), { vm.finished(context.findActivity()); onBack() }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
             }
         },
     ) {

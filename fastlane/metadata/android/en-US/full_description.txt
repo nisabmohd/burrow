@@ -15,14 +15,14 @@ KNOW WHAT IS LEFT
 
 YOUR WAY
 • Customise Today, the New expense form and what happens when a payment is found.
-• Category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.
+• Search categories; category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.
 • Notes, tags, repeating payments, receipts and lend or borrow, when you want them.
 • Your currency and number format; type in exchange rates for other currencies.
-• Light and dark themes, colours from your wallpaper, four fonts, English and Hindi.
+• Light and dark themes, colours from your wallpaper, four fonts, in English, Hindi, Spanish, German, French, Portuguese and Japanese.
 
 PRIVATE BY DESIGN
-• Burrow never sends your data anywhere. Everything stays on your phone.
+• Burrow never sends your data anywhere. Everything stays on your phone unless you back it up.
 • No account, no ads, no analytics.
-• Encrypted backups to a folder you choose. App lock with PIN or fingerprint.
+• Encrypted backups to a folder you choose, or to your own Google Drive in the Google Play and GitHub builds (only Burrow can see them, and only you can open them). App lock with PIN or fingerprint.
 
 Free and open source (GPL-3.0).

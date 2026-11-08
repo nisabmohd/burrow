@@ -643,6 +643,8 @@
     <string name="delete_category_text">Ihre Buchungen und Rechnungen wandern zu Sonstiges. Ihr Budget wird entfernt.</string>
 
     <string name="search_currencies">Währung suchen</string>
+    <string name="search_categories">Kategorien suchen</string>
+    <string name="no_category_match">Versuche einen anderen Namen oder lege eine neue Kategorie an.</string>
     <string name="your_region">aus deiner Region</string>
     <string name="from_your_region">%1$s · aus deiner Region</string>
     <string name="currency_note">Summen und Budgets nutzen diese Währung. Konten behalten ihre eigene.</string>
@@ -716,6 +718,14 @@
     <string name="keep_last_7">Letzte 7 behalten</string>
     <string name="keep_last_7_line">Ältere Backups werden entfernt</string>
     <string name="restore">Wiederherstellen</string>
+    <plurals name="removes_n_backups">
+        <item quantity="one">Löscht das %1$d Burrow-Backup</item>
+        <item quantity="other">Löscht die %1$d Burrow-Backups</item>
+    </plurals>
+    <plurals name="n_backups">
+        <item quantity="one">%1$d Backup</item>
+        <item quantity="other">%1$d Backups</item>
+    </plurals>
     <plurals name="n_transactions">
         <item quantity="one">%1$,d Buchung</item>
         <item quantity="other">%1$,d Buchungen</item>
@@ -1272,4 +1282,42 @@
     <string name="about_contact">Kontakt: %1$s</string>
     <string name="made_by">Von Nisab Mohd &amp; Mitwirkenden</string>
     <string name="every_weekday_next">Jeden %1$s · nächster am %2$s</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="connect_google_drive">Google Drive verbinden</string>
+    <string name="connect_google_drive_line">Verschlüsselte Kopie in deinem eigenen Drive</string>
+    <string name="connecting">Verbinden…</string>
+    <string name="back_up_to_drive">Jetzt in Drive sichern</string>
+    <string name="drive_last_failed">Letztes Backup fehlgeschlagen. Tippe für einen neuen Versuch</string>
+    <string name="restore_from_drive">Aus Drive wiederherstellen</string>
+    <string name="restore_from_drive_line">Wähle ein Backup zum Zurückholen</string>
+    <string name="wifi_only">Nur WLAN</string>
+    <string name="wifi_only_line">Nutzt nie mobile Daten</string>
+    <string name="google_account">Google-Konto</string>
+    <string name="switch_account">Konto wechseln</string>
+    <string name="switch_account_line">Anderes Google-Konto wählen</string>
+    <string name="disconnect">Trennen</string>
+    <string name="disconnect_line">Backups bleiben in Drive</string>
+    <string name="delete_drive_backups">Backups aus Drive löschen</string>
+    <string name="delete_drive_backups_title">Backups aus Drive löschen?</string>
+    <string name="delete_drive_backups_text">Alle Burrow-Backups in diesem Google-Konto werden gelöscht. Das lässt sich nicht rückgängig machen.</string>
+    <string name="loading">Wird geladen…</string>
+    <string name="no_drive_backups">Noch kein Burrow-Backup in diesem Drive</string>
+    <string name="drive_offline">Keine Internetverbindung. Versuche es erneut, wenn du online bist</string>
+    <string name="drive_wifi_needed">Nur WLAN ist an. Verbinde dich mit WLAN oder schalte Nur WLAN aus</string>
+    <string name="drive_full">Dein Google Drive ist voll. Gib Speicher frei und versuche es erneut</string>
+    <string name="drive_allow_again">Google möchte, dass du Burrow erneut erlaubst</string>
+    <string name="drive_failed">Google Drive nicht erreichbar. Versuche es erneut</string>
+    <string name="drive_refused">Burrow braucht Google Drive für deine Backups. Verbinde erneut und hake Google Drive an</string>
+    <string name="drive_backed_up">In Google Drive gesichert</string>
+    <string name="drive_deleted">Backups aus Drive gelöscht</string>
+    <string name="drive_disconnected">Getrennt. Deine Backups bleiben in Drive</string>
+    <string name="backing_up_to_drive">Wird in Drive gesichert…</string>
+    <string name="replaces_this_phone">Ersetzt, was auf diesem Handy ist</string>
+    <string name="google_account_line">Google-Konto für Drive-Backups</string>
+    <string name="size_kb">%1$,d KB</string>
+    <string name="size_mb">%1$s MB</string>
+    <plurals name="card_payments_month">
+        <item quantity="one">%d Zahlung diesen Monat</item>
+        <item quantity="other">%d Zahlungen diesen Monat</item>
+    </plurals>
 </resources>

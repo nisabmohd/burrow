@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import app.burrow.money.ui.findActivity
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -55,6 +57,13 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
     val state by vm.state.collectAsStateWithLifecycle()
     val missed by vm.notUnderstood.collectAsStateWithLifecycle()
     val items = state ?: return
+    // To review just emptied (every payment saved or ignored): a calm moment for Play's rating card.
+    val activity = LocalContext.current.findActivity()
+    var hadItems by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(items.isEmpty()) {
+        if (items.isNotEmpty()) hadItems = true
+        else if (hadItems && activity != null) vm.askForReview(activity)
+    }
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
