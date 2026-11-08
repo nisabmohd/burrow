@@ -16,6 +16,10 @@ Screen numbers point to `design/screens/`.
 - [ ] Play Console Data safety for Drive backup (`release/data-safety.md`), as Weft's `docs/PLAY-DATA-SAFETY.md`
 - [ ] Smoke checks: Drive rows (not connected / connected / failed), account sheet, foss without Drive; category search
 
+## Two cards, one bill (designs 186–201 built and checked on the emulator 2026-11-08)
+- [ ] Smoke check in `tools/smoke.py` for two cards on one bill (Add account › Credit card › Same bill, SMS from each
+      card's digits, "Paid with"), and restoring a v3 backup (cards come back from the accounts' digits)
+
 ## Tests
 - [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
       `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso

@@ -216,7 +216,48 @@ class MoneyRepository(
 
     suspend fun updateAccount(account: AccountEntity) = db.accounts().update(account)
 
-    suspend fun addAccount(account: AccountEntity): Long = db.accounts().insert(account)
+    /** A new account; a card's digits become its first card, named [cardName] ("Sapphiro"; "" shows as "Card"). */
+    suspend fun addAccount(account: AccountEntity, cardName: String = ""): Long = db.withTransaction {
+        val id = db.accounts().insert(account)
+        // A card's digits are its first card, so messages from it keep finding the account.
+        if (account.type == AccountType.CARD && !account.number.isNullOrEmpty()) db.cards().insert(CardEntity(accountId = id, name = cardName, number = account.number))
+        id
+    }
+
+    /** Cards on every card account's bill (v8), in order. */
+    val cards: Flow<List<CardEntity>> = seededFlow { db.cards().all() }
+
+    /** How many expenses each card paid since [from] (186). */
+    fun cardCounts(from: Long): Flow<Map<Long, Int>> = seededFlow { db.cards().counts(from) }.map { l -> l.associate { it.cardId to it.count } }
+
+    /** Add another card on this bill (189), or a same-bill card from New credit card (191). */
+    suspend fun addCard(accountId: Long, name: String, number: String) = db.withTransaction {
+        val existing = db.cards().of(accountId)
+        db.cards().insert(CardEntity(accountId = accountId, name = name, number = number, sortOrder = (existing.maxOfOrNull { it.sortOrder } ?: -1) + 1))
+        syncCardNumber(accountId)
+    }
+
+    /**
+     * Edit account (188): the account's cards become [cards] (id 0 = new). Removed cards' payments
+     * lose their "Paid with"; with one card left, none of the account's payments keep one.
+     */
+    suspend fun setCards(accountId: Long, cards: List<CardEntity>) = db.withTransaction {
+        val before = db.cards().of(accountId)
+        before.filter { b -> cards.none { it.id == b.id } }.forEach { db.cards().forgetCard(it.id); db.cards().delete(it.id) }
+        cards.forEachIndexed { i, c ->
+            val row = c.copy(accountId = accountId, sortOrder = i)
+            if (c.id == 0L) db.cards().insert(row) else db.cards().update(row)
+        }
+        if (cards.size < 2) db.cards().forgetCards(accountId)
+        syncCardNumber(accountId)
+    }
+
+    /** The account keeps its first card's digits as its number (lists, older code paths). */
+    private suspend fun syncCardNumber(accountId: Long) {
+        val a = db.accounts().get(accountId).first() ?: return
+        val first = db.cards().of(accountId).firstOrNull()?.number
+        if (first != null && first != a.number) db.accounts().update(a.copy(number = first))
+    }
 
     suspend fun get(id: Long): TxnEntity? = db.txns().get(id)
 

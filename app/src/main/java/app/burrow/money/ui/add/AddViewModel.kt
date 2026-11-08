@@ -374,6 +374,8 @@ class AddViewModel(
                 note = f.note.trim().ifBlank { null },
                 // Hidden: kept through edits, set once from the message.
                 merchant = base?.merchant ?: if (captureId != 0L) app.capture.get(captureId)?.payee?.let(::tidyPayee) else null,
+                // The card it was paid with stays while the account does (194).
+                cardId = base?.cardId?.takeIf { base.accountId == account.id },
                 at = f.at,
                 source = base?.source ?: if (captureId != 0L) app.capture.get(captureId)?.source ?: "MANUAL" else "MANUAL",
                 // Money lent out isn't spending; money borrowed isn't income.

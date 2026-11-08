@@ -50,6 +50,7 @@ if something is missing, add a component here first.
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet` (both kinds: Expense group then Income group; **New category** last, from `LocalNewCategory`, 167), `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
 | `LabeledField` | a form field with its label above (New bill, New goal, New account) | Fields.kt |
+| `SelectField` | a choice inside a form (New credit card › Bank, 191/192): the `PillTextField` pill with the label above, the value and ⌄ on the right, **no lead icon**; a tap opens its pick sheet (Bank sheet 196: pill search, Your banks / All banks, text-only `PickRow`s) | Fields.kt |
 | `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |
 | `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
 | `FilterSheet` / `ActiveFilterChips` | Type (Activity only) · Accounts · Categories chips · Reset / "Show 14 transactions"; removable chips + Clear all under the search | ui/filters/FilterSheets.kt |

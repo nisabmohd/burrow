@@ -52,7 +52,7 @@ data class BackupSettings(
 /** Everything in a backup file, as JSON before it is sealed. Message text is never included. */
 @Serializable
 data class BackupData(
-    val version: Int = 3,
+    val version: Int = 4,
     val createdAt: Long,
     val settings: BackupSettings,
     val accounts: List<AccountEntity>,
@@ -74,6 +74,8 @@ data class BackupData(
     val splits: List<SplitEntity> = emptyList(),
     val favourites: List<FavouriteEntity> = emptyList(),
     val importMaps: List<ImportMapEntity> = emptyList(),
+    // v4 (Room v8): cards on a card account's bill. Older backups get one card per card account's digits.
+    val cards: List<CardEntity> = emptyList(),
 )
 
 /** An attachment's bytes (base64) at its path inside app storage. */
@@ -102,7 +104,7 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
             accounts = b.accounts(), categories = b.categories(), txns = b.txns(), bills = b.bills(),
             occurrences = b.occurrences(), budgets = b.budgets(), goals = b.goals(), rules = b.rules(),
             people = b.people(), tags = b.tags(), txnTags = b.txnTags(), attachments = b.attachments(), rates = b.rates(),
-            splits = b.splits(), favourites = b.favourites(), importMaps = b.importMaps(),
+            splits = b.splits(), favourites = b.favourites(), importMaps = b.importMaps(), cards = b.cards(),
             files = b.attachments().mapNotNull { a ->
                 val f = java.io.File(context.filesDir, a.path)
                 if (f.isFile) BackupBlob(a.path, Base64.encodeToString(f.readBytes(), Base64.NO_WRAP)) else null
@@ -189,11 +191,12 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
             b.clearOccurrences(); b.clearBills(); b.clearBudgets(); b.clearTxns(); b.clearGoals()
             b.clearRules(); b.clearCaptures(); b.clearCategories(); b.clearAccounts()
             b.clearPeople(); b.clearTxnTags(); b.clearTags(); b.clearAttachments(); b.clearRates()
-            b.clearSplits(); b.clearFavourites(); b.clearImportMaps()
+            b.clearSplits(); b.clearFavourites(); b.clearImportMaps(); b.clearCards()
             b.putAccounts(data.accounts); b.putCategories(data.categories); b.putTxns(data.txns); b.putBills(data.bills)
             b.putOccurrences(data.occurrences); b.putBudgets(data.budgets); b.putGoals(data.goals); b.putRules(data.rules)
             b.putPeople(data.people); b.putTags(data.tags); b.putTxnTags(data.txnTags); b.putAttachments(data.attachments); b.putRates(data.rates)
             b.putSplits(data.splits); b.putFavourites(data.favourites); b.putImportMaps(data.importMaps)
+            b.putCards(data.cards); b.cardsFromAccounts()
         }
         // Attachment files go back into app storage (only under files/attachments/).
         java.io.File(context.filesDir, Attachments.DIR).deleteRecursively()

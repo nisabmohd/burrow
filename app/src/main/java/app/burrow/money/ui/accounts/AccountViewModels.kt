@@ -8,6 +8,7 @@ import app.burrow.money.Strings
 import app.burrow.money.data.AccountEntity
 import app.burrow.money.data.AccountType
 import app.burrow.money.data.AccountWithBalance
+import app.burrow.money.data.CardEntity
 import app.burrow.money.data.MoneyRepository
 import app.burrow.money.data.TxnEntity
 import app.burrow.money.data.TxnType
@@ -62,15 +63,18 @@ data class AccountsState(
     val excluded: List<AccountEntity>,
     val people: List<app.burrow.money.data.PersonBalance>,
     val payAccounts: List<AccountWithBalance>,
+    /** Card accounts' cards (193: "RuPay ••1234 · Visa ••5678" when a bill has two or more). */
+    val cards: Map<Long, List<CardEntity>> = emptyMap(),
 )
 
 /** Accounts (55): grouped, net worth (the accounts it counts plus goals), lent and borrowed. */
 class AccountsViewModel(private val money: MoneyRepository) : ViewModel() {
-    val state: StateFlow<AccountsState?> = combine(money.accounts, money.netWorth, money.people) { accs, nw, people ->
+    val state: StateFlow<AccountsState?> = combine(money.accounts, money.netWorth, money.people, money.cards) { accs, nw, people, cards ->
         AccountsState(
             AccountGroup.entries.map { g -> g to accs.filter { it.account.type in g.types } }.filter { it.second.isNotEmpty() },
             nw.total, accs.size, nw.excluded, people,
             accs.filter { it.account.type == AccountType.BANK || it.account.type == AccountType.CASH || it.account.type == AccountType.WALLET },
+            cards.groupBy { it.accountId },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -114,6 +118,9 @@ data class AccountState(
     val card: CardInfo?,
     val loan: LoanInfo?,
     val deposit: DepositInfo?,
+    /** A card account's cards (186) and each one's payments this month. */
+    val cards: List<CardEntity> = emptyList(),
+    val cardCounts: Map<Long, Int> = emptyMap(),
 )
 
 /** One account (56–59). */
@@ -121,7 +128,9 @@ data class AccountState(
 class AccountViewModel(private val money: MoneyRepository, private val strings: Strings, val id: Long, private val onDepositChanged: suspend () -> Unit = {}) : ViewModel() {
     private val today = LocalDate.now(zone)
 
-    val state: StateFlow<AccountState?> = combine(money.accounts, money.latest(400)) { accs, txns ->
+    private val monthStart = YearMonth.from(today).atDay(1).millis()
+
+    val state: StateFlow<AccountState?> = combine(money.accounts, money.latest(400), money.cards, money.cardCounts(monthStart)) { accs, txns, cards, counts ->
         val me = accs.firstOrNull { it.account.id == id } ?: return@combine null
         val a = me.account
         val mine = txns.filter { it.txn.accountId == id || it.txn.toAccountId == id }
@@ -133,6 +142,8 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
             card = if (a.type == AccountType.CARD) card(a, me.balance, mine, accs) else null,
             loan = if (a.type == AccountType.LOAN) loan(a, me.balance) else null,
             deposit = if (a.type == AccountType.SAVINGS && a.maturityDate != null) deposit(a, accs) else null,
+            cards = cards.filter { it.accountId == id },
+            cardCounts = counts,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -201,6 +212,12 @@ class AccountViewModel(private val money: MoneyRepository, private val strings: 
         state.value?.account?.let { money.updateAccount(it.copy(remind = on)); onDepositChanged() }
     }
 
+    /** Add another card on this bill (189). */
+    fun addCard(name: String, number: String, onDone: () -> Unit) = viewModelScope.launch {
+        money.addCard(id, name.trim(), number)
+        onDone()
+    }
+
     /** Count in net worth (86). */
     fun setInNetWorth(on: Boolean) = viewModelScope.launch { state.value?.account?.let { money.updateAccount(it.copy(includeInNetWorth = on)) } }
 }
@@ -227,10 +244,21 @@ data class AccountForm(
     val opening: Long = 0,
     /** CARD: uses this other card's credit limit (null: its own). */
     val sharesLimitWith: Long? = null,
-) {
+    /** Edit, CARD: the cards on its bill (188); id 0 = added here. */
+    val cards: List<CardDraft> = emptyList(),
+    /** New CARD (191/192): the bank it is from (null: another bank), and whether it joins that bank's card's bill. */
+    val bank: String? = null,
+    val sameBill: Boolean = true,
+)
+ {
     val shownIcon get() = icon ?: defaultAccountIcon(type)
     val countsInNetWorth get() = inNetWorth ?: app.burrow.money.data.defaultInNetWorth(type)
 }
+
+/** A card on a bill while the form is open. */
+@Immutable
+@kotlinx.serialization.Serializable
+data class CardDraft(val id: Long = 0, val name: String, val number: String)
 
 /** The icon an account gets from its kind. */
 fun defaultAccountIcon(type: String) = when (type) {
@@ -261,22 +289,34 @@ fun creditLine(cardId: Long, accounts: List<AccountEntity>): Long {
 /** New account / edit account: the fields that apply to its type. */
 class NewAccountViewModel(
     private val money: MoneyRepository,
+    private val strings: Strings,
     private val editId: Long,
     private val digits: Int,
     private val currency: String,
-    /** Welcome step 2's "+ Card" etc.: the type to start with. */
-    private val startType: String? = null,
+    /** Welcome step 2's "+ Card", Add account (190): the type to start with. */
+    val startType: String? = null,
     /** Sets the reminder alarm again after a deposit is saved (its maturity may have moved). */
     private val onDepositChanged: suspend () -> Unit = {},
 ) : ViewModel() {
     val form = MutableStateFlow<AccountForm?>(null)
     private var original: AccountEntity? = null
 
+    /** Banks to pick for a new card (191), read from the rule packs off the main thread. */
+    val banks = MutableStateFlow<List<String>>(emptyList())
+    fun loadBanks(read: () -> List<String>) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) { banks.value = read() }
+    }
+
     /** Other cards, for "Shares the limit of" (one credit line for several cards). */
     val otherCards: StateFlow<List<AccountEntity>> = money.accounts
         .map { list -> list.map { it.account }.filter { it.type == AccountType.CARD && it.id != editId && !it.archived } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val isEdit get() = editId != 0L
+
+    /** Your accounts' names, for "Your banks" in the Bank sheet (196). */
+    val accountNames: StateFlow<List<String>> = money.accounts
+        .map { list -> list.filter { !it.account.archived }.map { it.account.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch {
@@ -289,6 +329,7 @@ class NewAccountViewModel(
                     txt(it.emi), it.interestRate.orEmpty(), it.maturityDate?.day(),
                     hue = it.colorHue, icon = it.icon, inNetWorth = it.includeInNetWorth, opening = it.openingBalance,
                     sharesLimitWith = it.sharesLimitWith,
+                    cards = money.cards.first().filter { c -> c.accountId == it.id }.map { c -> CardDraft(c.id, c.name, c.number) },
                 )
             } ?: AccountForm(type = startType ?: AccountType.BANK)
         }
@@ -296,7 +337,24 @@ class NewAccountViewModel(
 
     fun edit(change: (AccountForm) -> AccountForm) = form.update { it?.let(change) }
 
-    fun canSave(f: AccountForm) = f.name.isNotBlank()
+    /** A new card needs its name and 4 digits (191/192); everything else a name. */
+    fun canSave(f: AccountForm) = f.name.isNotBlank() && (isEdit || f.type != AccountType.CARD || f.number.length == 4)
+
+    /** New card from a bank you already have a card from (191): the card account it may join. */
+    fun cardOfBank(f: AccountForm, cards: List<AccountEntity>): AccountEntity? = f.bank?.let { b ->
+        app.burrow.money.capture.cardOfBank(b, cards.map { app.burrow.money.capture.AccountRef(it.id, it.name, it.number, it.type) })
+            ?.let { r -> cards.firstOrNull { it.id == r.id } }
+    }
+
+    /** Bank picked (191): a bank you already have a card from starts on Same bill and shares its limit. */
+    fun pickBank(bank: String?) {
+        val f = form.value ?: return
+        val existing = cardOfBank(f.copy(bank = bank), otherCards.value)
+        edit { it.copy(bank = bank, sameBill = existing != null, sharesLimitWith = existing?.id) }
+    }
+
+    /** Edit account › Cards on this bill (188): add, change or remove; saved with the account. */
+    fun setCards(cards: List<CardDraft>) = edit { it.copy(cards = cards) }
 
     /** Archive account (107): gone from lists and pickers, its history kept; hands back how to undo. */
     fun archive(onDone: (suspend () -> Unit) -> Unit) {
@@ -307,13 +365,21 @@ class NewAccountViewModel(
         }
     }
 
-    fun save(onSaved: () -> Unit) {
+    /** Saves; [onSaved] gets the snackbar text when it isn't "Saved" (a card added to a bill). */
+    fun save(onSaved: (String?) -> Unit) {
         val f = form.value ?: return
         if (!canSave(f)) {
             edit { it.copy(tried = true) }
             return
         }
         viewModelScope.launch {
+            // Same bill (191): only a card on the existing account's bill; nothing else changes.
+            val joins = if (!isEdit && f.type == AccountType.CARD && f.sameBill) cardOfBank(f, otherCards.value) else null
+            if (joins != null) {
+                money.addCard(joins.id, f.name.trim(), f.number)
+                onSaved(strings(R.string.card_added_to, f.name.trim(), joins.name))
+                return@launch
+            }
             fun amt(t: String) = TypedAmount.parse(t, digits).takeIf { it > 0 }
             val entered = TypedAmount.parse(f.balance, digits)
             // A card's and a loan's "balance" is what is owed: stored as a negative balance.
@@ -323,9 +389,12 @@ class NewAccountViewModel(
                 icon = f.shownIcon, createdAt = System.currentTimeMillis(), sortOrder = 50,
                 includeInNetWorth = f.countsInNetWorth,
             )
+            // A new card is named by its bank and its own name ("ICICI" + "Sapphiro").
+            val name = if (!isEdit && f.type == AccountType.CARD && f.bank != null) "${app.burrow.money.capture.bankShortName(f.bank)} ${f.name.trim()}" else f.name.trim()
+            val firstCard = if (isEdit && f.type == AccountType.CARD) f.cards.firstOrNull()?.number else null
             val a = base.copy(
-                name = f.name.trim(), type = f.type, icon = f.shownIcon, colorHue = f.hue, includeInNetWorth = f.countsInNetWorth,
-                number = f.number.filter { it.isDigit() }.takeLast(MAX_DIGITS).ifEmpty { null },
+                name = name, type = f.type, icon = f.shownIcon, colorHue = f.hue, includeInNetWorth = f.countsInNetWorth,
+                number = firstCard ?: f.number.filter { it.isDigit() }.takeLast(MAX_DIGITS).ifEmpty { null },
                 // A card on another's line keeps no limit of its own.
                 creditLimit = if (f.type == AccountType.CARD && f.sharesLimitWith == null) amt(f.limit) else null,
                 sharesLimitWith = if (f.type == AccountType.CARD) f.sharesLimitWith else null,
@@ -338,9 +407,10 @@ class NewAccountViewModel(
                 maturityDate = if (f.type == AccountType.SAVINGS) f.maturity?.millis() else null,
                 isSample = false,
             )
-            if (original == null) money.addAccount(a) else money.updateAccount(a)
+            if (original == null) money.addAccount(a, cardName = if (a.type == AccountType.CARD) f.name.trim() else "") else money.updateAccount(a)
+            if (isEdit && a.type == AccountType.CARD) money.setCards(a.id, f.cards.map { CardEntity(it.id, a.id, it.name, it.number) })
             if (a.type == AccountType.SAVINGS || original?.type == AccountType.SAVINGS) onDepositChanged()
-            onSaved()
+            onSaved(if (!isEdit && a.type == AccountType.CARD) strings(R.string.card_added) else null)
         }
     }
 }

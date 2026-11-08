@@ -184,6 +184,36 @@ width, light (dark mode is checked in the app). "→" means what a tap opens.
 | 183-delete-drive-backups-dialog | Delete backups from Drive? | the one dialog style (icon, title, line, Cancel · Delete) |
 | 184-category-search | Category sheet search | pill search field right under the header from 9 categories; filters by name; groups that empty out disappear |
 | 185-category-search-no-results | No match | the shared empty state (cookie, search-off) "No results for “pets”", line, Clear search (tonal) · New category (filled) |
+
+## Two cards, one bill (8 Nov) — 186–195 (`burrow-cards-1108.zip`)
+One card account can hold several cards on **one bill** (ICICI RuPay + Visa: one statement, one due, one Pay bill).
+Cards with **their own bills** on one credit line (Axis RuPay + Amex) stay separate card accounts that share the limit.
+Rule: same bill → add the card to the existing account; own bill → a new card account that can share the limit.
+19, 22, 167, 184 and 185 were redrawn too: category rows show "₹X this month" or "Nothing this month", no sub-names.
+
+| PNG | Screen | Notes |
+|---|---|---|
+| 186-card-two-cards / 187 | Card with two cards | centred header line "RuPay ••1234 · Visa ••5678 · due Tue, 28 Oct"; after Pay bill, **Cards on this bill** (meta "one statement · one due"): card ••digits · "N payments this month", then "Add another card on this bill" |
+| 188-edit-card-cards-on-bill | Edit account › card | under Icon: Cards on this bill (name, ••digits, ✕ when 2+; a row opens its name and digits), Add another card ("Its messages go to this account"); Statement on the 5th · Due on the 28th; Credit limit |
+| 189-add-another-card-sheet | Add another card on this bill | sheet line "Same statement, due date and limit as ICICI Credit"; Card name, Last 4 digits ("Used to match its SMS"); Add card (filled when both are set) |
+| 190-add-account-sheet | Add account (Accounts +) | Bank account · Credit card ("One bill, one or more cards") · Cash or wallet · Loan · Savings, each with a chevron |
+| 191-new-card-same-bill | New credit card, Same bill | Bank row (letter circle); "You already have ICICI Credit": Same bill / Its own bill (round check); name + 4 digits; note "Its payments go to ICICI Credit…"; title "Add card to ICICI" |
+| 192-new-card-own-bill | New credit card, Its own bill | name, digits, Statement day, Due day, "Shares limit of ICICI Credit · Credit limit · tap for its own" (then the amount due, colour, icon, net worth) |
+| 193-accounts-list | Accounts | one row per bill: "ICICI Credit · RuPay ••1234 · Visa ••56…" |
+| 194-card-transaction | Transaction | account row "ICICI Credit · Paid with RuPay ••1234" |
+| 195-activity-card-rows | Activity | row line "Transport · ICICI RuPay · 8:41 AM" |
+
+## Bank and cards (8 Nov) — 196–201 (`burrow-bank-1108.zip`); 191/192 redrawn
+| PNG | Screen | Notes |
+|---|---|---|
+| 191 / 192 | New credit card › Bank | `SelectField`: label "Bank" above, the pill with the bank (or "Choose the bank") and ⌄, no lead |
+| 196-bank-sheet | Bank | line "The bank that gives the card"; pill search; **Your banks** (your accounts are named after them) then **All banks**; text-only pick rows, short name under only when it differs ("SBI", "IDFC FIRST") |
+| 197-bank-sheet-search | Bank search | filters both groups by name or short name; no match: shared empty state, "Type the bank’s name as it is on the card.", tonal Use "…" (a typed bank names the card: "Federal Scapia") |
+| 198-new-card-own-bill-full | New card, Its own bill | Statement · Due · Credit limit ("Type the limit", or Shares limit of …) in one group; Amount due now row ("Nothing due now"); Colour; the 6 money icons; Count in net worth |
+| 199-one-card-bill | One-card bill | header "Card ••5521 · due Tue, 28 Oct"; Cards on this bill without the meta; the card row says "Credit card" |
+| 200-edit-one-card-unnamed | Edit account, card from before v8 | "Card ••5521" with "Tap to name it" in primary; no ✕ with one card |
+| 201-name-a-card-sheet | Card name | line "••5521 · HDFC Regalia"; field with ✕; Save (filled once typed). Any card row in Edit account opens it |
+
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.
 
 ## Edge cases that must exist (each has a design)

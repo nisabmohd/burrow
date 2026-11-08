@@ -319,7 +319,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<AccountsRoute> {
                         val vm = viewModel { AccountsViewModel(container.money) }
-                        AccountsScreen(vm, onBack = { nav.popBackStack() }, onAdd = { nav.navigate(NewAccountRoute()) }, onOpen = { nav.navigate(AccountRoute(it)) })
+                        AccountsScreen(vm, onBack = { nav.popBackStack() }, onAdd = { type -> nav.navigate(NewAccountRoute(type = type)) }, onOpen = { nav.navigate(AccountRoute(it)) })
                     }
                     composable<AccountRoute> { e ->
                         val id = e.toRoute<AccountRoute>().id
@@ -331,10 +331,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<NewAccountRoute> { e ->
                         val r = e.toRoute<NewAccountRoute>()
-                        val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) { container.runBillReminders() } }
+                        val vm = viewModel {
+                            NewAccountViewModel(container.money, container.strings, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) { container.runBillReminders() }
+                                .also { v -> v.loadBanks { container.capture.cardBanks(settings.enabledPacks) } }
+                        }
                         val saved = stringResource(R.string.saved)
                         NewAccountScreen(
-                            vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() },
+                            vm, onClose = { nav.popBackStack() }, onSaved = { msg -> snackbar.show(msg ?: saved); nav.popBackStack() },
                             onArchived = { undo ->
                                 snackbar.show(context.getString(R.string.account_archived), undo)
                                 // Back to the list: the account's own screen has nothing to show now.

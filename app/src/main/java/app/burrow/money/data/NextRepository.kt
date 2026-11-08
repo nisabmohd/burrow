@@ -233,5 +233,8 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
     }
 
     /** App start: parts of payments that no longer exist. */
-    suspend fun cleanOrphans() = db.next().cleanOrphanSplits()
+    suspend fun cleanOrphans() {
+        db.next().cleanOrphanSplits()
+        db.cards().cleanOrphans()
+    }
 }

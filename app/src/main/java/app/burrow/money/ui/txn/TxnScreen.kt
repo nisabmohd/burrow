@@ -111,7 +111,14 @@ fun TxnScreen(
                     add { i, n ->
                         ListRow(
                             t.accountName, i, n,
-                            supporting = stringResource(if (t.txn.type == TxnType.INCOME) R.string.paid_into else R.string.paid_from),
+                            supporting = when {
+                                // 194: "Paid with RuPay ••1234" when its bill has two or more cards.
+                                t.cardNumber != null -> stringResource(
+                                    R.string.paid_with,
+                                    stringResource(R.string.card_digits, t.cardName.orEmpty().ifEmpty { stringResource(R.string.card_unnamed) }, t.cardNumber),
+                                )
+                                else -> stringResource(if (t.txn.type == TxnType.INCOME) R.string.paid_into else R.string.paid_from)
+                            },
                             lead = { AccountCircle(t, false) },
                         )
                     }

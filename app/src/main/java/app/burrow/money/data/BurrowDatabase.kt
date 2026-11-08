@@ -103,6 +103,24 @@ data class TxnEntity(
     val refundOf: Long? = null,
     /** v7: the merchant the bank message named, kept out of sight: the payee is the expense's own name. */
     val merchant: String? = null,
+    /** v8: the card it was paid with, when its card account has two or more cards (194, 195). */
+    val cardId: Long? = null,
+)
+
+/**
+ * v8: a card on a card account's bill (186–189). Cards on one bill share one statement, due and
+ * balance; each has its own name and last digits, so messages from any of them reach the account.
+ * The account's `number` is kept as its first card's digits.
+ */
+@kotlinx.serialization.Serializable
+@Entity(indices = [Index("accountId")])
+data class CardEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val accountId: Long,
+    /** "RuPay", "Visa"; empty for a card that came from an account made before v8 ("Card"). */
+    val name: String,
+    val number: String,
+    val sortOrder: Int = 0,
 )
 
 @kotlinx.serialization.Serializable
@@ -285,15 +303,27 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
     }
 }
 
+/** v7 → v8: every card account with last digits gets one card row from them. */
+class V7To8 : androidx.room.migration.AutoMigrationSpec {
+    override fun onPostMigrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL(CARDS_FROM_ACCOUNTS)
+    }
+}
+
+/** One card row for each card account with digits and no cards yet (migration, restoring an older backup). */
+const val CARDS_FROM_ACCOUNTS =
+    "INSERT INTO CardEntity (accountId, name, number, sortOrder) SELECT id, '', number, 0 FROM AccountEntity " +
+        "WHERE type = 'CARD' AND number IS NOT NULL AND number != '' AND id NOT IN (SELECT accountId FROM CardEntity)"
+
 @Database(
     entities = [
         AccountEntity::class, CategoryEntity::class, TxnEntity::class, BillEntity::class,
         BillOccurrenceEntity::class, BudgetEntity::class, GoalEntity::class,
         CaptureRuleEntity::class, CaptureEntity::class,
         PersonEntity::class, AttachmentEntity::class, TagEntity::class, TxnTagEntity::class, RateEntity::class,
-        SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class,
+        SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class, CardEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
@@ -302,6 +332,7 @@ class V3To4 : androidx.room.migration.AutoMigrationSpec {
         AutoMigration(from = 4, to = 5), // next: refunds, split parts, favourites, import mappings
         AutoMigration(from = 5, to = 6), // cards sharing one credit limit
         AutoMigration(from = 6, to = 7), // hidden merchant on payments, expense name on captures
+        AutoMigration(from = 7, to = 8, spec = V7To8::class), // two cards, one bill: card rows, the card a payment used
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {
@@ -316,6 +347,7 @@ abstract class BurrowDatabase : RoomDatabase() {
     abstract fun rules(): RuleDao
     abstract fun extras(): ExtrasDao
     abstract fun next(): NextDao
+    abstract fun cards(): CardDao
 
     companion object {
         fun create(context: Context): BurrowDatabase =

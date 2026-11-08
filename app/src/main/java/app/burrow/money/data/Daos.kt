@@ -70,6 +70,9 @@ data class TxnView(
     val toAccountHue: Float?,
     /** "Add money" to a goal: the goal's name. */
     val goalName: String? = null,
+    /** The card it was paid with (two or more cards on one bill): name ("" = "Card") and digits. */
+    val cardName: String? = null,
+    val cardNumber: String? = null,
 )
 
 /** SUM(amount) of transfers into one account. */
@@ -181,12 +184,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         ORDER BY t.at DESC, t.id DESC
         LIMIT :limit
         """,
@@ -197,12 +202,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.id = :id
         """,
     )
@@ -288,12 +295,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.at >= :from AND t.at < :to
         ORDER BY t.at DESC, t.id DESC
         """,
@@ -305,12 +314,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.status = 'UPCOMING'
         ORDER BY t.at, t.id
         """,
@@ -770,4 +781,35 @@ interface BackupDao {
     @Query("DELETE FROM GoalEntity") suspend fun clearGoals()
     @Query("DELETE FROM CaptureRuleEntity") suspend fun clearRules()
     @Query("DELETE FROM CaptureEntity") suspend fun clearCaptures()
+    @Query("SELECT * FROM CardEntity") suspend fun cards(): List<CardEntity>
+    @Insert suspend fun putCards(l: List<CardEntity>)
+    @Query("DELETE FROM CardEntity") suspend fun clearCards()
+    @Query(CARDS_FROM_ACCOUNTS) suspend fun cardsFromAccounts()
+}
+
+/** Expenses paid with one card since a time (186: "27 payments this month"). */
+data class CardCount(val cardId: Long, val count: Int)
+
+/** Cards on a card account's bill (v8). */
+@Dao
+interface CardDao {
+    @Query("SELECT * FROM CardEntity ORDER BY accountId, sortOrder, id") fun all(): Flow<List<CardEntity>>
+    @Query("SELECT * FROM CardEntity ORDER BY accountId, sortOrder, id") suspend fun allNow(): List<CardEntity>
+    @Query("SELECT * FROM CardEntity WHERE accountId = :accountId ORDER BY sortOrder, id") suspend fun of(accountId: Long): List<CardEntity>
+    @Insert suspend fun insert(card: CardEntity): Long
+    @androidx.room.Update suspend fun update(card: CardEntity)
+    @Query("DELETE FROM CardEntity WHERE id = :id") suspend fun delete(id: Long)
+
+    @Query(
+        "SELECT cardId, COUNT(*) AS count FROM TxnEntity WHERE cardId IS NOT NULL AND type = 'EXPENSE' AND status = 'POSTED' " +
+            "AND at >= :from GROUP BY cardId",
+    )
+    fun counts(from: Long): Flow<List<CardCount>>
+
+    /** A removed card's payments, or an account back to one card: no "Paid with" any more. */
+    @Query("UPDATE TxnEntity SET cardId = NULL WHERE cardId = :cardId") suspend fun forgetCard(cardId: Long)
+    @Query("UPDATE TxnEntity SET cardId = NULL WHERE accountId = :accountId") suspend fun forgetCards(accountId: Long)
+
+    /** Cards of accounts that are gone (deleted samples) — run at app start. */
+    @Query("DELETE FROM CardEntity WHERE accountId NOT IN (SELECT id FROM AccountEntity)") suspend fun cleanOrphans()
 }

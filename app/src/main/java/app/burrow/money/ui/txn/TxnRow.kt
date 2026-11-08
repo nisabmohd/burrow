@@ -40,7 +40,10 @@ fun TxnRow(t: TxnView, index: Int, count: Int, dates: DateText, today: LocalDate
         TxnType.REFUND -> stringResource(R.string.dot_join, stringResource(R.string.refund), t.categoryName.orEmpty())
         else -> t.categoryName.orEmpty()
     }
-    val base = stringResource(R.string.dot_join, kind, shortName(t.accountName))
+    // Two or more cards on one bill (195): "ICICI RuPay", the card it was paid with.
+    val account = t.cardName?.let { stringResource(R.string.account_with_card, shortName(t.accountName), it.ifEmpty { stringResource(R.string.card_unnamed) }) }
+        ?: shortName(t.accountName)
+    val base = stringResource(R.string.dot_join, kind, account)
     val upcoming = t.txn.status == app.burrow.money.data.TxnStatus.UPCOMING
     val showTime = app.burrow.money.ui.LocalListPrefs.current.showTime
     val line = when {

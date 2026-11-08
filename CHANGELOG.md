@@ -5,6 +5,10 @@
 - Google Drive backup (Google Play and GitHub builds): back up to your own Drive, encrypted with your backup password, by hand or on your backup schedule while charging; restore any of the last 10.
 - Rate in About opens Google Play's rating card (Google Play build).
 - Search in the category sheet.
+- Two cards, one bill: a credit card account can hold several cards (ICICI RuPay + Visa). Messages from any of them land on the one account, with one statement, one due and one Pay bill; each payment says which card paid it. Cards with their own bills on one credit line stay separate cards that share the limit.
+- New credit card asks for the bank first: with a card from that bank already, choose Same bill or Its own bill. The Bank sheet has search, Your banks and All banks.
+- Add account opens a sheet of kinds (Bank account, Credit card, Cash or wallet, Loan, Savings).
+- Cards from before can be named (Edit account › Tap to name it).
 - Backup and restore shows the folder's name instead of a number.
 - Scrolling a list in a sheet back to its top no longer drags the sheet closed.
 - A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.

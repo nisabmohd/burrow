@@ -75,4 +75,46 @@ class CaptureLogicTest {
         assertEquals(1L, matchAccount("XX512", "HDFC Bank", accounts))
         assertEquals(3L, matchAccount("**123", "SBI", accounts))
     }
+
+    // Two cards, one bill (186): either card's digits reach the account; the card is kept only with 2+.
+    private val icici = AccountRef(7, "ICICI Credit", "1234", "CARD")
+    private val hdfc = AccountRef(8, "HDFC Savings", "4471", "BANK")
+    private val iciciCards = listOf(CardRef(1, 7, "1234"), CardRef(2, 7, "5678"))
+
+    @Test fun secondCardDigitsReachTheAccount() {
+        assertEquals(7L, matchAccount("XX5678", "ICICI Bank", withCards(listOf(hdfc, icici), iciciCards)))
+    }
+
+    @Test fun paymentKeepsItsCard() {
+        assertEquals(2L, matchCard("XX5678", 7, iciciCards))
+        assertEquals(1L, matchCard("1234", 7, iciciCards))
+    }
+
+    @Test fun oneCardOrNoMatchKeepsNoCard() {
+        assertNull(matchCard("1234", 7, iciciCards.take(1)))
+        assertNull(matchCard("9999", 7, iciciCards))
+        assertNull(matchCard(null, 7, iciciCards))
+    }
+
+    @Test fun bankShortNames() {
+        assertEquals("ICICI", bankShortName("ICICI Bank"))
+        assertEquals("SBI", bankShortName("State Bank of India"))
+        assertEquals(listOf("Axis Bank", "ICICI Bank"), cardBanks(listOf("ICICI Bank", "Bank", "Google Pay", "Axis Bank", "ICICI Bank")))
+        assertEquals(listOf("Kotak Mahindra Bank"), cardBanks(listOf("Kotak Bank", "Kotak Mahindra Bank")))
+        assertEquals("SBI", bankShortLine("State Bank of India"))
+        assertEquals("IDFC FIRST", bankShortLine("IDFC FIRST Bank"))
+        assertNull(bankShortLine("Kotak Mahindra Bank"))
+        assertEquals("Federal", bankShortName("Federal Bank"))
+    }
+
+    @Test fun yourBanksComeFromAccountNames() {
+        val banks = listOf("Axis Bank", "HDFC Bank", "ICICI Bank", "IDFC FIRST Bank", "Kotak Mahindra Bank")
+        assertEquals(listOf("HDFC Bank", "IDFC FIRST Bank", "Kotak Mahindra Bank"), yourBanks(banks, listOf("HDFC Savings", "Kotak", "IDFC FIRST Wealth", "Cash")))
+    }
+
+    @Test fun newCardFindsItsBanksCard() {
+        assertEquals(7L, cardOfBank("ICICI Bank", listOf(hdfc, icici))?.id)
+        assertNull(cardOfBank("Axis Bank", listOf(hdfc, icici)))
+        assertNull(cardOfBank("HDFC Bank", listOf(hdfc, icici))) // a bank account, not a card
+    }
 }

@@ -25,6 +25,11 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 - **Net worth**: `account.includeInNetWorth` (cards and loans default false).
 - **Shared credit line** (v6): `account.sharesLimitWith` = the card whose `creditLimit` this card uses (its own is
   cleared). Available = that limit − what every card on the line owes. One step only (`creditLine()`), so no loops.
+- **Cards on one bill** (v8): `card` (accountId, name, number, sortOrder). A card account holds one or more cards;
+  its `number` is kept as the first card's digits. Capture matches any card's digits to its account
+  (`withCards`), and `txn.cardId` records the card only when the account has two or more (`matchCard`); with one
+  card left, every `cardId` of that account is cleared. The v7 → v8 migration and restoring an older backup give
+  each card account with digits one card (empty name, shown as "Card"). Backups v4 carry `cards`.
 - **Merchant and expense name** (v7): `txn.merchant` = the merchant the bank message named, kept out of sight (the
   payee is the expense's own name, "Medicines"); usual categories, aliases and bill matching read it. `capture.name` =
   the expense name the message's words gave ("Petrol"), when they gave one. See CAPTURE.md.

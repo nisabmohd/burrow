@@ -3,6 +3,9 @@ package app.burrow.money.data
 import android.content.Context
 import androidx.room.withTransaction
 import app.burrow.money.capture.AccountRef
+import app.burrow.money.capture.CardRef
+import app.burrow.money.capture.matchCard
+import app.burrow.money.capture.withCards
 import app.burrow.money.capture.BUILT_IN_PACKS
 import app.burrow.money.capture.Direction
 import app.burrow.money.capture.Rule
@@ -49,6 +52,10 @@ class CaptureRepository(
     }
 
     fun pack(id: String): RuleFile? = packs[id]
+
+    /** Banks a new card can be from (191): the enabled packs' bank names. */
+    fun cardBanks(enabled: Set<String>): List<String> =
+        app.burrow.money.capture.cardBanks(enabled.mapNotNull { packs[it] }.flatMap { f -> f.rules.map { it.name } })
 
     /** Your rules, newest first. */
     val userRules: Flow<List<Rule>> = db.rules().all().map { list ->
@@ -144,8 +151,16 @@ class CaptureRepository(
     suspend fun accountFor(capture: CaptureEntity): Long? {
         val accounts = money.accounts.first().map { AccountRef(it.account.id, it.account.name, it.account.number, it.account.type) }
         val bank = activeRules.first().firstOrNull { it.id == capture.ruleId }?.name
-        return matchAccount(capture.account, bank, accounts)
+        return matchAccount(capture.account, bank, withCards(accounts, cardRefs()))
     }
+
+    private suspend fun cardRefs() = db.cards().allNow().map { CardRef(it.id, it.accountId, it.number) }
+
+    /**
+     * Runs when a payment leaves To review (saved, ignored, opened in New expense), so its
+     * notification goes too: a payment already dealt with never waits in the shade.
+     */
+    var onResolved: (Long) -> Unit = {}
 
     /** Saves a capture as a transaction with [categoryId]; returns the new transaction's id. */
     suspend fun save(captureId: Long, categoryId: Long?): Long? {
@@ -161,6 +176,7 @@ class CaptureRepository(
                 // The expense is named by the message's words when it had some; the merchant stays hidden.
                 payee = c.name ?: c.payee?.let(::tidyPayee), merchant = c.payee?.let(::tidyPayee),
                 at = c.receivedAt, source = c.source, createdAt = now, updatedAt = now,
+                cardId = matchCard(c.account, accountId, cardRefs()),
             ),
         )
         db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId ?: c.categoryId))
