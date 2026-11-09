@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +29,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
@@ -41,6 +46,7 @@ import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Size
 import app.burrow.money.ui.theme.Space
 import app.burrow.money.ui.theme.warningColors
+import app.burrow.money.ui.theme.categoryColors
 
 /*
  * Page-level building blocks (docs/COMPONENTS.md). The "Lite" rules:
@@ -197,15 +203,19 @@ private fun ColumnScope.WidgetText(label: String, icon: Painter, value: String, 
     if (line.isNotEmpty()) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
 }
 
-/** Empty state: 128 dp wavy "cookie" shape (primaryContainer) with the icon centred at 42%, title, one line, one tonal button. */
+/**
+ * Empty state: the picture ([Ghost] for an empty list or no results, [Cookie] for a status such as
+ * done or deleted), title, one line, one tonal button. [top] is 32 dp under the illustrated one.
+ */
 @Composable
-fun EmptyState(shape: @Composable () -> Unit, title: String, line: String, button: (@Composable () -> Unit)? = null) {
-    Column(Modifier.fillMaxWidth().padding(vertical = Space.empty, horizontal = Space.sheet), horizontalAlignment = Alignment.CenterHorizontally) {
+fun EmptyState(shape: @Composable () -> Unit, title: String, line: String, button: (@Composable () -> Unit)? = null, top: androidx.compose.ui.unit.Dp = Space.emptyTop) {
+    Column(Modifier.fillMaxWidth().padding(top = top, bottom = Space.empty, start = Space.sheet, end = Space.sheet), horizontalAlignment = Alignment.CenterHorizontally) {
         shape()
         Spacer(Modifier.height(Space.screen))
         Text(title, style = BurrowType.title, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
-        Text(line, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        if (button != null) { Spacer(Modifier.height(Space.hero)); button() }
+        Spacer(Modifier.height(Space.small))
+        Text(line, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = Size.emptyLine))
+        if (button != null) { Spacer(Modifier.height(Space.sheet)); button() }
     }
 }
 
@@ -236,6 +246,46 @@ fun Cookie(icon: Painter, modifier: Modifier = Modifier) {
 
 private const val COOKIE_BUMPS = 9
 private const val COOKIE_AMP = 0.075
+
+/**
+ * The illustrated empty state's picture (COMPONENTS § Empty state): two ghost rows tilted like loose
+ * cards. The front one holds a small circle with the subject's icon ([hue] = the account's own colour,
+ * otherwise neutral) and pill bars. Used for every "empty / no results" state; status screens (done,
+ * deleted) keep the [Cookie].
+ */
+@Composable
+fun Ghost(icon: Painter, hue: Float? = null) {
+    val c = MaterialTheme.colorScheme
+    val card = Modifier
+        .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = c.scrim.copy(alpha = GHOST_SHADOW), spotColor = c.scrim.copy(alpha = GHOST_SHADOW))
+        .background(c.surfaceContainerLowest, Shapes.ghost)
+        .padding(horizontal = Space.card, vertical = Size.ghostPadV)
+    val bar: @Composable (Float) -> Unit = { w -> Box(Modifier.fillMaxWidth(w).height(Size.ghostLine).background(c.surfaceContainerHighest, Shapes.pill)) }
+    Box(Modifier.size(Size.ghostWidth, Size.ghostHeight).clearAndSetSemantics { }) {
+        Column(
+            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT).alpha(GHOST_BACK_ALPHA).size(Size.ghostBackWidth, Size.ghostBackHeight).then(card),
+            verticalArrangement = Arrangement.spacedBy(Size.ghostLine, Alignment.CenterVertically),
+        ) { bar(0.6f); bar(0.8f) }
+        Column(
+            Modifier.padding(start = Size.ghostFrontStart, top = Size.ghostFrontTop).rotate(GHOST_FRONT_TILT).size(Size.ghostFrontWidth, Size.ghostFrontHeight).then(card),
+            verticalArrangement = Arrangement.spacedBy(Size.ghostLine),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.inline + Space.row)) {
+                val colors = hue?.let { categoryColors(it) }
+                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: c.surfaceContainerLowest, Shapes.pill), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = colors?.onContainer ?: c.onSurfaceVariant, modifier = Modifier.size(Size.ghostIcon))
+                }
+                bar(0.52f)
+            }
+            bar(0.86f); bar(0.58f)
+        }
+    }
+}
+
+private const val GHOST_BACK_TILT = -7f
+private const val GHOST_FRONT_TILT = 4f
+private const val GHOST_BACK_ALPHA = 0.7f
+private const val GHOST_SHADOW = 0.12f
 
 /** The 64 dp icon circle that opens a centred header (primaryContainer). */
 @Composable

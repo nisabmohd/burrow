@@ -243,10 +243,6 @@ class AccountViewModel(
         onDone { money.delete(txnId) }
     }
 
-    fun setRemind(on: Boolean) = viewModelScope.launch {
-        state.value?.account?.let { val a = it.copy(remind = on); money.updateAccount(a); plan?.syncSavingsBill(a); onDepositChanged() }
-    }
-
     private fun atMillis(day: LocalDate) = if (day == LocalDate.now()) System.currentTimeMillis()
         else day.atTime(java.time.LocalTime.NOON).atZone(zone).toInstant().toEpochMilli()
 
@@ -354,7 +350,6 @@ val ACCOUNT_ICONS = listOf(
 )
 
 /** Icons a savings account can have (217). */
-val SAVINGS_ICONS = listOf("savings", "calendar_month", "flag", "bar_chart", "home", "school")
 
 /**
  * The credit line [cardId] is on: the id of the card that holds the limit. A card shares with one

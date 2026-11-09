@@ -323,6 +323,7 @@ fun ImportCheckScreen(vm: ImportCheckViewModel, onBack: () -> Unit, onDone: (Int
         when (s) {
             ImportState.Loading -> Unit
             ImportState.Failed -> EmptyState(
+                top = app.burrow.money.ui.theme.Space.empty,
                 shape = { Cookie(painterResource(R.drawable.ic_upload_file_regular)) },
                 title = stringResource(R.string.nothing_to_import),
                 line = stringResource(R.string.nothing_to_import_line, from),

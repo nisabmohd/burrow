@@ -20,7 +20,9 @@ Screen numbers point to `design/screens/`.
 - [ ] Smoke check in `tools/smoke.py` for two cards on one bill (Add account › Credit card › Same bill, SMS from each
       card's digits, "Paid with"), and restoring a v3 backup (cards come back from the accounts' digits)
 
-## Savings (designs 202–228, built 2026-11-08)
+## Savings (designs 202–228, built 2026-11-08; bank-page layout 2026-11-09, SAVINGS-SIMPLE.md)
+- [ ] Check on the emulator against the new PNGs (202–205, 208, 209, 211, 213–226) and the illustrated empty
+      states (09, 16, 41, 185, 222, 223), light and dark
 - [ ] Smoke checks: New savings (Once, Every month, Any time, market value), Add money → new deposit, Pay instalment, Update value, New deposit sheet, Edit savings, Sunday review "Update 1 investment" and Update values (2+)
 
 ## Tests

@@ -213,23 +213,23 @@ Rule: same bill → add the card to the existing account; own bill → a new car
 | 199-one-card-bill | One-card bill | header "Card ••5521 · due Tue, 28 Oct"; Cards on this bill without the meta; the card row says "Credit card" |
 | 200-edit-one-card-unnamed | Edit account, card from before v8 | "Card ••5521" with "Tap to name it" in primary; no ✕ with one card |
 | 201-name-a-card-sheet | Card name | line "••5521 · HDFC Regalia"; field with ✕; Save (filled once typed). Any card row in Edit account opens it |
-| 202-savings-once | Savings · Once | header worth today, "₹X at maturity"; put in · rate (or "2 deposits"), Pays into, Remind me a week before; Add money; Deposits (amount at rate, from → matures, value at maturity) |
-| 203-savings-every-month | Savings · Every month | header saved so far, "₹5,000 every month · 13 of 36 paid"; Next on, rate + value when it ends, Remind me the day before; Pay instalment; Instalments (Next, paid = round check) |
-| 204-savings-any-time | Savings · Any time | header balance, "grows at 7.1% a year · add any time"; added this year + a year at this rate, No end date; Add money; Money added |
-| 205-add-money-new-deposit | Add money (Once) | value sheet; From (a transfer); Date; "Starts a new deposit · At 7.1% · matures in 2 years · tap to change" (opens New deposit: Interest, Matures — design review) |
+| 202-savings-once | Savings · Once | bank-page pattern (SAVINGS-SIMPLE.md, 9 Nov): header "worth today · ₹X at maturity"; one list: Add money / Starts a new deposit · 7.1% a year / Pays into HDFC Savings on … · Count in net worth; Deposits ("Deposit · 12 Mar 2025", "7.1% · matures 12 Mar 2027", amount) |
+| 203-savings-every-month | Savings · Every month | header saved so far, "₹5,000 a month · 13 of 36 paid"; one list: Pay instalment / ₹5,000 due 12 Nov · 6.8% a year / value when it ends · Count in net worth; Instalments ("Instalment 13 · 12 Oct", From HDFC Savings, amount), meta "13 paid" |
+| 204-savings-any-time | Savings · Any time | header "7.1% a year · no end date"; one list: Add money / Any amount, any time · ₹13,100 a year / Interest at this rate (hidden at ₹0) · Count in net worth; Money added ("Added · 5 Oct", From HDFC Savings, amount) |
+| 205-add-money-new-deposit | Add money (Once) | value sheet; From (a transfer); Date; row "New deposit · 7.1% · matures 19 Oct 2028 ›" opens New deposit (214) |
 | 206-pay-instalment | Pay instalment | value sheet with the monthly amount; From; Date; Cancel · Pay. Marks the next instalment Paid |
 | 207-add-money-any-time | Add money (Any time) | value sheet; From; Date; Cancel · Add |
-| 208-new-savings / 209-new-savings-every-month | New savings | Name; How money goes in (Once · Every month · Any time) + helper; How it grows (Fixed rate · Market value) + helper; Amount / Each month / Starting amount, Interest, Ends, From |
+| 208-new-savings / 209-new-savings-every-month | New savings | Name; Money goes in (Once · Every month · Any time); Grows by (Fixed rate · Market value); no helper lines; one list: Amount / Each month / Starting amount, Interest, Matures … / Ends, the account / Money comes from |
 | 210-accounts-savings | Accounts › Savings | "Once · 7.1% · matures Mar 2027"; Every month at a fixed rate: ring of instalments paid; market value: worth |
-| 211-savings-market-value | Savings · Market value | header worth, "+₹7,200 on ₹54,000 put in" (never coloured); Next on (Every month), Value updated; Update value row; Pay instalment / Add money |
+| 211-savings-market-value | Savings · Market value | header worth, "+₹7,200 on ₹54,000 put in" (never coloured); one list: Update value / Last updated 5 Oct · Pay instalment · Count in net worth; Instalments |
 | 212-update-value-sheet | Update value | value sheet, line "Index fund · was ₹61,200 on 5 Oct", "+₹9,500 on ₹54,000 put in"; Cancel · Save |
-| 213-new-savings-market | New savings, market value | no Interest; Ends "No end date · tap to set one" |
-| 214-new-deposit-sheet / 215-add-money-custom-deposit | New deposit | line "Inside Fixed deposit · its own rate and maturity"; rate row (value sheet, 226); Matures in 1 · 2 · 3 · 5 years; Matures row (calendar); Done back to Add money with the amount kept |
-| 216 / 217-edit-savings | Edit savings | New savings form prefilled; Colour; Icon (6 savings icons); Count in net worth "Included in net worth"; Archive. No Opening balance row |
-| 218-market-value-once / 219-market-value-any-time | Market value, Once / Any time | Once: "Put in once · ₹54,000 on 3 Mar 2025", Value updated, button Update value, no list. Any time: "₹54k put in · Add any time", Value updated, Update value row, Add money, Money added |
-| 220 / 221 | Every month, no end date | "₹5,000 every month · 13 paid"; "No end date · stop it any time"; Accounts shows the amount, no ring |
-| 222 / 223 | Empty lists | "No instalments yet · The first one is due on 12 Nov"; "Nothing added yet · Money you add shows here", no total |
-| 224 / 225 / 226 | Rate required | "Add the rate"; Save off until set; tapped Save marks "Interest · needed to work out the value" red; Interest rate sheet "A year · as on the bank receipt" |
+| 213-new-savings-market | New savings, market value | no Interest; "No end date / Tap to set one" |
+| 214-new-deposit-sheet / 215-add-money-custom-deposit | New deposit | line is the account name; rate row (value sheet, 226); Matures in 1 · 2 · 3 · 5 years; Matures row (calendar); Done back to Add money with the amount kept |
+| 216 / 217-edit-savings | Edit savings | = Edit account (106): preview header (icon, name, "Once"); Name; Colour; Icon (Edit account's icons); amount / rate / ends / from rows; Count in net worth "Included"; Archive account. No Money goes in / Grows by (can't change after creation) |
+| 218-market-value-once / 219-market-value-any-time | Market value, Once / Any time | Once: Update value · Put in ₹54,000 / On 3 Mar 2025 · Count in net worth; no history. Any time: Update value · Add money · Count in net worth; Money added |
+| 220 / 221 | Every month, no end date | "₹5,000 a month · no end date"; rate row "Stop it any time"; Accounts shows the amount, no ring |
+| 222 / 223 | Empty lists | the illustrated empty state (`Ghost` with the account's icon): "No instalments yet" + tonal Pay first instalment; "Nothing added yet" + Add money; the matching action row is hidden |
+| 224 / 225 / 226 | Rate required | "Add the rate / Needed to work out the value"; Save off until set; tapped Save turns that line red; Interest rate sheet "A year · as on the bank receipt" |
 | 227 / 228 | Sunday review, 2+ investments | "Update 2 investments · Index fund, Gold · oldest from 1 Oct" → Update values sheet → Update value (212); updated rows drop off |
 
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.

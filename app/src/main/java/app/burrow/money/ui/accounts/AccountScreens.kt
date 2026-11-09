@@ -271,6 +271,21 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
         TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(a.id) })
     }) {
         val icon: @Composable () -> Unit = { CategoryCircle(a.icon, a.colorHue, Size.iconCircleBig) }
+        val netWorth: @Composable (Int, Int) -> Unit = { i, n ->
+            ListRow(
+                stringResource(R.string.count_in_net_worth), i, n,
+                supporting = stringResource(
+                    when {
+                        a.type == AccountType.CARD && !a.includeInNetWorth -> R.string.net_worth_off_card
+                        a.type == AccountType.LOAN && !a.includeInNetWorth -> R.string.net_worth_off_loan
+                        a.includeInNetWorth -> R.string.included
+                        else -> R.string.left_out
+                    },
+                ),
+                lead = { IconCircle(painterResource(R.drawable.ic_scales_duotone)) },
+                trailing = { BurrowSwitch(a.includeInNetWorth, vm::setInNetWorth) },
+            )
+        }
         when {
             s.card != null -> {
                 val card = s.card
@@ -345,9 +360,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                     }
                 }
             }
-            sv != null -> SavingsContent(
-                a, sv, icon, vm::setRemind, { sheet = AccountSheet.ADD_MONEY }, { sheet = AccountSheet.UPDATE_VALUE },
-            )
+            sv != null -> SavingsContent(a, sv, icon, netWorth, { sheet = AccountSheet.ADD_MONEY }, { sheet = AccountSheet.UPDATE_VALUE })
             else -> {
                 CenterHeader(icon, a.name, money.balance(s.balance), line = accountLine(a))
                 ListGroup {
@@ -362,21 +375,8 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 }
             }
         }
-        ListGroup(Modifier.padding(top = Space.block)) {
-            ListRow(
-                stringResource(R.string.count_in_net_worth), 0, 1,
-                supporting = stringResource(
-                    when {
-                        a.type == AccountType.CARD && !a.includeInNetWorth -> R.string.net_worth_off_card
-                        a.type == AccountType.LOAN && !a.includeInNetWorth -> R.string.net_worth_off_loan
-                        a.includeInNetWorth -> R.string.included
-                        else -> R.string.left_out
-                    },
-                ),
-                lead = { IconCircle(painterResource(R.drawable.ic_scales_duotone)) },
-                trailing = { BurrowSwitch(a.includeInNetWorth, vm::setInNetWorth) },
-            )
-        }
+        // Savings keep it in their one list (202); every other kind has it on its own.
+        if (sv == null) ListGroup(Modifier.padding(top = Space.block)) { netWorth(0, 1) }
         if (a.type != AccountType.SAVINGS) {
             val today = LocalDate.now()
             s.txns.groupBy { dates.date(it.txn.at) }.entries.take(30).forEach { (day, list) ->
@@ -615,15 +615,37 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
         app.burrow.money.ui.components.BlockColumn(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.screen).padding(bottom = Space.screen),
         ) {
+            // A preview of how it looks in lists (106, 216): icon in its colour, name with the last digits, kind.
+            val preview: @Composable () -> Unit = {
+                Column(Modifier.fillMaxWidth().padding(top = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
+                    app.burrow.money.ui.pickers.CategoryCircle(f.shownIcon, f.hue, Size.iconCircleBig)
+                    Spacer(Modifier.height(Space.block))
+                    Text(
+                        listOfNotNull(f.name.ifBlank { stringResource(R.string.new_account) }, f.number.takeIf { it.isNotBlank() }?.let { "••$it" }).joinToString(" "),
+                        style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface,
+                    )
+                    Text(if (savings) savingsModeLabel(f.savingsMode) else typeLabels.getValue(f.type), style = app.burrow.money.ui.theme.BurrowType.body, color = c.onSurfaceVariant)
+                }
+            }
+            val colourAndIcon: @Composable () -> Unit = {
+                SectionHeader(stringResource(R.string.colour))
+                app.burrow.money.ui.components.HuePicker(f.hue, stringResource(R.string.colour), { h -> vm.edit { it.copy(hue = h) } })
+                SectionHeader(stringResource(R.string.icon))
+                // A new card picks from the money icons only (198); Edit savings uses Edit account's set (216).
+                app.burrow.money.ui.components.IconPicker(if (newCard) ACCOUNT_ICONS.take(6) else ACCOUNT_ICONS, f.shownIcon, f.hue, { i -> vm.edit { it.copy(icon = i) } })
+            }
             if (savings) {
+                // Edit savings (216) opens like Edit account: the preview, Name, Colour, Icon, then the rows.
+                if (vm.isEdit) preview()
                 SavingsFormFields(
                     f, vm.isEdit, payAccounts.firstOrNull { it.account.id == f.fromId },
                     { v -> vm.edit { it.copy(name = v) } }, vm::setSavingsMode, vm::setMarket,
                     { sheet = FormSheet.SAVINGS_AMOUNT }, { sheet = FormSheet.SAVINGS_RATE }, { sheet = FormSheet.MATURITY }, { sheet = FormSheet.SAVINGS_FROM },
                     amountMissing = f.tried && app.burrow.money.domain.AmountInput(f.balance, money.digits).minor() <= 0,
                     rateMissing = f.tried && !f.market && f.rate.isBlank(),
+                    middle = colourAndIcon,
                 )
-                // New savings (208) ends here; editing keeps colour, icon, net worth and Archive.
+                // New savings (208) ends here; editing keeps net worth and Archive.
                 if (!vm.isEdit) return@BlockColumn
             } else if (newCard) {
                 // The bank (191/192): a card from a bank you already have a card from may join that card's bill.
@@ -693,16 +715,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                 }
             }
             if (!savings && !newCard) {
-                // A preview of how it looks in lists (106): icon in its colour, name with the last digits, kind.
-                Column(Modifier.fillMaxWidth().padding(top = Space.small), horizontalAlignment = Alignment.CenterHorizontally) {
-                    app.burrow.money.ui.pickers.CategoryCircle(f.shownIcon, f.hue, Size.iconCircleBig)
-                    Spacer(Modifier.height(Space.block))
-                    Text(
-                        listOfNotNull(f.name.ifBlank { stringResource(R.string.new_account) }, f.number.takeIf { it.isNotBlank() }?.let { "••$it" }).joinToString(" "),
-                        style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface,
-                    )
-                    Text(typeLabels.getValue(f.type), style = app.burrow.money.ui.theme.BurrowType.body, color = c.onSurfaceVariant)
-                }
+                preview()
                 // Add account (190) picked the kind; only Cash or wallet still chooses between the two.
                 val kinds = when {
                     vm.isEdit -> emptyList()
@@ -750,11 +763,7 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                     }
                 }
             }
-            SectionHeader(stringResource(R.string.colour))
-            app.burrow.money.ui.components.HuePicker(f.hue, stringResource(R.string.colour), { h -> vm.edit { it.copy(hue = h) } })
-            SectionHeader(stringResource(R.string.icon))
-            // A new card picks from the money icons only (198).
-            app.burrow.money.ui.components.IconPicker(if (newCard) ACCOUNT_ICONS.take(6) else if (savings) SAVINGS_ICONS else ACCOUNT_ICONS, f.shownIcon, f.hue, { i -> vm.edit { it.copy(icon = i) } })
+            if (!savings) colourAndIcon()
             if (vm.isEdit && f.type == AccountType.CARD) {
                 // Cards on this bill (188): ✕ removes one while two or more are left; a row opens its name and digits.
                 run {
@@ -793,12 +802,11 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                         when {
                             f.type == AccountType.CARD && !f.countsInNetWorth -> R.string.net_worth_off_card
                             f.type == AccountType.LOAN && !f.countsInNetWorth -> R.string.net_worth_off_loan
-                            savings && f.countsInNetWorth -> R.string.included_in_net_worth
                             f.countsInNetWorth -> R.string.included
                             else -> R.string.not_included
                         },
                     ),
-                    lead = { IconCircle(painterResource(R.drawable.ic_account_balance_duotone)) },
+                    lead = { IconCircle(painterResource(if (savings) R.drawable.ic_scales_duotone else R.drawable.ic_account_balance_duotone)) },
                     trailing = { app.burrow.money.ui.components.BurrowSwitch(f.countsInNetWorth, { on -> vm.edit { it.copy(inNetWorth = on) } }) },
                 )
                 if (rows == 2) {
@@ -926,7 +934,7 @@ private fun BankSheet(banks: List<String>, accountNames: List<String>, selected:
             }
             if (all.isEmpty()) {
                 app.burrow.money.ui.components.EmptyState(
-                    shape = { app.burrow.money.ui.components.Cookie(painterResource(R.drawable.ic_search_off_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_search_off_regular)) },
                     title = stringResource(R.string.no_results, q),
                     line = stringResource(R.string.bank_no_match_line),
                     button = { BurrowButton(stringResource(R.string.use_typed, q), { onPick(q) }, kind = ButtonKind.TONAL) },

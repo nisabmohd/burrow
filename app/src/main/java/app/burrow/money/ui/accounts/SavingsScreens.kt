@@ -23,7 +23,10 @@ import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.AmountTrailing
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
-import app.burrow.money.ui.components.BurrowSwitch
+import app.burrow.money.ui.components.ButtonKind
+import app.burrow.money.ui.components.EmptyState
+import app.burrow.money.ui.components.Ghost
+import app.burrow.money.ui.components.duotoneIcon
 import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.Chevron
@@ -76,192 +79,177 @@ private fun termText(months: Int): String =
     if (months % 12 == 0) pluralStringResource(R.plurals.n_years, months / 12, months / 12) else pluralStringResource(R.plurals.n_months, months, months)
 
 /**
- * Savings (202 Once, 203 Every month, 204 Any time, 211 market value): centred header, the rows that
- * say how it grows, one action button (Add money / Pay instalment), then Deposits, Instalments or Money added.
+ * Savings (202 Once, 203 Every month, 204 Any time, 211/218/219 market value) = the bank page (56):
+ * centred header; one list of action rows, at most one info row, then Count in net worth ([netWorth]);
+ * one history section built like transaction rows. An empty history (222, 223) is the illustrated empty
+ * state with the next step as its button, and that step's row is hidden.
  */
 @Composable
 fun SavingsContent(
     a: AccountEntity,
     sv: SavingsInfo,
     icon: @Composable () -> Unit,
-    onRemind: (Boolean) -> Unit,
+    netWorth: @Composable (Int, Int) -> Unit,
     onAdd: () -> Unit,
     onUpdateValue: () -> Unit,
 ) {
     val money = LocalMoney.current
     val dates = rememberDateText()
-    val c = MaterialTheme.colorScheme
     val rate = a.interestRate.orEmpty()
     val monthly = sv.mode == SavingsMode.MONTHLY
     val from = sv.payout?.name ?: stringResource(R.string.an_account)
     val each = money.plain(a.emi ?: 0)
-    if (sv.market) {
-        val gain = sv.worth - sv.putIn
-        CenterHeader(icon, a.name, money.plain(sv.worth), line = stringResource(R.string.gain_line, money.signed(gain), money.plain(sv.putIn)))
-        ListGroup {
-            val n = 2
-            if (monthly) ListRow(
-                sv.next?.let { stringResource(R.string.savings_next_on, dates.shortDay(it)) } ?: stringResource(R.string.no_end_date), 0, n,
-                supporting = stringResource(R.string.from_line_paid, each, from, sv.paid),
-                lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
-            ) else if (sv.mode == SavingsMode.ONCE) ListRow(
-                stringResource(R.string.put_in_once), 0, n,
-                supporting = stringResource(R.string.amount_on, money.plain(sv.putIn), dates.fullDay(a.startDate?.let { dates.date(it) } ?: dates.date(a.createdAt))),
-                lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-            ) else ListRow(
-                stringResource(R.string.put_in, money.short(sv.putIn)), 0, n, supporting = stringResource(R.string.add_any_time),
-                lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-            )
-            ListRow(
-                a.valueUpdatedAt?.let { stringResource(R.string.value_updated, dates.shortDay(dates.date(it))) } ?: stringResource(R.string.market_value), n - 1, n,
-                supporting = stringResource(R.string.market_never),
-                lead = { IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
-            )
-        }
-        // Once (218): Update value is the main button, so no row.
-        if (sv.mode != SavingsMode.ONCE) ListGroup(Modifier.padding(top = Space.block)) {
-            ListRow(
-                stringResource(R.string.update_value), 0, 1, supporting = stringResource(R.string.update_value_line),
-                lead = { IconCircle(painterResource(R.drawable.ic_edit_duotone)) }, trailing = { Chevron() }, onClick = onUpdateValue,
-            )
-        }
-    } else when (sv.mode) {
-        SavingsMode.ONCE -> {
-            CenterHeader(icon, a.name, money.plain(sv.worth), line = stringResource(R.string.worth_today_line, money.plain(sv.atMaturity)))
-            ListGroup {
-                ListRow(
-                    stringResource(R.string.put_in, money.short(sv.putIn)), 0, 3,
-                    supporting = if (sv.deposits.size > 1) pluralStringResource(R.plurals.n_deposits, sv.deposits.size, sv.deposits.size) else stringResource(R.string.rate_a_year, rate),
-                    lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-                )
-                ListRow(
-                    stringResource(R.string.pays_into, from), 1, 3, supporting = stringResource(R.string.asks_each_matures),
-                    lead = { CategoryCircle(sv.payout?.icon, sv.payout?.colorHue) },
-                )
-                ListRow(
-                    stringResource(R.string.remind_week_before), 2, 3,
-                    lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
-                    trailing = { BurrowSwitch(a.remind, onRemind) },
-                )
-            }
-        }
-        SavingsMode.MONTHLY -> {
-            CenterHeader(
-                icon, a.name, money.plain(sv.putIn),
-                line = sv.total?.let { stringResource(R.string.every_month_paid, each, sv.paid, it) } ?: stringResource(R.string.every_month_paid_open, each, sv.paid),
-            )
-            ListGroup {
-                ListRow(
-                    sv.next?.let { stringResource(R.string.savings_next_on, dates.shortDay(it)) } ?: stringResource(R.string.no_end_date), 0, 3,
-                    supporting = stringResource(R.string.from_line, each, from),
-                    lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
-                )
-                ListRow(
-                    stringResource(R.string.rate_a_year, rate), 1, 3,
-                    supporting = if (sv.atEnd != null && sv.end != null) stringResource(R.string.when_it_ends, money.plain(sv.atEnd), dates.monthYear(sv.end)) else stringResource(R.string.no_end_stop),
-                    lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-                )
-                ListRow(
-                    stringResource(R.string.remind_day_before), 2, 3,
-                    lead = { IconCircle(painterResource(R.drawable.ic_notifications_duotone)) },
-                    trailing = { BurrowSwitch(a.remind, onRemind) },
-                )
-            }
-        }
-        else -> {
-            CenterHeader(icon, a.name, money.plain(sv.worth), line = stringResource(R.string.grows_at, rate))
-            ListGroup {
-                ListRow(
-                    stringResource(R.string.added_this_year, money.short(sv.addedThisYear)), 0, 2,
-                    supporting = stringResource(R.string.a_year_at_rate, money.plain(sv.yearly)),
-                    lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
-                )
-                ListRow(
-                    sv.end?.let { stringResource(R.string.matures_month, dates.monthYear(it)) } ?: stringResource(R.string.no_end_date), 1, 2,
-                    supporting = stringResource(R.string.take_it_out),
-                    lead = { IconCircle(painterResource(R.drawable.ic_schedule_duotone)) },
-                )
-            }
-        }
+    val paidRows = sv.instalments.filter { it.status == OccurrenceStatus.PAID }.sortedBy { it.dueDate }
+    // Which history this account keeps, and whether it is still empty.
+    val history = when {
+        monthly -> R.string.instalments
+        sv.mode == SavingsMode.ONCE -> if (sv.market) null else R.string.deposits
+        else -> R.string.money_added
     }
-    val updateOnly = sv.market && sv.mode == SavingsMode.ONCE
-    BurrowButton(
-        stringResource(if (updateOnly) R.string.update_value else if (monthly) R.string.pay_instalment else R.string.add_money), if (updateOnly) onUpdateValue else onAdd,
-        Modifier.fillMaxWidth().padding(top = Space.block),
-        icon = painterResource(if (updateOnly) R.drawable.ic_edit_regular else if (monthly) R.drawable.ic_payments_regular else R.drawable.ic_add_regular),
-    )
-    when {
-        updateOnly -> Unit
-        monthly -> {
-            // Next first ("Next"), then paid ones newest first with a round check.
-            val upcoming = sv.instalments.filter { it.status == OccurrenceStatus.UPCOMING }.sortedBy { it.dueDate }.take(1)
-            val done = sv.instalments.filter { it.status != OccurrenceStatus.UPCOMING && it.dueDate <= System.currentTimeMillis() + 86_400_000L }.sortedByDescending { it.dueDate }
-            val rows = upcoming + done
-            SectionHeader(stringResource(R.string.instalments))
-            // A new account (222): nothing paid yet, one muted row with the first due date.
-            if (done.isEmpty()) ListGroup {
+    val empty = when (history) {
+        R.string.instalments -> paidRows.isEmpty()
+        R.string.deposits -> sv.deposits.isEmpty()
+        R.string.money_added -> sv.moneyIn.isEmpty()
+        else -> false
+    }
+    val payRow: @Composable (Int, Int) -> Unit = { i, n ->
+        ListRow(
+            stringResource(R.string.pay_instalment), i, n,
+            supporting = sv.next?.let { stringResource(R.string.due_amount_on, each, dates.shortDay(it)) } ?: stringResource(R.string.amount_a_month, each),
+            lead = { IconCircle(painterResource(R.drawable.ic_payments_duotone)) }, onClick = onAdd,
+        )
+    }
+    val addRow: @Composable (Int, Int) -> Unit = { i, n ->
+        ListRow(
+            stringResource(R.string.add_money), i, n,
+            supporting = stringResource(if (sv.mode == SavingsMode.ONCE) R.string.starts_new_deposit else R.string.any_amount_any_time),
+            lead = { IconCircle(painterResource(R.drawable.ic_add_regular)) }, onClick = onAdd,
+        )
+    }
+    val rateRow: @Composable (Int, Int, String) -> Unit = { i, n, line ->
+        ListRow(stringResource(R.string.rate_a_year, rate), i, n, supporting = line, lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) })
+    }
+    val endsLine = if (sv.atEnd != null && sv.end != null) stringResource(R.string.when_it_ends, money.plain(sv.atEnd), dates.monthYear(sv.end)) else stringResource(R.string.stop_any_time)
+    // The action row first (hidden while its history is empty: the empty state's button does it), then info.
+    val rows = buildList<@Composable (Int, Int) -> Unit> {
+        if (sv.market) {
+            add { i, n ->
                 ListRow(
-                    stringResource(R.string.no_instalments), 0, 1,
-                    supporting = sv.next?.let { stringResource(R.string.first_due, dates.shortDay(it)) },
-                    lead = { IconCircle(painterResource(R.drawable.ic_event_available_duotone)) },
+                    stringResource(R.string.update_value), i, n,
+                    supporting = a.valueUpdatedAt?.let { stringResource(R.string.last_updated, dates.shortDay(dates.date(it))) } ?: stringResource(R.string.update_value_line),
+                    lead = { IconCircle(painterResource(R.drawable.ic_edit_duotone)) }, onClick = onUpdateValue,
                 )
-            } else run {
-                ListGroup {
-                    rows.forEachIndexed { i, o ->
-                        val day = dates.shortDay(dates.date(o.dueDate))
-                        ListRow(
-                            money.plain(o.amount ?: a.emi ?: 0), i, rows.size,
-                            supporting = stringResource(
-                                when (o.status) { OccurrenceStatus.PAID -> R.string.paid_on_short; OccurrenceStatus.SKIPPED -> R.string.skipped_on_short; else -> R.string.due_on_short }, day,
-                            ),
-                            lead = { CategoryCircle(a.icon, a.colorHue) },
-                            trailing = when (o.status) {
-                                OccurrenceStatus.UPCOMING -> ({ Text(stringResource(R.string.next), style = BurrowType.label, color = c.primary) })
-                                OccurrenceStatus.PAID -> ({ app.burrow.money.ui.components.CheckBadge(true) })
-                                else -> null
-                            },
-                        )
-                    }
-                }
             }
-        }
-        sv.mode == SavingsMode.ONCE && !sv.market -> if (sv.deposits.isNotEmpty()) {
-            SectionHeader(stringResource(R.string.deposits), meta = sv.deposits.size.toString())
-            ListGroup {
-                sv.deposits.forEachIndexed { i, d ->
+            when (sv.mode) {
+                SavingsMode.MONTHLY -> if (!empty) add(payRow)
+                SavingsMode.ONCE -> add { i, n ->
                     ListRow(
-                        stringResource(R.string.deposit_row, money.plain(d.amount), d.rate), i, sv.deposits.size,
-                        supporting = stringResource(R.string.deposit_dates, dates.fullDay(d.start), dates.fullDay(d.maturity)),
-                        lead = { CategoryCircle(a.icon, a.colorHue) },
-                        trailing = { AmountTrailing(money.short(d.atMaturity)) },
+                        stringResource(R.string.put_in_amount, money.plain(sv.putIn)), i, n,
+                        supporting = stringResource(R.string.on_day, dates.fullDay(a.startDate?.let { dates.date(it) } ?: dates.date(a.createdAt))),
+                        lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) },
+                    )
+                }
+                else -> if (!empty) add(addRow)
+            }
+        } else when (sv.mode) {
+            SavingsMode.ONCE -> {
+                if (!empty) add(addRow)
+                val nextMaturity = sv.deposits.map { it.maturity }.filter { !it.isBefore(LocalDate.now()) }.minOrNull() ?: sv.end
+                add { i, n -> rateRow(i, n, nextMaturity?.let { stringResource(R.string.pays_into_on, from, dates.fullDay(it)) } ?: stringResource(R.string.pays_into, from)) }
+            }
+            SavingsMode.MONTHLY -> {
+                if (!empty) add(payRow)
+                add { i, n -> rateRow(i, n, endsLine) }
+            }
+            else -> {
+                if (!empty) add(addRow)
+                // A year's interest at the rate; hidden while there is nothing to earn on (223).
+                if (sv.yearly > 0) add { i, n ->
+                    ListRow(
+                        stringResource(R.string.amount_a_year, money.plain(sv.yearly)), i, n, supporting = stringResource(R.string.interest_at_rate),
+                        lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) },
                     )
                 }
             }
         }
-        sv.moneyIn.isEmpty() -> {
-            // A new account (223): one row, no total.
-            SectionHeader(stringResource(R.string.money_added))
-            ListGroup {
-                ListRow(
-                    stringResource(R.string.nothing_added), 0, 1, supporting = stringResource(R.string.money_shows_here),
-                    lead = { IconCircle(painterResource(R.drawable.ic_add_regular)) },
+        add(netWorth)
+    }
+    val line = when {
+        sv.market -> stringResource(R.string.gain_line, money.signed(sv.worth - sv.putIn), money.plain(sv.putIn))
+        sv.mode == SavingsMode.ONCE -> stringResource(R.string.worth_today_line, money.plain(sv.atMaturity))
+        monthly -> sv.total?.let { stringResource(R.string.a_month_paid, each, sv.paid, it) } ?: stringResource(R.string.a_month_no_end, each)
+        else -> sv.end?.let { stringResource(R.string.rate_matures, rate, dates.monthYear(it)) } ?: stringResource(R.string.rate_no_end, rate)
+    }
+    CenterHeader(icon, a.name, money.plain(if (monthly && !sv.market) sv.putIn else sv.worth), line = line)
+    ListGroup { rows.forEachIndexed { i, r -> r(i, rows.size) } }
+    if (history == null) return
+    if (empty) {
+        val (title, body, button) = when (history) {
+            R.string.instalments -> Triple(
+                stringResource(R.string.no_instalments),
+                sv.next?.let { stringResource(R.string.no_instalments_line, each, dates.shortDay(it)) } ?: stringResource(R.string.no_instalments_line_open, each),
+                R.string.pay_first_instalment,
+            )
+            R.string.deposits -> Triple(stringResource(R.string.no_deposits), stringResource(R.string.no_deposits_line), R.string.add_money)
+            else -> Triple(stringResource(R.string.nothing_added), stringResource(R.string.nothing_added_line, a.name), R.string.add_money)
+        }
+        EmptyState(
+            shape = { Ghost(painterResource(duotoneIcon(a.icon)), a.colorHue) }, title = title, line = body,
+            button = {
+                BurrowButton(
+                    stringResource(button), onAdd, kind = ButtonKind.TONAL,
+                    icon = painterResource(if (monthly) R.drawable.ic_payments_regular else R.drawable.ic_add_regular),
                 )
+            },
+        )
+        return
+    }
+    when (history) {
+        R.string.instalments -> {
+            SectionHeader(stringResource(R.string.instalments), meta = pluralStringResource(R.plurals.n_paid, sv.paid, sv.paid))
+            val shown = paidRows.withIndex().reversed().take(HISTORY_MAX)
+            ListGroup {
+                shown.forEachIndexed { i, (k, o) ->
+                    ListRow(
+                        stringResource(R.string.instalment_n, k + 1, dates.shortDay(dates.date(o.dueDate))), i, shown.size,
+                        supporting = stringResource(R.string.from_account, from),
+                        lead = { CategoryCircle(a.icon, a.colorHue) },
+                        trailing = { AmountTrailing(money.plain(o.amount ?: a.emi ?: 0)) },
+                    )
+                }
+            }
+        }
+        R.string.deposits -> {
+            SectionHeader(stringResource(R.string.deposits), meta = sv.deposits.size.toString())
+            ListGroup {
+                sv.deposits.forEachIndexed { i, d ->
+                    ListRow(
+                        stringResource(R.string.deposit_on, dates.fullDay(d.start)), i, sv.deposits.size,
+                        supporting = stringResource(R.string.rate_matures_day, d.rate, dates.fullDay(d.maturity)),
+                        lead = { CategoryCircle(a.icon, a.colorHue) },
+                        trailing = { AmountTrailing(money.plain(d.amount)) },
+                    )
+                }
             }
         }
         else -> {
             SectionHeader(stringResource(R.string.money_added), meta = money.short(sv.moneyIn.sumOf { it.amount }))
+            val shown = sv.moneyIn.take(HISTORY_MAX)
             ListGroup {
-                sv.moneyIn.take(30).forEachIndexed { i, m ->
+                shown.forEachIndexed { i, m ->
                     ListRow(
-                        money.plain(m.amount), i, minOf(30, sv.moneyIn.size),
-                        supporting = stringResource(R.string.added_from, dates.shortDay(dates.date(m.at)), m.fromName),
+                        stringResource(R.string.added_on, dates.shortDay(dates.date(m.at))), i, shown.size,
+                        supporting = stringResource(R.string.from_account, m.fromName),
                         lead = { CategoryCircle(m.fromIcon, m.fromHue) },
+                        trailing = { AmountTrailing(money.plain(m.amount)) },
                     )
                 }
             }
         }
     }
 }
+
+private const val HISTORY_MAX = 30
 
 /** Update value (212): today's value typed; the line under it is the gain or loss in words, never coloured. */
 @Composable
@@ -301,7 +289,7 @@ fun NewDepositSheet(
 ) {
     val dates = rememberDateText()
     BurrowSheet(onDone) {
-        SheetHeader(stringResource(R.string.new_deposit), onDone, stringResource(R.string.new_deposit_sub, accountName))
+        SheetHeader(stringResource(R.string.new_deposit), onDone, accountName)
         SheetBody {
             ListGroup {
                 ListRow(
@@ -326,18 +314,19 @@ fun NewDepositSheet(
     }
 }
 
-/** The extra row in Add money for a Once account (205, 215). */
+/** The extra row in Add money for a Once account (205, 215): "New deposit · 7.1% · matures 19 Oct 2028 ›". */
 @Composable
 fun NewDepositRow(rate: String, maturity: LocalDate, i: Int, n: Int, onClick: () -> Unit) = ListRow(
-    stringResource(R.string.starts_new_deposit), i, n,
-    supporting = stringResource(R.string.new_deposit_line_date, rate.ifBlank { "–" }, rememberDateText().fullDay(maturity)),
-    lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) }, onClick = onClick,
+    stringResource(R.string.new_deposit), i, n,
+    supporting = stringResource(R.string.rate_matures_day, rate.ifBlank { "–" }, rememberDateText().fullDay(maturity)),
+    lead = { IconCircle(painterResource(R.drawable.ic_savings_duotone)) }, trailing = { Chevron() }, onClick = onClick,
 )
 
 /**
- * New savings (208, 209, 213): Name; How money goes in (Once · Every month · Any time) and How it grows
- * (Fixed rate · Market value), each a button group with one helper line; then amount, interest (not for
- * market value), ends and from, each opening its sheet.
+ * New savings (208, 209, 213) and Edit savings (216, 217): Name; on a new one, Money goes in (Once ·
+ * Every month · Any time) and Grows by (Fixed rate · Market value), with no helper lines; then one list:
+ * amount, rate (not for market value), ends and the account it's from, each opening its sheet. Editing
+ * can't change how money goes in or grows, so [middle] (Colour and Icon) takes the groups' place.
  */
 @Composable
 fun SavingsFormFields(
@@ -353,6 +342,7 @@ fun SavingsFormFields(
     onFrom: () -> Unit,
     amountMissing: Boolean,
     rateMissing: Boolean = false,
+    middle: @Composable () -> Unit = {},
 ) {
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -360,20 +350,17 @@ fun SavingsFormFields(
     LabeledField(stringResource(R.string.name)) {
         PillTextField(f.name, onName, stringResource(R.string.savings_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))
     }
-    val helper: @Composable (Int) -> Unit = { Text(stringResource(it), style = BurrowType.body, color = c.onSurfaceVariant, modifier = Modifier.padding(horizontal = Space.headingInset)) }
-    LabeledField(stringResource(R.string.how_money_goes_in)) {
-        ButtonGroup(listOf(SavingsMode.ONCE, SavingsMode.MONTHLY, SavingsMode.ANY), f.savingsMode, { savingsModeLabel(it) }, onMode)
+    if (isEdit) middle() else {
+        LabeledField(stringResource(R.string.money_goes_in)) {
+            ButtonGroup(listOf(SavingsMode.ONCE, SavingsMode.MONTHLY, SavingsMode.ANY), f.savingsMode, { savingsModeLabel(it) }, onMode)
+        }
+        LabeledField(stringResource(R.string.grows_by)) {
+            ButtonGroup(listOf(false, true), f.market, { stringResource(if (it) R.string.market_value else R.string.fixed_rate) }, onMarket)
+        }
     }
-    helper(when (f.savingsMode) { SavingsMode.MONTHLY -> R.string.mode_monthly_line; SavingsMode.ANY -> R.string.mode_any_line; else -> R.string.mode_once_line })
-    LabeledField(stringResource(R.string.how_it_grows)) {
-        ButtonGroup(listOf(false, true), f.market, { stringResource(if (it) R.string.market_value else R.string.fixed_rate) }, onMarket)
-    }
-    helper(if (f.market) R.string.market_value_line else R.string.fixed_rate_line)
     val amount = app.burrow.money.domain.AmountInput(f.balance, money.digits).minor()
-    val monthly = f.savingsMode == SavingsMode.MONTHLY
-    val showAmount = true
     val rows = buildList<@Composable (Int, Int) -> Unit> {
-        if (showAmount) add { i, n ->
+        add { i, n ->
             ListRow(
                 if (amount > 0) money.plain(amount) else stringResource(R.string.type_the_amount), i, n,
                 supporting = stringResource(when (f.savingsMode) { SavingsMode.MONTHLY -> R.string.each_month; SavingsMode.ANY -> R.string.starting_amount; else -> R.string.amount }),
@@ -384,7 +371,7 @@ fun SavingsFormFields(
         if (!f.market) add { i, n ->
             ListRow(
                 if (f.rate.isNotBlank()) stringResource(R.string.rate_a_year, f.rate) else stringResource(R.string.add_the_rate), i, n,
-                supporting = stringResource(if (f.rate.isNotBlank()) R.string.interest else R.string.rate_needed),
+                supporting = stringResource(if (f.rate.isNotBlank()) R.string.interest else R.string.rate_needed_short),
                 supportingColor = if (rateMissing) c.error else c.onSurfaceVariant,
                 lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) }, onClick = onRate,
             )
@@ -392,13 +379,13 @@ fun SavingsFormFields(
         add { i, n ->
             ListRow(
                 f.maturity?.let { stringResource(R.string.matures_month, dates.monthYear(it)) } ?: stringResource(R.string.no_end_date), i, n,
-                supporting = stringResource(if (f.maturity != null) R.string.ends_tap_change else R.string.ends_tap_set),
+                supporting = stringResource(if (f.maturity != null) R.string.ends else R.string.tap_to_set_one),
                 lead = { IconCircle(painterResource(if (f.maturity != null) R.drawable.ic_event_available_duotone else R.drawable.ic_schedule_duotone)) }, onClick = onEnds,
             )
         }
         add { i, n ->
             ListRow(
-                stringResource(R.string.from_account, from?.account?.name ?: stringResource(R.string.an_account)), i, n,
+                from?.account?.name ?: stringResource(R.string.an_account), i, n,
                 supporting = stringResource(R.string.money_comes_from),
                 lead = { CategoryCircle(from?.account?.icon, from?.account?.colorHue) }, onClick = onFrom,
             )

@@ -80,6 +80,7 @@ fun TxnScreen(
         }
         if (t == null) {
             EmptyState(
+                top = app.burrow.money.ui.theme.Space.empty,
                 shape = { Cookie(painterResource(R.drawable.ic_delete_regular)) },
                 title = stringResource(R.string.txn_deleted_title),
                 line = stringResource(R.string.txn_deleted_line),

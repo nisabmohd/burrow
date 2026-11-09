@@ -48,7 +48,6 @@ import app.burrow.money.ui.components.AmountTrailing
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.HeaderIcon
 import app.burrow.money.ui.components.LinkButton
@@ -147,7 +146,7 @@ private fun BillsSection(
     val c = MaterialTheme.colorScheme
     if (s.isEmpty) {
         EmptyState(
-            shape = { Cookie(painterResource(R.drawable.ic_event_upcoming_regular)) },
+            shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_event_upcoming_regular)) },
             title = stringResource(R.string.nothing_coming_up),
             line = stringResource(R.string.nothing_coming_up_line),
             button = { BurrowButton(stringResource(R.string.add_bill), onAddBill, kind = ButtonKind.TONAL) },
@@ -277,7 +276,7 @@ private fun BudgetsSection(s: BudgetsState, vm: PlanViewModel, padding: PaddingV
         item(key = "header") {
             if (o == null) {
                 EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_donut_large_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_donut_large_regular)) },
                     title = stringResource(R.string.no_budget),
                     line = stringResource(R.string.no_budget_line),
                     button = { BurrowButton(stringResource(R.string.set_budget), { edit = BudgetEdit(null, month, money.digitsUnit() * 30_000) }, kind = ButtonKind.TONAL) },
@@ -380,7 +379,7 @@ private fun GoalsSection(s: GoalsState, padding: PaddingValues, onAddGoal: () ->
     val money = LocalMoney.current
     if (s.goals.isEmpty()) {
         EmptyState(
-            shape = { Cookie(painterResource(R.drawable.ic_flag_regular)) },
+            shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_flag_regular)) },
             title = stringResource(R.string.no_goals),
             line = stringResource(R.string.no_goals_line),
             button = { BurrowButton(stringResource(R.string.add_goal), onAddGoal, kind = ButtonKind.TONAL) },

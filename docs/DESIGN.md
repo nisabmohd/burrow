@@ -102,6 +102,12 @@ Reference screens for the calm style: More, Appearance, Customise › Region, se
   + spent today) ÷ days left − spent today.
 - Empty: "Nothing coming up. Bills and future-dated payments show here."
 
+## Empty states (9 Nov)
+Every empty list or search with no results is the illustrated `EmptyState`: two tilted ghost rows (`Ghost`, the subject's icon;
+an account's own colour and icon), a 22 sp title naming what's missing, one muted line saying what will show here, one tonal
+button for the next step. A page that has the button hides its matching action row. Status screens (done, deleted, rule
+removed) keep the cookie with a check. See COMPONENTS.md › Empty state.
+
 ## Widgets (Today and Insights)
 Half-width widgets are exactly 184 dp tall so rows are even. A widget alone on a row switches to
 the wide layout (text left, 104 dp ring right, 16 dp padding) and wraps its content. Widgets show

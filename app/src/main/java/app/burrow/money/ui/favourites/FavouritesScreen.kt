@@ -21,7 +21,6 @@ import app.burrow.money.data.FavouriteView
 import app.burrow.money.data.NextRepository
 import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.CenterHeader
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.DragColumn
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.IconCircle
@@ -62,7 +61,7 @@ fun FavouritesScreen(vm: FavouritesViewModel, onBack: () -> Unit) {
     DetailFrame(onBack, stringResource(R.string.favourites)) {
         if (list.isEmpty()) {
             EmptyState(
-                shape = { Cookie(painterResource(R.drawable.ic_star_regular)) },
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_star_regular)) },
                 title = stringResource(R.string.no_favourites),
                 line = stringResource(R.string.favourites_how),
             )

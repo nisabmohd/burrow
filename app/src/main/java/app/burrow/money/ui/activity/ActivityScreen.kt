@@ -37,7 +37,6 @@ import app.burrow.money.ui.filters.Filters
 import app.burrow.money.ui.filters.range
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.FilterHeaderButtons
 import app.burrow.money.ui.components.PillTextField
@@ -105,18 +104,18 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
             ActiveFilterChips(s.filters, s.accounts, s.categories, vm::setFilters, Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small))
             when {
                 s.isEmpty -> EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_receipt_long_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_receipt_long_regular)) },
                     title = stringResource(R.string.empty_title),
                     line = stringResource(R.string.empty_activity_line),
                 )
                 s.groups.isEmpty() && !s.filters.isEmpty && query.isBlank() -> EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_filter_alt_off_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_filter_alt_off_regular)) },
                     title = stringResource(R.string.nothing_matches),
                     line = stringResource(R.string.nothing_matches_line),
                     button = { BurrowButton(stringResource(R.string.clear_filters), { vm.setFilters(Filters()) }, kind = ButtonKind.TONAL) },
                 )
                 s.groups.isEmpty() && query.isNotBlank() -> EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_search_off_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_search_off_regular)) },
                     title = stringResource(R.string.no_results, query.trim()),
                     line = stringResource(R.string.no_results_line),
                     button = { BurrowButton(stringResource(R.string.clear_search), { vm.search("") }, kind = ButtonKind.TONAL) },

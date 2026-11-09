@@ -60,7 +60,7 @@ if something is missing, add a component here first.
 | `TimeWheelSheet` | **every time** (TIME-PICKER, 24 Oct): title + line, three snapping columns (hour · minute in 5s · AM/PM; 00–23 and no AM/PM on a 24-hour phone), 72 dp columns, 48 dp rows, five showing, the middle row on a `surfaceContainerHigh` pill band, top and bottom rows fading out, a tick on each snap, a tap scrolls a row to the middle; Done. New expense time (135), Bill reminder time (160), Sunday review time | TimeWheel.kt |
 | `NumberPad` | the value sheet's 3 × 4 keypad: the same 52 dp keys, 1–9, `.` (a gap for days and time), 0, ⌫ (hold clears) | Keypad.kt |
 | `ValueText` / `ValuePill` / `Caret` | a value on a screen that opens its value sheet: big `display` text (Welcome budget 99) or a tonal pill in a row (Split parts 95); the 3 dp blinking caret (also New expense) | ValueSheet.kt |
-| `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
+| `EmptyState` + `Ghost` / `Cookie` | every empty list or no-results state: `Ghost` (two tilted ghost rows, § Empty state), title, one line, one tonal button. Status screens (done, deleted, rule removed) keep the 128 dp `Cookie` | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete and replace data only (a wrong password shows inside the password sheet, 144) | Dialogs.kt |
 | `BurrowSwitch` | Material 3 switch, primary track, toggle haptic | Controls.kt |
@@ -137,3 +137,11 @@ share of the width and 48 dp tall; TalkBack reads the full day name and its sele
 full rows); `HuePicker` (the 12 category hues) and `IconPicker` are built on it. Used by Edit category
 (62), Edit account (106/107) and the accent colours on Appearance (seven columns). Never a FlowRow: on a large display size it wrapped to 5 and spread
 the last row to the edges.
+
+## Empty state (illustrated, 9 Nov)
+Used for every "list is empty / nothing matches" state. Centred, 32 dp from the content above, in this order:
+- **Illustration (`Ghost`):** two ghost rows tilted like loose cards. The back one is 120 × 78 dp at −7°, 70% opacity. The front one is 166 × 96 dp at +4°. Both are surfaceContainerLowest with 20 dp corners and a soft shadow. The front card holds a 28 dp circle with the subject's icon (the account's own colour and icon when there is one, otherwise neutral) and 9 dp pill bars in surfaceContainerHighest.
+- **Title:** 22 sp / 500, naming what's missing ("No instalments yet", "No results for “petrol”").
+- **Line:** 14 sp muted, at most about 280 dp wide. It says what will show up here.
+- **Button:** one tonal button that does the next step ("Pay first instalment", "Add money", "Change dates"). On a page that has it, the matching action row is hidden so the action isn't shown twice.
+Status screens (done, deleted, rule removed) keep the cookie shape with a check, because they confirm something rather than show an empty list.

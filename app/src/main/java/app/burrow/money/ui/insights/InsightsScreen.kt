@@ -43,7 +43,6 @@ import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CappedFontScale
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.ChartCard
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.CumulativeLineChart
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.FilterHeaderButtons
@@ -105,7 +104,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
             ActiveFilterChips(s.filters, s.accounts, s.categories, vm::setFilters, Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small))
             if (s.isEmpty) {
                 EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_event_busy_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_event_busy_regular)) },
                     title = stringResource(R.string.no_spending_in, dates.range(s.range)),
                     line = stringResource(R.string.no_spending_line),
                     button = { BurrowButton(stringResource(R.string.change_dates), { sheet = InsightsSheet.DATES }, kind = ButtonKind.TONAL) },

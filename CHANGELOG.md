@@ -19,6 +19,8 @@
 - How it grows: Fixed rate, or Market value for funds, shares, gold or crypto. You type the value now and then (Update value); Burrow never looks it up. Net worth counts what it is worth, and Sunday review reminds you when a value is a month old, and updates several at once.
 - A new deposit picks its own rate and how long it runs (1, 2, 3 or 5 years, or a day). Edit savings has Colour, Icon and Archive. New savings asks for the rate instead of guessing one.
 - Accounts shows each loan's rate, when it ends and a ring of EMIs paid.
+- Savings pages look like a bank account's: what you can do in one list with Count in net worth, then the deposits, instalments or money added, each like a transaction row. Edit savings looks like Edit account.
+- Empty lists and searches with no results show a new picture of two loose cards, with the next step as a button.
 
 ## 0.3.2
 - Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.

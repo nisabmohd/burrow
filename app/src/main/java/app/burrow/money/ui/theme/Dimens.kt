@@ -30,6 +30,7 @@ object Space {
     val hero = 20.dp          // inside Today's hero
     val amountTop = 20.dp     // above the keypad amount
     val empty = 40.dp         // above and below an empty state
+    val emptyTop = 32.dp      // above the illustrated empty state (the ghost cards)
     val keypad = 6.dp         // between keypad keys (17)
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
     val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
@@ -65,6 +66,22 @@ object Size {
     val iconSmall = 18.dp     // icons in chips, widget labels, a button group's check
     val iconButton20 = 20.dp  // icons inside buttons and the hero label
     val emptyShape = 128.dp
+    // The illustrated empty state (COMPONENTS § Empty state): two ghost rows tilted like loose cards.
+    val ghostWidth = 200.dp
+    val ghostHeight = 118.dp
+    val ghostBackWidth = 120.dp
+    val ghostBackHeight = 78.dp
+    val ghostBackTop = 16.dp
+    val ghostFrontWidth = 166.dp
+    val ghostFrontHeight = 96.dp
+    val ghostFrontStart = 34.dp
+    val ghostFrontTop = 4.dp
+    val ghostPadV = 14.dp
+    val ghostLine = 9.dp       // a pill bar's height, and the gap between bars
+    val ghostCircle = 28.dp
+    val ghostIcon = 16.dp
+    val ghostShadow = 6.dp
+    val emptyLine = 280.dp     // an empty state's line never runs wider
     val wavyHeight = 14.dp
     val thinBar = 8.dp
     val handle = 32.dp        // a sheet's drag handle (4 dp high: Space.grid)
@@ -145,6 +162,8 @@ object Shapes {
     val surface = RoundedCornerShape(24.dp)
     val sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     val pill = CircleShape // RoundedCornerShape(50) for wide pills
+    /** The ghost rows of the illustrated empty state (a drawing, not a surface). */
+    val ghost = RoundedCornerShape(20.dp)
     /** Grouped list: 24 dp on the outside of the group, 6 dp between its rows. */
     fun grouped(index: Int, count: Int): RoundedCornerShape {
         val top = if (index == 0) 24.dp else 6.dp

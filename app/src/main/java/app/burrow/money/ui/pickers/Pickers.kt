@@ -85,10 +85,10 @@ fun CategorySheet(
             )
         }
         SheetBody {
-            // No match: the same empty state as Activity's search (Cookie, "No results for …", Clear search).
+            // No match: the same empty state as Activity's search (Ghost, "No results for …", Clear search).
             if (shown.isEmpty()) {
                 app.burrow.money.ui.components.EmptyState(
-                    shape = { app.burrow.money.ui.components.Cookie(painterResource(R.drawable.ic_search_off_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_search_off_regular)) },
                     title = stringResource(R.string.no_results, query.trim()),
                     line = stringResource(R.string.no_category_match),
                     // Clear search (tonal) · New category (filled), as 185.

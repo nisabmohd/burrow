@@ -20,7 +20,6 @@ import app.burrow.money.ui.capture.rememberCapturePaused
 import app.burrow.money.ui.components.AddFab
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.LinkButton
 import app.burrow.money.ui.components.ListGroup
@@ -108,7 +107,7 @@ fun TodayContent(
         val waiting = s.showReview && (s.toReview > 0 || s.notUnderstood > 0)
         if (s.isEmpty && !waiting) {
             EmptyState(
-                shape = { Cookie(painterResource(R.drawable.ic_receipt_long_regular)) },
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_receipt_long_regular)) },
                 title = stringResource(R.string.empty_title),
                 line = stringResource(R.string.empty_today_line),
                 button = if (!s.smsCapture && !s.appCapture) ({ BurrowButton(stringResource(R.string.record_for_me), onCaptureIntro, kind = ButtonKind.TONAL) }) else null,
