@@ -105,6 +105,16 @@ fun SubscriptionsScreen(vm: SubscriptionsViewModel, onBack: () -> Unit, onAdd: (
                 modifier = Modifier.padding(bottom = Space.block),
             )
         }
+        if (s.rows.isEmpty()) {
+            // Nothing to total yet: the Ghost, not "₹0" over an empty list.
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_autorenew_regular)) },
+                title = stringResource(R.string.no_subscriptions),
+                line = stringResource(R.string.no_subscriptions_line),
+                button = { BurrowButton(stringResource(R.string.add_subscription), { onAdd(BillForm(kind = "SUBSCRIPTION")) }, kind = ButtonKind.TONAL, icon = painterResource(R.drawable.ic_add_regular)) },
+            )
+            return@DetailFrame
+        }
         CenterHeader(
             icon = { HeaderIcon(painterResource(R.drawable.ic_autorenew_regular)) },
             title = stringResource(R.string.every_month),
@@ -161,6 +171,12 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
         if (vm.categoryId == null) {
             SectionHeader(stringResource(R.string.categories))
             BudgetRows(s.categories, onOpenCategory)
+        } else if (s.txns.isEmpty() && cat != null) {
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(cat.icon)), cat.colorHue) },
+                title = stringResource(R.string.nothing_spent_yet),
+                line = stringResource(R.string.budget_empty_line, cat.name, money.plain(line?.left ?: 0)),
+            )
         } else {
             val today = LocalDate.now()
             s.txns.groupBy { dates.date(it.txn.at) }.forEach { (day, list) ->
@@ -198,7 +214,7 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
     DetailFrame(
         onBack,
         actions = { TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(g.id) }) },
-        bottom = if (!s.line.reached) ({
+        bottom = if (!s.line.reached && s.added.isNotEmpty()) ({
             BurrowButton(stringResource(R.string.add_money), { adding = true }, Modifier.fillMaxWidth(), icon = painterResource(R.drawable.ic_add_regular), height = Size.buttonBottom)
         }) else null,
     ) {
@@ -222,6 +238,20 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
             ).joinToString(" · "),
             progress = s.line.fraction,
         )
+        // Nothing added (233): the empty state's tonal Add money replaces the docked button.
+        if (s.added.isEmpty()) {
+            val pace = by?.let { end ->
+                val months = java.time.temporal.ChronoUnit.MONTHS.between(java.time.YearMonth.now(), java.time.YearMonth.from(end)).coerceAtLeast(1)
+                val left = (g.target - s.line.saved).coerceAtLeast(0)
+                if (left > 0) stringResource(R.string.goal_pace_line, money.plain(money.whole((left + months - 1) / months)), dates.monthYear(end)) else null
+            }
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(g.icon)), g.colorHue) },
+                title = stringResource(R.string.nothing_added),
+                line = listOfNotNull(stringResource(R.string.goal_empty_line, g.name), pace).joinToString(" "),
+                button = if (!s.line.reached) ({ BurrowButton(stringResource(R.string.add_money), { adding = true }, kind = ButtonKind.TONAL, icon = painterResource(R.drawable.ic_add_regular)) }) else null,
+            )
+        }
         if (s.added.isNotEmpty()) {
             SectionHeader(stringResource(R.string.added))
             ListGroup {

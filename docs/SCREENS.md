@@ -230,6 +230,11 @@ Rule: same bill → add the card to the existing account; own bill → a new car
 | 220 / 221 | Every month, no end date | "₹5,000 a month · no end date"; rate row "Stop it any time"; Accounts shows the amount, no ring |
 | 222 / 223 | Empty lists | the illustrated empty state (`Ghost` with the account's icon): "No instalments yet" + tonal Pay first instalment; "Nothing added yet" + Add money; the matching action row is hidden |
 | 224 / 225 / 226 | Rate required | "Add the rate / Needed to work out the value"; Save off until set; tapped Save turns that line red; Interest rate sheet "A year · as on the bank receipt" |
+| 229 | Subscriptions, none | Ghost (repeat icon, neutral) "No subscriptions yet" · "Netflix, Spotify and anything else…" · tonal + Add subscription |
+| 230 | Category budget, no spending | header as 31; Ghost (the category) "Nothing spent yet" · "Payments in Education show up here. You have ₹2,000 for it this month." · no button |
+| 231 | Insights › category, nothing in the dates | calendar header button (as 42); no chart; Ghost "No Education in these dates" · tonal Change dates |
+| 232 | Account, no payments | Ghost (the account) "No payments yet" · "…whether you add them or Burrow records them from your bank SMS." · no button |
+| 233 | Goal, nothing added | Ghost (the goal) "Nothing added yet" + "Adding ₹10,000 a month gets you there by April 2027." · tonal Add money replaces the docked button |
 | 227 / 228 | Sunday review, 2+ investments | "Update 2 investments · Index fund, Gold · oldest from 1 Oct" → Update values sheet → Update value (212); updated rows drop off |
 
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.

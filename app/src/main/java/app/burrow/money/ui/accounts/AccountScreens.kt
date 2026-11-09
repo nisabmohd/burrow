@@ -379,6 +379,11 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
         if (sv == null) ListGroup(Modifier.padding(top = Space.block)) { netWorth(0, 1) }
         if (a.type != AccountType.SAVINGS) {
             val today = LocalDate.now()
+            if (s.txns.isEmpty()) app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(a.icon)), a.colorHue) },
+                title = stringResource(R.string.no_payments_yet),
+                line = stringResource(R.string.account_empty_line, a.name),
+            )
             s.txns.groupBy { dates.date(it.txn.at) }.entries.take(30).forEach { (day, list) ->
                 SectionHeader(dates.day(day, today))
                 ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }

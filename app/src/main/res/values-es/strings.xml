@@ -1524,4 +1524,15 @@
         <item quantity="one">%d pagada</item>
         <item quantity="other">%d pagadas</item>
     </plurals>
+    <string name="no_subscriptions">Aún no hay suscripciones</string>
+    <string name="no_subscriptions_line">Netflix, Spotify y todo lo que pagas de forma periódica aparece aquí, con lo que te cuesta al año.</string>
+    <string name="add_subscription">Añadir suscripción</string>
+    <string name="account_empty_line">Los pagos desde %1$s aparecen aquí, tanto si los añades tú como si Burrow los registra desde los SMS de tu banco.</string>
+    <string name="no_payments_yet">Aún no hay pagos</string>
+    <string name="nothing_spent_yet">Aún no has gastado nada</string>
+    <string name="budget_empty_line">Los pagos en %1$s aparecen aquí. Tienes %2$s para ello este mes.</string>
+    <string name="no_category_in_dates">Sin %1$s en estas fechas</string>
+    <string name="category_dates_line">Tus gastos en %1$s de otras fechas siguen aquí.</string>
+    <string name="goal_empty_line">El dinero que reservas para %1$s aparece aquí.</string>
+    <string name="goal_pace_line">Añadiendo %1$s al mes lo consigues para %2$s.</string>
 </resources>

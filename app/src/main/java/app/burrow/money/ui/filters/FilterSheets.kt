@@ -43,7 +43,6 @@ import app.burrow.money.domain.DayRange
 import app.burrow.money.ui.DateText
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
-import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Chip
 import app.burrow.money.ui.components.LinkButton
@@ -86,9 +85,10 @@ fun FilterSheet(
         SheetBody {
             if (showType) {
                 Label(R.string.type)
-                ButtonGroup(
+                // Chips like Accounts and Categories below: one look for the whole sheet. Pick one.
+                app.burrow.money.ui.components.ChoiceChips(
                     TypeFilter.entries, f.type,
-                    { stringResource(when (it) { TypeFilter.ALL -> R.string.all; TypeFilter.SPENT -> R.string.spent; TypeFilter.INCOME -> R.string.type_income; TypeFilter.TRANSFERS -> R.string.transfers }) },
+                    TypeFilter.entries.map { stringResource(when (it) { TypeFilter.ALL -> R.string.all; TypeFilter.SPENT -> R.string.spent; TypeFilter.INCOME -> R.string.type_income; TypeFilter.TRANSFERS -> R.string.transfers }) },
                     { f = f.copy(type = it) },
                 )
             }

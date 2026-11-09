@@ -1406,4 +1406,15 @@
     <plurals name="n_paid">
         <item quantity="other">%d 回</item>
     </plurals>
+    <string name="no_subscriptions">サブスクはまだありません</string>
+    <string name="no_subscriptions_line">Netflix、Spotify など定期的に支払うものがここに表示され、1年の費用もわかります。</string>
+    <string name="add_subscription">サブスクを追加</string>
+    <string name="account_empty_line">%1$sからの支払いがここに表示されます。自分で追加したものも、Burrowが銀行のSMSから記録したものも。</string>
+    <string name="no_payments_yet">支払いはまだありません</string>
+    <string name="nothing_spent_yet">まだ支出はありません</string>
+    <string name="budget_empty_line">%1$sの支払いがここに表示されます。今月の予算は%2$sです。</string>
+    <string name="no_category_in_dates">この期間に%1$sはありません</string>
+    <string name="category_dates_line">ほかの期間の%1$sの支出はそのまま残っています。</string>
+    <string name="goal_empty_line">%1$sのために貯めたお金がここに表示されます。</string>
+    <string name="goal_pace_line">毎月%1$sずつ追加すれば%2$sまでに達成できます。</string>
 </resources>

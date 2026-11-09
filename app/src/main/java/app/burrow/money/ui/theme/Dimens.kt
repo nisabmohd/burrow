@@ -81,6 +81,7 @@ object Size {
     val ghostCircle = 28.dp
     val ghostIcon = 16.dp
     val ghostShadow = 6.dp
+    val ghostHairline = 1.dp   // the ghost cards' hairline in dark mode
     val emptyLine = 280.dp     // an empty state's line never runs wider
     val wavyHeight = 14.dp
     val thinBar = 8.dp

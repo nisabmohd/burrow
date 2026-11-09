@@ -41,7 +41,6 @@ import app.burrow.money.data.CaptureRepository
 import app.burrow.money.data.CaptureStatus
 import app.burrow.money.ui.capture.senderName
 import app.burrow.money.ui.components.Chip
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.IconCircle
 import app.burrow.money.ui.components.LocalSnackbar
@@ -84,11 +83,12 @@ fun MissedScreen(vm: MissedViewModel, onBack: () -> Unit, onTeach: (Long) -> Uni
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.not_understood_title))
         if (items.isEmpty()) {
+            // An empty list: the Ghost, like every other list (DESIGN § Empty states), never the Cookie.
             EmptyState(
-                top = app.burrow.money.ui.theme.Space.empty,
-                shape = { Cookie(painterResource(R.drawable.ic_task_alt_regular)) },
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_help_regular)) },
                 title = stringResource(R.string.nothing_to_teach),
                 line = stringResource(R.string.nothing_to_teach_line),
+                button = { app.burrow.money.ui.components.BurrowButton(stringResource(R.string.done), onBack, kind = app.burrow.money.ui.components.ButtonKind.TONAL) },
             )
             return@Column
         }

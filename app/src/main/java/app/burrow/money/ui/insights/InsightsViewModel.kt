@@ -170,7 +170,10 @@ data class CategoryInsightsState(
 
 /** Category insights (42): one category in the picked dates, by day, and its transactions. */
 @OptIn(ExperimentalCoroutinesApi::class)
-class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: StatsBetween) : ViewModel() {
+class CategoryInsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: StatsBetween) : ViewModel() {
+    /** The calendar button: the same range as Insights (one Dates sheet, one range). */
+    fun setRange(r: DayRange?) { store.insights.value = store.insights.value.copy(range = r) }
+
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 

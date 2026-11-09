@@ -51,7 +51,8 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - **One shape rule:** 24 dp surfaces; circles/pills for everything small or tappable (round checkboxes too).
 - **One hero** (Today). Everything else opens with the **centred header**.
 - **One signal per number.** **No buttons inside cards.** **Notes go first**, one `Note` component.
-- **Empty states:** an empty list or no results = `EmptyState` with the `Ghost` picture (the account's own icon when there is one) + one tonal next-step button; done/deleted status screens keep the `Cookie`.
+- **Empty states:** an empty list or no results = `EmptyState` with the `Ghost` picture (the account's own icon when there is one) + one tonal next-step button; deleted / import-failed status screens keep the `Cookie`. Every list has one, detail pages too (no "₹0" over nothing).
+- **Choices in a sheet are chips** (`ChoiceChips`, Filter › Type too); `ButtonGroup` wraps to chips, never stacks full-width pills. `ProjectRulesTest` checks both (user, 2026-11-09).
 - **Savings pages = the bank page (56):** header, one list (actions, one info row, Count in net worth), one history list (`docs/SAVINGS-SIMPLE.md`).
 - **Filters** = funnel + calendar header buttons → one chip Filter sheet (fits a screen) + Dates sheet.
 - Every number is the **value sheet** (day, amount, time, rate; no − / + steppers). Settings screens are plain lists.

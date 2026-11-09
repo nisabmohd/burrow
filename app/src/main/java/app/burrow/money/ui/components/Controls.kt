@@ -168,20 +168,28 @@ fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> Str
     val density = androidx.compose.ui.platform.LocalDensity.current
     BoxWithConstraints(modifier.fillMaxWidth()) {
         // Side by side while every label fits a pill at its smallest size with the check; else
-        // (a long translation, a small phone, large text) one pill a row, full width: never clipped.
+        // (a long translation, a small phone, large text, many options) wrapping chips, never a
+        // tall stack of full-width pills (user, 2026-11-09).
         val each = (maxWidth - Space.group * (options.size - 1)) / options.size
         val widest = with(density) { labels.maxOf { measurer.measure(it, BurrowType.button.copy(fontSize = ButtonMinText), maxLines = 1).size.width }.toDp() }
-        val stacked = widest + Size.iconSmall + Space.group + Space.small * 2 > each
+        val wraps = widest + Size.iconSmall + Space.group + Space.small * 2 > each
         val pill: @Composable (Int, Modifier) -> Unit = { i, m -> GroupPill(labels[i], options[i] == selected, { onSelect(options[i]) }, m) }
-        if (stacked) {
-            Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Space.group)) {
-                options.indices.forEach { pill(it, Modifier.fillMaxWidth()) }
-            }
+        if (wraps) {
+            ChoiceChips(options, selected, labels, onSelect)
         } else {
             Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
                 options.indices.forEach { pill(it, Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+/** Pick one as wrapping [Chip]s (the selected one checked): Filter › Type, and [ButtonGroup] when it can't fit a row. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun <T> ChoiceChips(options: List<T>, selected: T, labels: List<String>, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+        options.forEachIndexed { i, o -> Chip(labels[i], o == selected, { if (o != selected) onSelect(o) }) }
     }
 }
 

@@ -32,7 +32,6 @@ import app.burrow.money.data.tidyPayee
 import app.burrow.money.ui.LocalMoney
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.Chip
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.LocalSnackbar
 import app.burrow.money.ui.components.MessageBox
@@ -73,8 +72,7 @@ fun ReviewScreen(vm: ReviewViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.to_review))
         if (items.isEmpty()) {
             EmptyState(
-                top = app.burrow.money.ui.theme.Space.empty,
-                shape = { Cookie(painterResource(R.drawable.ic_task_alt_regular)) },
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_task_alt_regular)) },
                 title = stringResource(R.string.all_caught_up),
                 line = stringResource(R.string.all_caught_up_line),
                 // Back to Today, and under it the messages it missed (170) when there are any.

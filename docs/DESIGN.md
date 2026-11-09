@@ -105,8 +105,19 @@ Reference screens for the calm style: More, Appearance, Customise › Region, se
 ## Empty states (9 Nov)
 Every empty list or search with no results is the illustrated `EmptyState`: two tilted ghost rows (`Ghost`, the subject's icon;
 an account's own colour and icon), a 22 sp title naming what's missing, one muted line saying what will show here, one tonal
-button for the next step. A page that has the button hides its matching action row. Status screens (done, deleted, rule
-removed) keep the cookie with a check. See COMPONENTS.md › Empty state.
+button for the next step. A page that has the button hides its matching action row. Status screens (deleted, import failed)
+keep the cookie. See COMPONENTS.md › Empty state.
+**Every list has one (user, 9 Nov; 229–233):** To review and Not understood when nothing waits, Subscriptions, a category's budget,
+a category in Insights, an account's history and a goal with nothing added all show the Ghost, never a "₹0" header over an
+empty list. No button when the actions are already above (an account's Fix balance / Transfer) or there is no next step (a
+budget). A goal's tonal Add money replaces its docked button until something is added. Checked by
+`ProjectRulesTest` (`emptyListsUseTheGhost`, `detailListsHaveAnEmptyState`, `emptyStatesShareOneSpacing`).
+
+## Choices: chips or a button group (9 Nov)
+- A **sheet of choices is all chips**: the Filter sheet's Type (All · Spent · Income · Transfers) is `ChoiceChips`, the same
+  36 dp chips as Accounts and Categories, never a stack of tall pills.
+- `ButtonGroup` (settings, 2–3 options) sits in one row. When a label can't fit (large text, a long translation) it wraps
+  as `ChoiceChips`; it never stacks one full-width pill per row. Checked by `filterSheetsAreAllChips`, `buttonGroupNeverStacks`.
 
 ## Widgets (Today and Insights)
 Half-width widgets are exactly 184 dp tall so rows are even. A widget alone on a row switches to

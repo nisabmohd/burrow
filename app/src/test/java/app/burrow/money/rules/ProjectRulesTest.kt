@@ -106,6 +106,56 @@ class ProjectRulesTest {
         violations { _, _, l -> "PlanSection.entries" in l && "ButtonGroup" in l || "CustomiseTab.entries" in l && "Chip(" in l },
     )
 
+    // --- consistency (user, 2026-11-09: "make sure this stays consistent") ------------------------
+
+    /** The Cookie is only for a status (a deleted payment, a failed import) and the lock; every empty list is the Ghost. */
+    @Test fun emptyListsUseTheGhost() = assertNone(
+        "Cookie( outside the status screens — an empty list or no results is EmptyState + Ghost (DESIGN § Empty states)",
+        violations { f, _, l -> "Cookie(" in l && f.name !in setOf("Blocks.kt", "TxnScreen.kt", "ImportScreens.kt", "LockScreens.kt") && !l.trim().startsWith("//") && !l.trim().startsWith("*") },
+    )
+
+    /** Empty states share one spacing: only the status screens move the picture down. */
+    @Test fun emptyStatesShareOneSpacing() = assertNone(
+        "EmptyState(top = …) outside the status screens",
+        violations { f, i, l -> "top = app.burrow.money.ui.theme.Space.empty" in l && f.name !in setOf("TxnScreen.kt", "ImportScreens.kt") &&
+            f.readLines().subList(maxOf(0, i - 2), i).any { "EmptyState(" in it } },
+    )
+
+    /** A sheet of chips stays chips: Filter's Type is ChoiceChips, never a ButtonGroup of tall pills. */
+    @Test fun filterSheetsAreAllChips() = assertNone(
+        "ButtonGroup in a filter sheet (Type, Accounts and Categories are all chips)",
+        violations { f, _, l -> f.parentFile.name == "filters" && "ButtonGroup(" in l },
+    )
+
+    /** ButtonGroup never falls back to a tall stack of full-width pills; it wraps as ChoiceChips. */
+    @Test fun buttonGroupNeverStacks() {
+        val src = File(main, "java/app/burrow/money/ui/components/Controls.kt").readText()
+        val body = src.substringAfter("fun <T> ButtonGroup(").substringBefore("\n}\n")
+        assertTrue("ButtonGroup must wrap as ChoiceChips when it can't fit one row", "ChoiceChips(" in body && "fillMaxWidth()) }" !in body)
+    }
+
+    /** The Ghost's cards take ghostColors(), so they show in dark mode too (cards, not just bars). */
+    @Test fun ghostFollowsDarkMode() {
+        val src = File(main, "java/app/burrow/money/ui/components/Blocks.kt").readText()
+        assertTrue("Ghost must use ghostColors()", "ghostColors()" in src.substringAfter("fun Ghost(").substringBefore("\n}\n"))
+    }
+
+    /** A list on a detail page shows the Ghost when it is empty, never a header over nothing. */
+    @Test fun detailListsHaveAnEmptyState() {
+        val need = mapOf(
+            "ui/plan/PlanDetailScreens.kt" to listOf("s.rows.isEmpty()", "s.txns.isEmpty()", "s.added.isEmpty()"),
+            "ui/insights/InsightsScreen.kt" to listOf("s.txns.isEmpty()"),
+            "ui/accounts/AccountScreens.kt" to listOf("s.txns.isEmpty()"),
+            "ui/teach/MissedScreen.kt" to listOf("items.isEmpty()"),
+            "ui/review/ReviewScreen.kt" to listOf("items.isEmpty()"),
+        )
+        val missing = need.flatMap { (path, checks) ->
+            val t = File(main, "java/app/burrow/money/$path").readText()
+            checks.filter { it !in t }.map { "$path: no `$it` empty state" }
+        }
+        assertTrue(missing.joinToString("\n"), missing.isEmpty())
+    }
+
     // --- strings ---------------------------------------------------------------------------------
 
     private val stringRe = Regex("""<string name="([^"]+)"[^>]*>(.*?)</string>""", RegexOption.DOT_MATCHES_ALL)

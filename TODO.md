@@ -25,6 +25,11 @@ Screen numbers point to `design/screens/`.
       states (09, 16, 41, 185, 222, 223), light and dark
 - [ ] Smoke checks: New savings (Once, Every month, Any time, market value), Add money → new deposit, Pay instalment, Update value, New deposit sheet, Edit savings, Sunday review "Update 1 investment" and Update values (2+)
 
+## UI consistency (2026-11-09, designs 229–233)
+- [x] Empty states on Subscriptions, category budget, Insights › category, account, goal (Ghost, PNGs 229–233)
+- [x] Ghost cards in dark mode: one tone above the page with a hairline
+- [ ] Check 229–233 in dark mode on a real phone against `design/screens/dark/`
+
 ## Tests
 - [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
       `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso

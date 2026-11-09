@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -256,36 +257,38 @@ private const val COOKIE_AMP = 0.075
 @Composable
 fun Ghost(icon: Painter, hue: Float? = null) {
     val c = MaterialTheme.colorScheme
-    val card = Modifier
-        .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = c.scrim.copy(alpha = GHOST_SHADOW), spotColor = c.scrim.copy(alpha = GHOST_SHADOW))
-        .background(c.surfaceContainerLowest, Shapes.ghost)
-        .padding(horizontal = Space.card, vertical = Size.ghostPadV)
-    val bar: @Composable (Float) -> Unit = { w -> Box(Modifier.fillMaxWidth(w).height(Size.ghostLine).background(c.surfaceContainerHighest, Shapes.pill)) }
+    val g = app.burrow.money.ui.theme.ghostColors()
+    val card: (Color) -> Modifier = { fill ->
+        Modifier
+            .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = c.scrim.copy(alpha = g.shadowAlpha), spotColor = c.scrim.copy(alpha = g.shadowAlpha))
+            .background(fill, Shapes.ghost)
+            .then(g.line?.let { Modifier.border(Size.ghostHairline, it, Shapes.ghost) } ?: Modifier)
+            .padding(horizontal = Space.card, vertical = Size.ghostPadV)
+    }
+    val bar: @Composable (Float, Color) -> Unit = { w, col -> Box(Modifier.fillMaxWidth(w).height(Size.ghostLine).background(col, Shapes.pill)) }
     Box(Modifier.size(Size.ghostWidth, Size.ghostHeight).clearAndSetSemantics { }) {
         Column(
-            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT).alpha(GHOST_BACK_ALPHA).size(Size.ghostBackWidth, Size.ghostBackHeight).then(card),
+            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT).alpha(g.backAlpha).size(Size.ghostBackWidth, Size.ghostBackHeight).then(card(g.back)),
             verticalArrangement = Arrangement.spacedBy(Size.ghostLine, Alignment.CenterVertically),
-        ) { bar(0.6f); bar(0.8f) }
+        ) { bar(0.6f, g.barBack); bar(0.8f, g.barBack) }
         Column(
-            Modifier.padding(start = Size.ghostFrontStart, top = Size.ghostFrontTop).rotate(GHOST_FRONT_TILT).size(Size.ghostFrontWidth, Size.ghostFrontHeight).then(card),
+            Modifier.padding(start = Size.ghostFrontStart, top = Size.ghostFrontTop).rotate(GHOST_FRONT_TILT).size(Size.ghostFrontWidth, Size.ghostFrontHeight).then(card(g.front)),
             verticalArrangement = Arrangement.spacedBy(Size.ghostLine),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.inline + Space.row)) {
                 val colors = hue?.let { categoryColors(it) }
-                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: c.surfaceContainerLowest, Shapes.pill), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: g.back, Shapes.pill), contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = colors?.onContainer ?: c.onSurfaceVariant, modifier = Modifier.size(Size.ghostIcon))
                 }
-                bar(0.52f)
+                bar(0.52f, g.barFront)
             }
-            bar(0.86f); bar(0.58f)
+            bar(0.86f, g.barFront); bar(0.58f, g.barFront)
         }
     }
 }
 
 private const val GHOST_BACK_TILT = -7f
 private const val GHOST_FRONT_TILT = 4f
-private const val GHOST_BACK_ALPHA = 0.7f
-private const val GHOST_SHADOW = 0.12f
 
 /** The 64 dp icon circle that opens a centred header (primaryContainer). */
 @Composable
