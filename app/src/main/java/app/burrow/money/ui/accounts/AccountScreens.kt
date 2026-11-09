@@ -246,7 +246,7 @@ fun AccountsScreen(vm: AccountsViewModel, onBack: () -> Unit, onAdd: (String) ->
     }
 }
 
-private enum class AccountSheet { FIX, PAY, PREPAY, ADD_CARD, ADD_MONEY, UPDATE_VALUE }
+private enum class AccountSheet { FIX, PAY, PAY_EMI, PREPAY, ADD_CARD, ADD_MONEY, UPDATE_VALUE }
 
 /**
  * One account: bank, cash or wallet (56) with Fix balance and Transfer; card (57) with what is due,
@@ -348,6 +348,11 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                         lead = { IconCircle(painterResource(R.drawable.ic_percent_duotone)) },
                     )
                 }
+                // Pay EMI (58, 142): the card page's Pay bill, for a loan.
+                if (loan.emi > 0) BurrowButton(
+                    stringResource(R.string.pay_emi), { sheet = AccountSheet.PAY_EMI },
+                    Modifier.fillMaxWidth().padding(top = Space.block), icon = painterResource(R.drawable.ic_payments_regular),
+                )
                 SectionHeader(stringResource(R.string.next_emis), trailing = { LinkButton(stringResource(R.string.prepay), { sheet = AccountSheet.PREPAY }) })
                 ListGroup {
                     loan.next.forEachIndexed { i, e ->
@@ -409,6 +414,17 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
             ) { from, amount, day ->
                 sheet = null
                 vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
+            }
+        }
+        AccountSheet.PAY_EMI -> {
+            val loan = s.loan
+            PayInSheet(
+                stringResource(R.string.pay_emi),
+                if (loan != null && loan.total > 0) stringResource(R.string.emi_line, a.name, loan.paid + 1, loan.total) else a.name,
+                loan?.emi?.takeIf { it > 0 } ?: unit * 50_000, payFrom, { sheet = null },
+            ) { from, amount, day ->
+                sheet = null
+                vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.emi_paid), undo) }
             }
         }
         AccountSheet.PREPAY -> {

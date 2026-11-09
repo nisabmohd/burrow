@@ -45,11 +45,11 @@ fun ChartCard(
         // At least 24 dp; taller at large text so the label's descenders aren't clipped.
         Row(Modifier.fillMaxWidth().heightIn(min = Size.icon), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
             Icon(icon, null, tint = c.primary, modifier = Modifier.size(Size.iconSmall))
-            Text(label, style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f), maxLines = 1)
+            Text(label, style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             trailing?.invoke()
         }
         Spacer(Modifier.height(Space.small))
-        if (value.isNotEmpty()) Text(value, style = BurrowType.headline, color = c.onSurface, maxLines = 1)
+        if (value.isNotEmpty()) Text(value, style = BurrowType.headline, color = c.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant)
         Spacer(Modifier.height(Space.card))
         chart()
@@ -73,7 +73,7 @@ fun AverageLegend(text: String) {
 @Composable
 fun ChartHeaderLink(text: String, onClick: () -> Unit) {
     Text(
-        text, style = BurrowType.button, color = MaterialTheme.colorScheme.primary, maxLines = 1,
+        text, style = BurrowType.button, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier.minimumInteractiveComponentSize().clip(Shapes.pill)
             .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick).padding(horizontal = Space.small),
     )

@@ -1535,4 +1535,6 @@
     <string name="category_dates_line">Seus gastos com %1$s de outras datas continuam aqui.</string>
     <string name="goal_empty_line">O dinheiro que você guarda para %1$s aparece aqui.</string>
     <string name="goal_pace_line">Adicionando %1$s por mês, você chega lá até %2$s.</string>
+    <string name="pay_emi">Pagar parcela</string>
+    <string name="emi_paid">Parcela paga</string>
 </resources>

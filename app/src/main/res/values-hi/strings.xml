@@ -1451,4 +1451,6 @@
     <string name="category_dates_line">दूसरी तारीखों का आपका %1$s खर्च अब भी यहीं है।</string>
     <string name="goal_empty_line">%1$s के लिए रखा गया पैसा यहाँ दिखता है।</string>
     <string name="goal_pace_line">हर महीने %1$s जोड़ने से आप %2$s तक पहुँच जाएँगे।</string>
+    <string name="pay_emi">EMI भरें</string>
+    <string name="emi_paid">EMI भरी गई</string>
 </resources>

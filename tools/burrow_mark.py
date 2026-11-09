@@ -146,33 +146,40 @@ def icon_png(svg_text, out, size=512):
 
 
 D = "app/src/main/res/drawable/"
-write(D + "ic_launcher_foreground.xml", vector(108, 108, LAUNCHER_DP, "#FFFFFFFF",
-      f"Launcher mark: white on the logo burgundy (ic_launcher_background), {LAUNCHER_DP} dp of the 108 dp canvas, centred."))
-write(D + "ic_launcher_monochrome.xml", vector(108, 108, LAUNCHER_DP, "#FF000000",
-      "Themed-icon mark (Android 13+): the launcher mark in one colour."))
-write(D + "ic_notification.xml", vector(24, 24, 20, "#FFFFFFFF",
-      "The Burrow mark, white: every notification's small icon (user, 2026-10-20), and tinted in BurrowLogo, the widget and the tile."))
-colors = os.path.join(ROOT, "app/src/main/res/values/colors.xml")
-text = open(colors).read()
-import re  # noqa: E402
-text = re.sub(r'(<color name="ic_launcher_background">)#[0-9A-Fa-f]+(</color>)', rf"\g<1>{BURGUNDY}\g<2>", text)
-open(colors, "w").write(text)
-print("app/src/main/res/values/colors.xml")
 
-write("design/logo/burrow-icon.svg", tile_svg(512, STORE_PX, 112, BURGUNDY, "#FFFFFF"))
-write("design/logo/burrow-icon-square.svg", tile_svg(512, STORE_PX, 0, BURGUNDY, "#FFFFFF"))
-write("design/logo/burrow-adaptive-foreground.svg", tile_svg(108, LAUNCHER_DP, 0, "none", "#FFFFFF"))
-write("design/logo/burrow-monochrome.svg", tile_svg(108, LAUNCHER_DP, 0, "none", "#000000"))
-write("design/logo/burrow-mark-white.svg", bare_svg("#FFFFFF"))
-write("design/logo/burrow-mark-burgundy.svg", bare_svg(BURGUNDY))
 
-icon_png(tile_svg(512, STORE_PX, 0, BURGUNDY, "#FFFFFF"), "release/icon-512.png")
-icon_png(tile_svg(512, STORE_PX, 112, BURGUNDY, "#FFFFFF"), "design/logo/burrow-icon-512.png")
-feature_graphic()
-wordmark()
-for src, dst in [("release/icon-512.png", "design/logo/play-store-icon-512.png"),
-                 ("release/icon-512.png", "fastlane/metadata/android/en-US/images/icon.png"),
-                 ("release/feature-graphic-1024x500.png", "design/logo/play-feature-graphic-1024x500.png"),
-                 ("release/feature-graphic-1024x500.png", "fastlane/metadata/android/en-US/images/featureGraphic.png")]:
-    shutil.copy(os.path.join(ROOT, src), os.path.join(ROOT, dst))
-    print(dst)
+def main():
+    write(D + "ic_launcher_foreground.xml", vector(108, 108, LAUNCHER_DP, "#FFFFFFFF",
+          f"Launcher mark: white on the logo burgundy (ic_launcher_background), {LAUNCHER_DP} dp of the 108 dp canvas, centred."))
+    write(D + "ic_launcher_monochrome.xml", vector(108, 108, LAUNCHER_DP, "#FF000000",
+          "Themed-icon mark (Android 13+): the launcher mark in one colour."))
+    write(D + "ic_notification.xml", vector(24, 24, 20, "#FFFFFFFF",
+          "The Burrow mark, white: every notification's small icon (user, 2026-10-20), and tinted in BurrowLogo, the widget and the tile."))
+    colors = os.path.join(ROOT, "app/src/main/res/values/colors.xml")
+    text = open(colors).read()
+    import re  # noqa: E402
+    text = re.sub(r'(<color name="ic_launcher_background">)#[0-9A-Fa-f]+(</color>)', rf"\g<1>{BURGUNDY}\g<2>", text)
+    open(colors, "w").write(text)
+    print("app/src/main/res/values/colors.xml")
+
+    write("design/logo/burrow-icon.svg", tile_svg(512, STORE_PX, 112, BURGUNDY, "#FFFFFF"))
+    write("design/logo/burrow-icon-square.svg", tile_svg(512, STORE_PX, 0, BURGUNDY, "#FFFFFF"))
+    write("design/logo/burrow-adaptive-foreground.svg", tile_svg(108, LAUNCHER_DP, 0, "none", "#FFFFFF"))
+    write("design/logo/burrow-monochrome.svg", tile_svg(108, LAUNCHER_DP, 0, "none", "#000000"))
+    write("design/logo/burrow-mark-white.svg", bare_svg("#FFFFFF"))
+    write("design/logo/burrow-mark-burgundy.svg", bare_svg(BURGUNDY))
+
+    icon_png(tile_svg(512, STORE_PX, 0, BURGUNDY, "#FFFFFF"), "release/icon-512.png")
+    icon_png(tile_svg(512, STORE_PX, 112, BURGUNDY, "#FFFFFF"), "design/logo/burrow-icon-512.png")
+    feature_graphic()
+    wordmark()
+    for src, dst in [("release/icon-512.png", "design/logo/play-store-icon-512.png"),
+                     ("release/icon-512.png", "fastlane/metadata/android/en-US/images/icon.png"),
+                     ("release/feature-graphic-1024x500.png", "design/logo/play-feature-graphic-1024x500.png"),
+                     ("release/feature-graphic-1024x500.png", "fastlane/metadata/android/en-US/images/featureGraphic.png")]:
+        shutil.copy(os.path.join(ROOT, src), os.path.join(ROOT, dst))
+        print(dst)
+
+
+if __name__ == "__main__":
+    main()

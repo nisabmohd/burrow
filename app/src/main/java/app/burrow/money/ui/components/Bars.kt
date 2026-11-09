@@ -242,7 +242,7 @@ fun BurrowNavRail(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit, 
                 selected = isSelected,
                 onClick = { onSelect(i) },
                 icon = { Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null, modifier = Modifier.size(Size.icon)) },
-                label = { CappedFontScale { Text(item.label, style = BurrowType.label, maxLines = 1) } },
+                label = { CappedFontScale { Text(item.label, style = BurrowType.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } },
                 colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
                     selectedIconColor = c.onSecondaryContainer,
                     selectedTextColor = c.onSurface,

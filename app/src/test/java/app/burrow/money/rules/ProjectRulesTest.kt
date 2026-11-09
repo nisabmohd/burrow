@@ -134,6 +134,33 @@ class ProjectRulesTest {
         assertTrue("ButtonGroup must wrap as ChoiceChips when it can't fit one row", "ChoiceChips(" in body && "fillMaxWidth()) }" !in body)
     }
 
+    /**
+     * A one-line label never wraps out of sight: "Show 1914 transactions" lost "transactions" and sat
+     * off-centre (user, 2026-11-09). Every Text(…, maxLines = 1) ends in "…" or shrinks to fit.
+     */
+    @Test fun oneLineTextNeverHidesWords() = assertNone(
+        "Text(maxLines = 1) without overflow / softWrap = false / autoSize",
+        violations { _, _, l -> "Text(" in l && "measure(" !in l && Regex("""maxLines = 1\b""").containsMatchIn(l) && !Regex("overflow|softWrap|autoSize").containsMatchIn(l) },
+    )
+
+    /** Every button label is one line that shrinks, never wraps (BurrowButton). */
+    @Test fun buttonLabelsShrinkNotWrap() {
+        val body = File(main, "java/app/burrow/money/ui/components/Controls.kt").readText().substringAfter("fun BurrowButton(").substringBefore("\n}\n")
+        assertTrue("BurrowButton's label must be softWrap = false with autoSize", "softWrap = false" in body && "autoSize" in body)
+    }
+
+    /** Every widget shows a real picture in the launcher's picker, light and dark (tools/widget_previews.py), never the app icon. */
+    @Test fun everyWidgetHasAPreviewImage() {
+        val providers = File(main, "res/xml").listFiles().orEmpty().filter { "<appwidget-provider" in it.readText() }
+        assertTrue("no widgets found", providers.isNotEmpty())
+        val missing = providers.flatMap { f ->
+            val name = Regex("""android:previewImage="@drawable/([a-z_]+)"""").find(f.readText())?.groupValues?.get(1)
+                ?: return@flatMap listOf("${f.name}: no android:previewImage")
+            listOf("drawable-nodpi", "drawable-night-nodpi").filter { !File(main, "res/$it/$name.webp").exists() }.map { "${f.name}: no $it/$name.webp" }
+        }
+        assertTrue(missing.joinToString("\n"), missing.isEmpty())
+    }
+
     /** The Ghost's cards take ghostColors(), so they show in dark mode too (cards, not just bars). */
     @Test fun ghostFollowsDarkMode() {
         val src = File(main, "java/app/burrow/money/ui/components/Blocks.kt").readText()

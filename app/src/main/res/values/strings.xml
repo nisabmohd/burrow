@@ -1537,4 +1537,6 @@
     <string name="category_dates_line">Your %1$s spending from other dates is still here.</string>
     <string name="goal_empty_line">Money you put towards %1$s shows up here.</string>
     <string name="goal_pace_line">Adding %1$s a month gets you there by %2$s.</string>
+    <string name="pay_emi">Pay EMI</string>
+    <string name="emi_paid">EMI paid</string>
 </resources>

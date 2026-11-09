@@ -81,7 +81,7 @@ fun BudgetHero(hero: HeroState, modifier: Modifier = Modifier, topCard: String =
             )
             Text(label, style = BurrowType.button, color = fg, modifier = Modifier.padding(start = Space.small))
         }
-        Text(if (amount < 0 && kind == app.burrow.money.data.TopCard.BALANCE) money.balance(shown) else money.plain(shown), style = BurrowType.display, color = fg, maxLines = 1)
+        Text(if (amount < 0 && kind == app.burrow.money.data.TopCard.BALANCE) money.balance(shown) else money.plain(shown), style = BurrowType.display, color = fg, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
         if (hero.budget != null && kind != app.burrow.money.data.TopCard.BALANCE) WavyProgress(hero.progress, fg, Modifier.padding(top = Space.block))
     }

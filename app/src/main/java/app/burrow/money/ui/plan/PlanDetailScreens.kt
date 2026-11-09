@@ -342,7 +342,7 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
             // The goal as it will look (133): its circle and name.
             androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth(), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.block)) {
                 CategoryCircle(f.icon, f.hue, size = app.burrow.money.ui.theme.Size.iconCircleBig)
-                androidx.compose.material3.Text(f.name.ifBlank { stringResource(R.string.new_goal) }, style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
+                androidx.compose.material3.Text(f.name.ifBlank { stringResource(R.string.new_goal) }, style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
             LabeledField(stringResource(R.string.name)) {
                 PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.goal_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))

@@ -175,9 +175,9 @@ private fun SpendCard(s: InsightsState) {
         // Large text: the legend gets its own line under the dates so nothing breaks mid-word.
         val large = isLargeText()
         val legend = @Composable {
-            Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
+            Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Spacer(Modifier.size(Space.card))
-            Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
+            Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant)

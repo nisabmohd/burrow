@@ -1535,4 +1535,6 @@
     <string name="category_dates_line">Vos dépenses %1$s des autres dates sont toujours là.</string>
     <string name="goal_empty_line">L\'argent mis de côté pour %1$s s\'affiche ici.</string>
     <string name="goal_pace_line">En ajoutant %1$s par mois, vous y serez en %2$s.</string>
+    <string name="pay_emi">Payer la mensualité</string>
+    <string name="emi_paid">Mensualité payée</string>
 </resources>

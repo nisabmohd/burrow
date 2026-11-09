@@ -105,7 +105,7 @@ fun CategoriesScreen(vm: CategoriesViewModel, onBack: () -> Unit, onEdit: (Long)
                             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.small),
                         ) {
                             CategoryCircle(l.category.icon, l.category.colorHue, Size.categoryTile)
-                            Text(l.category.name.substringBefore(" &").substringBefore(" "), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                            Text(l.category.name.substringBefore(" &").substringBefore(" "), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     }
                     repeat((3 - lines.size % 3) % 3) { Spacer(Modifier.weight(1f)) }

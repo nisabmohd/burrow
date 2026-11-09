@@ -116,7 +116,7 @@ fun SwipeRow(start: SwipeAction?, end: SwipeAction?, shape: Shape, modifier: Mod
                 ) {
                     // Icon then label going right, label then icon going left (Sprout's habit card).
                     val icon: @Composable () -> Unit = { action.icon?.let { Icon(it, null, tint = fg, modifier = Modifier.size(Size.iconButton20)) } }
-                    val label: @Composable () -> Unit = { if (action.showLabel || action.icon == null) Text(action.label, style = BurrowType.button, color = fg, maxLines = 1) }
+                    val label: @Composable () -> Unit = { if (action.showLabel || action.icon == null) Text(action.label, style = BurrowType.button, color = fg, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                     if (toEnd) { icon(); label() } else { label(); icon() }
                 }
             }

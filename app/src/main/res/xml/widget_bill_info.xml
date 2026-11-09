@@ -6,7 +6,7 @@
     android:initialLayout="@layout/widget_bill"
     android:minWidth="110dp"
     android:minHeight="110dp"
-    android:previewLayout="@layout/widget_bill"
+    android:previewImage="@drawable/widget_preview_bill"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="2"
     android:targetCellHeight="2"

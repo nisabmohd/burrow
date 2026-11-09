@@ -275,7 +275,7 @@ private fun RemovableChip(label: String, close: androidx.compose.ui.graphics.pai
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.small),
     ) {
-        Text(label, style = BurrowType.button, color = c.onSecondaryContainer, maxLines = 1)
+        Text(label, style = BurrowType.button, color = c.onSecondaryContainer, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         androidx.compose.material3.Icon(close, null, tint = c.onSecondaryContainer, modifier = Modifier.size(Size.iconSmall))
     }
     }

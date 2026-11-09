@@ -1478,4 +1478,6 @@
     <string name="category_dates_line">Deine Ausgaben für %1$s aus anderen Zeiträumen sind weiter da.</string>
     <string name="goal_empty_line">Geld, das du für %1$s zurücklegst, erscheint hier.</string>
     <string name="goal_pace_line">Mit %1$s im Monat schaffst du es bis %2$s.</string>
+    <string name="pay_emi">EMI zahlen</string>
+    <string name="emi_paid">EMI bezahlt</string>
 </resources>

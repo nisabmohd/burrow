@@ -102,7 +102,7 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `doctor` | stethoscope |
 | `donut_large` | pie-chart-3 |
 | `download` | download-minimalistic |
-| `drag_indicator` | reorder |
+| `drag_indicator` | the ⠿ six-dot grip, drawn in the repo (Solar has no grip; its "reorder" lines read as a menu) |
 | `edit` | pen-2 |
 | `edit_note` | pen-new-square |
 | `envelope` | letter |
