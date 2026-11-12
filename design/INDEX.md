@@ -50,7 +50,7 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 | `screens/40-insights-filter-sheet.png` | Filter | Accounts + Categories chips (no Type) · "Show 9 payments" |
 | `screens/41-insights-no-spending.png` | empty range | chips · empty state + Change dates |
 | `screens/42-category-insights.png` | Category | centred header · By day pill chart · transactions |
-| `screens/43-capture-notification.png` | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
+| `screens/_retired/43-capture-notification.png` (retired 12 Nov) | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
 | `screens/44-review.png` | To review | cards (no swipe): payee, account, time, amount, ✕ · SMS with amount/payee/account highlighted · category chips + More · a Save button on each card (user, 2026-10-24) · bottom "Save 3 payments". Empty: "All caught up" |
 | `screens/45-capture-intro-1.png` | Turn on auto-capture (3 steps) | dots · rose panel illustrating the step · headline · one line · Not now / Next (Allow) → system permission dialogs |
 | `screens/46-capture-intro-2.png` | Turn on auto-capture (3 steps) | dots · rose panel illustrating the step · headline · one line · Not now / Next (Allow) → system permission dialogs |
@@ -150,7 +150,7 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 | `screens/146-auto-capture-blocked.png` | Auto-capture on / off / blocked | switches on only when Android allows; off: info note + the two switches + How it works only; blocked: warning note "Android is blocking access …" + App info |
 | `screens/147-more-capture-needs-access.png` | More tile | On "92% by itself" · Needs access "Tap to fix" · Not set up "Tap to turn on" |
 | `screens/148-more-capture-off.png` | More tile | On "92% by itself" · Needs access "Tap to fix" · Not set up "Tap to turn on" |
-| `screens/149-teach-done.png` | Teach | 4 rows incl. **Money in or out** ("debited · Money out"); "or skip it"; round check on each picked row |
+| `screens/149-teach-saved.png` | Check a message, all checked | the Ghost "All checked" · Back to Review (final 12 Nov) |
 | `screens/150-today-sample-1_3x.png` | Large text (1.3× / 2×) | wrapped note titles stay one tight block above their line; nav shows only the selected label; widgets and tiles go one per row; rows wrap; the FAB goes icon-only; display amounts shrink to fit |
 | `screens/151-today-sample-2x.png` | Large text (1.3× / 2×) | wrapped note titles stay one tight block above their line; nav shows only the selected label; widgets and tiles go one per row; rows wrap; the FAB goes icon-only; display amounts shrink to fit |
 | `screens/152-today-paused-2x.png` | Large text (1.3× / 2×) | wrapped note titles stay one tight block above their line; nav shows only the selected label; widgets and tiles go one per row; rows wrap; the FAB goes icon-only; display amounts shrink to fit |
@@ -167,3 +167,17 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 - `logo/mid-apps/mid-play-icon-512.png`
 - `logo/play-feature-graphic-1024x500.png`
 - `logo/play-store-icon-512.png`
+
+## Final round (12 Nov) — `burrow-design-final-1112.zip`
+| File | Screen | Notes |
+|---|---|---|
+| `screens/235-teach-fix.png` | Check a message › Fix it | What's wrong? rows (replaces `235-teach-type-ready`) |
+| `screens/239-teach-fix-amount.png` | Fix it › amount | ringed choices in the message |
+| `screens/240-teach-in-or-out.png` | In or out unknown | Did money go out or in? + type chips |
+| `screens/241-review-pick-category.png` | What was it for? | 4-column category grid + the SMS |
+| `screens/242-review-all-ready.png` | To review, all ready | Save all 3 |
+| `screens/88-today-safe-to-spend.png` | Today | safe to spend in the hero line |
+| `screens/109-expense-type-pills.png` | New expense | type pills |
+| `screens/153–157-small-*-2x.png` | 320 dp + 2× text | five screens at the smallest size |
+| `screens/dark/` | every screen, dark | all 239 |
+

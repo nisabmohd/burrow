@@ -69,11 +69,11 @@ width, light (dark mode is checked in the app). "→" means what a tap opens.
 ## Auto-capture
 | PNG | Screen | Layout |
 |---|---|---|
-| 43-capture-notification | notification | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
-| 44-review | Review (To review tab) | **One screen, two tabs (234–238 round, 12 Nov):** app bar "Review"; `PillTabs` **To review · 3** · **Not understood · 2** (count hidden at 0). To review = plain transaction rows (category circle · payee · "Food & drinks · 8:05 AM" · amount), `SwipeRow` right Save / left Ignore, one hint line under the list, bottom "Save 3 payments". Tap a row → Review sheet (234). Empty (170): the Ghost "All caught up" and one tonal button: "Teach 2 messages it missed" (opens the Not understood tab) when there are some, else Back to Today (user 13 Nov) |
+| 43-capture-notification | notification (retired 12 Nov, `_retired/`) | "₹240 to Third Wave Coffee · HDFC ••1234 · pick a category" · two category pills · Ignore · Edit (opens New expense filled in) |
+| 44-review | Review (To review tab) | **One screen, two tabs (final 12 Nov, 241/242):** app bar "Review"; `PillTabs` **To review · 3** · **Not understood · 2** (count hidden at 0). To review is **sorted**: **Ready to save** · "Burrow knows these shops" (category circle · payee · "Food & drinks · 8:05 AM" · amount; tap → Review sheet 234; `SwipeRow` right Save / left Ignore), then **Pick a category** · "New shops" (a ? circle · payee · "Burrow isn't sure · tap to pick" in primary · amount; tap → **What was it for?** 241). Bottom: **Save 2 ready**; once nothing is unsure **Save all 3** (242); nothing ready: off. Empty (170): the Ghost "All caught up" and one tonal button: "Teach 2 messages it missed" (opens the Not understood tab) when there are some, else Back to Today |
 | 48-auto-capture | Auto-capture | centred status (142 payments recorded) · Bank SMS ("Reads messages from banks", always) / Payment apps switches · "2 messages not understood" → Teach · Message rules · Try it / How it works |
 | 49 / 50 / 51 | Message rules / Rule / Add rule sheet | see `docs/CAPTURE.md`. A built-in pack row opens its rules listed like yours (name · sender · payments read) → the same Rule screen, read-only. Your rules have a pencil in the top bar: Rename rule sheet |
-| 52-teach-message / 149-teach-done | Teach | The user taps only **Amount**, **Paid to** and **Account** (rows not picked yet read "Tap it in the message" for the current one, "Next" after it; no radio circles). Fourth row **Type**, filled by Burrow from the start: "Expense · it says “debited”", the matched word highlighted. Tap Type → Type sheet (236) at any time. Save turns on once the amount reads back; Paid to and Account are optional, any order (0.4.1). Done (149): "Use for messages like this" switch, then the To review line |
+| 52-teach-message / 149-teach-saved | **Check a message** (was Teach; final 12 Nov) | ✕ · "Check a message" · "1 of 2". **Burrow read it as**: 64 dp `primaryContainer` circle with the type icon, the signed amount in `display` ("−₹2,350"), "Expense · to Zomato", "from Kotak ••4471 · Sat, 18 Oct" (muted). **From your SMS**: the parts it read as `primaryContainer` pills, the type word ("debited") `secondaryContainer`. **Is this right?** footer: **No, fix it** (tonal) · **Yes, save** (filled). Fix it → 235 / 239; in or out unknown → 240; Type → 236. Yes, save: rule saved, snackbar "Saved · messages like this are read from now on", next message. None left (149): the Ghost "All checked" · **Back to Review** |
 
 ## More and settings
 | PNG | Screen | Layout |
@@ -140,7 +140,7 @@ width, light (dark mode is checked in the app). "→" means what a tap opens.
 ## Design requests (24 Oct) — 116–159 (light, in screens/)
 | PNG | Screen | Notes |
 |---|---|---|
-| 116 / 117 | Not understood tab | rows: neutral SMS circle · sender · first ~40 characters of the message · date; tap = Teach, swipe left = Ignore; one hint line under the list. Empty (117) "Nothing to teach" |
+| 116 / 117 | Not understood tab (final 12 Nov) | **Step through:** 64 dp `primaryContainer` circle with the SMS icon, "2 messages to check", line "Burrow couldn't read these. Check each one once and messages like them are read after that."; rows: SMS circle · bank name ("Kotak Bank", never the sender id AX-KOTAKB) · date · chevron; swipe left Ignore. Bottom: **Check them one by one** → Check a message (52). Empty (117) "Nothing to teach" |
 | 118-builtin-pack | Built-in pack (India) | centred header (globe, count, "rules · built in · read-only"), "Use this pack" switch, "Rules in this pack" rows (sender · N payments · chevron) |
 | 50-rule / 120-rule-builtin | Rule yours / built-in | yours: pencil in the bar (→ 119), "Use this rule", Delete rule; built-in: no pencil, no switch, footer "Built-in · India" |
 | 119-rename-rule-sheet | Rename rule | one pill field (pencil, ✕ clear), Save off while empty |
@@ -240,12 +240,11 @@ Rule: same bill → add the card to the existing account; own bill → a new car
 **Rating card:** Play's own card after the Sunday review is finished ("Save N and finish" or "Done"), 30+ payments, at most every 120 days; when the Sunday review is off, when To review empties.
 
 ## Review, Teach, legend, dynamic colour, recent pills (12 Nov) — 234–238 (`burrow-review-teach-1112.zip`)
-Every PNG in `design/screens/` was re-captured with Solar Linear icons in this round (light only; dark is checked in the app).
+Every PNG in `design/screens/` was re-captured with Solar Linear icons in this round. (Superseded where the final round below differs.)
 
 | # | Screen | Notes |
 |---|---|---|
 | 234 | Review sheet | `BurrowSheet`: title = payee, sub "−₹180 · HDFC Savings · 8:05 AM", close ✕ · the SMS (`MessageBox`, amount/payee/account highlighted) · "Category" chips (guess + 2 + More) · one row "Edit details" (Amount, payee, account, date → New expense prefilled) · footer **Ignore** (tonal) · **Save** (filled, ✓) |
-| 235 | Teach, all three picked | Amount · Paid to · Account picked (round check), **Type** "Expense · it says “debited”" with the word highlighted · Save |
 | 236 | Type sheet | round check list: Expense (Money out) · Income (Money in) · Refund (Money back for something you bought) · Transfer (Between your own accounts) · Not a payment (Skip messages like this); then "Words that mean Expense" outline `Chip`s sized to their word (✕ leading; never `ChipRow`'s equal-width ones) and **Add a word** (tap a word in the message) |
 | 237 | Appearance, dynamic colour on | Dynamic colour above the circles, on. The user kept the circles showing (2026-11-12) |
 | 238 | New income, recents | recent pills only (no favourites), same look as 175 |
@@ -254,6 +253,32 @@ Every PNG in `design/screens/` was re-captured with Solar Linear icons in this r
 Type words: each language pack has a word list per type; a rule can add its own (`typeWords`). A message with no known
 word goes to Not understood; the type picked there adds its word. A Refund links to the matching expense (same payee,
 within 60 days) and lowers that category; never income.
+
+## Final round (12 Nov) — 239–242, Review and Check a message (`burrow-design-final-1112.zip`)
+Every PNG was re-captured, **light in `design/screens/` and dark in `design/screens/dark/`** (all 239). New expense
+stays as it is (labels, two steps and calmer variants were tried and not kept). `CHANGES-1112.md` in the zip has the full notes.
+
+| # | Screen | Design |
+|---|---|---|
+| 44 | To review, sorted | see Auto-capture above: Ready to save · Pick a category, Save 2 ready / Save all 3 |
+| 241 | What was it for? | sheet: the SMS, then a 4-column grid of 56 dp category circles; picking one moves the row up to Ready to save |
+| 242 | To review, all ready | nothing unsure: one group, bottom **Save all 3** |
+| 116 / 117 | Not understood | header circle + "2 messages to check" + line; bank-name rows; **Check them one by one**; empty "Nothing to teach" |
+| 52 | Check a message | Burrow read it as · From your SMS · Is this right? · No, fix it / Yes, save |
+| 235 | Fix it | "What's wrong?" rows: Amount · Paid to · Account · Type |
+| 239 | Fix it › amount | title "Tap the right amount"; the parts it could be are **ringed** in the message (1.5 dp primary, `Size.markRing`); tap one to pick it |
+| 240 | In or out unknown | "Type unknown" in red; the question becomes "Did money go out or in?"; chips Expense · Income · Refund · Transfer; Yes, save waits for a pick |
+| 236 | Type sheet | Expense · Income · Refund · Transfer · Not a payment, plus that type's words; Done goes back |
+| 149 | All checked | the Ghost "All checked" · Back to Review |
+| 36 | Insights legend | as the 12 Nov round (solid 3 dp / dashed 2 dp swatches; x-axis start and end only) |
+| 63 / 237 | Dynamic colour | switch above the circles; on: "On · colours come from your wallpaper", circles stay, none checked; picking one turns it off |
+| 17 / 91 / 175 / 178 / 238 | Recent pills | filled `surfaceContainerHigh`, amount first in bold, then the name, no circle (like favourites); income shows recents only |
+| 88 | Today, safe to spend | the hero line ends "₹X safe to spend today" |
+| 109 | New expense, type pills | Once · Repeat · Subscription · Lent · Borrowed (income: no Subscription) |
+| 153–157 | 320 dp + 2× text | Today, New expense, Activity, Auto-capture, More at the smallest size |
+
+The type words (debited, spent, credited, refund, reversed…) come from the language pack; a message with none lands in
+Not understood, and the type picked there adds its word.
 
 ## Edge cases that must exist (each has a design)
 no data · sample data · auto-capture paused · permission denied · can't save yet · foreign currency ·

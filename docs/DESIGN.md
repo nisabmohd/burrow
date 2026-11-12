@@ -3,7 +3,7 @@
 Burrow is a small, private expense tracker for Android. It records payments by itself from
 bank messages, reminds you of bills, and shows what is left. These are the rules every screen follows.
 The live reference is the prototype (`design/prototype/burrow-prototype.html`, not in git) and the
-PNGs in `design/screens/` (light only; dark mode follows the tokens and is checked in the app).
+PNGs in `design/screens/` (light) and `design/screens/dark/` (dark, all screens since 12 Nov).
 
 ## The feel
 Clean, calm, Material You Expressive, minimal, as if Google made it. Not a clone of any other app.
@@ -143,4 +143,4 @@ an icon + label, a 22 sp value, one line and a 60 dp visual at the bottom.
 
 ## Dark theme
 Same structure; tones from `TOKENS.md`. Category circles get darker containers with light icons.
-Check every new screen in both themes before calling it done (dark in the app; the PNGs are light).
+Check every new screen in both themes before calling it done (`design/screens/dark/` for reference).
