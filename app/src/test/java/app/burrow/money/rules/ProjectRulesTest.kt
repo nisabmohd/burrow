@@ -354,6 +354,15 @@ class ProjectRulesTest {
         assertNone("button inside a card / row / tile (DESIGN rule 4)", found)
     }
 
+    /**
+     * One look for a bank message everywhere (user, 12 Nov, the third ask): its text goes through MessageText (or
+     * MessageBox / CheckCard, which use it), never a Text of its own, so a transaction, a Review card and a sheet match.
+     */
+    @Test fun bankMessagesUseOneComponent() = assertNone("a bank message drawn with its own Text: use MessageText / MessageBox",
+        violations { f, _, l ->
+            f.name != "MessageText.kt" && Regex("""(Text\([^)]*|supporting\s*=\s*)\b[a-z]\w*\.body\b""").containsMatchIn(code(l))
+        })
+
     private companion object {
         /** Cards allowed to hold buttons (DESIGN rule 4's exception). Add one only with the user's say-so. */
         val BUTTON_CARDS = setOf("CheckCard")

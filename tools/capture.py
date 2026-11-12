@@ -62,6 +62,18 @@ def sms(body, sender="HDFCBK"):
 
 
 def today():
+    # The store shot (user, 12 Nov): no sample note, and the net worth as the main box. The sample month becomes
+    # "real" (debug-only KEEP_SAMPLES), the app restarts to read it, and Customise › Today › Top card is set to Balance.
+    d.shell(f"am broadcast -a app.burrow.money.debug.KEEP_SAMPLES -p {d.PACKAGE}")
+    time.sleep(1.5)
+    d.shell(f"am force-stop {d.PACKAGE}")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
+    time.sleep(3)
+    d.nav("More")
+    d.scroll_to("Today screen")
+    d.tap("Today screen")
+    d.tap("Balance", timeout=6)
+    d.back()
     smoke.recover()
     d.nav("Today")
     d.scroll_to_top()
@@ -80,7 +92,9 @@ def capture():
 
 
 def review():
+    # Two CheckCards (44): a new payee under a payee Burrow knows by its word (Swiggy: Food, ready to save).
     sms("Rs.180.00 debited from A/c XX1234 on 20-10-26 to VPA chaayos.paytm@hdfc. UPI Ref 629184001.")
+    sms("Rs.320.00 debited from A/c XX1234 on 20-10-26 to VPA swiggy.food@icici. UPI Ref 629184002.")
     smoke.recover()
     d.nav("Today")
     d.tap("payments to review", contains=True)
@@ -113,8 +127,8 @@ def rules():
     d.tap("Auto-capture")
     if d.exists("not understood", contains=True, timeout=4):
         d.tap("not understood", contains=True)
-        # Review opens on Not understood (116): the message's row opens Teach.
-        d.tap("ICICIB", contains=True)
+        # Review opens on Not understood (116): CheckCards with what Burrow read and "Is this right?".
+        time.sleep(1.5)
         shot(os.path.join(RAW, "rules.png"))
     else:
         print("skip rules: the message was read by a rule, nothing to teach")

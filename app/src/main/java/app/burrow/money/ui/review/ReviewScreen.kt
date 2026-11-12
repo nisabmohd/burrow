@@ -155,7 +155,7 @@ fun ReviewScreen(
                 when {
                     unsure > 0 && ready == 0 -> stringResource(R.string.pick_categories_first)
                     unsure > 0 -> pluralStringResource(R.plurals.save_n_ready, ready, ready)
-                    else -> pluralStringResource(R.plurals.save_all_n, items.size, items.size)
+                    else -> pluralStringResource(R.plurals.save_n_payments, items.size, items.size)
                 },
                 {
                     if (ready > 0) {
@@ -164,7 +164,7 @@ fun ReviewScreen(
                     }
                 },
                 Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.block),
-                kind = if (ready > 0) ButtonKind.TONAL else ButtonKind.OFF,
+                kind = if (ready > 0) ButtonKind.FILLED else ButtonKind.OFF,
                 icon = painterResource(R.drawable.ic_check_regular),
                 height = Size.buttonBottom,
             )
@@ -172,7 +172,8 @@ fun ReviewScreen(
     }
 
     items.firstOrNull { it.capture.id == gridFor }?.let { item ->
-        PickCategorySheet(item, onPick = { vm.choose(item.capture.id, it); gridFor = null }, onDismiss = { gridFor = null })
+        // More: the one category list sheet, as everywhere (user, 12 Nov).
+        app.burrow.money.ui.pickers.CategorySheet(item.allCategories, item.category?.id.takeIf { item.sure }, { vm.choose(item.capture.id, it.id); gridFor = null }, { gridFor = null })
     }
 }
 
@@ -203,12 +204,10 @@ private fun ToReviewTab(
     }
     val money = LocalMoney.current
     val dates = rememberDateText()
-    var open by rememberSaveable { mutableStateOf<Long?>(null) }
     LazyColumn(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = Space.screen),
         verticalArrangement = Arrangement.spacedBy(Space.block),
     ) {
-        item(key = "hint", contentType = "hint") { Hint(stringResource(R.string.review_found_hint)) }
         items(items, key = { it.capture.id }, contentType = { "card" }) { item ->
             val cap = item.capture
             val picked = item.category?.id.takeIf { item.sure }
@@ -220,21 +219,20 @@ private fun ToReviewTab(
                 title = item.title(),
                 line = listOfNotNull(item.accountName, whenText(cap, dates)).joinToString(" · "),
                 amount = item.amountText(money),
+                messageFrom = item.from,
                 message = cap.body,
                 // What was read, all marked (44), each as its whole word ("XX1234", not just the digits the rule takes).
                 marks = item.spans.values.map { r ->
                     val word = app.burrow.money.capture.RuleBuilder.tokenAt(cap.body, r.first)
                     Mark(if (word == null) r else minOf(word.first, r.first)..maxOf(word.last, r.last), MarkStyle.STRONG)
                 },
-                expanded = open == cap.id,
-                onToggleMessage = { open = if (open == cap.id) null else cap.id },
                 question = if (item.sure) null else stringResource(R.string.review_not_sure),
                 questionColor = MaterialTheme.colorScheme.primary,
                 chips = if (item.allCategories.isEmpty()) null else {
                     {
                         item.chips.forEach { cat ->
                             FormChip(
-                                app.burrow.money.ui.pickers.gridLabel(cat.name), { onChoose(cap.id, cat.id) },
+                                cat.name, { onChoose(cap.id, cat.id) },
                                 if (cat.id == picked) FormChipStyle.SELECTED else FormChipStyle.OUTLINED,
                                 circle = { CategoryCircle(cat.icon, cat.colorHue, Size.favouriteCircle) },
                             )
@@ -242,7 +240,7 @@ private fun ToReviewTab(
                         FormChip(stringResource(R.string.more), { onMore(cap.id) }, icon = painterResource(R.drawable.ic_more_horiz_regular))
                     }
                 },
-                ignore = stringResource(R.string.ignore), onIgnore = { onIgnore(cap.id) },
+                onIgnore = { onIgnore(cap.id) },
                 secondary = stringResource(R.string.edit), onSecondary = { onEdit(cap.id) },
                 primary = stringResource(R.string.save), onPrimary = { if (item.sure) onSave(cap.id) }, primaryEnabled = item.sure,
                 modifier = Modifier.animateItem(),
@@ -278,7 +276,6 @@ private fun NotUnderstoodTab(
     }
     val money = LocalMoney.current
     val dates = rememberDateText()
-    var open by rememberSaveable { mutableStateOf<Long?>(null) }
     LazyColumn(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = Space.screen),
         verticalArrangement = Arrangement.spacedBy(Space.block),
@@ -293,23 +290,19 @@ private fun NotUnderstoodTab(
                 line = listOfNotNull(app.burrow.money.ui.teach.accountText(r), dates.weekdayDay(dates.date(m.receivedAt))).joinToString(" · "),
                 // Unsigned until the type is known (116: "₹899"), then "−₹899" (244).
                 amount = if (r.typeUnknown) (r.read?.let { money.plain(it.amountMinor) } ?: "") else app.burrow.money.ui.teach.amountText(r, money),
+                messageFrom = row.bank ?: app.burrow.money.ui.capture.senderName(m.sender),
                 message = m.body,
                 marks = app.burrow.money.ui.teach.readMarks(r),
-                expanded = open == m.id,
-                onToggleMessage = { open = if (open == m.id) null else m.id },
-                question = stringResource(if (r.typeUnknown) R.string.did_money_go else readAs(r.type)),
+                question = stringResource(if (r.typeUnknown) R.string.did_money_go else R.string.read_marked_right),
                 chips = if (!r.asksType) null else {
                     {
                         listOf(MoneyType.EXPENSE, MoneyType.INCOME, MoneyType.REFUND, MoneyType.TRANSFER).forEach { t ->
-                            FormChip(
-                                stringResource(app.burrow.money.ui.teach.typeName(t)), { onType(m.id, t) },
-                                if (r.pickedType == t) FormChipStyle.SELECTED else FormChipStyle.OUTLINED,
-                                icon = painterResource(app.burrow.money.ui.teach.typeIcon(t)),
-                            )
+                            // Type chips as every pick-one chip: the picked one with ✓ (244).
+                            Chip(stringResource(app.burrow.money.ui.teach.typeName(t)), r.pickedType == t, { onType(m.id, t) })
                         }
                     }
                 },
-                ignore = stringResource(R.string.ignore), onIgnore = { onIgnore(m.id) },
+                onIgnore = { onIgnore(m.id) },
                 secondary = stringResource(R.string.edit), onSecondary = { onEdit(m.id) },
                 primary = stringResource(R.string.yes_save), onPrimary = { if (r.canSave) onSave(m.id) }, primaryEnabled = r.canSave,
                 modifier = Modifier.animateItem(),
@@ -319,14 +312,6 @@ private fun NotUnderstoodTab(
     }
 }
 
-private fun readAs(t: MoneyType) = when (t) {
-    MoneyType.EXPENSE -> R.string.read_as_expense
-    MoneyType.INCOME -> R.string.read_as_income
-    MoneyType.REFUND -> R.string.read_as_refund
-    MoneyType.TRANSFER -> R.string.read_as_transfer
-    MoneyType.NOT_PAYMENT -> R.string.read_as_not_payment
-}
-
 /** The one line above the cards that says what to do (44, 116). */
 @Composable
 private fun Hint(text: String) {
@@ -334,24 +319,6 @@ private fun Hint(text: String) {
         text, style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth().padding(horizontal = Space.headingInset),
     )
-}
-
-/**
- * What was it for? (241): a CheckCard's More. "Myntra · −₹1,499 · Yesterday", the category grid, then the message.
- * One tap picks; the card's Save turns on.
- */
-@Composable
-private fun PickCategorySheet(item: ReviewItem, onPick: (Long) -> Unit, onDismiss: () -> Unit) {
-    val money = LocalMoney.current
-    val dates = rememberDateText()
-    val cap = item.capture
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.what_was_it_for), onDismiss, listOf(item.title(), item.amountText(money), whenText(cap, dates)).joinToString(" · "))
-        SheetBody {
-            app.burrow.money.ui.pickers.CategoryGrid(item.allCategories, { onPick(it.id) })
-            if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, emptyList(), compact = true)
-        }
-    }
 }
 
 /** The expense name ("Medicines") when the message had one, else the payee, else the sender. */

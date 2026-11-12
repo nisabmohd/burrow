@@ -268,7 +268,7 @@ fun NewBillScreen(vm: NewBillViewModel, onClose: () -> Unit, onSaved: () -> Unit
         }
     }
     when (sheet) {
-        BillSheet.CATEGORY -> CategorySheet(s.categories, null, f.categoryId, { cat -> vm.edit { it.copy(categoryId = cat.id) }; sheet = null }, { sheet = null })
+        BillSheet.CATEGORY -> CategorySheet(s.categories, f.categoryId, { cat -> vm.edit { it.copy(categoryId = cat.id) }; sheet = null }, { sheet = null })
         BillSheet.ACCOUNT -> AccountSheet(s.accounts, f.accountId, { a -> vm.edit { it.copy(accountId = a.account.id) }; sheet = null }, { sheet = null })
         BillSheet.DAY -> when (val r = f.repeat) {
             is Repeat.Monthly -> DueDaySheet(r.day, dates, { d -> vm.edit { it.copy(repeat = Repeat.Monthly(d)) }; sheet = null }, { sheet = null })

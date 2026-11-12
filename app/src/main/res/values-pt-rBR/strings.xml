@@ -1581,10 +1581,6 @@
         <item quantity="one">Salvar %d pronto</item>
         <item quantity="other">Salvar %d prontos</item>
     </plurals>
-    <plurals name="save_all_n">
-        <item quantity="one">Salvar pagamento</item>
-        <item quantity="other">Salvar todos os %d</item>
-    </plurals>
     <plurals name="n_messages_to_check">
         <item quantity="one">%d mensagem para conferir</item>
         <item quantity="other">%d mensagens para conferir</item>
@@ -1621,12 +1617,6 @@
     <string name="back_to_review">Voltar para Revisar</string>
     <string name="not_set">Não definido</string>
     <string name="pick_type_first">Escolha primeiro Gasto, Receita, Reembolso ou Transferência</string>
-    <string name="review_found_hint">Encontrados nos seus SMS. Confira a categoria e salve.</string>
-    <string name="missed_hint">Novos tipos de mensagem. Diga sim uma vez e mensagens assim serão lidas daí em diante.</string>
-    <string name="read_as_expense">O Burrow leu como gasto. Está certo?</string>
-    <string name="read_as_income">O Burrow leu como receita. Está certo?</string>
-    <string name="read_as_refund">O Burrow leu como reembolso. Está certo?</string>
-    <string name="read_as_transfer">O Burrow leu como transferência. Está certo?</string>
-    <string name="read_as_not_payment">O Burrow leu como não sendo um pagamento. Está certo?</string>
-    <string name="what_was_it_for">Foi para quê?</string>
+    <string name="missed_hint">O Burrow ainda não conhece esses tipos de mensagem. Confira uma vez e as parecidas serão lidas para você.</string>
+    <string name="read_marked_right">O Burrow leu as partes marcadas. Certo?</string>
 </resources>

@@ -134,7 +134,8 @@ fun FormChip(
         ) {
             circle?.invoke()
             if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(Size.iconSmall))
-            Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = Size.payeeMaxWidth / 2))
+            // Large text: the chip may take the row's width, so a category's name is never cut ("Food & drin…").
+            Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = if (isLargeText()) Size.payeeMaxWidth else Size.payeeMaxWidth / 2))
             if (trailing != null) Text(trailing, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
     }

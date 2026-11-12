@@ -59,6 +59,12 @@ fun CategoryCircle(icon: String?, hue: Float?, size: androidx.compose.ui.unit.Dp
 val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> Unit)?> { null }
 
 /**
+ * What each category has spent this budget month, for every category sheet ("₹2,708 this month"): provided once by the
+ * nav host, so every sheet (New expense, Review, a transaction, bills, budgets, split, import) looks exactly the same.
+ */
+val LocalCategorySpent = androidx.compose.runtime.compositionLocalOf<Map<Long, Long>?> { null }
+
+/**
  * Category (19, 167): every category with what was spent on it this month. When both kinds are
  * listed, an Expense group then an Income group; New category last. [spent] null = the screen has no
  * spending to show (bills, budgets, review, import): no line under the rows, rather than a wrong "nothing".
@@ -66,13 +72,14 @@ val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> 
 @Composable
 fun CategorySheet(
     categories: List<CategoryEntity>,
-    spent: Map<Long, Long>?,
     selectedId: Long?,
     onPick: (CategoryEntity) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val money = LocalMoney.current
     val haptics = LocalHapticFeedback.current
+    // One sheet everywhere: the month's spending comes from the app, never from the caller (user, 12 Nov).
+    val spent = LocalCategorySpent.current
     var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     val shown = if (query.isBlank()) categories else categories.filter { it.name.contains(query.trim(), ignoreCase = true) }
     BurrowSheet(onDismiss) {
@@ -297,45 +304,4 @@ fun DateSheet(
 /** A category's short name in the grid: "Food & drinks" → "Food" (241; the prototype's `split(' &')`). */
 fun gridLabel(name: String): String = name.substringBefore(" &").ifBlank { name }
 
-/**
- * Pick a category from a grid (What was it for?, 241; a CheckCard's More): four equal columns of 56 dp category
- * circles with the short name under each. One tap picks. Tiles are 4 dp tall-padded, 6 dp circle → name, rows 12
- * apart. The press ripple is drawn on a layer behind, so a long name is never clipped by the tile's corners.
- */
-@Composable
-fun CategoryGrid(categories: List<CategoryEntity>, onPick: (CategoryEntity) -> Unit, modifier: Modifier = Modifier) {
-    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
-    androidx.compose.foundation.layout.Column(modifier.fillMaxWidth(), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.block)) {
-        categories.chunked(GRID_COLUMNS).forEach { row ->
-            androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.group)) {
-                row.forEach { cat ->
-                    val interaction = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
-                        androidx.compose.foundation.layout.Spacer(
-                            Modifier.matchParentSize().clip(app.burrow.money.ui.theme.Shapes.surface)
-                                .indication(interaction, androidx.compose.material3.ripple()),
-                        )
-                        androidx.compose.foundation.layout.Column(
-                            Modifier.fillMaxWidth()
-                                .clickable(interactionSource = interaction, indication = null, role = androidx.compose.ui.semantics.Role.Button) { haptics.tick(); onPick(cat) }
-                                .padding(vertical = Space.grid),
-                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.tileLabel),
-                        ) {
-                            CategoryCircle(cat.icon, cat.colorHue, Size.categoryTile)
-                            androidx.compose.material3.Text(
-                                gridLabel(cat.name), style = app.burrow.money.ui.theme.BurrowType.label,
-                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 2,
-                            )
-                        }
-                    }
-                }
-                repeat(GRID_COLUMNS - row.size) { androidx.compose.foundation.layout.Spacer(Modifier.weight(1f)) }
-            }
-        }
-    }
-}
-
-private const val GRID_COLUMNS = 4
 

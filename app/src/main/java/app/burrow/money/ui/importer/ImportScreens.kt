@@ -450,7 +450,7 @@ fun ImportCheckScreen(vm: ImportCheckViewModel, onBack: () -> Unit, onDone: (Int
         is CheckSheet.Category -> {
             val income = sh.names.all { it in r.incomeNames }
             CategorySheet(
-                r.categories.filter { it.kind == if (income) CategoryKind.INCOME else CategoryKind.EXPENSE }, r.spent,
+                r.categories.filter { it.kind == if (income) CategoryKind.INCOME else CategoryKind.EXPENSE },
                 sh.names.singleOrNull()?.let { r.categoryFor[it] }, { vm.setCategory(sh.names, it.id); sheet = null }, { sheet = null },
             )
         }

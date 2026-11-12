@@ -48,15 +48,15 @@ data class Mark(val range: IntRange, val style: MarkStyle)
  */
 @Composable
 fun MessageText(
-    text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false,
+    text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null,
     /** A CheckCard shows two lines until tapped (44, 243): the rest ends in "…" and its marks aren't drawn. */
     maxLines: Int = Int.MAX_VALUE,
-    /** The text's own colour: onSurface on a page, muted onSurfaceVariant in a CheckCard (44). */
-    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
 ) {
     val c = MaterialTheme.colorScheme
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val style = if (compact) BurrowType.message else BurrowType.bodyLarge
+    // One look for every bank message, wherever it shows (transaction, Review cards and sheets, Check a message, rules;
+    // user, 12 Nov): bodyLarge in the text colour. No per-screen size or colour.
+    val style = BurrowType.bodyLarge
     val annotated = remember(text, marks, c) {
         androidx.compose.ui.text.buildAnnotatedString {
             append(text)
@@ -72,7 +72,7 @@ fun MessageText(
         style = style,
         maxLines = maxLines,
         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-        color = color,
+        color = c.onSurface,
         onTextLayout = { layout = it },
         modifier = modifier
             .then(
@@ -117,13 +117,18 @@ private const val MARK_HEIGHT = 1.3f
 
 /**
  * The grey box a message sits in: a small header (sms icon, sender or bank, time) and the text.
- * [compact] in a sheet (Review 234, What was it for? 241): `body`; on its own page (Check a message, Rule): `bodyLarge`.
+ * The text is the one [MessageText] look everywhere.
  */
 @Composable
-fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false) {
+fun MessageBox(
+    header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null,
+    /** Inside a CheckCard (44, 116): the page's colour and a 16 dp corner, to stand off the card. The text never changes. */
+    inCard: Boolean = false,
+) {
     val c = MaterialTheme.colorScheme
     Column(
-        modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainer).padding(horizontal = Space.card, vertical = Space.block),
+        modifier.fillMaxWidth().clip(if (inCard) Shapes.inset else Shapes.surface).background(if (inCard) c.background else c.surfaceContainer)
+            .padding(horizontal = if (inCard) Space.insetH else Space.card, vertical = if (inCard) Space.insetV else Space.block),
         verticalArrangement = Arrangement.spacedBy(Space.group),
     ) {
         // No header when the card above already says who sent it (Not understood, 116).
@@ -131,7 +136,7 @@ fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modif
             Icon(painterResource(R.drawable.ic_sms_duotone), null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconSmall))
             Text(header, style = BurrowType.label, color = c.onSurfaceVariant)
         }
-        MessageText(text, marks, onTap = onTap, compact = compact)
+        MessageText(text, marks, onTap = onTap)
     }
 }
 

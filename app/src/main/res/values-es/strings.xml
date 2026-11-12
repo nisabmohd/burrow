@@ -1581,10 +1581,6 @@
         <item quantity="one">Guardar %d listo</item>
         <item quantity="other">Guardar %d listos</item>
     </plurals>
-    <plurals name="save_all_n">
-        <item quantity="one">Guardar pago</item>
-        <item quantity="other">Guardar los %d</item>
-    </plurals>
     <plurals name="n_messages_to_check">
         <item quantity="one">%d mensaje por revisar</item>
         <item quantity="other">%d mensajes por revisar</item>
@@ -1621,12 +1617,6 @@
     <string name="back_to_review">Volver a Revisar</string>
     <string name="not_set">Sin definir</string>
     <string name="pick_type_first">Primero elige Gasto, Ingreso, Reembolso o Transferencia</string>
-    <string name="review_found_hint">Encontrados en tus SMS. Revisa la categoría y guarda.</string>
-    <string name="missed_hint">Mensajes de un tipo nuevo. Di que sí una vez y los mensajes así se leerán desde entonces.</string>
-    <string name="read_as_expense">Burrow lo leyó como gasto. ¿Es correcto?</string>
-    <string name="read_as_income">Burrow lo leyó como ingreso. ¿Es correcto?</string>
-    <string name="read_as_refund">Burrow lo leyó como reembolso. ¿Es correcto?</string>
-    <string name="read_as_transfer">Burrow lo leyó como transferencia. ¿Es correcto?</string>
-    <string name="read_as_not_payment">Burrow lo leyó como que no es un pago. ¿Es correcto?</string>
-    <string name="what_was_it_for">¿Para qué fue?</string>
+    <string name="missed_hint">Burrow no conoce estos tipos de mensaje. Revisa uno una vez y los demás parecidos se leerán solos.</string>
+    <string name="read_marked_right">Burrow leyó las partes marcadas. ¿Correcto?</string>
 </resources>

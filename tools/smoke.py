@@ -858,9 +858,8 @@ def sms_capture_dedupes_and_reviews():
         raise AssertionError(f"expected 2 to review (the 240 and one 180), saw {seen or 'none'}")
     d.tap("2 payments to review")
     # Final 12 Nov (44): CheckCards. Both payees are new to Burrow: "?" cards, Save off, the bottom button waits.
-    assert d.exists("Found in your SMS", contains=True, timeout=5), "To review has no hint line"
     assert d.exists("Pick categories first", timeout=2), "Save should wait while no payment is ready"
-    d.tap("Food")  # the first card's chip: now it is ready
+    d.tap("Food & drinks")  # the first card's chip: now it is ready
     save = d.find("Save 1 ready", timeout=3)
     assert save is not None, "no Save 1 ready button after picking a category"
     tap_node(save)
@@ -959,7 +958,7 @@ def not_understood_waits_for_teach():
     assert d.exists("Not understood · 1", timeout=5), "Review did not open on the Not understood tab"
     # Final 12 Nov (116): a CheckCard with Burrow's own reading; Edit opens Fix it; Yes, save keeps the rule.
     assert d.exists("Zomato", timeout=3), "the card doesn't name who was paid"
-    assert d.exists("Burrow read it as expense. Is this right?", timeout=2), "the card doesn't say what Burrow read"
+    assert d.exists("Burrow read the marked parts. Right?", timeout=2), "the card doesn't ask about what Burrow read"
     assert d.exists("−₹2,350", timeout=2), "Burrow didn't read the amount"
     d.tap("Edit")
     assert d.exists("What’s wrong?", timeout=5), "Edit didn't open Fix it"
@@ -1110,7 +1109,7 @@ def licences_open_their_text():
 
 
 def pick_in_card(category="Other"):
-    """A new payee's CheckCard (44): More opens What was it for? (241); picking a category turns its Save on."""
+    """A new payee's CheckCard (44): More opens the category list sheet; picking a category turns its Save on."""
     if not d.exists("More", timeout=1):
         # More is last in the card's chip row, which scrolls sideways: swipe the row as a user would.
         chip = d.find("Food", timeout=3) or d.find("Groceries", timeout=1)
@@ -1119,7 +1118,7 @@ def pick_in_card(category="Other"):
         d.swipe(int(w * 0.85), chip.center[1], int(w * 0.15), chip.center[1], 300)
         time.sleep(0.5)
     d.tap("More")
-    assert d.exists("What was it for?", timeout=3), "More didn't open the category grid"
+    assert d.exists("Category", timeout=3), "More didn't open the category sheet"
     d.tap(category)
     time.sleep(0.5)
 
@@ -1130,7 +1129,7 @@ def save_everything_waiting():
         if d.find("isn’t sure", contains=True, timeout=2) is None:
             break
         pick_in_card("Other")
-    for label in ("Save all", "Save payment", "ready"):
+    for label in ("payments", "Save payment", "ready"):
         n = d.find(label, contains=True, timeout=1)
         if n is not None:
             tap_node(n)
@@ -1153,11 +1152,11 @@ def review_cards_save_one_by_one():
     # Final 12 Nov (44): each payment is a CheckCard approved in place. A new payee: Save is off until a chip.
     assert d.exists("Tea7001", contains=True, timeout=3) or d.exists("tea7001", contains=True, timeout=1), "the payment is not a card in To review"
     assert d.exists("Edit", timeout=2) and d.exists("Ignore", timeout=2), "the card has no Ignore · Edit"
-    pick_in_card("Food")
+    pick_in_card("Food & drinks")
     d.tap("Save")  # the first card's own Save (the one just given a category)
     assert d.exists("Saved", timeout=3), "Save on the card didn't save"
     # The second: a chip on the card, then its own Save.
-    d.tap("Food")
+    d.tap("Food & drinks")
     d.tap("Save")  # the first card's own Save (the one just given a category)
     assert d.exists("Saved", timeout=3), "the second card didn't save"
     d.back()

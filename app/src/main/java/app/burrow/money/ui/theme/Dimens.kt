@@ -32,7 +32,6 @@ object Space {
     val empty = 40.dp         // above and below an empty state
     val emptyTop = 32.dp      // above the illustrated empty state (the ghost cards)
     val keypad = 6.dp         // between keypad keys (17)
-    val tileLabel = 6.dp      // a grid tile's circle → its name (What was it for?, 241)
     val insetV = 10.dp        // a message inside a CheckCard: top and bottom (44; prototype .cc-sms 10 × 14)
     val insetH = 14.dp        // and its sides
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows

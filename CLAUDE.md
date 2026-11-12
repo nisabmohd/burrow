@@ -37,6 +37,10 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - **Money is `Long` minor units.** Never Float/Double. Interest maths in BigDecimal, round once, HALF_EVEN.
 - All user-facing text in `strings.xml` (plurals for counts). No raw colour outside `Color.kt`, no raw
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
+- **One look per element (user, 12 Nov):** when two screens show the same thing (a bank message, a category sheet, a
+  card, a chip), they call one shared component with **no per-screen look options**; data it always shows (e.g. this
+  month's spending in the category sheet) comes from the app (a CompositionLocal), not from each caller. Found two
+  that look alike but differ? Merge them into one component first. `ProjectRulesTest` guards the known ones.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first. Never invent a new
   element or one-off style; copy the nearest existing screen. UI without a PNG goes on TODO.md as
   "Design review: …" for the user to check (user, 2026-11-08).

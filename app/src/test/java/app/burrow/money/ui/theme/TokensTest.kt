@@ -23,7 +23,6 @@ class TokensTest {
     /** Gaps measured off a PNG that sit off the grid, with where they were measured. */
     private val offGrid = mapOf(
         "keypad" to "6 dp between keypad keys, PNG 17 (measured 12 Nov)",
-        "tileLabel" to "6 dp circle → name in the category grid, PNG 241 / prototype .vtile gap",
         "insetV" to "10 dp above and below a message in a CheckCard, PNG 44 / prototype .cc-sms",
         "insetH" to "14 dp beside a message in a CheckCard, PNG 44 / prototype .cc-sms",
     )

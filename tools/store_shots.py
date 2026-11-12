@@ -24,7 +24,7 @@ shots = [
     ("activity", "04-activity.png", "Every payment, easy to find", "Search and filter by account, category or date.", False),
     ("bills", "05-bills.png", "Never miss a bill", "Reminders before every bill, subscription and EMI.", False),
     ("insights", "06-insights.png", "See your patterns", "Charts, busiest days and a month heatmap.", False),
-    ("rules", "07-rules.png", "Works with your bank", "Teach it a new message by tapping the amount.", False),
+    ("rules", "07-rules.png", "Works with your bank", "A new kind of message? Say yes once.", False),
     ("today-dark", "08-today-dark.png", "Private. Yours.", "Burrow never sends your data anywhere.", True),
 ]
 

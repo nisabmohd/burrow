@@ -1583,10 +1583,6 @@
         <item quantity="one">Save %d ready</item>
         <item quantity="other">Save %d ready</item>
     </plurals>
-    <plurals name="save_all_n">
-        <item quantity="one">Save payment</item>
-        <item quantity="other">Save all %d</item>
-    </plurals>
     <plurals name="n_messages_to_check">
         <item quantity="one">%d message to check</item>
         <item quantity="other">%d messages to check</item>
@@ -1623,12 +1619,6 @@
     <string name="back_to_review">Back to Review</string>
     <string name="not_set">Not set</string>
     <string name="pick_type_first">Pick Expense, Income, Refund or Transfer first</string>
-    <string name="review_found_hint">Found in your SMS. Check the category, then save.</string>
-    <string name="missed_hint">New kinds of messages. Say yes once and messages like them are read from then on.</string>
-    <string name="read_as_expense">Burrow read it as expense. Is this right?</string>
-    <string name="read_as_income">Burrow read it as income. Is this right?</string>
-    <string name="read_as_refund">Burrow read it as a refund. Is this right?</string>
-    <string name="read_as_transfer">Burrow read it as a transfer. Is this right?</string>
-    <string name="read_as_not_payment">Burrow read it as not a payment. Is this right?</string>
-    <string name="what_was_it_for">What was it for?</string>
+    <string name="missed_hint">Burrow hasn’t seen these kinds of messages. Check one once and the rest like it are read for you.</string>
+    <string name="read_marked_right">Burrow read the marked parts. Right?</string>
 </resources>

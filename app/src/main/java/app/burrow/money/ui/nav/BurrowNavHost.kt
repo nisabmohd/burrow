@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -228,9 +229,14 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
     val short = with(density) { window.height.toDp() } < app.burrow.money.ui.theme.Size.landscapeMaxHeight
     val maxWidth = if (short) app.burrow.money.ui.theme.Size.contentMaxLandscape else app.burrow.money.ui.theme.Size.contentMax
     val items = Tab.entries.map { NavItem(stringResource(it.label), it.icon, it.selectedIcon) }
+    // Every category sheet shows this month's spending under each category (one sheet, one look, everywhere).
+    val categorySpent by remember(settings.monthStartDay) {
+        container.money.spentByCategory(app.burrow.money.domain.BudgetPeriod.containing(java.time.LocalDate.now(), settings.monthStartDay))
+    }.collectAsStateWithLifecycle(null)
     CompositionLocalProvider(
         LocalSnackbar provides snackbar, app.burrow.money.ui.txn.LocalTxnActions provides txnActions,
         app.burrow.money.ui.pickers.LocalNewCategory provides { nav.navigate(EditCategoryRoute()) },
+        app.burrow.money.ui.pickers.LocalCategorySpent provides categorySpent,
     ) {
         // Landscape: the system's nav buttons and the camera cutout sit at the sides; keep clear of them.
         androidx.compose.foundation.layout.Row(
