@@ -69,12 +69,14 @@ def today():
 
 
 def capture():
-    sms("Rs.240.00 debited from A/c XX1234 to VPA thirdwave@okicici. UPI Ref 4821.")
+    # The capture notification as it pops up over Today (heads-up): only Burrow's own notification
+    # shows. The pulled-down shade also showed the emulator's "Serial console enabled" notice.
     d.nav("Today")
-    d.shell("cmd statusbar expand-notifications")
-    time.sleep(1.5)
+    d.adb("emu", "sms", "send", "HDFCBK", "Rs.240.00 debited from A/c XX1234 to VPA thirdwave@okicici. UPI Ref 4821.")
+    for _ in range(10):  # until it shows, while it is still up (a few seconds)
+        if d.exists("240", contains=True, timeout=1):
+            break
     shot(os.path.join(RAW, "capture.png"))
-    d.shell("cmd statusbar collapse")
 
 
 def review():

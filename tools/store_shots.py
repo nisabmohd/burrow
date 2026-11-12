@@ -56,6 +56,19 @@ def wrap(draw, text, f, width):
 def screen(raw, sw, sh):
     """The raw shot at screen size, status bar pulled in from the corners so they never cut it."""
     s = Image.open(raw).convert("RGB")
+    # The emulator's display has rounded corners drawn black into every screenshot: paint them with the
+    # status bar's or the navigation bar's own colour, or they showed as black arcs inside the frame.
+    px = s.load()
+    w, h = s.size
+    r = 140
+    for (cx, cy, ys) in ((0, 0, 8), (w - 1, 0, 8), (0, h - 1, h - 9), (w - 1, h - 1, h - 9)):
+        fill = s.getpixel((w // 2, ys))
+        for y in range(r):
+            for x in range(r):
+                X = cx + x if cx == 0 else cx - x
+                Y = cy + y if cy == 0 else cy - y
+                if sum(px[X, Y]) < 60:
+                    px[X, Y] = fill
     k = sw / RAW_W
     out = s.resize((sw, sh), Image.LANCZOS)
     bar = round(110 * k)                                   # status bar, tall enough for the clock

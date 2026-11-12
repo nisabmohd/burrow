@@ -807,9 +807,9 @@ def capture_intro_turns_on():
     d.nav("More")
     d.tap("Auto-capture")
     d.tap("How it works")
-    d.tap("Next")
-    d.tap("Next")
-    d.tap("Allow")
+    d.tap("Next", timeout=6)  # the intro may still be opening
+    d.tap("Next", timeout=6)
+    d.tap("Allow", timeout=6)
     for _ in range(3):  # Android's own permission dialogs, one per permission group
         if not d.exists("ALLOW", timeout=3):
             break

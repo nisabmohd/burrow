@@ -9,7 +9,7 @@ Screen numbers point to `design/screens/`.
       savings 202–205, 208, 209, 211, 213–226 and empty states 09, 16, 41, 185, 222, 223
 - [ ] Smoke: savings (New savings Once / Every month / Any time / market value, Add money → new deposit, Pay instalment,
       Update value, Edit savings, Sunday review Update values); Teach Type sheet; refund capture with a taught rule
-- [ ] Store screenshots (`python3 tools/capture.py`) and the feature graphic, then a last commit (not pushed)
+- [ ] Last commit (not pushed) and the rebuilt `build/dist/v0.4.0/` (store screenshots stay as they are: user, 13 Nov)
 
 ## Needs you
 - [ ] Push `burrow-0.4.0`, tag `v0.4.0` (CI makes the GitHub release), upload `burrow-0.4.0-play.aab` to Play
