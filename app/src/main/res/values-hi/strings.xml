@@ -1486,4 +1486,6 @@
     <string name="no_category_budgets">कोई श्रेणी बजट नहीं</string>
     <string name="no_category_budgets_line">किसी श्रेणी को उसकी अपनी सीमा दें, जैसे खाना या शॉपिंग।</string>
     <string name="add_category_budget">श्रेणी बजट जोड़ें</string>
+    <string name="delete_goal_text_money">%1$s उन्हीं खातों में वापस जाएगा जहाँ से आया था।</string>
+    <string name="delete_goal_text_empty">इसमें कुछ नहीं जोड़ा गया।</string>
 </resources>

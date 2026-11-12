@@ -214,6 +214,13 @@ interface CategoryDao {
 
 @Dao
 interface TxnDao {
+    /** Payments in [currency] whose baseAmount was never converted (saved before it was). */
+    @Query("SELECT * FROM TxnEntity WHERE currency = :currency AND baseAmount = amount AND amount != 0")
+    suspend fun unconverted(currency: String): List<TxnEntity>
+
+    @Query("UPDATE TxnEntity SET baseAmount = :base WHERE id = :id")
+    suspend fun setBase(id: Long, base: Long)
+
     /** Every transaction that paid one due date (an EMI's transfer and its interest). */
     @Query("SELECT * FROM TxnEntity WHERE billOccurrenceId = :occurrenceId")
     suspend fun byOccurrence(occurrenceId: Long): List<TxnEntity>
@@ -264,18 +271,18 @@ interface TxnDao {
     suspend fun get(id: Long): TxnEntity?
 
     /** Spending in [from, to): expenses less refunds. */
-    @Query("SELECT COALESCE(SUM(CASE WHEN type = 'REFUND' THEN -amount ELSE amount END), 0) FROM TxnEntity WHERE type IN ('EXPENSE', 'REFUND') AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
+    @Query("SELECT COALESCE(SUM(CASE WHEN type = 'REFUND' THEN -baseAmount ELSE baseAmount END), 0) FROM TxnEntity WHERE type IN ('EXPENSE', 'REFUND') AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
     fun spent(from: Long, to: Long): Flow<Long>
 
     /** Spending by category: a split payment counts in each part's category; refunds lower theirs. */
     @Query(
         """
         SELECT categoryId, SUM(total) AS total FROM (
-            SELECT t.categoryId AS categoryId, CASE WHEN t.type = 'REFUND' THEN -t.amount ELSE t.amount END AS total FROM TxnEntity t
+            SELECT t.categoryId AS categoryId, CASE WHEN t.type = 'REFUND' THEN -t.baseAmount ELSE t.baseAmount END AS total FROM TxnEntity t
             WHERE t.type IN ('EXPENSE', 'REFUND') AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
               AND NOT EXISTS (SELECT 1 FROM SplitEntity s WHERE s.txnId = t.id)
             UNION ALL
-            SELECT s.categoryId AS categoryId, s.amount AS total FROM SplitEntity s JOIN TxnEntity t ON t.id = s.txnId
+            SELECT s.categoryId AS categoryId, CASE WHEN t.amount = 0 THEN s.amount ELSE s.amount * t.baseAmount / t.amount END AS total FROM SplitEntity s JOIN TxnEntity t ON t.id = s.txnId
             WHERE t.type = 'EXPENSE' AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
         ) WHERE categoryId IS NOT NULL GROUP BY categoryId
         """,

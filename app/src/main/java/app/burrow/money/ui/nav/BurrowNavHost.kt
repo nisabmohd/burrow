@@ -348,7 +348,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<GoalRoute> { e ->
                         val id = e.toRoute<GoalRoute>().id
                         val vm = viewModel { GoalViewModel(container.plan, container.money, id) }
-                        GoalScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewGoalRoute(it)) })
+                        GoalScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewGoalRoute(it)) }, onOpenTxn = openTxn)
                     }
                     composable<NewGoalRoute> { e ->
                         val id = e.toRoute<NewGoalRoute>().editId

@@ -35,6 +35,11 @@
 - Changing the main currency to one with other decimals (₹ to ¥) keeps every amount the same instead of multiplying it.
 - Sample accounts are never picked by default and never take your new card. Account names in rows stay full when two would look the same.
 - Undo after changing a budget brings the old one back. Notifications no longer replace each other.
+- Payments in another currency count at your typed-in rate in spending, budgets, Insights and Today (net worth already did); ones saved before are converted once.
+- Importing Burrow's own CSV brings refunds back as refunds, transfers as transfers between the two accounts, balance fixes as fixes, and lent or borrowed money still out of spending (the export has a new "excluded" column).
+- Deleting a goal gives its money back to the accounts it came from; tap a row in a goal's Added list to take that money out.
+- Back on a new day, every screen starts fresh with today's numbers. Captured payments match your own accounts, never a sample's.
+- Plan › Budgets and an empty account list show what to add next. A card's amount due leaves out what you spent after the statement. A weekly subscription counts every week in "₹X a month".
 
 ## 0.3.2
 - Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.

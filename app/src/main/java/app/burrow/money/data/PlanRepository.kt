@@ -369,7 +369,14 @@ class PlanRepository(
 
     suspend fun saveGoal(goal: GoalEntity): Long = db.goals().upsert(goal).let { if (it == -1L) goal.id else it }
 
-    suspend fun deleteGoal(id: Long) = db.goals().archive(id)
+    /**
+     * Deleting a goal gives its money back: its Add money transfers go, so each account has again what
+     * it had (they stayed out of the accounts but in net worth, with nothing showing them: QA 12 Nov).
+     */
+    suspend fun deleteGoal(id: Long) = db.withTransaction {
+        db.txns().deleteIds(db.txns().forGoal(id).first().map { it.id })
+        db.goals().archive(id)
+    }
 
     /**
      * "Add money": a transfer from [fromAccountId] into the goal, not spending. Marks the goal

@@ -12,7 +12,6 @@ Screen numbers point to `design/screens/`.
 - [ ] Store screenshots (`python3 tools/capture.py`) and the feature graphic, then a last commit (not pushed)
 
 ## Needs you
-- [ ] Design review: 170 now draws the Not understood tab; the To review empty state keeps "All caught up" + the link
 - [ ] Push `burrow-0.4.0`, tag `v0.4.0` (CI makes the GitHub release), upload `burrow-0.4.0-play.aab` to Play
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
@@ -28,12 +27,6 @@ Screen numbers point to `design/screens/`.
 - [ ] Activity scroll with 20k transactions (emulator frame times mean nothing)
 - [ ] 229–233 in dark mode against `design/screens/dark/`
 
-## After 0.4.0 (found by the QA pass)
-- [ ] Multi-currency totals: `baseAmount` is always `amount`; spent, budgets, Insights and Today add other currencies
-      raw. Set baseAmount from the saved rate at save time and sum baseAmount everywhere; capture's "INR" fallback
-- [ ] CSV import of Burrow's own export: refunds come back as income, transfer rows are dropped, lent / borrowed
-      flags aren't exported (`Import.kt` readRow, `NextRepository.runImport`, `CsvTransfer.kt`)
-- [ ] Deleting a goal strands its money (out of the account, still in net worth); no way to take money out of a goal
 
 ## Notes
 - Smoke takes ~1.5 h on the API 35 emulator with animations off; run a part with `python3 tools/smoke.py <names>`.

@@ -1513,4 +1513,6 @@
     <string name="no_category_budgets">Keine Kategoriebudgets</string>
     <string name="no_category_budgets_line">Gib einer Kategorie ein eigenes Limit, etwa Essen oder Shopping.</string>
     <string name="add_category_budget">Kategoriebudget hinzufügen</string>
+    <string name="delete_goal_text_money">%1$s geht zurück auf die Konten, von denen es kam.</string>
+    <string name="delete_goal_text_empty">Es wurde nichts hinzugefügt.</string>
 </resources>

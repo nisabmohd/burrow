@@ -1751,6 +1751,52 @@ def two_cards_one_bill():
     d.back()
 
 
+@check
+def savings_once_add_money_and_other_kinds():
+    # Savings (202–228, SAVINGS-SIMPLE): a Once deposit; Add money starts a new deposit (205, 207);
+    # Every month and Any time save too; Edit savings opens like Edit account.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+
+    def new_savings(name, kind, amount, rate=None, market=False):
+        d.tap("Add account")
+        d.tap("Savings")
+        d.tap("Deposit, emergency fund, child’s future…")
+        d.type_text(name)
+        d.back()
+        d.tap(kind)
+        if market:
+            d.tap("Market value")
+        d.tap("Type the amount")
+        keypad(amount)
+        d.tap("Done")
+        if rate:
+            d.tap("Add the rate")
+            keypad(rate)
+            d.tap("Done")
+        d.tap("Save")
+        assert d.exists("Saved", timeout=4) or d.exists(name, timeout=2), f"{name} ({kind}) didn't save"
+
+    new_savings("SBI FD", "Once", "50000", rate="7.1")
+    d.scroll_to("SBI FD")
+    d.tap("SBI FD")
+    assert d.exists("at maturity", contains=True, timeout=5), "a fixed deposit doesn't say what it pays at maturity"
+    d.tap("Add money")
+    assert d.exists("New deposit", timeout=4), "Add money to a Once deposit doesn't start a new deposit (207)"
+    d.tap("Add")
+    snackbar()
+    assert d.scroll_to("Deposits"), "the savings page has no Deposits list"
+    d.tap("Edit")
+    assert d.exists("Archive account", timeout=4) or d.scroll_to("Archive account"), "Edit savings isn't like Edit account"
+    d.tap("Close")
+    d.back()
+    new_savings("RD", "Every month", "2000", rate="6.5")
+    new_savings("Gold", "Any time", "10000", market=True)
+    assert d.scroll_to("Gold"), "a market-value savings isn't listed"
+    d.back()
+
+
 def recover():
     """After a failure, back out of sheets and inner screens to the tabs so later checks run."""
     d.shell("cmd statusbar collapse")

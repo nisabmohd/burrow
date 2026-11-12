@@ -1572,4 +1572,6 @@
     <string name="no_category_budgets">No category budgets</string>
     <string name="no_category_budgets_line">Give a category its own limit, like Food or Shopping.</string>
     <string name="add_category_budget">Add a category budget</string>
+    <string name="delete_goal_text_money">%1$s goes back to the accounts it came from.</string>
+    <string name="delete_goal_text_empty">Nothing was added to it.</string>
 </resources>

@@ -111,7 +111,8 @@ def rules():
     d.tap("Auto-capture")
     if d.exists("not understood", contains=True, timeout=4):
         d.tap("not understood", contains=True)
-        d.tap("Teach")
+        # Review opens on Not understood (116): the message's row opens Teach.
+        d.tap("ICICIB", contains=True)
         shot(os.path.join(RAW, "rules.png"))
     else:
         print("skip rules: the message was read by a rule, nothing to teach")
@@ -134,7 +135,8 @@ def today_dark():
 def category_search():
     smoke.recover()
     smoke.open_add()
-    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    # The category chips are the lowest "Food & drinks" (a Recent pill can read the same).
+    chip = max((n for n in d.dump() if n.label == "Food & drinks"), key=lambda n: n.center[1])
     w = d.screen_size()[0]
     for _ in range(3):
         if d.exists("More", timeout=0.5):

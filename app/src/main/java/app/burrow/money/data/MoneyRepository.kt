@@ -292,7 +292,8 @@ class MoneyRepository(
      * Saves a new or edited transaction and returns its id. The first real entry removes the sample
      * month (CLAUDE.md § Behaviour), keeping any sample account the entry uses.
      */
-    suspend fun save(txn: TxnEntity): Long {
+    suspend fun save(input: TxnEntity): Long {
+        val txn = withBase(input)
         val before = if (txn.id != 0L) db.txns().get(txn.id) else null
         val id = db.withTransaction {
             val id = db.txns().upsert(txn).let { if (it == -1L) txn.id else it }
@@ -351,6 +352,29 @@ class MoneyRepository(
     }
 
     suspend fun saveCategory(c: CategoryEntity): Long = db.categories().upsert(c).let { if (it == -1L) c.id else it }
+
+    /**
+     * [txn] with its baseAmount in the main currency, at the rate typed in Customise › Currency (no
+     * rate: as it is, like net worth). Every spending and income total adds baseAmount.
+     */
+    suspend fun withBase(txn: TxnEntity): TxnEntity {
+        val main = settings.settings.first().mainCurrency
+        if (txn.currency == main) return if (txn.baseAmount == txn.amount) txn else txn.copy(baseAmount = txn.amount)
+        val rate = db.extras().rate(txn.currency)?.perPrimary
+        val base = app.burrow.money.domain.Fx.toMain(txn.amount, txn.currency, main, rate) ?: return txn
+        return txn.copy(baseAmount = base)
+    }
+
+    /** Once at start: payments in another currency saved with baseAmount = amount get their converted value. */
+    suspend fun fixBaseAmounts() {
+        val main = settings.settings.first().mainCurrency
+        for (r in db.extras().rates().first()) {
+            if (r.currency == main) continue
+            for (t in db.txns().unconverted(r.currency)) {
+                app.burrow.money.domain.Fx.toMain(t.amount, t.currency, main, r.perPrimary)?.let { b -> if (b != t.baseAmount) db.txns().setBase(t.id, b) }
+            }
+        }
+    }
 
     /** Deletes a category: its transactions and bills move to Other, its budgets go. */
     suspend fun deleteCategory(id: Long) = db.withTransaction {

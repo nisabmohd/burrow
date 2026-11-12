@@ -1570,4 +1570,6 @@
     <string name="no_category_budgets">Aucun budget par catégorie</string>
     <string name="no_category_budgets_line">Donnez à une catégorie sa propre limite, comme Repas ou Shopping.</string>
     <string name="add_category_budget">Ajouter un budget de catégorie</string>
+    <string name="delete_goal_text_money">%1$s retourne sur les comptes d’où il venait.</string>
+    <string name="delete_goal_text_empty">Rien n’y a été ajouté.</string>
 </resources>

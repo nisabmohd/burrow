@@ -21,6 +21,11 @@ import java.time.ZoneId
  */
 fun expandForStats(views: List<TxnView>, parts: List<SplitView>): List<TxnView> {
     val byTxn = parts.groupBy { it.split.txnId }
+    // Every total adds these: in the main currency (baseAmount), so $50 isn't counted as ₹50 (QA 12 Nov).
+    return expandParts(views, byTxn).map { v -> if (v.txn.amount == v.txn.baseAmount) v else v.copy(txn = v.txn.copy(amount = v.txn.baseAmount)) }
+}
+
+private fun expandParts(views: List<TxnView>, byTxn: Map<Long, List<SplitView>>): List<TxnView> {
     return views.flatMap { v ->
         val mine = byTxn[v.txn.id]
         when {
@@ -202,12 +207,20 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
                 at = r.date.atZone(zone).toInstant().toEpochMilli(), source = "IMPORT", createdAt = now, updatedAt = now,
             )
             val rows = plan.rows.filter { it !in skip }
-            val payments = rows.filter { !it.adjustment }.mapNotNull { r ->
+            val payments = rows.filter { !it.adjustment && it.toAccount == null }.mapNotNull { r ->
                 val accountId = accountOf(r) ?: return@mapNotNull null
                 val kind = if (r.income) CategoryKind.INCOME else CategoryKind.EXPENSE
-                // A row on the other side of its category (one refund in "Misc") goes to Other.
+                // A row on the other side of its category goes to Other. A refund keeps its spending
+                // category and stays a refund (it lowers that spending; never income).
                 val cat = r.category?.let { categoryFor[it] }?.takeIf { kindOf[it] == kind } ?: otherOf[kind]
-                base(r, if (r.income) TxnType.INCOME else TxnType.EXPENSE, accountId).copy(categoryId = cat)
+                val type = when { r.refund -> TxnType.REFUND; r.income -> TxnType.INCOME; else -> TxnType.EXPENSE }
+                base(r, type, accountId).copy(categoryId = cat, excludeFromStats = r.excluded)
+            }
+            // Burrow's own transfers ("HDFC → Kotak"): both accounts named on one row.
+            val ownTransfers = rows.filter { it.toAccount != null }.mapNotNull { r ->
+                val from = accountOf(r) ?: return@mapNotNull null
+                val to = accountFor[r.toAccount] ?: return@mapNotNull null
+                if (from == to) null else base(r, TxnType.TRANSFER, from).copy(toAccountId = to)
             }
             // Moves between their own accounts: transfers when both halves are here, else "Fix balance".
             val (pairs, single) = Importer.pairTransfers(rows)
@@ -220,7 +233,8 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
                 val accountId = accountOf(r) ?: return@mapNotNull null
                 base(r, if (r.income) TxnType.ADJUST_UP else TxnType.ADJUST_DOWN, accountId)
             }
-            val txns = payments + transfers + fixes
+            // In the main currency for every total (a file in $ or € counts at the typed-in rate).
+            val txns = (payments + ownTransfers + transfers + fixes).map { money.withBase(it) }
             if (txns.isNotEmpty()) db.txns().insertAll(txns)
             added = txns.size
             db.next().putImportMaps(
@@ -232,9 +246,10 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
         return added
     }
 
-    /** App start: parts of payments that no longer exist. */
+    /** App start: parts of payments that no longer exist; payments in another currency saved before baseAmount was set. */
     suspend fun cleanOrphans() {
         db.next().cleanOrphanSplits()
         db.cards().cleanOrphans()
+        money.fixBaseAmounts()
     }
 }

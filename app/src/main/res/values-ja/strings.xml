@@ -1452,4 +1452,6 @@
     <string name="no_category_budgets">カテゴリ予算はまだありません</string>
     <string name="no_category_budgets_line">食費や買い物など、カテゴリごとに上限を決められます。</string>
     <string name="add_category_budget">カテゴリ予算を追加</string>
+    <string name="delete_goal_text_money">%1$sは元の口座に戻ります。</string>
+    <string name="delete_goal_text_empty">まだ何も追加されていません。</string>
 </resources>

@@ -80,7 +80,7 @@ object BackupCrypto {
 
 /** CSV of transactions (More › Export or import CSV): date, type, payee, amount, currency, category, account, note. */
 object Csv {
-    val HEADER = listOf("date", "type", "payee", "amount", "currency", "category", "account", "note")
+    val HEADER = listOf("date", "type", "payee", "amount", "currency", "category", "account", "note", "excluded")
 
     fun write(rows: List<List<String>>): String = (listOf(HEADER) + rows).joinToString("\r\n") { r -> r.joinToString(",") { quote(it) } } + "\r\n"
 

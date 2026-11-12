@@ -42,7 +42,6 @@ import app.burrow.money.ui.components.Chip
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.Ghost
 import app.burrow.money.ui.components.IconCircle
-import app.burrow.money.ui.components.LinkButton
 import app.burrow.money.ui.components.ListGroup
 import app.burrow.money.ui.components.ListRow
 import app.burrow.money.ui.components.LocalSnackbar
@@ -174,12 +173,10 @@ private fun ToReviewTab(
             shape = { Ghost(painterResource(R.drawable.ic_task_alt_regular)) },
             title = stringResource(R.string.all_caught_up),
             line = stringResource(R.string.all_caught_up_line),
-            // Back to Today, and under it the messages it missed (170) when there are any.
+            // The one next step (170, user 13 Nov): the messages it missed when there are some, else back to Today.
             button = {
-                Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-                    BurrowButton(stringResource(R.string.back_to_today), onBack, kind = ButtonKind.TONAL)
-                    if (missed > 0) LinkButton(pluralStringResource(R.plurals.teach_n_missed, missed, missed), onMissed, Modifier.padding(top = Space.small))
-                }
+                if (missed > 0) BurrowButton(pluralStringResource(R.plurals.teach_n_missed, missed, missed), onMissed, kind = ButtonKind.TONAL)
+                else BurrowButton(stringResource(R.string.back_to_today), onBack, kind = ButtonKind.TONAL)
             },
         )
         return

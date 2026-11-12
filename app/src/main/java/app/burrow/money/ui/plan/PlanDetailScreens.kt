@@ -201,7 +201,7 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
  * was added and from where, Add money (35).
  */
 @Composable
-fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
+fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onOpenTxn: (Long) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
@@ -262,6 +262,8 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
                         supporting = stringResource(R.string.from_account, from?.name.orEmpty()),
                         lead = { CategoryCircle(from?.icon, from?.colorHue) },
                         trailing = { AmountTrailing(money.plain(t.amount)) },
+                        // Its own page: Delete there takes the money back out of the goal, with Undo.
+                        onClick = { onOpenTxn(t.id) },
                     )
                 }
             }
@@ -277,7 +279,8 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
     }
     if (confirmDelete) {
         ConfirmDialog(
-            painterResource(R.drawable.ic_delete_regular), stringResource(R.string.delete_goal_title), stringResource(R.string.delete_goal_text),
+            painterResource(R.drawable.ic_delete_regular), stringResource(R.string.delete_goal_title),
+            if (s.line.saved > 0) stringResource(R.string.delete_goal_text_money, money.plain(s.line.saved)) else stringResource(R.string.delete_goal_text_empty),
             stringResource(R.string.delete), stringResource(R.string.cancel),
             onConfirm = { confirmDelete = false; vm.delete(onBack) }, onDismiss = { confirmDelete = false },
         )
