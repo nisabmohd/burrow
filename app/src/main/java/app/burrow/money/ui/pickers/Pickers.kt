@@ -13,6 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -290,3 +293,49 @@ fun DateSheet(
         }
     }
 }
+
+/** A category's short name in the grid: "Food & drinks" → "Food" (241; the prototype's `split(' &')`). */
+fun gridLabel(name: String): String = name.substringBefore(" &").ifBlank { name }
+
+/**
+ * Pick a category from a grid (What was it for?, 241; a CheckCard's More): four equal columns of 56 dp category
+ * circles with the short name under each. One tap picks. Tiles are 4 dp tall-padded, 6 dp circle → name, rows 12
+ * apart. The press ripple is drawn on a layer behind, so a long name is never clipped by the tile's corners.
+ */
+@Composable
+fun CategoryGrid(categories: List<CategoryEntity>, onPick: (CategoryEntity) -> Unit, modifier: Modifier = Modifier) {
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    androidx.compose.foundation.layout.Column(modifier.fillMaxWidth(), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.block)) {
+        categories.chunked(GRID_COLUMNS).forEach { row ->
+            androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.group)) {
+                row.forEach { cat ->
+                    val interaction = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
+                        androidx.compose.foundation.layout.Spacer(
+                            Modifier.matchParentSize().clip(app.burrow.money.ui.theme.Shapes.surface)
+                                .indication(interaction, androidx.compose.material3.ripple()),
+                        )
+                        androidx.compose.foundation.layout.Column(
+                            Modifier.fillMaxWidth()
+                                .clickable(interactionSource = interaction, indication = null, role = androidx.compose.ui.semantics.Role.Button) { haptics.tick(); onPick(cat) }
+                                .padding(vertical = Space.grid),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space.tileLabel),
+                        ) {
+                            CategoryCircle(cat.icon, cat.colorHue, Size.categoryTile)
+                            androidx.compose.material3.Text(
+                                gridLabel(cat.name), style = app.burrow.money.ui.theme.BurrowType.label,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 2,
+                            )
+                        }
+                    }
+                }
+                repeat(GRID_COLUMNS - row.size) { androidx.compose.foundation.layout.Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+private const val GRID_COLUMNS = 4
+

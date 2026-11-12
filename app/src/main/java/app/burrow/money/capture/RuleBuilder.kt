@@ -48,6 +48,8 @@ object RuleBuilder {
         "a/c", "ac", "acct", "account", "your", "you", "the", "a", "an", "vpa", "upi", "card", "bank", "on", "rs", "rs.", "inr",
         "ref", "info", "txn", "via", "of", "for", "with", "is", "has", "been", "debited", "credited", "sent", "paid", "received",
         "not", "call", "avl", "bal", "lmt", "wallet", "counter", "mobile", "number", "beneficiary", "upi-",
+        // How the money moved is never who: "credited by NEFT from ACME" is ACME.
+        "neft", "imps", "rtgs", "nach", "ecs", "cheque", "cash", "atm", "pos", "ach", "swift",
     )
 
     /** "XX4471", "**4471", "••4471", "x1234": the masked account or card number banks write. */

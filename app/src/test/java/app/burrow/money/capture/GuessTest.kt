@@ -39,6 +39,9 @@ class GuessTest {
         val credit = "Your A/c XX1234 is credited with Rs.5,000.00 from RAHUL K on 12-11-26."
         assertEquals("XX1234", word(credit, RuleBuilder.guessAccount(credit)))
         assertEquals("RAHUL", word(credit, RuleBuilder.guessPayee(credit)))
+        // The payment rail is never the name: "by NEFT from ACME PVT LTD" is ACME.
+        val salary = "Rs.45000.00 credited to A/c XX1234 on 12-11-26 by NEFT from ACME PVT LTD. Ref 1005."
+        assertEquals("ACME", word(salary, RuleBuilder.guessPayee(salary)))
     }
 
     @Test fun noGuessRatherThanAWrongOne() {

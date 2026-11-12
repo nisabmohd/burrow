@@ -45,12 +45,18 @@ data class Mark(val range: IntRange, val style: MarkStyle)
  * With [onTap], tapping reports the character offset that was tapped (Teach).
  */
 @Composable
-fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false) {
+fun MessageText(
+    text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false,
+    /** A CheckCard shows two lines until tapped (44, 243): the rest ends in "…" and its marks aren't drawn. */
+    maxLines: Int = Int.MAX_VALUE,
+) {
     val c = MaterialTheme.colorScheme
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     Text(
         text,
         style = if (compact) BurrowType.body else BurrowType.bodyLarge,
+        maxLines = maxLines,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         color = c.onSurface,
         onTextLayout = { layout = it },
         modifier = modifier
@@ -62,8 +68,11 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
             .drawBehind {
                 val l = layout ?: return@drawBehind
                 val padX = app.burrow.money.ui.theme.Size.markPad.toPx()
-                marks.forEach { m ->
-                    if (m.range.isEmpty() || m.range.last >= text.length) return@forEach
+                // With a line limit, only what is on screen is marked (the rest is cut at "…").
+                val shownEnd = if (l.lineCount == 0) 0 else l.getLineEnd(l.lineCount - 1, visibleEnd = true)
+                marks.forEach { mark ->
+                    if (mark.range.isEmpty() || mark.range.last >= text.length || mark.range.first >= shownEnd) return@forEach
+                    val m = if (mark.range.last < shownEnd) mark else mark.copy(range = mark.range.first..(shownEnd - 1))
                     val first = l.getLineForOffset(m.range.first)
                     val last = l.getLineForOffset(m.range.last)
                     for (line in first..last) {

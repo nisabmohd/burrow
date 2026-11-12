@@ -476,8 +476,9 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<ReviewRoute> {
                         val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules, { a -> container.maybeAskForReview(a, fromToReview = true) }) }
-                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
-                        ReviewScreen(vm, missed, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onTeach = { nav.navigate(TeachRoute(captureId = it)) })
+                        val fallbackRuleName = stringResource(R.string.my_rule)
+                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture, container.rules, fallbackRuleName) }
+                        ReviewScreen(vm, missed, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onTeach = { nav.navigate(TeachRoute(captureId = it, fix = true)) })
                     }
                     composable<CaptureIntroRoute> {
                         CaptureIntroScreen(
@@ -521,10 +522,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<MissedRoute> {
                         // "Not understood" opens Review on its tab (116): one screen for both lists.
                         val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules, { a -> container.maybeAskForReview(a, fromToReview = true) }) }
-                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
+                        val fallbackRuleName = stringResource(R.string.my_rule)
+                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture, container.rules, fallbackRuleName) }
                         ReviewScreen(
                             vm, missed, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) },
-                            onTeach = { nav.navigate(TeachRoute(captureId = it)) }, start = app.burrow.money.ui.review.ReviewTab.NOT_UNDERSTOOD,
+                            onTeach = { nav.navigate(TeachRoute(captureId = it, fix = true)) }, start = app.burrow.money.ui.review.ReviewTab.NOT_UNDERSTOOD,
                         )
                     }
                     composable<RuleRoute> { e ->
@@ -535,7 +537,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<TeachRoute> { e ->
                         val r = e.toRoute<TeachRoute>()
                         val fallback = stringResource(R.string.my_rule)
-                        val vm = viewModel { TeachViewModel(container.capture, container.rules, r.captureId, r.sender, r.text, fallback) }
+                        val vm = viewModel { TeachViewModel(container.capture, container.rules, r.captureId, r.sender, r.text, fallback, startFixing = r.fix) }
                         TeachScreen(vm, onClose = { nav.popBackStack() })
                     }
                     composable<TxnRoute> { e ->

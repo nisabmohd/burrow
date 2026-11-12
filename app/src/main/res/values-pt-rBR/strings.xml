@@ -1621,4 +1621,12 @@
     <string name="back_to_review">Voltar para Revisar</string>
     <string name="not_set">Não definido</string>
     <string name="pick_type_first">Escolha primeiro Gasto, Receita, Reembolso ou Transferência</string>
+    <string name="review_found_hint">Encontrados nos seus SMS. Confira a categoria e salve.</string>
+    <string name="missed_hint">Novos tipos de mensagem. Diga sim uma vez e mensagens assim serão lidas daí em diante.</string>
+    <string name="read_as_expense">O Burrow leu como gasto. Está certo?</string>
+    <string name="read_as_income">O Burrow leu como receita. Está certo?</string>
+    <string name="read_as_refund">O Burrow leu como reembolso. Está certo?</string>
+    <string name="read_as_transfer">O Burrow leu como transferência. Está certo?</string>
+    <string name="read_as_not_payment">O Burrow leu como não sendo um pagamento. Está certo?</string>
+    <string name="what_was_it_for">Foi para quê?</string>
 </resources>

@@ -118,7 +118,8 @@ fun <T> ChipWrap(items: List<T>, label: (T) -> String, selected: (T) -> Boolean,
 }
 
 /** The kinds of button (docs/COMPONENTS.md § Buttons). [OFF] looks disabled but still takes taps. */
-enum class ButtonKind { FILLED, TONAL, DANGER, OFF }
+/** OUTLINED: a quiet second action beside a filled one (a CheckCard's Edit, 44). */
+enum class ButtonKind { FILLED, TONAL, DANGER, OFF, OUTLINED }
 
 /**
  * Every button: a 48 dp pill (56 dp at the bottom of a screen or sheet: pass [height]).
@@ -139,6 +140,7 @@ fun BurrowButton(
         ButtonKind.TONAL -> c.secondaryContainer to c.onSecondaryContainer
         ButtonKind.DANGER -> c.errorContainer to c.onErrorContainer
         ButtonKind.OFF -> c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContainer) to c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContent)
+        ButtonKind.OUTLINED -> androidx.compose.ui.graphics.Color.Transparent to c.onSurface
     }
     Button(
         onClick = onClick,
@@ -146,6 +148,7 @@ fun BurrowButton(
         modifier = modifier.heightIn(min = height),
         shape = Shapes.pill,
         colors = ButtonDefaults.buttonColors(containerColor = bg, contentColor = fg),
+        border = if (kind == ButtonKind.OUTLINED) androidx.compose.foundation.BorderStroke(Size.outline, c.outline) else null,
         contentPadding = PaddingValues(horizontal = Space.screen, vertical = Space.small),
     ) {
         if (icon != null) {

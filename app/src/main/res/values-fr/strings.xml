@@ -1621,4 +1621,12 @@
     <string name="back_to_review">Retour à Vérifier</string>
     <string name="not_set">Non défini</string>
     <string name="pick_type_first">Choisissez d’abord Dépense, Revenu, Remboursement ou Virement</string>
+    <string name="review_found_hint">Trouvés dans vos SMS. Vérifiez la catégorie, puis enregistrez.</string>
+    <string name="missed_hint">De nouveaux types de messages. Dites oui une fois et les messages semblables seront lus ensuite.</string>
+    <string name="read_as_expense">Burrow l’a lu comme une dépense. Est-ce juste ?</string>
+    <string name="read_as_income">Burrow l’a lu comme un revenu. Est-ce juste ?</string>
+    <string name="read_as_refund">Burrow l’a lu comme un remboursement. Est-ce juste ?</string>
+    <string name="read_as_transfer">Burrow l’a lu comme un virement. Est-ce juste ?</string>
+    <string name="read_as_not_payment">Burrow l’a lu comme n’étant pas un paiement. Est-ce juste ?</string>
+    <string name="what_was_it_for">C’était pour quoi ?</string>
 </resources>

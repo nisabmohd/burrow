@@ -118,7 +118,7 @@ Only two shapes exist (user, 2026-10-19):
 - **Surfaces: 24 dp corners.** Cards, widgets, list groups (24 outside / 6 between rows), sheets (top), dialogs, notes, snackbar, tiles.
 - **Everything small or tappable: full circle or pill.** Icon circles, buttons, icon buttons, chips, checkboxes (round), radios,
   switches, keypad keys, badges, highlights in SMS text, heatmap days, chart bars.
-The one exception is a drawing, not a surface: the empty state's ghost rows (`Shapes.ghost`, 20 dp, white front / surfaceContainerLow back, 1 dp hairline and a soft two-layer shadow in light; 9 & 12 Nov).
+Exceptions: a message inside a CheckCard is a box inside a 24 dp card, so a step smaller (`Shapes.inset`, 16 dp; 44, final 12 Nov). And one drawing, not a surface: the empty state's ghost rows (`Shapes.ghost`, 20 dp, white front / surfaceContainerLow back, 1 dp hairline and a soft two-layer shadow in light; 9 & 12 Nov).
 No 4/8/12 dp squares anywhere. App icon: 112/512 corner (the launcher masks it anyway); the in-app logo tile
 (About, Welcome) uses the same ratio, `Shapes.logo(side)` (24.5 dp on 112, as PNG 124). Logo: `tools/burrow_mark.py` (see CLAUDE.md).
 

@@ -23,6 +23,9 @@ class TokensTest {
     /** Gaps measured off a PNG that sit off the grid, with where they were measured. */
     private val offGrid = mapOf(
         "keypad" to "6 dp between keypad keys, PNG 17 (measured 12 Nov)",
+        "tileLabel" to "6 dp circle → name in the category grid, PNG 241 / prototype .vtile gap",
+        "insetV" to "10 dp above and below a message in a CheckCard, PNG 44 / prototype .cc-sms",
+        "insetH" to "14 dp beside a message in a CheckCard, PNG 44 / prototype .cc-sms",
     )
 
     @Test fun everySpaceIsOnTheGrid() {
@@ -97,6 +100,8 @@ class TokensTest {
         assertEquals(6f, corner(middle)); assertEquals(6f, middle.bottomStart.toPx(GSize(400f, 400f), d))
         // The logo tile: the app icon's 112/512 corner (PNG 124: ~24 on 112).
         assertEquals(24.5f, corner(Shapes.logo(112.dp), 112f), 0.01f)
+        // A message inside a card: 16 (Shapes.inset, 44).
+        assertEquals(16f, corner(Shapes.inset))
         // Outlines: a chip 1, a ring 2 (round check, today, picked swatch, PIN dot).
         assertEquals(1.dp, Size.outline)
         assertEquals(2.dp, Size.ring)

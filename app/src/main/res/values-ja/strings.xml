@@ -1498,4 +1498,12 @@
     <string name="back_to_review">確認に戻る</string>
     <string name="not_set">未設定</string>
     <string name="pick_type_first">先に支出・収入・返金・振替を選んでください</string>
+    <string name="review_found_hint">SMS で見つかりました。カテゴリを確認して保存してください。</string>
+    <string name="missed_hint">新しい種類のメッセージです。一度「はい」と答えると、同じようなメッセージは次から読み取ります。</string>
+    <string name="read_as_expense">Burrow は支出と読み取りました。合っていますか?</string>
+    <string name="read_as_income">Burrow は収入と読み取りました。合っていますか?</string>
+    <string name="read_as_refund">Burrow は返金と読み取りました。合っていますか?</string>
+    <string name="read_as_transfer">Burrow は振替と読み取りました。合っていますか?</string>
+    <string name="read_as_not_payment">Burrow は支払いではないと読み取りました。合っていますか?</string>
+    <string name="what_was_it_for">何に使いましたか?</string>
 </resources>

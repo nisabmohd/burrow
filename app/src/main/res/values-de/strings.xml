@@ -1564,4 +1564,12 @@
     <string name="back_to_review">Zurück zur Prüfung</string>
     <string name="not_set">Nicht festgelegt</string>
     <string name="pick_type_first">Wähle zuerst Ausgabe, Einnahme, Erstattung oder Umbuchung</string>
+    <string name="review_found_hint">In deinen SMS gefunden. Kategorie prüfen, dann speichern.</string>
+    <string name="missed_hint">Neue Arten von Nachrichten. Einmal bestätigen, dann werden solche Nachrichten gelesen.</string>
+    <string name="read_as_expense">Burrow hat es als Ausgabe gelesen. Stimmt das?</string>
+    <string name="read_as_income">Burrow hat es als Einnahme gelesen. Stimmt das?</string>
+    <string name="read_as_refund">Burrow hat es als Erstattung gelesen. Stimmt das?</string>
+    <string name="read_as_transfer">Burrow hat es als Umbuchung gelesen. Stimmt das?</string>
+    <string name="read_as_not_payment">Burrow hat es als keine Zahlung gelesen. Stimmt das?</string>
+    <string name="what_was_it_for">Wofür war das?</string>
 </resources>

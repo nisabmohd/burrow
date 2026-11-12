@@ -16,8 +16,8 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
    Categories, Message rules) and details (account, bill, goal, budget, category, transaction).
 3. **One signal per number.** A ring *or* a bar, plus one short line ("₹710 over", "₹5,310 left").
    Never ring + bar + % + red text together.
-4. **No buttons inside cards.** (Kept over the 12 Nov kit’s Review CheckCards: Review stays rows + one sheet.) Tap the row to open it. One main action per screen: the FAB, one
-   Review (12 Nov, 44/116/234) has no cards: To review and Not understood are plain rows; tap opens the Review sheet or Teach, swipe right Save / left Ignore.
+4. **No buttons inside cards.** One exception (user, 12 Nov: "follow the design PNG"): Review's **CheckCard**, where each found payment or message is approved right in the list (Ignore · Edit · Save). `ProjectRulesTest.noButtonsInsideCards` allows only that one. Tap the row to open it. One main action per screen: the FAB, one
+   Review (final 12 Nov, 44/116): one list of CheckCards, each approved in place (the rule 4 exception).
    bottom button, or the single "Mark paid" on the Next-up card.
 5. **Notes go first.** Any notice (overdue, paused, suggestion, goal reached) is the first thing on
    the page, in the one `Note` component. Colour by kind only (info rose, warning amber, error red).

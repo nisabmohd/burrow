@@ -60,7 +60,9 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - Half widgets 184 dp fixed; a lone widget goes wide (text left, 104 dp ring right).
 - **Pick one** = the round check (24 dp ring → primary ✓) on the right, in every list, sheet and screen; rows never tint.
 - **Tabs** = `PillTabs` (Plan equal widths, Customise scrolling); settings choices stay a button group with a check.
-- **Swipe** only on Coming up rows, Review rows (right Save, left Ignore; Not understood left only) and Activity rows if set in Customise. Review is one screen with tabs To review · Not understood: plain rows, tap opens the Review sheet (234) or Teach; no cards with buttons (12 Nov).
+- **Swipe** only on Coming up rows and Activity rows if set in Customise. Review is one screen with tabs To review · Not understood,
+  each a list of **CheckCards** (user, 12 Nov: "follow the design PNG"): the SMS, chips, Ignore · Edit · Save in the card; the one
+  exception to "no buttons inside cards" (DESIGN rule 4, ProjectRulesTest).
 - **Wide (≥ 840 dp):** nav rail, widgets three across. **Large text:** nav shows only the selected label, widgets and tiles one per row, rows wrap, the FAB goes icon-only.
 - Amounts never coloured except "₹X over" in red. Red only for overdue / over budget / errors.
 - Motion: shared axis X for push/pop, fade through for tabs, predictive back, count-up once. See MOTION.md.

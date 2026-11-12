@@ -5,13 +5,10 @@
 - Teach › Type: the words that mean a type are small chips sized to their word, as in the design, instead of stretching across the sheet.
 - Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
 - Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
-
-- Review sorts what it found: **Ready to save** (payees Burrow has seen before) and **Pick a category** (new to Burrow, "Burrow isn't sure"). Tapping a new shop opens the same Review sheet with nothing picked; picking a category moves it up. The bottom button saves only what is ready ("Save 2 ready", then "Save all 3").
-- Not understood shows how many messages to check, each by its bank's name ("Kotak Bank", not "AX-KOTAKB"), and **Check them one by one**.
-
-- Messages Burrow couldn't read are now **checked, not taught**: Burrow reads the amount, who was paid, the account and the type itself and asks "Is this right?". Yes saves it and moves to the next one ("1 of 2"); No, fix it lists the parts, and fixing one rings what it could be in the message. When the message doesn't say whether money went out or in, Burrow asks.
+- Review is a list of cards you approve right there: each payment shows its SMS, category chips with Burrow's guess picked, and Ignore · Edit · Save; a payee Burrow hasn't seen asks "what was it for?" and More opens a grid of categories. The bottom button saves every card that has a category ("Save 2 ready", then "Save all 3").
+- Not understood is cards too: Burrow shows what it read in each message and asks "Is this right?" (or whether money went out or in); Yes, save reads messages like it from then on, with Undo, and Edit opens Fix it.
+- Fix it (from a card's Edit): Burrow's reading part by part; fixing a part rings what it could be in the message.
 - Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.
-
 - Empty states stand out in light mode: the illustration's cards are white, with a fine outline and a soft shadow, instead of melting into the page; the back card is no longer cut off at one edge.
 - Not understood, when empty, says "Nothing to check"; a new payee in To review asks "what was it for?".
 

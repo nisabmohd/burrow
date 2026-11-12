@@ -184,7 +184,7 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 ## Fixes round (12 Nov, second zip)
 | File | Screen | Notes |
 |---|---|---|
-| `screens/243-review-sms-open.png` | To review, SMS opened in a CheckCard | reference only; not built (no buttons inside cards) |
-| `screens/244-not-understood-type-picked.png` | Not understood, type picked in a CheckCard | reference only; Check a message (52, 240) covers it |
+| `screens/243-review-sms-open.png` | To review, SMS opened in a CheckCard | built: tap the SMS to read it all |
+| `screens/244-not-understood-type-picked.png` | Not understood, type picked in a CheckCard | built: type chips on the card |
 | empty-state PNGs (09, 16, 41, 117, 170, 185, 222, 223, 229–233) | ghost cards | white front, hairline, soft two-layer shadow (built) |
 

@@ -255,7 +255,7 @@ private fun FixBody(s: TeachState, modifier: Modifier, onChoose: (Part) -> Unit,
 }
 
 /** "−₹2,350" (expense), "+₹500" (income, refund), "₹8,120" (transfer); the word itself until the rule reads it. */
-private fun amountText(s: TeachState, money: app.burrow.money.domain.MoneyFormat): String {
+internal fun amountText(s: TeachState, money: app.burrow.money.domain.MoneyFormat): String {
     val read = s.read ?: return s.picks[Part.AMOUNT]?.let { s.text.substring(it) } ?: "?"
     return when (s.type) {
         MoneyType.EXPENSE -> money.signed(-read.amountMinor)
@@ -265,10 +265,10 @@ private fun amountText(s: TeachState, money: app.burrow.money.domain.MoneyFormat
 }
 
 /** "zomato@hdfcbank" → "Zomato", "ZOMATO" → "Zomato": the name as Review shows it. */
-private fun payeeName(word: String): String = app.burrow.money.data.upiName(word) ?: app.burrow.money.data.tidyPayee(word)
+internal fun payeeName(word: String): String = app.burrow.money.data.upiName(word) ?: app.burrow.money.data.tidyPayee(word)
 
 /** "Kotak ••4471": the bank's short name and the account's last digits. */
-private fun accountText(s: TeachState): String? {
+internal fun accountText(s: TeachState): String? {
     val word = s.picks[Part.ACCOUNT]?.let { s.text.substring(it) } ?: return null
     val digits = word.filter { it.isDigit() }.takeLast(4).ifEmpty { return word }
     val bank = s.bank.takeIf { it.isNotBlank() }?.let { app.burrow.money.capture.bankShortName(it) }
@@ -338,7 +338,7 @@ private fun partIcon(part: Part) = when (part) {
     else -> R.drawable.ic_account_balance_duotone
 }
 
-private fun typeName(t: MoneyType) = when (t) {
+internal fun typeName(t: MoneyType) = when (t) {
     MoneyType.EXPENSE -> R.string.type_expense
     MoneyType.INCOME -> R.string.type_income
     MoneyType.REFUND -> R.string.refund
@@ -354,7 +354,7 @@ private fun typeLine(t: MoneyType) = when (t) {
     MoneyType.NOT_PAYMENT -> R.string.type_not_payment_line
 }
 
-private fun typeIcon(t: MoneyType) = when (t) {
+internal fun typeIcon(t: MoneyType) = when (t) {
     MoneyType.EXPENSE -> R.drawable.ic_arrow_upward_duotone
     MoneyType.INCOME -> R.drawable.ic_arrow_downward_duotone
     MoneyType.REFUND -> R.drawable.ic_undo_duotone
@@ -363,7 +363,7 @@ private fun typeIcon(t: MoneyType) = when (t) {
 }
 
 /** Is this right? (52): the parts Burrow read strongly, the word that gives the type softly. */
-private fun readMarks(s: TeachState): List<Mark> = buildList {
+internal fun readMarks(s: TeachState): List<Mark> = buildList {
     s.picks.values.forEach { add(Mark(it, MarkStyle.STRONG)) }
     s.found?.takeIf { it.type == s.type }?.let { f -> if (s.picks.values.none { it.first <= f.range.last && f.range.first <= it.last }) add(Mark(f.range, MarkStyle.SOFT)) }
 }

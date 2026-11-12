@@ -32,6 +32,9 @@ object Space {
     val empty = 40.dp         // above and below an empty state
     val emptyTop = 32.dp      // above the illustrated empty state (the ghost cards)
     val keypad = 6.dp         // between keypad keys (17)
+    val tileLabel = 6.dp      // a grid tile's circle → its name (What was it for?, 241)
+    val insetV = 10.dp        // a message inside a CheckCard: top and bottom (44; prototype .cc-sms 10 × 14)
+    val insetH = 14.dp        // and its sides
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
     val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
     val navBarEnd = 8.dp      // at each end of the bottom nav, so its end pills sit ~16 dp in, like the screen
@@ -133,6 +136,8 @@ object Size {
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)
     val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
     val badge = 16.dp         // the count on a header button (filters set)
+    /** The actions inside a CheckCard (44: Ignore · Edit · Save): 40 dp pills; Material keeps the 48 dp touch area. */
+    val buttonSmall = 40.dp
     /** Lines drawn around things: an outlined chip (1), a ring (round check, today, picked swatch, PIN dot: 2). */
     val outline = 1.dp
     val ring = 2.dp
@@ -180,6 +185,8 @@ object Shapes {
     val pill = CircleShape // RoundedCornerShape(50) for wide pills
     /** The Burrow mark's tile (About 112, Welcome 40): the app icon's corner, 112/512 of its side (TOKENS § Shape). */
     fun logo(side: androidx.compose.ui.unit.Dp) = RoundedCornerShape(side * 112f / 512f)
+    /** A message inside a CheckCard (44, 116): a box inside a 24 dp card, so a step smaller (16), as the design draws it. */
+    val inset = RoundedCornerShape(16.dp)
     /** The ghost rows of the illustrated empty state (a drawing, not a surface). */
     val ghost = RoundedCornerShape(20.dp)
     /** Grouped list: 24 dp on the outside of the group, 6 dp between its rows. */

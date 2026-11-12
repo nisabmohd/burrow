@@ -75,6 +75,45 @@ data class TeachState(
 }
 
 /**
+ * Burrow reads a message itself (52, 116): the amount, who was paid and the account it can find, and the type from its
+ * words, then the rule those parts make. With no amount it opens on Fix it › Tap the right amount. Shared by Check a
+ * message and the Not understood cards.
+ */
+fun readMessage(s: TeachState, engine: RuleEngine, ruleName: String): TeachState {
+    val picks = listOfNotNull(
+        RuleBuilder.firstAmount(s.text)?.let { Part.AMOUNT to it },
+        RuleBuilder.guessPayee(s.text)?.let { Part.PAYEE to it },
+        RuleBuilder.guessAccount(s.text)?.let { Part.ACCOUNT to it },
+    ).fold(emptyMap<Part, IntRange>()) { kept, (p, r) -> if (kept.values.any { it.first <= r.last && r.first <= it.last }) kept else kept + (p to r) }
+    val built = rebuildRule(s.copy(picks = picks), engine, ruleName)
+    return if (Part.AMOUNT in picks) built else built.copy(mode = TeachMode.FIX, step = Part.AMOUNT)
+}
+
+/** The rule [s]'s parts make, kept only when it reads the message back with the picked amount and type. */
+fun rebuildRule(s: TeachState, engine: RuleEngine, ruleName: String): TeachState {
+    val amount = s.picks[Part.AMOUNT] ?: return s.copy(rule = null)
+    val built = RuleBuilder.build(
+        id = "user.${System.currentTimeMillis()}", name = ruleName, sender = s.sender.ifBlank { null },
+        text = s.text, amount = amount, payee = s.picks[Part.PAYEE], account = s.picks[Part.ACCOUNT],
+    )
+    // The words decide when they agree with the type shown, so a "credited" message from the same
+    // bank is still read as income. When they don't (no word, or the user picked another type),
+    // the rule keeps the picked type.
+    val byWords = s.found?.type == s.type
+    val rule = built.copy(
+        direction = if (byWords) null else s.type.direction,
+        type = if (byWords) null else s.type,
+        typeWords = s.ownWords,
+        language = s.language,
+        removedWords = s.removedWords.filterValues { it.isNotEmpty() },
+    )
+    // Good only if the rule finds the amount exactly where it was tapped.
+    val read = engine.parseWith(rule, s.sender.ifBlank { null }, s.text)
+    val ok = read != null && read.spans[Part.AMOUNT]?.last == amount.last && read.type == s.type
+    return s.copy(rule = if (ok) rule else null, read = if (ok) read else null)
+}
+
+/**
  * Check a message (52, 235, 236, 239, 240, 149; final 12 Nov): from a message not understood ([captureId], then the
  * next ones waiting) or a pasted one. Burrow reads the amount, who was paid, the account and the type itself and asks
  * "Is this right?"; No, fix it lists the parts, and fixing one rings what it could be in the message. Yes, save keeps
@@ -87,6 +126,8 @@ class TeachViewModel(
     pastedSender: String,
     pastedText: String,
     private val fallbackName: String,
+    /** A Not understood card's Edit: Fix it first, this one message only, closed on save (116). */
+    private val startFixing: Boolean = false,
 ) : ViewModel() {
     private val _state = MutableStateFlow<TeachState?>(null)
     val state: StateFlow<TeachState?> = _state.asStateFlow()
@@ -101,7 +142,11 @@ class TeachViewModel(
 
     init {
         viewModelScope.launch {
-            if (captureId != 0L) {
+            if (captureId != 0L && startFixing) {
+                queue = listOf(captureId)
+                load(captureId, 1)
+                _state.update { it?.copy(total = 0, position = 0, mode = TeachMode.FIX, step = null) }
+            } else if (captureId != 0L) {
                 queue = capture.notUnderstood.first().map { it.id }.let { ids -> if (captureId in ids) ids.dropWhile { it != captureId } else listOf(captureId) }
                 load(captureId, 1)
             } else {
@@ -133,15 +178,7 @@ class TeachViewModel(
      * Burrow reads it first (52): the amount, who was paid and the account it can find, and the type from its words.
      * With no amount it opens on Fix it › Tap the right amount.
      */
-    private fun read(s: TeachState): TeachState {
-        val picks = listOfNotNull(
-            RuleBuilder.firstAmount(s.text)?.let { Part.AMOUNT to it },
-            RuleBuilder.guessPayee(s.text)?.let { Part.PAYEE to it },
-            RuleBuilder.guessAccount(s.text)?.let { Part.ACCOUNT to it },
-        ).fold(emptyMap<Part, IntRange>()) { kept, (p, r) -> if (kept.values.any { it.first <= r.last && r.first <= it.last }) kept else kept + (p to r) }
-        val built = rebuild(s.copy(picks = picks))
-        return if (Part.AMOUNT in picks) built else built.copy(mode = TeachMode.FIX, step = Part.AMOUNT)
-    }
+    private fun read(s: TeachState): TeachState = readMessage(s, engine, ruleName)
 
     /** No, fix it: What's wrong? (235). */
     fun fix() = _state.update { it?.copy(mode = TeachMode.FIX, step = null, notAmount = false) }
@@ -190,28 +227,7 @@ class TeachViewModel(
         }
     }
 
-    private fun rebuild(s: TeachState): TeachState {
-        val amount = s.picks[Part.AMOUNT] ?: return s.copy(rule = null)
-        val built = RuleBuilder.build(
-            id = "user.${System.currentTimeMillis()}", name = ruleName, sender = s.sender.ifBlank { null },
-            text = s.text, amount = amount, payee = s.picks[Part.PAYEE], account = s.picks[Part.ACCOUNT],
-        )
-        // The words decide when they agree with the type shown, so a "credited" message from the same
-        // bank is still read as income. When they don't (no word, or the user picked another type),
-        // the rule keeps the picked type.
-        val byWords = s.found?.type == s.type
-        val rule = built.copy(
-            direction = if (byWords) null else s.type.direction,
-            type = if (byWords) null else s.type,
-            typeWords = s.ownWords,
-            language = s.language,
-            removedWords = s.removedWords.filterValues { it.isNotEmpty() },
-        )
-        // Good only if the rule finds the amount exactly where it was tapped.
-        val read = engine.parseWith(rule, s.sender.ifBlank { null }, s.text)
-        val ok = read != null && read.spans[Part.AMOUNT]?.last == amount.last && read.type == s.type
-        return s.copy(rule = if (ok) rule else null, read = if (ok) read else null)
-    }
+    private fun rebuild(s: TeachState): TeachState = rebuildRule(s, engine, ruleName)
 
 
     /**

@@ -335,14 +335,15 @@ class ProjectRulesTest {
         })
 
     /**
-     * DESIGN rule 4: no buttons inside cards; tap the row or card to open it (kept over the 12 Nov kit's Review
-     * CheckCards). A composable named …Card, …Row or …Tile never draws a button of its own.
+     * DESIGN rule 4: no buttons inside cards; tap the row or card to open it. A composable named …Card, …Row or …Tile
+     * never draws a button of its own. The one exception: [BUTTON_CARDS] (Review's CheckCard, approved in the list;
+     * user, 12 Nov: "follow the design PNG").
      */
     @Test fun noButtonsInsideCards() {
         val button = Regex("""(?<![\w.])(BurrowButton|TextButton|LinkButton|TonalIconButton)\(""")
         val found = kotlin.flatMap { f ->
             val t = f.readText()
-            Regex("""fun (\w*(Card|Row|Tile))\(""").findAll(t).mapNotNull { m ->
+            Regex("""fun (\w*(Card|Row|Tile))\(""").findAll(t).filter { it.groupValues[1] !in BUTTON_CARDS }.mapNotNull { m ->
                 val open = t.indexOf('{', m.range.last).takeIf { it >= 0 } ?: return@mapNotNull null
                 var i = open + 1; var depth = 1
                 while (i < t.length && depth > 0) { if (t[i] == '{') depth++ else if (t[i] == '}') depth--; i++ }
@@ -351,5 +352,10 @@ class ProjectRulesTest {
             }.toList()
         }
         assertNone("button inside a card / row / tile (DESIGN rule 4)", found)
+    }
+
+    private companion object {
+        /** Cards allowed to hold buttons (DESIGN rule 4's exception). Add one only with the user's say-so. */
+        val BUTTON_CARDS = setOf("CheckCard")
     }
 }

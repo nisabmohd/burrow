@@ -1537,4 +1537,12 @@
     <string name="back_to_review">समीक्षा पर लौटें</string>
     <string name="not_set">तय नहीं</string>
     <string name="pick_type_first">पहले खर्च, आय, रिफ़ंड या ट्रांसफ़र चुनें</string>
+    <string name="review_found_hint">आपके SMS में मिले। श्रेणी जाँचें, फिर सेव करें।</string>
+    <string name="missed_hint">नए तरह के संदेश। एक बार हाँ कहें, फिर ऐसे संदेश पढ़े जाएँगे।</string>
+    <string name="read_as_expense">Burrow ने इसे खर्च पढ़ा। क्या यह सही है?</string>
+    <string name="read_as_income">Burrow ने इसे आय पढ़ा। क्या यह सही है?</string>
+    <string name="read_as_refund">Burrow ने इसे रिफ़ंड पढ़ा। क्या यह सही है?</string>
+    <string name="read_as_transfer">Burrow ने इसे ट्रांसफ़र पढ़ा। क्या यह सही है?</string>
+    <string name="read_as_not_payment">Burrow ने इसे भुगतान नहीं पढ़ा। क्या यह सही है?</string>
+    <string name="what_was_it_for">यह किसके लिए था?</string>
 </resources>
