@@ -21,3 +21,7 @@ Tabs: **Today · Activity · Plan · Insights · More**. Main buttons: "Add expe
 
 Numbers: "₹13,644 left", "₹1,050 a day", "in 6 days", "Tomorrow", "Today", "42 of 240 EMIs paid".
 Amounts are never coloured: expense "−₹450", income "+₹1,20,000", transfer "₹8,120" (no sign).
+
+## Account names in rows (12 Nov)
+Rows shorten an account to its first word ("HDFC Savings" → "HDFC") only when no other account starts with the
+same word; otherwise the full name shows, so two accounts never look the same.

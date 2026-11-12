@@ -1,6 +1,7 @@
-- New logo.
-- Back up to your own Google Drive, encrypted with your password, and restore any of the last 10.
-- Search categories.
-- Scrolling a list in a sheet no longer closes it.
-- Payments you reviewed no longer leave their notification behind.
-- Rate Burrow from About.
+- Review: To review and Not understood in one place; swipe to save or ignore.
+- Teach: three taps, Burrow fills in the type; refunds, transfers, non-payments.
+- Repeating salary: Mark received, counted as income.
+- Right totals: no loans or future payments in Insights; weekly bills count each week.
+- Deleting a payment takes its refunds and un-pays its bill.
+- Card bill, EMI and instalment payments are transfers, not spending.
+- Currency change keeps amounts; archive asks first.

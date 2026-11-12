@@ -17,7 +17,7 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
 3. **One signal per number.** A ring *or* a bar, plus one short line ("₹710 over", "₹5,310 left").
    Never ring + bar + % + red text together.
 4. **No buttons inside cards.** Tap the row to open it. One main action per screen: the FAB, one
-   One exception (user, 2026-10-24): To review cards each have a Save button and don't swipe.
+   Review (12 Nov, 44/116/234) has no cards: To review and Not understood are plain rows; tap opens the Review sheet or Teach, swipe right Save / left Ignore.
    bottom button, or the single "Mark paid" on the Next-up card.
 5. **Notes go first.** Any notice (overdue, paused, suggestion, goal reached) is the first thing on
    the page, in the one `Note` component. Colour by kind only (info rose, warning amber, error red).
@@ -26,7 +26,7 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
    (Type, Accounts, Categories as wrapping chips, fits one screen) and one Dates sheet. Active
    filters become removable chips under the search bar with "Clear all".
 8. **Every picker is a bottom sheet.** Category, account, dates, day (stepper), widgets, budgets.
-   Dialogs only confirm delete or replace data; a wrong password shows inside its sheet (144).
+   Dialogs only confirm delete or replace data, and archiving an account that still holds money (12 Nov); a wrong password shows inside its sheet (144).
 9. **One chart style.** Pill bars with a dashed average; rings with a gap; the circle heatmap.
    Charts are Compose Canvas, no library.
 10. **Short words.** A title and one line. Explanations live in the first-time intros, not on settings

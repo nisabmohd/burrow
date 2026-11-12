@@ -13,7 +13,7 @@ RECORDS ITSELF
 • Not the right category? Tap Edit on the notification to open it filled in.
 • Learns the category you usually pick for each payee.
 • Payments that match a due bill mark it paid.
-• Message rules work for any bank, region and language; teach a new format by tapping the amount.
+• Message rules work for any bank, region and language; teach a new format with three taps, and Burrow tells expenses, income, refunds and transfers apart by the bank's own words.
 
 KNOW WHAT IS LEFT
 • One calm Today screen: what is left of your monthly budget, and how much you can spend a day.

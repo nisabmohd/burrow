@@ -40,7 +40,7 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first. Never invent a new
   element or one-off style; copy the nearest existing screen. UI without a PNG goes on TODO.md as
   "Design review: …" for the user to check (user, 2026-11-08).
-- Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete and replace data; a wrong password shows in its sheet (144).
+- Pickers, filters and choices are bottom sheets (`BurrowSheet`). Dialogs only confirm delete, replace data and archiving an account that still holds money (user, 2026-11-12); a wrong password shows in its sheet (144).
 - Icons: Solar Linear (outline) vector drawables only, one style everywhere, no duotone (480 Design, CC BY 4.0, credited in About › Licences; `ic_<name>_<regular|fill|duotone>`, user, 2026-10-31), see `docs/ICONS.md`.
 - Release: R8 full, minify + shrink resources, baseline profile committed. APK < 5 MB.
 - Build and run after every change; one commit per working step. Never `./gradlew clean` bare: use `:app:clean`.
@@ -60,7 +60,7 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - Half widgets 184 dp fixed; a lone widget goes wide (text left, 104 dp ring right).
 - **Pick one** = the round check (24 dp ring → primary ✓) on the right, in every list, sheet and screen; rows never tint.
 - **Tabs** = `PillTabs` (Plan equal widths, Customise scrolling); settings choices stay a button group with a check.
-- **Swipe** only on Coming up rows (and Activity rows if set in Customise); To review and Not understood cards have one full-width tonal button.
+- **Swipe** only on Coming up rows, Review rows (right Save, left Ignore; Not understood left only) and Activity rows if set in Customise. Review is one screen with tabs To review · Not understood: plain rows, tap opens the Review sheet (234) or Teach; no cards with buttons (12 Nov).
 - **Wide (≥ 840 dp):** nav rail, widgets three across. **Large text:** nav shows only the selected label, widgets and tiles one per row, rows wrap, the FAB goes icon-only.
 - Amounts never coloured except "₹X over" in red. Red only for overdue / over budget / errors.
 - Motion: shared axis X for push/pop, fade through for tabs, predictive back, count-up once. See MOTION.md.
@@ -78,7 +78,8 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 - New expense (17, 111, 112): title "New expense ▾" opens the type sheet; amount with a blinking caret; **keypad always
   docked** (hidden only while Paid to has the keyboard); Paid to (payee matches set the category); favourites chips on an
   empty form (one tap saves); category chips (4 most used + More); one line "HDFC Savings · Today"; extras Note · Receipt ·
-  Repeat or lend (one sheet: Once, Repeat, Subscription, Lent, Borrowed). Everything fits without scrolling.
+  Repeat or lend (one sheet: expense Once, Repeat, Subscription, Lent; income Once, Repeat, Borrowed; user 2026-11-12).
+  Editing a split payment shows one "Split in N parts" row instead of category chips. Everything fits without scrolling.
   What shows follows More › Customise › New expense form. Future date = upcoming. Repeat or Subscription creates a bill.
   Attachments stay on the phone.
 - **Customise** is one screen with tabs Today · Expense · Transactions · Region · Currency, built only from choice tiles,
