@@ -451,6 +451,7 @@ def add_account_with_decimal_balance():
     d.nav("Today")
     d.tap("Accounts")
     d.tap("Add account")
+    d.tap("Bank account")  # Add account opens a sheet of kinds first (190)
     d.tap("HDFC Savings, Cash…")
     d.type_text("Kotak")
     d.back()  # keyboard down
@@ -472,13 +473,14 @@ def new_transfer_between_accounts():
     d.tap("Transfer")
     assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
     keypad("1000")
-    # The "to" account comes filled in (another account); tap it, right of the arrow, to change it.
+    # Your own account comes first (Kotak, made above; samples never default: QA 12 Nov) and the
+    # "to" account is filled in beside it.
     nodes = d.dump()
-    src = next(n for n in nodes if n.label == "HDFC Savings")
-    to = [n for n in nodes if n.label and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
-    assert to, "no 'to' account beside HDFC Savings"
-    tap_node(to[0])
-    d.tap("Kotak")
+    srcs = [n for n in nodes if n.label == "Kotak"]
+    assert srcs, "a transfer doesn't start from your own account"
+    # "Kotak" may show more than once (a recent pill too): the one with an account beside it is the From.
+    to = [n for src in srcs for n in nodes if n.label and n is not src and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
+    assert to, f"no 'to' account beside Kotak: {[x.label for x in nodes if x.label][:30]}"
     d.tap("Save")
     snackbar()
     d.nav("Activity")
@@ -577,7 +579,8 @@ def new_category_saves_and_shows_in_new_expense():
     assert d.scroll_to("Plants"), "the new category isn't listed"
     open_add()
     # The category chips scroll sideways; More (the category sheet) is the last one.
-    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    # The lowest "Food & drinks": a Recent pill above can read the same (no payee: its category).
+    chip = max((n for n in d.dump() if n.label == "Food & drinks"), key=lambda n: n.center[1])
     w = d.screen_size()[0]
     for _ in range(3):
         if d.exists("More", timeout=0.5):
@@ -934,11 +937,12 @@ def not_understood_waits_for_teach():
     # "1 message not understood · Teach it the ones it missed" opens the list (sender on each card).
     assert d.exists("1 message not understood", timeout=5), "unreadable bank SMS not kept for Teach"
     d.tap("1 message not understood")
-    assert d.exists("Not understood", timeout=5), "the list of missed messages did not open"
-    assert d.exists("KOTAKB", contains=True), "the missed message doesn't say who sent it"
-    assert d.exists("Ignore", timeout=2), "no Ignore (✕) on the missed message"
-    d.tap("Teach")
-    assert d.exists("Teach a message", timeout=5), "Teach did not open"
+    # 2026-11-12 (116): Review opens on its Not understood tab; a row is sender · message · date, tap = Teach.
+    assert d.exists("Not understood · 1", timeout=5), "Review did not open on the Not understood tab"
+    row = d.find("KOTAKB", contains=True, timeout=3)
+    assert row is not None, "the missed message doesn't say who sent it"
+    tap_node(row)
+    assert d.exists("Teach a message", timeout=5), "tapping a missed message did not open Teach"
     d.tap("Close")
     d.back()
 
@@ -1082,23 +1086,28 @@ def licences_open_their_text():
 
 @check
 def review_cards_save_one_by_one():
-    # 2026-10-24: To review cards don't swipe; each has its own Save button.
-    d.adb("emu", "sms", "send", "HDFCBK", "Rs.75.00 debited from A/c XX1234 to VPA tea@okaxis. UPI Ref 7001.")
-    time.sleep(3)
+    # 2026-11-12 (44, 234): To review rows; tap opens the Review sheet (Ignore · Save); swipe right saves.
+    # Different amounts: the same amount and account within 10 minutes is one payment (dedupe).
+    for ref, amount in (("7001", "75.00"), ("7002", "86.00")):
+        d.adb("emu", "sms", "send", "HDFCBK", f"Rs.{amount} debited from A/c XX1234 to VPA tea{ref}@okaxis. UPI Ref {ref}.")
+        time.sleep(3)
     recover()
     d.nav("Today")
     n = d.find("to review", contains=True, timeout=6)
     assert n is not None, "no payments to review"
     tap_node(n)
-    before = [x for x in d.dump() if x.label == "Save"]
-    assert before, "a review card has no Save button"
-    y = before[0].center[1]
-    d.swipe(150, y - 200, 1000, y - 200, 250)  # a swipe must not save or ignore anything
-    time.sleep(1)
-    assert len([x for x in d.dump() if x.label == "Save"]) == len(before), "swiping a review card changed it"
-    tap_node(before[0])
-    time.sleep(0.5)
-    assert d.exists("Saved", timeout=3), "Save on the card didn't save"
+    assert d.exists("To review · ", contains=True, timeout=5), "Review has no To review tab with its count"
+    row = d.find("tea7001", contains=True, timeout=3)
+    assert row is not None, "the payment is not a row in To review"
+    tap_node(row)
+    assert d.exists("Edit details", timeout=3), "tapping a row did not open the Review sheet"
+    tap_last("Save")
+    assert d.exists("Saved", timeout=3), "Save in the Review sheet didn't save"
+    row = d.find("tea7002", contains=True, timeout=3)
+    assert row is not None, "the second payment is not in To review"
+    y = row.center[1]
+    d.swipe(150, y, 1000, y, 250)  # right = Save
+    assert d.exists("Saved", timeout=3), "swiping right didn't save"
     d.back()
 
 
@@ -1121,7 +1130,7 @@ def builtin_rules_list_like_yours_and_rename():
 
 
 @check
-def teach_has_money_in_or_out_and_checks():
+def teach_has_type_filled_in():
     open_more_row("Auto-capture")
     d.scroll_to("Message rules")
     d.tap("Message rules")
@@ -1131,7 +1140,9 @@ def teach_has_money_in_or_out_and_checks():
     tap_node(nodes[0]); d.type_text("Rs.99.00 debited from A/c XX1111")
     tap_node(nodes[1]); d.type_text("TESTBK")
     d.tap("Continue")
-    assert d.exists("Money in or out", timeout=5), "Teach has no Money in or out part"
+    # 2026-11-12 (52, 235): Amount · Paid to · Account are tapped; Type is filled in by Burrow.
+    assert d.exists("Tap it in the message", timeout=5), "Teach doesn't say where to tap"
+    assert d.exists("Filled in after the account", timeout=2), "Teach has no Type row"
     d.tap("Close")
     d.back()
 
@@ -1635,7 +1646,8 @@ def category_sheet_search():
     # 184 / 185: the category sheet filters by name; no match shows the shared empty state.
     recover()
     open_add()
-    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    # The lowest "Food & drinks": a Recent pill above can read the same (no payee: its category).
+    chip = max((n for n in d.dump() if n.label == "Food & drinks"), key=lambda n: n.center[1])
     w = d.screen_size()[0]
     for _ in range(3):
         if d.exists("More", timeout=0.5):
