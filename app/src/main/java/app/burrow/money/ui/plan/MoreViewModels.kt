@@ -50,7 +50,13 @@ class SubscriptionsViewModel(plan: PlanRepository, money: MoneyRepository) : Vie
             val unpaid = occ.filter { it.occurrence.billId == b.id && it.occurrence.status == OccurrenceStatus.UPCOMING }.minOfOrNull { it.occurrence.dueDate }?.toDate()
             SubRow(b, unpaid ?: Repeat.parse(b.repeatRule)?.nextOnOrAfter(LocalDate.now()), b.icon ?: cat?.icon, b.colorHue ?: cat?.colorHue)
         }
-        val monthly = subs.sumOf { if (Repeat.parse(it.repeatRule) is Repeat.Yearly) it.amount / 12 else it.amount }
+        val monthly = subs.sumOf {
+            when (Repeat.parse(it.repeatRule)) {
+                is Repeat.Yearly -> it.amount / 12
+                is Repeat.Weekly -> it.amount * 52 / 12 // a weekly ₹100 is ₹433 a month
+                else -> it.amount
+            }
+        }
         val yearly = subs.sumOf { if (Repeat.parse(it.repeatRule) is Repeat.Yearly) it.amount else it.amount * 12 }
         SubscriptionsState(rows, monthly, yearly, h)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

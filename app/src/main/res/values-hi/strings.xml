@@ -1146,8 +1146,8 @@
         <item quantity="other">%d भुगतान आने वाले</item>
     </plurals>
     <plurals name="activity_summary_line">
-        <item quantity="one">%d लेन-देन · पिछले 14 दिन</item>
-        <item quantity="other">%d लेन-देन · पिछले 14 दिन</item>
+        <item quantity="one">%d भुगतान · पिछले 14 दिन</item>
+        <item quantity="other">%d भुगतान · पिछले 14 दिन</item>
     </plurals>
     <string name="not_understood_title">समझ नहीं आए</string>
     <string name="not_understood_line">ये भुगतान जैसे लगे, पर कोई नियम इन्हें पढ़ नहीं पाया। एक बार सिखाएँ, फिर ऐसे संदेश पढ़े जाएँगे।</string>
@@ -1483,4 +1483,7 @@
     <string name="split_explain_short">हर हिस्सा अपनी श्रेणी में गिना जाता है</string>
     <string name="no_accounts_to_pick">अभी कोई खाता नहीं</string>
     <string name="no_accounts_to_pick_line">खाते में बैंक खाता, नकद या वॉलेट जोड़ें, फिर यहाँ चुनें।</string>
+    <string name="no_category_budgets">कोई श्रेणी बजट नहीं</string>
+    <string name="no_category_budgets_line">किसी श्रेणी को उसकी अपनी सीमा दें, जैसे खाना या शॉपिंग।</string>
+    <string name="add_category_budget">श्रेणी बजट जोड़ें</string>
 </resources>

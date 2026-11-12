@@ -1173,8 +1173,8 @@
         <item quantity="other">%d Zahlungen stehen an</item>
     </plurals>
     <plurals name="activity_summary_line">
-        <item quantity="one">%d Buchung · letzte 14 Tage</item>
-        <item quantity="other">%d Buchungen · letzte 14 Tage</item>
+        <item quantity="one">%d Zahlung · letzte 14 Tage</item>
+        <item quantity="other">%d Zahlungen · letzte 14 Tage</item>
     </plurals>
     <string name="not_understood_title">Nicht verstanden</string>
     <string name="not_understood_line">Diese sahen wie Zahlungen aus, aber keine Regel konnte sie lesen. Einmal beibringen, dann werden solche Nachrichten ab jetzt gelesen.</string>
@@ -1510,4 +1510,7 @@
     <string name="split_explain_short">Jeder Teil zählt in seiner eigenen Kategorie</string>
     <string name="no_accounts_to_pick">Noch keine Konten</string>
     <string name="no_accounts_to_pick_line">Füge unter Konten ein Bankkonto, Bargeld oder eine Wallet hinzu und wähle es dann hier.</string>
+    <string name="no_category_budgets">Keine Kategoriebudgets</string>
+    <string name="no_category_budgets_line">Gib einer Kategorie ein eigenes Limit, etwa Essen oder Shopping.</string>
+    <string name="add_category_budget">Kategoriebudget hinzufügen</string>
 </resources>

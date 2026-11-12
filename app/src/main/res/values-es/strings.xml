@@ -1227,9 +1227,9 @@
         <item quantity="other">%d pagos próximos</item>
     </plurals>
     <plurals name="activity_summary_line">
-        <item quantity="one">%d movimiento · últimos 14 días</item>
-        <item quantity="many">%d movimientos · últimos 14 días</item>
-        <item quantity="other">%d movimientos · últimos 14 días</item>
+        <item quantity="one">%d pago · últimos 14 días</item>
+        <item quantity="many">%d pagos · últimos 14 días</item>
+        <item quantity="other">%d pagos · últimos 14 días</item>
     </plurals>
     <string name="not_understood_title">No entendidos</string>
     <string name="not_understood_line">Parecían pagos, pero ninguna regla pudo leerlos. Enseña una vez y los mensajes parecidos se leerán desde entonces.</string>
@@ -1567,4 +1567,7 @@
     <string name="split_explain_short">Cada parte cuenta en su propia categoría</string>
     <string name="no_accounts_to_pick">Aún no hay cuentas</string>
     <string name="no_accounts_to_pick_line">Añade una cuenta bancaria, efectivo o un monedero en Cuentas y elígelo aquí.</string>
+    <string name="no_category_budgets">Sin presupuestos por categoría</string>
+    <string name="no_category_budgets_line">Dale a una categoría su propio límite, como Comida o Compras.</string>
+    <string name="add_category_budget">Añadir presupuesto de categoría</string>
 </resources>

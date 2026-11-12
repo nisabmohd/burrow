@@ -152,7 +152,10 @@ class CaptureRepository(
 
     /** The account a capture is about, from its digits or its bank's name. */
     suspend fun accountFor(capture: CaptureEntity): Long? {
-        val accounts = money.accounts.first().map { AccountRef(it.account.id, it.account.name, it.account.number, it.account.type) }
+        // Your own accounts only, once you have one: a sample's ••1234 matched real messages (QA 12 Nov).
+        val all = money.accounts.first()
+        val mine = all.filter { !it.account.isSample }.ifEmpty { all }
+        val accounts = mine.map { AccountRef(it.account.id, it.account.name, it.account.number, it.account.type) }
         val bank = activeRules.first().firstOrNull { it.id == capture.ruleId }?.name
         return matchAccount(capture.account, bank, withCards(accounts, cardRefs()))
     }

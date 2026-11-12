@@ -193,7 +193,8 @@ private fun ChartSummaryRow(chart: ActivityChart, onOpen: () -> Unit) {
         app.burrow.money.ui.components.ListRow(
             stringResource(if (chart.income) R.string.came_in_amount else R.string.activity_summary, money.plain(chart.total)), 0, 1,
             supporting = if (chart.lastDays) pluralStringResource(R.plurals.activity_summary_line, chart.count, chart.count)
-            else stringResource(R.string.dot_join, pluralStringResource(R.plurals.n_transactions, chart.count, chart.count), dates.range(chart.range)),
+            // It counts the payments behind the total, not every row below (QA 12 Nov).
+            else stringResource(R.string.dot_join, pluralStringResource(R.plurals.n_payments, chart.count, chart.count), dates.range(chart.range)),
             lead = { app.burrow.money.ui.components.IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
             trailing = { androidx.compose.material3.Icon(painterResource(R.drawable.ic_expand_more_regular), stringResource(R.string.show_chart), tint = c.primary) },
             onClick = onOpen,

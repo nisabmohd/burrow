@@ -302,7 +302,16 @@ private fun BudgetsSection(s: BudgetsState, vm: PlanViewModel, padding: PaddingV
         }
         if (o != null) {
             item(key = "cats-h") { SectionHeader(stringResource(R.string.categories), trailing = { LinkButton(stringResource(R.string.add), { pickCategory = true }) }) }
-            item(key = "cats") { BudgetRows(s.lines) { onBudget(it) } }
+            // No category budgets yet: the empty state with the next step, like every list (user, 2026-11-13).
+            item(key = "cats") {
+                if (s.lines.isEmpty()) EmptyState(
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_donut_large_regular)) },
+                    title = stringResource(R.string.no_category_budgets),
+                    line = stringResource(R.string.no_category_budgets_line),
+                    button = { BurrowButton(stringResource(R.string.add_category_budget), { pickCategory = true }, kind = ButtonKind.TONAL) },
+                    top = Space.block,
+                ) else BudgetRows(s.lines) { onBudget(it) }
+            }
         }
     }
     edit?.let { e ->

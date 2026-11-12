@@ -3,48 +3,40 @@
 Only what is left. Finished work lives in git history and `CHANGELOG.md`; tick a box, then delete it.
 Screen numbers point to `design/screens/`.
 
-## Release and stores
+## 0.4.0: left for me (emulator)
+- [ ] Package: release APKs + AAB + source zip in `build/dist/v0.4.0/` (building now)
+- [ ] Compare with the PNGs (light; dark in the app): 17, 36, 44, 52, 63, 91, 116, 117, 149, 170, 175, 178, 234–238;
+      savings 202–205, 208, 209, 211, 213–226 and empty states 09, 16, 41, 185, 222, 223
+- [ ] Smoke: savings (New savings Once / Every month / Any time / market value, Add money → new deposit, Pay instalment,
+      Update value, Edit savings, Sunday review Update values); Teach Type sheet; refund capture with a taught rule
+- [ ] Store screenshots (`python3 tools/capture.py`) and the feature graphic, then a last commit (not pushed)
+
+## Needs you
+- [ ] Design review: 170 now draws the Not understood tab; the To review empty state keeps "All caught up" + the link
+- [ ] Push `burrow-0.4.0`, tag `v0.4.0` (CI makes the GitHub release), upload `burrow-0.4.0-play.aab` to Play
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
-
-## Google Drive backup (built 2026-11-08; needs the owner's setup before it works)
 - [ ] Google Cloud: OAuth clients of type Android for `app.burrow.money` with the SHA-1 of the Play app-signing key,
-      the release key and the debug key; turn on the Google Drive API (`drive.appdata` and `email` aren't restricted)
-- [ ] On a phone with a Google account: connect, back up, clear data, restore, compare counts; back up 11 times and
-      check 10 are listed; switch account; disconnect; delete backups; run the job while charging with
-      `adb shell cmd jobscheduler run -f app.burrow.money 3101`
-- [ ] Play Console Data safety for Drive backup (`release/data-safety.md`), as Weft's `docs/PLAY-DATA-SAFETY.md`
-- [ ] Smoke checks: Drive rows (not connected / connected / failed), account sheet, foss without Drive; category search
+      the release key and the debug key; turn on the Google Drive API
+- [ ] Play Console Data safety for Drive backup (`release/data-safety.md`)
 
-## Two cards, one bill (designs 186–201 built and checked on the emulator 2026-11-08)
-- [ ] Smoke check in `tools/smoke.py` for two cards on one bill (Add account › Credit card › Same bill, SMS from each
-      card's digits, "Paid with"), and restoring a v3 backup (cards come back from the accounts' digits)
-
-## Savings (designs 202–228, built 2026-11-08; bank-page layout 2026-11-09, SAVINGS-SIMPLE.md)
-- [ ] Check on the emulator against the new PNGs (202–205, 208, 209, 211, 213–226) and the illustrated empty
-      states (09, 16, 41, 185, 222, 223), light and dark
-- [ ] Smoke checks: New savings (Once, Every month, Any time, market value), Add money → new deposit, Pay instalment, Update value, New deposit sheet, Edit savings, Sunday review "Update 1 investment" and Update values (2+)
-
-## UI consistency (2026-11-09, designs 229–233)
-- [x] Empty states on Subscriptions, category budget, Insights › category, account, goal (Ghost, PNGs 229–233)
-- [x] Ghost cards in dark mode: one tone above the page with a hairline
-- [ ] Check 229–233 in dark mode on a real phone against `design/screens/dark/`
-
-## Tests
-- [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
-      `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso
-      (`InputManager.getInstance` is gone)
-
-## Check on a real phone
-Done on the emulator with `tools/phone_checks.py` (2026-11-02, 8/8): backup ↔ restore, CSV, budget alerts, bill match,
-category words, restricted settings note, RTL (ar-XB pseudolocale), 20k transactions. Still needs real hardware:
-- [ ] Budget alerts and bill match from a real bank SMS (the emulator's SMS follow the banks' published shapes)
+## Needs a real phone
+- [ ] Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
+      account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging
+- [ ] Budget alerts and bill match from a real bank SMS
 - [ ] Haptics on a phone without vibration primitives (Vivo / Oppo / Realme)
-- [ ] Activity scroll jank with 20k transactions (the emulator draws in software: its frame times mean nothing)
+- [ ] Activity scroll with 20k transactions (emulator frame times mean nothing)
+- [ ] 229–233 in dark mode against `design/screens/dark/`
 
-## Every change
-- [ ] `playDebug` and `fossDebug` build; unit tests pass
-- [ ] Screen matches its PNG, light and dark, at 412 dp and on a small phone, and at 1.3× / 2× text
-- [ ] Shared components only; no raw colour, size or string in screens
-- [ ] play and foss merged manifests have no INTERNET (github: only the update check)
-- [ ] Committed with a clear message
+## After 0.4.0 (found by the QA pass)
+- [ ] Multi-currency totals: `baseAmount` is always `amount`; spent, budgets, Insights and Today add other currencies
+      raw. Set baseAmount from the saved rate at save time and sum baseAmount everywhere; capture's "INR" fallback
+- [ ] CSV import of Burrow's own export: refunds come back as income, transfer rows are dropped, lent / borrowed
+      flags aren't exported (`Import.kt` readRow, `NextRepository.runImport`, `CsvTransfer.kt`)
+- [ ] Deleting a goal strands its money (out of the account, still in net worth); no way to take money out of a goal
+
+## Notes
+- Smoke takes ~1.5 h on the API 35 emulator with animations off; run a part with `python3 tools/smoke.py <names>`.
+  Instrumented tests need API 35 (36.1 can't run Espresso). Use `ANDROID_SERIAL=emulator-5558`.
+- Every change: playDebug and fossDebug build, unit tests pass, screen matches its PNG, shared components only, no
+  INTERNET in play/foss manifests beyond Drive, committed with a clear message.

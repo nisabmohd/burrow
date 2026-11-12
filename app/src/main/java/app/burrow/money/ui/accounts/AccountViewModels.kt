@@ -190,8 +190,10 @@ class AccountViewModel(
         val line = creditLine(a.id, accs.map { it.account })
         val owner = accs.firstOrNull { it.account.id == line }?.account ?: a
         val cards = accs.filter { it.account.type == AccountType.CARD && creditLine(it.account.id, accs.map { x -> x.account }) == line }
+        // Due on this bill: what is owed less what was spent after the statement (that's the next bill's; QA 12 Nov).
+        val owed = (-balance).coerceAtLeast(0)
         return CardInfo(
-            (-balance).coerceAtLeast(0), due, since, statement, owner.creditLimit,
+            if (statement != null) (owed - since).coerceAtLeast(0) else owed, due, since, statement, owner.creditLimit,
             lineDue = cards.sumOf { (-it.balance).coerceAtLeast(0) },
             sharedWith = cards.filter { it.account.id != a.id }.map { it.account.name },
         )

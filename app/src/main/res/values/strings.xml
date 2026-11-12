@@ -1251,8 +1251,8 @@
     <string name="amount_this_week">%1$s this week</string>
     <string name="activity_summary">%1$s spent</string>
     <plurals name="activity_summary_line">
-        <item quantity="one">%d transaction · last 14 days</item>
-        <item quantity="other">%d transactions · last 14 days</item>
+        <item quantity="one">%d payment · last 14 days</item>
+        <item quantity="other">%d payments · last 14 days</item>
     </plurals>
     <string name="came_in_amount">%1$s came in</string>
     <string name="show_chart">Show the chart</string>
@@ -1569,4 +1569,7 @@
     <string name="split_explain_short">Each part counts in its own category</string>
     <string name="no_accounts_to_pick">No accounts here yet</string>
     <string name="no_accounts_to_pick_line">Add a bank account, cash or a wallet in Accounts, then pick it here.</string>
+    <string name="no_category_budgets">No category budgets</string>
+    <string name="no_category_budgets_line">Give a category its own limit, like Food or Shopping.</string>
+    <string name="add_category_budget">Add a category budget</string>
 </resources>

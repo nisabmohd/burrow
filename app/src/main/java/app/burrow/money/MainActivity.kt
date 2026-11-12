@@ -142,8 +142,19 @@ class MainActivity : ComponentActivity() {
         stoppedAt = SystemClock.elapsedRealtime()
     }
 
+    /** The day the screens were made for: their ViewModels read "today" once (QA 12 Nov). */
+    private var day: java.time.LocalDate = java.time.LocalDate.now()
+
     override fun onStart() {
         super.onStart()
+        // Back on a new day (left open past midnight): every screen starts again with today's days
+        // left and safe to spend. The ViewModels go first so none keeps yesterday; where you were is saved.
+        if (java.time.LocalDate.now() != day) {
+            day = java.time.LocalDate.now()
+            viewModelStore.clear()
+            recreate()
+            return
+        }
         if (stoppedAt == 0L) return
         val away = SystemClock.elapsedRealtime() - stoppedAt
         val container = (application as BurrowApp).container

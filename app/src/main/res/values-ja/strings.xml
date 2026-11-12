@@ -1117,7 +1117,7 @@
         <item quantity="other">今後の支払い %d 件</item>
     </plurals>
     <plurals name="activity_summary_line">
-        <item quantity="other">%d 件の取引 · 過去 14 日</item>
+        <item quantity="other">%d 件の支払い · 過去 14 日</item>
     </plurals>
     <string name="not_understood_title">読み取れなかったもの</string>
     <string name="not_understood_line">支払いのようですが、どのルールでも読み取れませんでした。一度教えれば、似たメッセージはそれ以降読み取られます。</string>
@@ -1449,4 +1449,7 @@
     <string name="split_explain_short">各パートはそれぞれのカテゴリに入ります</string>
     <string name="no_accounts_to_pick">まだ口座がありません</string>
     <string name="no_accounts_to_pick_line">口座で銀行口座、現金、ウォレットを追加してから、ここで選んでください。</string>
+    <string name="no_category_budgets">カテゴリ予算はまだありません</string>
+    <string name="no_category_budgets_line">食費や買い物など、カテゴリごとに上限を決められます。</string>
+    <string name="add_category_budget">カテゴリ予算を追加</string>
 </resources>

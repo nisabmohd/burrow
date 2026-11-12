@@ -1227,9 +1227,9 @@
         <item quantity="other">%d pagamentos a vencer</item>
     </plurals>
     <plurals name="activity_summary_line">
-        <item quantity="one">%d transação · últimos 14 dias</item>
-        <item quantity="many">%d transações · últimos 14 dias</item>
-        <item quantity="other">%d transações · últimos 14 dias</item>
+        <item quantity="one">%d pagamento · últimos 14 dias</item>
+        <item quantity="many">%d pagamentos · últimos 14 dias</item>
+        <item quantity="other">%d pagamentos · últimos 14 dias</item>
     </plurals>
     <string name="not_understood_title">Não entendidas</string>
     <string name="not_understood_line">Pareciam pagamentos, mas nenhuma regra conseguiu ler. Ensine uma vez e mensagens parecidas serão lidas daí em diante.</string>
@@ -1567,4 +1567,7 @@
     <string name="split_explain_short">Cada parte conta na própria categoria</string>
     <string name="no_accounts_to_pick">Nenhuma conta ainda</string>
     <string name="no_accounts_to_pick_line">Adicione uma conta bancária, dinheiro ou carteira em Contas e escolha aqui.</string>
+    <string name="no_category_budgets">Nenhum orçamento por categoria</string>
+    <string name="no_category_budgets_line">Dê a uma categoria um limite próprio, como Comida ou Compras.</string>
+    <string name="add_category_budget">Adicionar orçamento de categoria</string>
 </resources>
