@@ -94,7 +94,8 @@ object Size {
     val thinBar = 8.dp
     val handle = 32.dp        // a sheet's drag handle (4 dp high: Space.grid)
     val handleArea = 12.dp    // the handle's area above a sheet's content (8 above the 4 dp handle)
-    val markPad = 4.dp        // a highlighted word's pill reaches this far past its letters
+    val markPad = 4.dp        // a highlighted word's mark reaches this far past its letters
+    val markCorner = 6.dp     // a highlighted word's mark: a soft rectangle, as the design's <mark> (44, 52)
     val markRing = 1.5.dp     // the outline of a ringed (tappable, not yet picked) word
     val dot = 8.dp            // step dots (intro); the current step is a pill
     val lineChart = 140.dp    // Insights' running-total line

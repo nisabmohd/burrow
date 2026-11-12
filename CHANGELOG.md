@@ -6,6 +6,7 @@
 - Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
 - Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
 - Review is a list of cards you approve right there: each payment shows its SMS, category chips with Burrow's guess picked, and Ignore · Edit · Save; a payee Burrow hasn't seen asks "what was it for?" and More opens a grid of categories. The bottom button saves every card that has a category ("Save 2 ready", then "Save all 3").
+- Review cards look as designed: the message in roomier 14/22 text with soft highlights and the marked words in a darker colour, the same in both tabs; a long message ends in "…".
 - Not understood is cards too: Burrow shows what it read in each message and asks "Is this right?" (or whether money went out or in); Yes, save reads messages like it from then on, with Undo, and Edit opens Fix it.
 - Fix it (from a card's Edit): Burrow's reading part by part; fixing a part rings what it could be in the message.
 - Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.

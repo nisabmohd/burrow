@@ -125,4 +125,10 @@ object BurrowType {
 
     /** 24/32 Regular: keypad digits only (the prototype's keys). */
     val keypad: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.displaySmall
+
+    /**
+     * 14/22 Regular: a bank message in a card or sheet (44, 116, 234, 241: the prototype's .cc-sms). The body size
+     * with room between lines, so the highlighted parts sit apart and the message reads easily.
+     */
+    val message: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.bodyMedium.copy(lineHeight = (22f / 14f).em)
 }

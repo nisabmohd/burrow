@@ -221,8 +221,11 @@ private fun ToReviewTab(
                 line = listOfNotNull(item.accountName, whenText(cap, dates)).joinToString(" · "),
                 amount = item.amountText(money),
                 message = cap.body,
-                // What was read, all marked (44): the amount, the payee and the account.
-                marks = item.spans.values.map { Mark(it, MarkStyle.STRONG) },
+                // What was read, all marked (44), each as its whole word ("XX1234", not just the digits the rule takes).
+                marks = item.spans.values.map { r ->
+                    val word = app.burrow.money.capture.RuleBuilder.tokenAt(cap.body, r.first)
+                    Mark(if (word == null) r else minOf(word.first, r.first)..maxOf(word.last, r.last), MarkStyle.STRONG)
+                },
                 expanded = open == cap.id,
                 onToggleMessage = { open = if (open == cap.id) null else cap.id },
                 question = if (item.sure) null else stringResource(R.string.review_not_sure),

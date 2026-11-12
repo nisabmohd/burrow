@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,10 +59,16 @@ fun CheckCard(
     chips: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val c = MaterialTheme.colorScheme
-    Column(
-        modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(vertical = Space.card),
-        verticalArrangement = Arrangement.spacedBy(Space.block),
-    ) {
+    // The design's gaps are 12 between the parts (PNG 44: 16 padding, header, 12, SMS, 12, chips 36, 12, buttons 40,
+    // 16). Chips and buttons keep their 48 dp touch area, so the gaps around them give back the invisible part.
+    val chipSlack = (Size.button - Size.chip) / 2
+    val buttonSlack = (Size.button - Size.buttonSmall) / 2
+    val toChips = Space.block - chipSlack                          // SMS → chips: 12 visible
+    val questionToChips = (Space.small - chipSlack).coerceAtLeast(0.dp) // question → chips: close, as the design's 6
+    val chipsToButtons = Space.block - chipSlack - buttonSlack      // chips → buttons: 12 visible
+    val toButtons = Space.block - buttonSlack                       // SMS → buttons: 12 visible
+    val questionToButtons = Space.small - buttonSlack               // question → buttons
+    Column(modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainerLow).padding(top = Space.card, bottom = Space.card - buttonSlack)) {
         Row(Modifier.padding(horizontal = Space.card), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.card)) {
             lead()
             Column(Modifier.weight(1f)) {
@@ -68,26 +77,34 @@ fun CheckCard(
             }
             Text(amount, style = BurrowType.titleSmall, color = c.onSurface, maxLines = 1, softWrap = false)
         }
-        // The SMS: two lines, the whole of it on a tap (243). On the page's colour, a step-smaller box inside the card.
+        Spacer(Modifier.height(Space.block))
+        // The SMS: two lines, the whole of it on a tap (243). Folded, its line breaks read as spaces (same length, so the
+        // marks stay put): Android drops the "…" when a cut line ends in a hard break.
+        val shown = if (expanded) message else message.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         MessageText(
-            message, marks, compact = true,
+            shown, marks, compact = true, color = c.onSurfaceVariant,
             maxLines = if (expanded) Int.MAX_VALUE else MESSAGE_LINES,
             modifier = Modifier.padding(horizontal = Space.card).fillMaxWidth().clip(Shapes.inset).background(c.background)
                 .clickable(role = Role.Button, onClick = onToggleMessage)
                 .padding(horizontal = Space.insetH, vertical = Space.insetV),
         )
-        if (question != null || chips != null) Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
-            if (question != null) Text(
-                question, style = BurrowType.label, color = questionColor,
-                modifier = Modifier.padding(horizontal = Space.card + Space.grid),
-            )
+        if (question != null) {
+            Spacer(Modifier.height(Space.block))
+            Text(question, style = BurrowType.label, color = questionColor, modifier = Modifier.padding(horizontal = Space.card + Space.grid))
+        }
+        if (chips != null) {
+            // Under a question the chips follow closely (the design's 6); after the SMS, the usual 12.
+            Spacer(Modifier.height(if (question != null) questionToChips else toChips))
             // Chips scroll sideways to the card's edges (the design's nowrap row), never wrapping into a block.
-            if (chips != null) Row(
+            Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = Space.card),
                 horizontalArrangement = Arrangement.spacedBy(Space.small),
                 verticalAlignment = Alignment.CenterVertically,
                 content = chips,
             )
+            Spacer(Modifier.height(chipsToButtons))
+        } else {
+            Spacer(Modifier.height(if (question != null) questionToButtons else toButtons))
         }
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Space.card),

@@ -76,6 +76,7 @@ Numbers use tabular figures (`tnum`) so amounts line up.
 | `keypad` | 24 / 32 | 400 | Keypad digits only |
 | `intro` | 36 / 44 | 500 | Welcome and intro headlines only |
 | `tiny` | 10 / 12 | 500 | The percent inside a 40 dp ring only |
+| `message` | 14 / 22 | 400 | A bank message in a card or sheet (Review 44 / 116, 234, 241): the body size with room between lines |
 
 Never set a size or weight in a screen. Long translations wrap; nav labels may shrink to 10 sp, never below.
 
@@ -117,7 +118,8 @@ dot 3, average line 1.5 dashed; rings 4 (3 in rows, 5 in widgets, 10 wide) with 
 Only two shapes exist (user, 2026-10-19):
 - **Surfaces: 24 dp corners.** Cards, widgets, list groups (24 outside / 6 between rows), sheets (top), dialogs, notes, snackbar, tiles.
 - **Everything small or tappable: full circle or pill.** Icon circles, buttons, icon buttons, chips, checkboxes (round), radios,
-  switches, keypad keys, badges, highlights in SMS text, heatmap days, chart bars.
+  switches, keypad keys, badges, heatmap days, chart bars. Highlights in a message are soft 6 dp-cornered marks, 1.3 × the
+  text tall, the marked words in onPrimaryContainer (`Size.markCorner`; the design's <mark>, 44 / 52); a ringed choice in Fix it stays a pill.
 Exceptions: a message inside a CheckCard is a box inside a 24 dp card, so a step smaller (`Shapes.inset`, 16 dp; 44, final 12 Nov). And one drawing, not a surface: the empty state's ghost rows (`Shapes.ghost`, 20 dp, white front / surfaceContainerLow back, 1 dp hairline and a soft two-layer shadow in light; 9 & 12 Nov).
 No 4/8/12 dp squares anywhere. App icon: 112/512 corner (the launcher masks it anyway); the in-app logo tile
 (About, Welcome) uses the same ratio, `Shapes.logo(side)` (24.5 dp on 112, as PNG 124). Logo: `tools/burrow_mark.py` (see CLAUDE.md).
