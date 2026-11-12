@@ -213,9 +213,29 @@ class CaptureRepository(
         if (status != CaptureStatus.REVIEW) onResolved(captureId)
     }
 
+    /** The user picked the category (Review sheet, What was it for?): the payment is ready to save. */
     suspend fun setCategory(captureId: Long, categoryId: Long) {
-        db.captures().get(captureId)?.let { db.captures().update(it.copy(categoryId = categoryId)) }
+        db.captures().get(captureId)?.let { db.captures().update(it.copy(categoryId = categoryId, categoryPicked = true)) }
     }
+
+    /**
+     * The category Burrow *knows* for a payment (To review's Ready to save, 44): the one usually picked for this
+     * merchant, else the one the message's words point at ("petrol", "Swiggy"). Null = a new shop: the guess is only
+     * "your most used", so To review asks (Pick a category).
+     */
+    suspend fun knownCategory(payee: String?, type: String, body: String = ""): Long? {
+        payee?.let { db.txns().usualCategoriesFor(tidyPayee(it), it.trim(), type, 1).firstOrNull() }?.let { return it }
+        val ofKind = money.categories.first().filter { !it.archived && it.kind == if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE }
+        return categoryWords(payee, body)?.let { w -> ofKind.filter { it.icon == w.icon }.minByOrNull { it.sortOrder }?.id }
+    }
+
+    /**
+     * The bank a message came from, by name ("AX-KOTAKB" → "Kotak Bank"): the first rule whose sender matches, the
+     * catch-all "any bank" rules left out. Null when no rule knows the sender (show the sender itself).
+     */
+    suspend fun bankName(sender: String): String? = activeRules.first().firstOrNull { r ->
+        ".any." !in r.id && runCatching { Regex(r.sender).containsMatchIn(sender) }.getOrDefault(false)
+    }?.name
 
     suspend fun get(id: Long): CaptureEntity? = db.captures().get(id)
 

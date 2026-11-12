@@ -6,6 +6,9 @@
 - Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
 - Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
 
+- Review sorts what it found: **Ready to save** (shops Burrow knows) and **Pick a category** (new shops, "Burrow isn't sure"). A new shop opens **What was it for?**, a grid of categories with the message; picking one moves it up. The bottom button saves only what is ready ("Save 2 ready", then "Save all 3").
+- Not understood shows how many messages to check, each by its bank's name ("Kotak Bank", not "AX-KOTAKB"), and **Check them one by one**.
+
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
 - Rate in About opens Google Play's rating card (Google Play build).

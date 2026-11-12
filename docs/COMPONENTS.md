@@ -11,7 +11,7 @@ if something is missing, add a component here first.
 | `TonalIconButton` | 48 dp circle, `surfaceContainer`; active `primaryContainer`; optional count badge | Controls.kt |
 | `FilterHeaderButtons` | funnel + calendar, 8 dp apart; badge = number of active filters | Controls.kt |
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing, **2 dp primary ring while focused** (137, 143); `lines > 1` = a tall box with 24 dp corners, icon and text at the top (Paste a message 121) | Controls.kt |
-| `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle (`neutral` for something not yours: a built-in pack, 118); the centred header when the big line is words ("142 payments recorded") | Blocks.kt |
+| `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle (`neutral` for something not yours: a built-in pack, 118); the centred header when the big line is words ("142 payments recorded", "2 messages to check"); its line never runs wider than 300 dp (`Size.headerLine`, 116) | Blocks.kt |
 | `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); header optional (none under a card that already names the sender, 116) | MessageText.kt |
 | `ReviewSheet` (Review, 234) | a found payment opened from its row: payee, "−₹180 · account · time", `MessageBox`, Category chips + More, "Edit details" row, footer Ignore (tonal) · Save. To review and Not understood are plain `ListRow`s in `SwipeRow`s (no cards with buttons) | ReviewScreen.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
@@ -51,6 +51,7 @@ if something is missing, add a component here first.
 | `ComingRow` + `comingUp()` | Plan › Coming up (22): bills and future-dated payments in one list grouped Overdue · This week · This month · Later; circle · name · ↻/📅 "in 5 days · ICICI" · amount over date; swipe right Paid / Add now (green), left Skip (grey) / Delete (red) (on `SwipeRow`) | ui/plan/PlanScreen.kt, ComingUp.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet` (both kinds: Expense group then Income group; **New category** last, from `LocalNewCategory`, 167), `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
+| `CategoryGrid` | pick a category from a grid (What was it for?, 241): 4 equal columns, 56 dp category circle + short name ("Food & drinks" → "Food", `gridLabel`), tiles 4 dp padded, 6 dp circle → name (`Space.tileLabel`, PNG 241), rows 12 apart, columns 4; one tap picks | ui/pickers/Pickers.kt |
 | `LabeledField` | a form field with its label above (New bill, New goal, New account) | Fields.kt |
 | `SelectField` | a choice inside a form (New credit card › Bank, 191/192): the `PillTextField` pill with the label above, the value and ⌄ on the right, **no lead icon**; a tap opens its pick sheet (Bank sheet 196: pill search, Your banks / All banks, text-only `PickRow`s) | Fields.kt |
 | `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |

@@ -1545,7 +1545,7 @@
     <string name="dynamic_colour_on">Activado · los colores vienen de tu fondo</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">Revisar</string>
-    <string name="review_hint">Toca uno para ver su mensaje. Desliza a la derecha para guardar, a la izquierda para ignorar.</string>
+    <string name="review_hint">Toca un pago para ver su SMS o cambiarlo. Desliza a la derecha para guardar, a la izquierda para ignorar.</string>
     <string name="edit_details">Editar detalles</string>
     <string name="edit_details_line">Importe, beneficiario, cuenta, fecha</string>
     <string name="tap_it_in_message">Tócalo en el mensaje</string>
@@ -1571,4 +1571,31 @@
     <string name="add_category_budget">Añadir presupuesto de categoría</string>
     <string name="delete_goal_text_money">%1$s vuelve a las cuentas de las que salió.</string>
     <string name="delete_goal_text_empty">No se le añadió nada.</string>
+    <string name="ready_to_save">Listos para guardar</string>
+    <string name="knows_these_shops">Burrow conoce estas tiendas</string>
+    <string name="pick_a_category_header">Elige una categoría</string>
+    <string name="new_shops">Tiendas nuevas</string>
+    <string name="not_sure_tap_to_pick">Burrow no está seguro · toca para elegir</string>
+    <string name="pick_categories_first">Primero elige las categorías</string>
+    <string name="what_was_it_for">¿Para qué fue?</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">Guardar %d listo</item>
+        <item quantity="other">Guardar %d listos</item>
+    </plurals>
+    <plurals name="save_all_n">
+        <item quantity="one">Guardar pago</item>
+        <item quantity="other">Guardar los %d</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">%d mensaje por revisar</item>
+        <item quantity="other">%d mensajes por revisar</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow no pudo leerlo. Revísalo una vez y los mensajes como este se leerán después.</item>
+        <item quantity="other">Burrow no pudo leerlos. Revisa cada uno una vez y los mensajes como esos se leerán después.</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">Revisarlo</item>
+        <item quantity="other">Revisarlos uno a uno</item>
+    </plurals>
 </resources>

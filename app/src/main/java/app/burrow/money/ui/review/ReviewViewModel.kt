@@ -35,6 +35,11 @@ data class ReviewItem(
     /** The bank or app the message came from ("HDFC Bank"). */
     val from: String,
     val spans: Map<Part, IntRange>,
+    /**
+     * Ready to save (44): Burrow knows this shop (its usual category, or the message's words), the user picked a
+     * category, or it needs none (a transfer). Otherwise it waits under Pick a category ("Burrow isn't sure").
+     */
+    val sure: Boolean = true,
 ) {
     /** Money in (income, refund): shown with +. */
     val isIncome get() = app.burrow.money.capture.MoneyType.ofStored(capture.direction).direction == Direction.IN
@@ -71,6 +76,7 @@ class ReviewViewModel(
             val suggested = if (type == null) emptyList() else capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
             val rule = rules.firstOrNull { it.id == c.ruleId }
             val accountId = capture.accountFor(c)
+            val sure = isSure(c, type)
             ReviewItem(
                 capture = c,
                 category = chosen,
@@ -79,6 +85,7 @@ class ReviewViewModel(
                 accountName = accounts.firstOrNull { it.account.id == accountId }?.account?.name,
                 from = rule?.name ?: c.sender,
                 spans = rule?.let { engine.parseWith(it, null, c.body)?.spans }.orEmpty(),
+                sure = sure,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -101,11 +108,22 @@ class ReviewViewModel(
         }
     }
 
-    /** "Save N payments": every one with its chosen category. */
-    fun saveAll(onDone: (Int, suspend () -> Unit) -> Unit) {
+    /** Ready to save: no category needed, picked by the user, or the one Burrow knows for this shop. */
+    private suspend fun isSure(c: CaptureEntity, type: String?): Boolean = when {
+        type == null || c.categoryPicked -> true
+        c.categoryId == null -> false
+        app.burrow.money.capture.MoneyType.ofStored(c.direction) == app.burrow.money.capture.MoneyType.REFUND -> true
+        else -> capture.knownCategory(c.payee, type, c.body) == c.categoryId
+    }
+
+    /** "Save 2 ready" / "Save all 3" (44, 242): every payment that is ready, never one Burrow isn't sure of. */
+    fun saveReady(onDone: (Int, suspend () -> Unit) -> Unit) {
         viewModelScope.launch {
             // Read the list fresh (the screen's copy may lag a save a moment ago); count only what saved.
-            val ids = capture.toReview.first().map { it.id }.filter { capture.save(it, null) != null }
+            val ready = capture.toReview.first().filter { c ->
+                isSure(c, app.burrow.money.data.categoryTypeOf(app.burrow.money.capture.MoneyType.ofStored(c.direction)))
+            }
+            val ids = ready.map { it.id }.filter { capture.save(it, null) != null }
             onDone(ids.size) { ids.forEach { capture.unsave(it) } }
         }
     }

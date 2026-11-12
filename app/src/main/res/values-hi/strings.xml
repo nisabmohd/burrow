@@ -1461,7 +1461,7 @@
     <string name="dynamic_colour_on">चालू · रंग आपके वॉलपेपर से आते हैं</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">जाँचें</string>
-    <string name="review_hint">संदेश देखने के लिए टैप करें। सहेजने के लिए दाएँ, अनदेखा करने के लिए बाएँ स्वाइप करें।</string>
+    <string name="review_hint">SMS देखने या बदलने के लिए भुगतान पर टैप करें। सेव करने के लिए दाएँ, अनदेखा करने के लिए बाएँ स्वाइप करें।</string>
     <string name="edit_details">विवरण बदलें</string>
     <string name="edit_details_line">रकम, किसे, खाता, तारीख</string>
     <string name="tap_it_in_message">संदेश में टैप करें</string>
@@ -1487,4 +1487,31 @@
     <string name="add_category_budget">श्रेणी बजट जोड़ें</string>
     <string name="delete_goal_text_money">%1$s उन्हीं खातों में वापस जाएगा जहाँ से आया था।</string>
     <string name="delete_goal_text_empty">इसमें कुछ नहीं जोड़ा गया।</string>
+    <string name="ready_to_save">सेव के लिए तैयार</string>
+    <string name="knows_these_shops">Burrow इन दुकानों को जानता है</string>
+    <string name="pick_a_category_header">श्रेणी चुनें</string>
+    <string name="new_shops">नई दुकानें</string>
+    <string name="not_sure_tap_to_pick">Burrow को पक्का नहीं · चुनने के लिए टैप करें</string>
+    <string name="pick_categories_first">पहले श्रेणियाँ चुनें</string>
+    <string name="what_was_it_for">यह किसके लिए था?</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">%d तैयार सेव करें</item>
+        <item quantity="other">%d तैयार सेव करें</item>
+    </plurals>
+    <plurals name="save_all_n">
+        <item quantity="one">भुगतान सेव करें</item>
+        <item quantity="other">सभी %d सेव करें</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">जाँचने के लिए %d संदेश</item>
+        <item quantity="other">जाँचने के लिए %d संदेश</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow इसे पढ़ नहीं पाया। इसे एक बार जाँचें, फिर ऐसे संदेश पढ़े जाएँगे।</item>
+        <item quantity="other">Burrow इन्हें पढ़ नहीं पाया। हर एक को एक बार जाँचें, फिर ऐसे संदेश पढ़े जाएँगे।</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">जाँचें</item>
+        <item quantity="other">एक-एक करके जाँचें</item>
+    </plurals>
 </resources>

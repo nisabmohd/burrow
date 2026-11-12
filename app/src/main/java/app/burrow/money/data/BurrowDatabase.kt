@@ -249,6 +249,8 @@ data class CaptureEntity(
     val categoryId: Long? = null,
     /** v7: the expense name from the words in the message ("Petrol"), when they had one. */
     val name: String? = null,
+    /** v11: the user picked [categoryId] in Review (What was it for?, 241), so it is ready to save. */
+    @ColumnInfo(defaultValue = "0") val categoryPicked: Boolean = false,
 )
 
 /** v4: someone money was lent to or borrowed from. */
@@ -349,7 +351,7 @@ const val CARDS_FROM_ACCOUNTS =
         SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class, CardEntity::class,
         DepositEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
@@ -361,6 +363,7 @@ const val CARDS_FROM_ACCOUNTS =
         AutoMigration(from = 7, to = 8, spec = V7To8::class), // two cards, one bill: card rows, the card a payment used
         AutoMigration(from = 8, to = 9), // savings: once / every month / any time, market value, deposits
         AutoMigration(from = 9, to = 10), // index on toAccountId: an account page reads its own rows (0.4.1)
+        AutoMigration(from = 10, to = 11), // captures: categoryPicked (To review sorted, 12 Nov)
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {

@@ -1545,7 +1545,7 @@
     <string name="dynamic_colour_on">Activé · les couleurs viennent du fond d’écran</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">Vérifier</string>
-    <string name="review_hint">Touchez-en un pour voir son message. Glissez à droite pour enregistrer, à gauche pour ignorer.</string>
+    <string name="review_hint">Touchez un paiement pour voir son SMS ou le modifier. Glissez à droite pour enregistrer, à gauche pour ignorer.</string>
     <string name="edit_details">Modifier les détails</string>
     <string name="edit_details_line">Montant, bénéficiaire, compte, date</string>
     <string name="tap_it_in_message">Touchez-le dans le message</string>
@@ -1571,4 +1571,31 @@
     <string name="add_category_budget">Ajouter un budget de catégorie</string>
     <string name="delete_goal_text_money">%1$s retourne sur les comptes d’où il venait.</string>
     <string name="delete_goal_text_empty">Rien n’y a été ajouté.</string>
+    <string name="ready_to_save">Prêts à enregistrer</string>
+    <string name="knows_these_shops">Burrow connaît ces commerces</string>
+    <string name="pick_a_category_header">Choisissez une catégorie</string>
+    <string name="new_shops">Nouveaux commerces</string>
+    <string name="not_sure_tap_to_pick">Burrow n’est pas sûr · touchez pour choisir</string>
+    <string name="pick_categories_first">Choisissez d’abord les catégories</string>
+    <string name="what_was_it_for">C’était pour quoi ?</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">Enregistrer %d prêt</item>
+        <item quantity="other">Enregistrer %d prêts</item>
+    </plurals>
+    <plurals name="save_all_n">
+        <item quantity="one">Enregistrer le paiement</item>
+        <item quantity="other">Enregistrer les %d</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">%d message à vérifier</item>
+        <item quantity="other">%d messages à vérifier</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow n’a pas pu le lire. Vérifiez-le une fois et les messages semblables seront lus ensuite.</item>
+        <item quantity="other">Burrow n’a pas pu les lire. Vérifiez chacun une fois et les messages semblables seront lus ensuite.</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">Le vérifier</item>
+        <item quantity="other">Les vérifier un par un</item>
+    </plurals>
 </resources>

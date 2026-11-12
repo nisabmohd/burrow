@@ -310,7 +310,7 @@ fun CenterTitleHeader(icon: Painter, title: String, modifier: Modifier = Modifie
         HeaderIcon(icon)
         Spacer(Modifier.height(Space.block))
         Text(title, style = BurrowType.title, color = c.onSurface, textAlign = TextAlign.Center)
-        if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+        if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = Size.headerLine))
     }
 }
 

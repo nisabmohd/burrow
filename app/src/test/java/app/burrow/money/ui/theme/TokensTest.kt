@@ -21,7 +21,10 @@ class TokensTest {
     private val dimens = File(root, "app/src/main/java/app/burrow/money/ui/theme/Dimens.kt").readText()
 
     /** Gaps measured off a PNG that sit off the grid, with where they were measured. */
-    private val offGrid = mapOf("keypad" to "6 dp between keypad keys, PNG 17 (measured 12 Nov)")
+    private val offGrid = mapOf(
+        "keypad" to "6 dp between keypad keys, PNG 17 (measured 12 Nov)",
+        "tileLabel" to "6 dp circle → name in the category grid, PNG 241 / prototype .vtile gap",
+    )
 
     @Test fun everySpaceIsOnTheGrid() {
         val space = Regex("""object Space \{(.*?)\n\}""", RegexOption.DOT_MATCHES_ALL).find(dimens)!!.groupValues[1]

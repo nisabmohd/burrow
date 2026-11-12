@@ -101,6 +101,7 @@ fun ReviewScreen(
     var tab by rememberSaveable { mutableStateOf(start) }
     var open by rememberSaveable { mutableStateOf<Long?>(null) }
     var moreFor by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pickFor by rememberSaveable { mutableStateOf<Long?>(null) }
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
@@ -123,7 +124,7 @@ fun ReviewScreen(
         )
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { fadeThrough() }, label = "review") { t ->
             when (t) {
-                ReviewTab.TO_REVIEW -> ToReviewTab(items, missed.size, onOpen = { open = it }, onSave = save, onIgnore = ignore, onBack = onBack, onMissed = { tab = ReviewTab.NOT_UNDERSTOOD })
+                ReviewTab.TO_REVIEW -> ToReviewTab(items, missed.size, onOpen = { open = it }, onPick = { pickFor = it }, onSave = save, onIgnore = ignore, onBack = onBack, onMissed = { tab = ReviewTab.NOT_UNDERSTOOD })
                 ReviewTab.NOT_UNDERSTOOD -> NotUnderstoodTab(
                     missed, onTeach,
                     onIgnore = { id -> missedVm.ignore(id) { undo -> snackbar.show(context.getString(R.string.ignored), undo) } },
@@ -131,14 +132,32 @@ fun ReviewScreen(
                 )
             }
         }
-        if (tab == ReviewTab.TO_REVIEW && items.isNotEmpty()) BurrowButton(
-            pluralStringResource(R.plurals.save_n_payments, items.size, items.size),
-            {
-                haptics.confirm()
-                vm.saveAll { n, undo -> snackbar.show(context.resources.getQuantityString(R.plurals.n_payments_saved, n, n), undo) }
-            },
+        if (tab == ReviewTab.TO_REVIEW && items.isNotEmpty()) {
+            // "Save 2 ready" while some wait for a category; "Save all 3" once none do; off with nothing ready (44, 242).
+            val ready = items.count { it.sure }
+            val unsure = items.size - ready
+            BurrowButton(
+                when {
+                    unsure > 0 && ready == 0 -> stringResource(R.string.pick_categories_first)
+                    unsure > 0 -> pluralStringResource(R.plurals.save_n_ready, ready, ready)
+                    else -> pluralStringResource(R.plurals.save_all_n, items.size, items.size)
+                },
+                {
+                    if (ready > 0) {
+                        haptics.confirm()
+                        vm.saveReady { n, undo -> snackbar.show(context.resources.getQuantityString(R.plurals.n_payments_saved, n, n), undo) }
+                    }
+                },
+                Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.block),
+                kind = if (ready > 0) ButtonKind.FILLED else ButtonKind.OFF,
+                icon = if (ready > 0) painterResource(R.drawable.ic_check_regular) else null,
+                height = Size.buttonBottom,
+            )
+        }
+        if (tab == ReviewTab.NOT_UNDERSTOOD && missed.isNotEmpty()) BurrowButton(
+            pluralStringResource(R.plurals.check_them_one_by_one, missed.size, missed.size),
+            { onTeach(missed.first().capture.id) },
             Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.block),
-            icon = painterResource(R.drawable.ic_check_regular),
             height = Size.buttonBottom,
         )
     }
@@ -153,6 +172,9 @@ fun ReviewScreen(
             onDismiss = { open = null },
         )
     }
+    items.firstOrNull { it.capture.id == pickFor }?.let { item ->
+        PickCategorySheet(item, onPick = { vm.choose(item.capture.id, it); pickFor = null }, onDismiss = { pickFor = null })
+    }
     items.firstOrNull { it.capture.id == moreFor }?.let { item ->
         CategorySheet(item.allCategories, null, item.category?.id, { vm.choose(item.capture.id, it.id); moreFor = null }, { moreFor = null })
     }
@@ -163,6 +185,7 @@ private fun ToReviewTab(
     items: List<ReviewItem>,
     missed: Int,
     onOpen: (Long) -> Unit,
+    onPick: (Long) -> Unit,
     onSave: (Long) -> Unit,
     onIgnore: (Long) -> Unit,
     onBack: () -> Unit,
@@ -183,35 +206,73 @@ private fun ToReviewTab(
     }
     val money = LocalMoney.current
     val dates = rememberDateText()
+    val ready = items.filter { it.sure }
+    val unsure = items.filter { !it.sure }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = Space.screen)) {
-        item(key = "rows") {
-            ListGroup {
-                items.forEachIndexed { i, item ->
-                    androidx.compose.runtime.key(item.capture.id) {
-                        val cap = item.capture
-                        SwipeRow(
-                            SwipeAction(painterResource(R.drawable.ic_check_regular), stringResource(R.string.save), SwipeTone.SUCCESS) { onSave(cap.id) },
-                            SwipeAction(painterResource(R.drawable.ic_close_regular), stringResource(R.string.ignore), SwipeTone.NEUTRAL) { onIgnore(cap.id) },
-                            Shapes.grouped(i, items.size),
-                        ) {
-                            ListRow(
-                                item.title(), i, items.size,
-                                supporting = listOfNotNull(item.category?.name, whenText(cap, dates)).joinToString(" · "),
-                                lead = { CategoryCircle(item.category?.icon, item.category?.colorHue) },
-                                trailing = { AmountTrailing(item.amountText(money)) },
-                                onClick = { onOpen(cap.id) },
-                            )
+        // Ready to save: Burrow knows these shops. Swipe right Save, left Ignore; tap opens the Review sheet (234).
+        if (ready.isNotEmpty()) {
+            item(key = "ready-header", contentType = "header") { SectionHeader(stringResource(R.string.ready_to_save), meta = stringResource(R.string.knows_these_shops)) }
+            item(key = "ready", contentType = "group") {
+                ListGroup {
+                    ready.forEachIndexed { i, item ->
+                        androidx.compose.runtime.key(item.capture.id) {
+                            val cap = item.capture
+                            SwipeRow(
+                                SwipeAction(painterResource(R.drawable.ic_check_regular), stringResource(R.string.save), SwipeTone.SUCCESS) { onSave(cap.id) },
+                                SwipeAction(painterResource(R.drawable.ic_close_regular), stringResource(R.string.ignore), SwipeTone.NEUTRAL) { onIgnore(cap.id) },
+                                Shapes.grouped(i, ready.size),
+                            ) {
+                                ListRow(
+                                    item.title(), i, ready.size,
+                                    supporting = listOfNotNull(item.category?.name, whenText(cap, dates)).joinToString(" · "),
+                                    lead = { CategoryCircle(item.category?.icon, item.category?.colorHue) },
+                                    trailing = { AmountTrailing(item.amountText(money)) },
+                                    onClick = { onOpen(cap.id) },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-        item(key = "hint") { Hint(stringResource(R.string.review_hint)) }
+        // Pick a category: new shops. Tap opens What was it for? (241); only Ignore by swipe (nothing to save yet).
+        if (unsure.isNotEmpty()) {
+            item(key = "unsure-header", contentType = "header") { SectionHeader(stringResource(R.string.pick_a_category_header), meta = stringResource(R.string.new_shops)) }
+            item(key = "unsure", contentType = "group") {
+                ListGroup {
+                    unsure.forEachIndexed { i, item ->
+                        androidx.compose.runtime.key(item.capture.id) {
+                            val cap = item.capture
+                            SwipeRow(
+                                null,
+                                SwipeAction(painterResource(R.drawable.ic_close_regular), stringResource(R.string.ignore), SwipeTone.NEUTRAL) { onIgnore(cap.id) },
+                                Shapes.grouped(i, unsure.size),
+                            ) {
+                                ListRow(
+                                    item.title(), i, unsure.size,
+                                    supporting = stringResource(R.string.not_sure_tap_to_pick),
+                                    supportingColor = MaterialTheme.colorScheme.primary,
+                                    lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
+                                    trailing = { AmountTrailing(item.amountText(money)) },
+                                    onClick = { onPick(cap.id) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item(key = "hint", contentType = "hint") { Hint(stringResource(R.string.review_hint)) }
     }
 }
 
+/**
+ * Not understood (116): step through. A 64 dp circle, "2 messages to check" and one line, then one row per message
+ * (the bank by name, never its sender id; the day; a chevron). Tap checks that one; swipe left ignores; the docked
+ * "Check them one by one" starts at the first. Empty (117): Nothing to teach.
+ */
 @Composable
-private fun NotUnderstoodTab(missed: List<CaptureEntity>, onTeach: (Long) -> Unit, onIgnore: (Long) -> Unit, onBack: () -> Unit) {
+private fun NotUnderstoodTab(missed: List<app.burrow.money.ui.teach.MissedRow>, onTeach: (Long) -> Unit, onIgnore: (Long) -> Unit, onBack: () -> Unit) {
     if (missed.isEmpty()) {
         // An empty list: the Ghost, like every other list (DESIGN § Empty states).
         EmptyState(
@@ -225,13 +286,22 @@ private fun NotUnderstoodTab(missed: List<CaptureEntity>, onTeach: (Long) -> Uni
     val dates = rememberDateText()
     val context = LocalContext.current
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = Space.screen)) {
-        item(key = "rows") {
+        item(key = "header", contentType = "header") {
+            app.burrow.money.ui.components.CenterTitleHeader(
+                painterResource(R.drawable.ic_sms_duotone),
+                pluralStringResource(R.plurals.n_messages_to_check, missed.size, missed.size),
+                Modifier.padding(bottom = Space.block),
+                line = pluralStringResource(R.plurals.messages_to_check_line, missed.size),
+            )
+        }
+        item(key = "rows", contentType = "group") {
             ListGroup {
-                missed.forEachIndexed { i, m ->
+                missed.forEachIndexed { i, row ->
+                    val m = row.capture
                     androidx.compose.runtime.key(m.id) {
-                        // "AX-HDFCBK-S" → "HDFCBK"; a notification → its app's name, not the package.
-                        val from = remember(m.sender, m.source) {
-                            if (m.source == "SMS") m.sender
+                        // The bank by name ("Kotak Bank"); else a notification's app name; else the sender's own part.
+                        val from = remember(row.bank, m.sender, m.source) {
+                            row.bank ?: if (m.source == "SMS") app.burrow.money.ui.capture.senderName(m.sender)
                             else runCatching { context.packageManager.run { getApplicationLabel(getApplicationInfo(m.sender, 0)).toString() } }
                                 .getOrElse { m.sender.substringAfterLast('.') }
                         }
@@ -242,10 +312,9 @@ private fun NotUnderstoodTab(missed: List<CaptureEntity>, onTeach: (Long) -> Uni
                         ) {
                             ListRow(
                                 from.ifBlank { m.sender }, i, missed.size,
-                                // The start of the message, on one line (ListRow ends it with …).
-                                supporting = m.body.replace(Regex("\\s+"), " ").trim(),
+                                supporting = dates.weekdayDay(dates.date(m.receivedAt)),
                                 lead = { IconCircle(painterResource(if (m.source == "SMS") R.drawable.ic_sms_duotone else R.drawable.ic_notifications_duotone)) },
-                                trailing = { Text(dates.shortDay(dates.date(m.receivedAt)), style = BurrowType.label, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false) },
+                                trailing = { Chevron() },
                                 onClick = { onTeach(m.id) },
                             )
                         }
@@ -253,7 +322,6 @@ private fun NotUnderstoodTab(missed: List<CaptureEntity>, onTeach: (Long) -> Uni
                 }
             }
         }
-        item(key = "hint") { Hint(stringResource(R.string.not_understood_line)) }
     }
 }
 
@@ -307,6 +375,24 @@ private fun ReviewSheet(
         SheetFooter {
             BurrowButton(stringResource(R.string.ignore), onIgnore, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
             BurrowButton(stringResource(R.string.save), onSave, Modifier.weight(1f), icon = painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom)
+        }
+    }
+}
+
+/**
+ * What was it for? (241): for a payment Burrow isn't sure of. "Myntra · −₹1,499 · Yesterday", a grid of the
+ * categories, then the message itself. One tap picks; the row moves up to Ready to save.
+ */
+@Composable
+private fun PickCategorySheet(item: ReviewItem, onPick: (Long) -> Unit, onDismiss: () -> Unit) {
+    val money = LocalMoney.current
+    val dates = rememberDateText()
+    val cap = item.capture
+    BurrowSheet(onDismiss) {
+        SheetHeader(stringResource(R.string.what_was_it_for), onDismiss, listOf(item.title(), item.amountText(money), whenText(cap, dates)).joinToString(" · "))
+        SheetBody {
+            app.burrow.money.ui.pickers.CategoryGrid(item.allCategories, { onPick(it.id) })
+            if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, emptyList())
         }
     }
 }

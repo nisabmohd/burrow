@@ -1427,7 +1427,7 @@
     <string name="dynamic_colour_on">オン · 壁紙から色を取ります</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">確認</string>
-    <string name="review_hint">タップしてメッセージを確認。右にスワイプで保存、左で無視。</string>
+    <string name="review_hint">支払いをタップして SMS を見たり変更したりできます。右にスワイプで保存、左で無視。</string>
     <string name="edit_details">詳細を編集</string>
     <string name="edit_details_line">金額、支払先、口座、日付</string>
     <string name="tap_it_in_message">メッセージ内をタップ</string>
@@ -1453,4 +1453,26 @@
     <string name="add_category_budget">カテゴリ予算を追加</string>
     <string name="delete_goal_text_money">%1$sは元の口座に戻ります。</string>
     <string name="delete_goal_text_empty">まだ何も追加されていません。</string>
+    <string name="ready_to_save">保存できます</string>
+    <string name="knows_these_shops">Burrow が知っているお店</string>
+    <string name="pick_a_category_header">カテゴリを選ぶ</string>
+    <string name="new_shops">新しいお店</string>
+    <string name="not_sure_tap_to_pick">Burrow にはわかりません · タップして選ぶ</string>
+    <string name="pick_categories_first">先にカテゴリを選んでください</string>
+    <string name="what_was_it_for">何に使いましたか?</string>
+    <plurals name="save_n_ready">
+        <item quantity="other">準備できた %d 件を保存</item>
+    </plurals>
+    <plurals name="save_all_n">
+        <item quantity="other">%d 件すべて保存</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="other">確認するメッセージ %d 件</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="other">Burrow が読めなかったメッセージです。一度ずつ確認すると、同じようなメッセージは次から読めます。</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="other">1 件ずつ確認</item>
+    </plurals>
 </resources>

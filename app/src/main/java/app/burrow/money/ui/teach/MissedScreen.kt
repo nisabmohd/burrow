@@ -54,12 +54,20 @@ import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** Messages with money that no rule could read, newest first (they wait here for Teach). */
+/** A message not understood, with the bank it came from by name ("Kotak Bank", never "AX-KOTAKB"; 116). */
+@Immutable
+data class MissedRow(val capture: CaptureEntity, val bank: String?)
+
+/** Messages with money that no rule could read, newest first (they wait here to be checked). */
 class MissedViewModel(private val capture: CaptureRepository) : ViewModel() {
-    val state: StateFlow<List<CaptureEntity>?> = capture.notUnderstood.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val state: StateFlow<List<MissedRow>?> = capture.notUnderstood
+        .mapLatest { list -> list.map { MissedRow(it, capture.bankName(it.sender)) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Not a payment, or not worth a rule: out of the list, with Undo. */
     fun ignore(id: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
