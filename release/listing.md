@@ -31,7 +31,7 @@ YOUR WAY
 PRIVATE BY DESIGN
 • Burrow never sends your data anywhere. Everything stays on your phone unless you back it up.
 • No account, no ads, no analytics.
-• Encrypted backups to a folder you choose, or to your own Google Drive in the Google Play and GitHub builds (only Burrow can see them, and only you can open them). App lock with PIN or fingerprint.
+• Encrypted backups to a folder you choose. App lock with PIN or fingerprint.
 
 Free and open source (GPL-3.0).
 

@@ -76,7 +76,8 @@ class DriveBackup(
     private val backup: BackupManager,
     private val settings: SettingsRepository,
 ) {
-    val enabled: Boolean = true
+    /** Off until the Google Cloud OAuth clients exist (BuildConfig.DRIVE_BACKUP, user 2026-11-12): no Drive UI, no job. */
+    val enabled: Boolean = app.burrow.money.BuildConfig.DRIVE_BACKUP
     private val json = Json { ignoreUnknownKeys = true }
     private val oneAtATime = Mutex()
     private val running = MutableStateFlow(false)
@@ -198,7 +199,7 @@ class DriveBackup(
     suspend fun reschedule() {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
         val s = settings.settings.first()
-        if (s.driveAccount == null || s.backupSchedule == "OFF") {
+        if (!enabled || s.driveAccount == null || s.backupSchedule == "OFF") {
             scheduler.cancel(JOB_ID)
             return
         }
@@ -217,7 +218,8 @@ class DriveBackup(
     /** On app start: schedules only if nothing is pending (scheduling would stop a running backup). */
     suspend fun ensureScheduled() {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
-        if (scheduler.getPendingJob(JOB_ID) == null) reschedule()
+        // Off (DRIVE_BACKUP false): reschedule cancels a job an earlier build left behind.
+        if (!enabled || scheduler.getPendingJob(JOB_ID) == null) reschedule()
     }
 
     /** Runs [block] with retries; see the class comment for what each failure becomes. */

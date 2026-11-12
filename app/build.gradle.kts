@@ -40,7 +40,9 @@ android {
             buildConfigField("boolean", "PLAY_LISTED", "true") // live on Play (2026-10-28): "Rate on Play Store" in About
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "false") // Play updates it
-            buildConfigField("boolean", "DRIVE_BACKUP", "true")
+            // Google Drive backup: true once the Google Cloud OAuth clients are set up (after Play publishing;
+            // ~/Downloads/burrow-google-drive-setup.md). False hides Connect and every Drive row (user, 2026-11-12).
+            buildConfigField("boolean", "DRIVE_BACKUP", "false")
         }
         // F-Droid: no Google code at all.
         create("foss") {
@@ -61,7 +63,9 @@ android {
             buildConfigField("boolean", "PLAY_LISTED", "false")
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "true")
-            buildConfigField("boolean", "DRIVE_BACKUP", "true")
+            // Google Drive backup: true once the Google Cloud OAuth clients are set up (after Play publishing;
+            // ~/Downloads/burrow-google-drive-setup.md). False hides Connect and every Drive row (user, 2026-11-12).
+            buildConfigField("boolean", "DRIVE_BACKUP", "false")
         }
     }
 

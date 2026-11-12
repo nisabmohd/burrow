@@ -2,7 +2,6 @@
 
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
-- Google Drive backup (Google Play and GitHub builds): back up to your own Drive, encrypted with your backup password, by hand or on your backup schedule while charging; restore any of the last 10.
 - Rate in About opens Google Play's rating card (Google Play build).
 - Search in the category sheet.
 - Two cards, one bill: a credit card account can hold several cards (ICICI RuPay + Visa). Messages from any of them land on the one account, with one statement, one due and one Pay bill; each payment says which card paid it. Cards with their own bills on one credit line stay separate cards that share the limit.
@@ -10,7 +9,7 @@
 - Add account opens a sheet of kinds (Bank account, Credit card, Cash or wallet, Loan, Savings).
 - Cards from before can be named (Edit account › Tap to name it).
 - Backup and restore shows the folder's name instead of a number.
-- Switch account in Google Drive uses a one-person icon; category rows say "Nothing this month".
+- Category rows say "Nothing this month".
 - Scrolling a list in a sheet back to its top no longer drags the sheet closed.
 - A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.
 - Play Console fixes (as Weft): edge-to-edge without the deprecated status and navigation bar colour calls, R8 shrinks resources with the code, Android Gradle plugin 9.1. The APK is a little smaller (3.2 MB).

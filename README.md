@@ -30,7 +30,7 @@ You can also:
 - add notes, tags, receipts, repeating payments and money lent or borrowed, when you want them
 - add home-screen widgets with what is left and safe to spend today
 - export an encrypted backup to a folder you choose, and import it again, or export a CSV for spreadsheets
-- back up to your own Google Drive, by hand or every night while charging, encrypted with your password, and restore any of the last 10 backups (Google Play and GitHub builds)
+- back up to your own Google Drive (coming soon: Google Play and GitHub builds)
 - lock the app with a PIN or fingerprint
 - choose light or dark, colours from your wallpaper, one of four fonts and a text size
 - use it in English, Hindi, Spanish, German, French, Portuguese (Brazil) or Japanese

@@ -1690,9 +1690,9 @@ def play_backup_shows_drive():
         d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
         time.sleep(3)
         open_more_row("Backup")
-        assert d.scroll_to("Google Drive"), "no Google Drive section in the play build"
-        assert d.scroll_to("Connect Google Drive"), "no Connect Google Drive row"
-        assert d.exists("Encrypted copy in your own Drive", timeout=2), "Connect row lost its line"
+        # DRIVE_BACKUP is off until the Google Cloud setup (user, 12 Nov): no Drive section, no Connect.
+        assert d.exists("Backup and restore", timeout=5), "Backup didn't open"
+        assert not d.scroll_to("Connect Google Drive"), "Connect Google Drive shows while DRIVE_BACKUP is off"
     finally:
         recover()
         fresh_install()
