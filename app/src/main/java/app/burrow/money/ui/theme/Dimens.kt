@@ -35,6 +35,8 @@ object Space {
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
     val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
     val navBarEnd = 8.dp      // at each end of the bottom nav, so its end pills sit ~16 dp in, like the screen
+    val introGap = 48.dp      // intro and Welcome: the picture panel → its headline
+    val pinRows = 32.dp       // PIN pad: the dots → the keys, and between keys in a row (71)
 }
 
 object Size {
@@ -129,6 +131,12 @@ object Size {
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)
     val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
     val badge = 16.dp         // the count on a header button (filters set)
+    /** Lines drawn around things: an outlined chip (1), a ring (round check, today, picked swatch, PIN dot: 2). */
+    val outline = 1.dp
+    val ring = 2.dp
+    val pinDot = 16.dp        // a PIN digit: a ring, filled once typed (71)
+    val legendDot = 16.dp     // a heatmap legend step (Less … More, 41)
+    val notificationIcon = 26.dp // the Burrow mark in the capture notification preview
 }
 
 /** Strokes, gaps and dots inside the Canvas charts (Charts.kt). */
@@ -168,6 +176,8 @@ object Shapes {
     val surface = RoundedCornerShape(24.dp)
     val sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     val pill = CircleShape // RoundedCornerShape(50) for wide pills
+    /** The Burrow mark's tile (About 112, Welcome 40): the app icon's corner, 112/512 of its side (TOKENS § Shape). */
+    fun logo(side: androidx.compose.ui.unit.Dp) = RoundedCornerShape(side * 112f / 512f)
     /** The ghost rows of the illustrated empty state (a drawing, not a surface). */
     val ghost = RoundedCornerShape(20.dp)
     /** Grouped list: 24 dp on the outside of the group, 6 dp between its rows. */

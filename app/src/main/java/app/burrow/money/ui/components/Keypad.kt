@@ -84,8 +84,8 @@ fun Keypad(onKey: (Key) -> Unit, doneEnabled: Boolean, modifier: Modifier = Modi
                         Key.Minus -> IconKey(R.drawable.ic_remove_regular, stringResource(R.string.key_minus), c.secondaryContainer, c.onSecondaryContainer, mod) { onKey(key) }
                         Key.Done -> IconKey(
                             R.drawable.ic_check_regular, stringResource(R.string.save),
-                            if (doneEnabled) c.primary else c.onSurface.copy(alpha = 0.10f),
-                            if (doneEnabled) c.onPrimary else c.onSurface.copy(alpha = 0.38f), mod,
+                            if (doneEnabled) c.primary else c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContainer),
+                            if (doneEnabled) c.onPrimary else c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContent), mod,
                         ) { onKey(key) }
                         Key.Clear -> Unit
                     }

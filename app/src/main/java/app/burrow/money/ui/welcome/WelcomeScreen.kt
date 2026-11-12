@@ -206,7 +206,7 @@ private fun Pitch(onRestore: () -> Unit) {
                 }
             }
         }
-        Spacer(Modifier.height(Space.sheet * 2))
+        Spacer(Modifier.height(Space.introGap))
         Text(stringResource(R.string.welcome_headline), style = BurrowType.intro, color = c.onSurface, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Space.block))
         Text(stringResource(R.string.welcome_line), style = BurrowType.bodyLarge, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = Space.small))

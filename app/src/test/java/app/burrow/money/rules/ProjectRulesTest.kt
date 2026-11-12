@@ -263,4 +263,62 @@ class ProjectRulesTest {
             f.name !in setOf("TimeWheel.kt", "Controls.kt", "SettingsScreens.kt") && !l.trim().startsWith("//") &&
                 Regex("""\b(itemsIndexed|items)\(""").containsMatchIn(l) && "key" !in l
         })
+
+    // --- UI consistency (user, 12 Nov: "minor things make a lot of difference"; Weft's constants approach). ---
+
+    private fun code(l: String) = l.substringBefore("//").takeIf { !l.trim().startsWith("*") } ?: ""
+    private fun inTheme(f: File) = f.path.replace('\\', '/').contains("/ui/theme/")
+    private fun inComponents(f: File) = f.path.replace('\\', '/').contains("/ui/components/")
+
+    /** One strength per meaning: see-through colours are `Alpha.*` in Color.kt, never a number on a screen. */
+    @Test fun alphasOnlyInColorKt() = assertNone("raw alpha: add or use a token in Alpha (Color.kt)",
+        violations { f, _, l -> !inTheme(f) && Regex("""alpha\s*=\s*\d*\.\d|\.alpha\(\s*\d*\.\d""").containsMatchIn(code(l)) })
+
+    /** Colours come from the scheme by role; Color.Gray and friends ignore the accent and dark mode. */
+    @Test fun noNamedColours() = assertNone("named colour (Color.Gray, Color.Black…): use a colour role or a Color.kt token",
+        violations { f, _, l -> !inTheme(f) && Regex("""\bColor\.(Black|White|Gray|Grey|DarkGray|LightGray|Red|Green|Blue|Yellow|Cyan|Magenta)\b""").containsMatchIn(code(l)) })
+
+    /** The one-shape rule: shapes are `Shapes.*` (24 dp surfaces, pills, the logo tile, the ghost). */
+    @Test fun shapesOnlyInDimensKt() = assertNone("RoundedCornerShape / CutCornerShape outside Dimens.kt: use Shapes.*",
+        violations { f, _, l -> !inTheme(f) && Regex("""\b(RoundedCornerShape|CutCornerShape|AbsoluteRoundedCornerShape)\(""").containsMatchIn(code(l)) })
+
+    /** Outlines are one of four widths, by name: an outlined chip, a ring, a focus ring, the ghost's hairline. */
+    @Test fun borderWidthsAreNamed() = assertNone(".border( width that isn't Size.outline / ring / focusRing / ghostHairline",
+        violations { f, _, l ->
+            !inTheme(f) && Regex("""\.border\(\s*(?!Size\.(outline|ring|focusRing|ghostHairline)\b)[^)]""").containsMatchIn(code(l))
+        })
+
+    /**
+     * Space.* is a gap, Size.* is a size: a spacing token never sizes a box or draws a border, and screens don't do
+     * sums on tokens (`Space.sheet * 2`): a gap the design needs gets its own name. Components may measure (layout maths).
+     */
+    @Test fun spacingTokensAreGapsNotSizes() = assertNone("spacing token used as a size, or token arithmetic on a screen: add a named token",
+        violations { f, _, l ->
+            val c = code(l)
+            !inTheme(f) && (
+                Regex("""\.(size|width|height|requiredSize|border)\(\s*Space\.""").containsMatchIn(c) && !Regex("""Spacer\(Modifier\.(height|width|size)\(Space\.\w+\)\)""").containsMatchIn(c) ||
+                    !inComponents(f) && Regex("""(Spacer|padding|size|height|width|spacedBy)\([^)]*\b(Space|Size)\.\w+\s*[-+*/]\s*[\w.]""").containsMatchIn(c)
+                )
+        })
+
+    /** Screens build from the shared components only: Material widgets are wrapped once in ui/components. */
+    @Test fun materialWidgetsOnlyInComponents() = assertNone("Material widget on a screen: use the Burrow component (BurrowButton, Chip, BurrowSwitch, BurrowSheet…)",
+        violations { f, _, l ->
+            !inComponents(f) && !inTheme(f) &&
+                Regex("""(?<![\w.])(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|FilterChip|AssistChip|SuggestionChip|InputChip|Switch|Checkbox|RadioButton|Slider|Card|ElevatedCard|OutlinedCard|AlertDialog|ModalBottomSheet|HorizontalDivider|Divider|NavigationBar|TopAppBar|CenterAlignedTopAppBar)\(""").containsMatchIn(code(l))
+        })
+
+    /** Every Text names its style (BurrowType); the Material default would bring another size and weight. */
+    @Test fun everyTextHasAStyle() {
+        val found = kotlin.flatMap { f ->
+            val t = f.readText()
+            Regex("""(?<![\w.])Text\(""").findAll(t).mapNotNull { m ->
+                var i = m.range.last + 1; var depth = 1
+                while (i < t.length && depth > 0) { if (t[i] == '(') depth++ else if (t[i] == ')') depth--; i++ }
+                val call = t.substring(m.range.first, i)
+                if ("style" in call) null else "${rel(f)}:${t.substring(0, m.range.first).count { it == '\n' } + 1}: ${call.take(90)}"
+            }.toList()
+        }
+        assertNone("Text( without style =", found)
+    }
 }

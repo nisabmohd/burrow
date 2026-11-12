@@ -11,6 +11,12 @@ Screen numbers point to `design/screens/`.
       the release key and the debug key; turn on the Google Drive API
 - [ ] When Drive goes on: Google Cloud setup (`~/Downloads/burrow-google-drive-setup.md`), set `DRIVE_BACKUP` true in app/build.gradle.kts, Play Console Data safety (`release/data-safety.md`)
 
+- [ ] Design review: About › "mid apps" row (no PNG). Its mark is a fixed dark tile (#1C1B22) that almost
+      vanishes in dark mode, and it is a rounded square where every other row lead is a 40 dp circle
+- [ ] Design vs rule: sheet section labels (Filter › Type / Accounts / Categories, PNG 13 and 40) start at 20 dp;
+      the alignment rule says every heading starts at 24 dp (screen titles, section headers, sheet titles do).
+      Follow the PNG (keep 20) or the rule (move to 24)?
+
 ## On your phone (USB debugging; user will connect it)
 - [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
       account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging

@@ -164,3 +164,29 @@ fun ghostColors(c: androidx.compose.material3.ColorScheme, dark: Boolean) = if (
 } else {
     GhostColors(c.surfaceContainerLowest, c.surfaceContainerLowest, 0.7f, null, c.surfaceContainerHighest, c.surfaceContainerHighest, 0.12f)
 }
+
+/**
+ * Every see-through colour in the app has one of these names (as sizes live in Dimens.kt): the same
+ * meaning is always the same strength, light and dark. `ProjectRulesTest` keeps raw alphas out of screens.
+ */
+object Alpha {
+    /** The fill under Insights' running-total line. */
+    const val area = 0.12f
+    /** A soft primary: chart bars not picked, the hero wave's track, the first heatmap step. */
+    const val soft = 0.22f
+    /** The second and third heatmap steps (the fourth is primary itself). */
+    const val heat2 = 0.42f
+    const val heat3 = 0.68f
+    /** The track of a ring that has gone over (error at this strength). */
+    const val overTrack = 0.25f
+    /** Days that haven't come yet in a calendar or the heatmap. */
+    const val future = 0.5f
+    /** The line under the big number on a coloured header (Today's hero, CenterHeader on a tint). */
+    const val onTintLine = 0.85f
+    /** Material's disabled container and content (an "off" button, the keypad's ✓ before an amount). */
+    const val disabledContainer = 0.10f
+    const val disabledContent = 0.38f
+}
+
+/** Opaque for an alpha mask (the time wheel's fade); never drawn as a colour. */
+val MaskSolid = Color.Black

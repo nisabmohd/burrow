@@ -130,7 +130,7 @@ fun Note(
             }
             Column(Modifier.weight(1f)) {
                 Text(title, style = BurrowType.titleSmall, color = fg)
-                if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
+                if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = app.burrow.money.ui.theme.Alpha.onTintLine))
             }
             if (!stacked && action != null && onAction != null) TextButton(onClick = onAction) { Text(action, style = BurrowType.button, color = fg) }
             else if (arrow != null) Icon(arrow, null, tint = fg)

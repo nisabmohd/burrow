@@ -57,7 +57,7 @@ fun CheckBadge(on: Boolean, modifier: Modifier = Modifier, ring: Boolean = false
         on -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).background(c.primary), contentAlignment = Alignment.Center) {
             Icon(painterResource(R.drawable.ic_check_regular), null, tint = c.onPrimary, modifier = Modifier.size(Size.checkInBadge))
         }
-        ring -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).border(Space.group / 2, c.outline, Shapes.pill))
+        ring -> Box(modifier.size(Size.checkBadge).clip(Shapes.pill).border(Size.ring, c.outline, Shapes.pill))
     }
 }
 

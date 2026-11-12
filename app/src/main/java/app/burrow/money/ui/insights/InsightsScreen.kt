@@ -309,7 +309,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
                                 Box(
                                     Modifier.size(Size.heatmapDay).clip(Shapes.pill)
                                         .background(if (future) androidx.compose.ui.graphics.Color.Transparent else heatColor(level))
-                                        .then(if (d == today) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
+                                        .then(if (d == today) Modifier.border(Size.ring, c.primary, Shapes.pill) else Modifier)
                                         .then(if (!future) Modifier.clickable(role = Role.Button, onClickLabel = label) { onDay(d) } else Modifier)
                                         .semantics { contentDescription = label },
                                     contentAlignment = Alignment.Center,
@@ -317,7 +317,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
                                     CappedFontScale {
                                         Text(
                                             d.dayOfMonth.toString(), style = BurrowType.label,
-                                            color = when { future -> c.onSurfaceVariant.copy(alpha = 0.5f); level >= 3 -> c.onPrimary; else -> c.onSurface },
+                                            color = when { future -> c.onSurfaceVariant.copy(alpha = app.burrow.money.ui.theme.Alpha.future); level >= 3 -> c.onPrimary; else -> c.onSurface },
                                         )
                                     }
                                 }
@@ -329,7 +329,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
         }
         Row(Modifier.fillMaxWidth().padding(top = Space.card), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.less), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(end = Space.small))
-            (0..4).forEach { l -> Box(Modifier.padding(horizontal = Space.group / 2).size(Space.card).clip(Shapes.pill).background(heatColor(l))) }
+            (0..4).forEach { l -> Box(Modifier.padding(horizontal = Space.row).size(Size.legendDot).clip(Shapes.pill).background(heatColor(l))) }
             Text(stringResource(R.string.more_word), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(start = Space.small))
         }
     }

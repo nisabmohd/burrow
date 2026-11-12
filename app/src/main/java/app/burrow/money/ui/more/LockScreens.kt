@@ -158,14 +158,14 @@ fun PinScreen(
         Spacer(Modifier.height(Space.card))
         Row(horizontalArrangement = Arrangement.spacedBy(Space.card), modifier = Modifier.semantics { contentDescription = "${entered.length} / $PIN_LENGTH" }) {
             repeat(PIN_LENGTH) { i ->
-                Box(Modifier.size(Space.card).clip(Shapes.pill).then(if (i < entered.length) Modifier.background(c.primary) else Modifier.border(Space.group / 2, c.outline, Shapes.pill)))
+                Box(Modifier.size(Size.pinDot).clip(Shapes.pill).then(if (i < entered.length) Modifier.background(c.primary) else Modifier.border(Size.ring, c.outline, Shapes.pill)))
             }
         }
-        Spacer(Modifier.height(Space.sheet + Space.small))
+        Spacer(Modifier.height(Space.pinRows))
         val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", if (canBio) "bio" else "", "0", "del")
         Column(verticalArrangement = Arrangement.spacedBy(Space.card)) {
             keys.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(Space.sheet + Space.small)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.pinRows)) {
                     row.forEach { k ->
                         val enabled = waitSeconds == 0 && k.isNotEmpty()
                         Box(
@@ -295,7 +295,7 @@ fun NotificationSettingsScreen(
         // A drawing of the capture notification as it looks in the shade.
         Column(Modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainer).padding(Space.card), verticalArrangement = Arrangement.spacedBy(Space.group)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
-                IconCircle(painterResource(R.drawable.ic_notification), size = Size.iconSmall + Space.small, container = c.primary, content = c.onPrimary)
+                IconCircle(painterResource(R.drawable.ic_notification), size = Size.notificationIcon, container = c.primary, content = c.onPrimary)
                 Text(stringResource(R.string.burrow_now), style = BurrowType.label, color = c.onSurfaceVariant)
             }
             Text(stringResource(R.string.preview_notification_title, app.burrow.money.ui.LocalMoney.current.plain(240_00)), style = BurrowType.titleSmall, color = c.onSurface)

@@ -138,7 +138,7 @@ fun BurrowButton(
         ButtonKind.FILLED -> c.primary to c.onPrimary
         ButtonKind.TONAL -> c.secondaryContainer to c.onSecondaryContainer
         ButtonKind.DANGER -> c.errorContainer to c.onErrorContainer
-        ButtonKind.OFF -> c.onSurface.copy(alpha = 0.10f) to c.onSurface.copy(alpha = 0.38f)
+        ButtonKind.OFF -> c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContainer) to c.onSurface.copy(alpha = app.burrow.money.ui.theme.Alpha.disabledContent)
     }
     Button(
         onClick = onClick,

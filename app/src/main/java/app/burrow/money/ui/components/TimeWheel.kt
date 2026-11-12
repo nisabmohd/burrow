@@ -163,7 +163,7 @@ private fun Modifier.fadeEdges(): Modifier = this
     .drawWithContent {
         drawContent()
         drawRect(
-            Brush.verticalGradient(0f to Color.Transparent, 0.3f to Color.Black, 0.7f to Color.Black, 1f to Color.Transparent),
+            Brush.verticalGradient(0f to Color.Transparent, 0.3f to app.burrow.money.ui.theme.MaskSolid, 0.7f to app.burrow.money.ui.theme.MaskSolid, 1f to Color.Transparent),
             blendMode = BlendMode.DstIn,
         )
     }

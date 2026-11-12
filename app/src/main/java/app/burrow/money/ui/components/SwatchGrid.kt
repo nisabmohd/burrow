@@ -60,7 +60,7 @@ fun Swatch(on: Boolean, label: String, onClick: () -> Unit, content: @Composable
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     Box(
         Modifier.widthIn(max = Size.button).fillMaxWidth().aspectRatio(1f).clip(Shapes.pill)
-            .then(if (on) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
+            .then(if (on) Modifier.border(Size.ring, c.primary, Shapes.pill) else Modifier)
             .clickable(role = Role.RadioButton) { if (!on) haptics.tick(); onClick() }
             .semantics { selected = on; contentDescription = label },
         contentAlignment = Alignment.Center,

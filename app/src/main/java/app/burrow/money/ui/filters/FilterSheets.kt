@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -175,9 +176,9 @@ fun DatesSheet(start: DayRange?, onApply: (DayRange?) -> Unit, onDismiss: () -> 
 fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit, title: String? = null) {
     val dates = rememberDateText()
     Row(Modifier.fillMaxWidth().padding(top = Space.small), verticalAlignment = Alignment.CenterVertically) {
-        Text(title ?: dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.small))
+        Text(title ?: dates.monthYear(month.atDay(1)), style = BurrowType.titleSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f).padding(start = Space.headingInset))
         TonalIconButton(painterResource(R.drawable.ic_chevron_left_regular), stringResource(R.string.previous_month), onPrevious)
-        Box(Modifier.size(Space.small))
+        androidx.compose.foundation.layout.Spacer(Modifier.width(Space.inline))
         TonalIconButton(painterResource(R.drawable.ic_chevron_right_regular), stringResource(R.string.next_month), onNext)
     }
 }
@@ -219,14 +220,14 @@ fun MonthCalendar(
                             Box(
                                 Modifier.size(Size.heatmapDay).clip(Shapes.pill)
                                     .background(if (end) c.primary else if (inRange) c.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent)
-                                    .then(if (d == today && !end) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
+                                    .then(if (d == today && !end) Modifier.border(Size.ring, c.primary, Shapes.pill) else Modifier)
                                     .then(if (!future) Modifier.clickable(role = Role.Button) { onPick(d) } else Modifier)
                                     .semantics { selected = inRange; contentDescription = label },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     label, style = BurrowType.body,
-                                    color = when { end -> c.onPrimary; future -> c.onSurfaceVariant.copy(alpha = 0.5f); else -> c.onSurface },
+                                    color = when { end -> c.onPrimary; future -> c.onSurfaceVariant.copy(alpha = app.burrow.money.ui.theme.Alpha.future); else -> c.onSurface },
                                 )
                             }
                         }

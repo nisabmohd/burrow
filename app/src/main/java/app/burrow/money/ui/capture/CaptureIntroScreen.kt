@@ -90,7 +90,7 @@ fun CaptureIntroScreen(onClose: () -> Unit, onAllowed: (sms: Boolean) -> Unit) {
                         else -> PanelAllow()
                     }
                 }
-                Spacer(Modifier.height(Space.sheet * 2))
+                Spacer(Modifier.height(Space.introGap))
                 Text(stringResource(TITLES[s]), style = BurrowType.intro, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(Space.block))
                 Text(stringResource(LINES[s]), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = Space.sheet))

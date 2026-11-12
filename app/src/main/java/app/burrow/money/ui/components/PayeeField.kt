@@ -122,7 +122,7 @@ fun FormChip(
             Modifier.height(Size.chip).clip(Shapes.pill).indication(interaction, androidx.compose.material3.ripple())
                 .then(
                     when (style) {
-                        FormChipStyle.OUTLINED -> Modifier.border(Space.group / 4, c.outline, Shapes.pill)
+                        FormChipStyle.OUTLINED -> Modifier.border(Size.outline, c.outline, Shapes.pill)
                         FormChipStyle.SELECTED -> Modifier.background(c.secondaryContainer)
                         FormChipStyle.TONAL -> Modifier.background(c.surfaceContainer)
                         FormChipStyle.FILLED -> Modifier.background(c.surfaceContainerHigh)
