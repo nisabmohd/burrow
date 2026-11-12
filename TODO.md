@@ -12,20 +12,15 @@ Screen numbers point to `design/screens/`.
 - [ ] Last commit (not pushed) and the rebuilt `build/dist/v0.4.0/` (store screenshots stay as they are: user, 13 Nov)
 
 ## Needs you
-- [ ] Push `burrow-0.4.0`, tag `v0.4.0` (CI makes the GitHub release), upload `burrow-0.4.0-play.aab` to Play
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
 - [ ] Google Cloud: OAuth clients of type Android for `app.burrow.money` with the SHA-1 of the Play app-signing key,
       the release key and the debug key; turn on the Google Drive API
 - [ ] Play Console Data safety for Drive backup (`release/data-safety.md`)
 
-## Needs a real phone
-- [ ] Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
+## On your phone (USB debugging; user will connect it)
+- [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
       account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging
-- [ ] Budget alerts and bill match from a real bank SMS
-- [ ] Haptics on a phone without vibration primitives (Vivo / Oppo / Realme)
-- [ ] Activity scroll with 20k transactions (emulator frame times mean nothing)
-- [ ] 229–233 in dark mode against `design/screens/dark/`
 
 
 ## Notes

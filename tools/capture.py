@@ -155,7 +155,7 @@ def category_search():
 def drive():
     out = d.adb("install", "-r", PLAY_APK)
     assert "Success" in out, f"play install failed: {out}"
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
     demo_bar()
     smoke.open_more_row("Backup")

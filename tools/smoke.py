@@ -52,7 +52,7 @@ def fresh_install():
         time.sleep(2)
     assert "Success" in out, f"install failed: {out}"
     d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
 
 
@@ -172,7 +172,7 @@ def welcome_shows_once():
     d.tap("Done")
     assert d.exists("Today", timeout=10), "Today not shown after onboarding"
     d.shell(f"am force-stop {d.PACKAGE}")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2.5)
     assert not d.exists("Get started", timeout=1.5), "welcome shown again after restart"
 
@@ -976,7 +976,7 @@ def capture_status_follows_real_access():
     d.shell(f"pm revoke {d.PACKAGE} android.permission.RECEIVE_SMS")
     d.shell(f"pm revoke {d.PACKAGE} android.permission.READ_SMS")
     try:
-        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")  # revoking SMS restarts the app
+        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/app.burrow.money.MainActivity")  # revoking SMS restarts the app
         time.sleep(2)
         d.nav("More")
         assert d.exists("Needs access", timeout=5), "More tile doesn't say Needs access without access"
@@ -997,7 +997,7 @@ def capture_status_follows_real_access():
     # Access is read again when the app comes back (as from Settings): leave it, then reopen.
     d.shell("input keyevent KEYCODE_HOME")
     time.sleep(1)
-    d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")
+    d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
     d.nav("More")
     assert d.exists("On", timeout=12), "More tile doesn't come back to On with access"
@@ -1280,14 +1280,14 @@ def import_bad_file_says_nothing_to_import():
 
 @check
 def shortcut_new_income_opens_form():
-    d.shell(f"am start -a app.burrow.money.action.NEW_INCOME -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -a app.burrow.money.action.NEW_INCOME -n {d.PACKAGE}/app.burrow.money.MainActivity")
     assert d.exists("New income", timeout=6), "New income shortcut did not open the form"
     d.tap("Close")
 
 
 @check
 def shortcut_search_focuses_activity():
-    d.shell(f"am start -a app.burrow.money.action.SEARCH -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -a app.burrow.money.action.SEARCH -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
     assert d.exists("Search payee, amount, note", timeout=5), "Search shortcut did not open Activity"
     shown = "mInputShown=true" in d.shell("dumpsys input_method")
@@ -1369,7 +1369,7 @@ def open_link(action, extra_id=None, cold=False):
     # Single top, as the app's notifications, widgets and tile send them: without it an intent equal
     # to the one that started the task only brings the task forward (no onNewIntent), so a warm link
     # after the same cold one did nothing.
-    d.shell(f"am start -W --activity-single-top -a {ACTION}{action}{extra} -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W --activity-single-top -a {ACTION}{action}{extra} -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
 
 
@@ -1475,7 +1475,7 @@ def launcher_long_press_shows_shortcuts():
 
 def pin_widget(which):
     """Asks the launcher to put a Burrow widget on the home screen (debug build) and accepts its dialog."""
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     d.shell(f"am broadcast -a app.burrow.money.debug.PIN_WIDGET --es which {which} -p {d.PACKAGE}")
     for label in ("Add to home screen", "ADD TO HOME SCREEN", "Add automatically", "Add"):
         if d.exists(label, timeout=3):
@@ -1687,7 +1687,7 @@ def play_backup_shows_drive():
     try:
         out = d.adb("install", "-r", play)
         assert "Success" in out, f"play install failed: {out}"
-        d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+        d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
         time.sleep(3)
         open_more_row("Backup")
         assert d.scroll_to("Google Drive"), "no Google Drive section in the play build"
@@ -1800,7 +1800,7 @@ def savings_once_add_money_and_other_kinds():
 def recover():
     """After a failure, back out of sheets and inner screens to the tabs so later checks run."""
     d.shell("cmd statusbar collapse")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     for _ in range(5):
         if d.on_tab():
             return

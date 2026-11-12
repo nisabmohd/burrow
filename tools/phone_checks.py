@@ -74,7 +74,7 @@ def pay(amount, upi, pill=("Shopping", "Food & drinks")):
 def wipe_and_onboard():
     d.shell(f"pm clear {d.PACKAGE}")
     d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
 
 
@@ -175,7 +175,8 @@ def check_csv():
     time.sleep(3)
     s.recover()
     d.nav("Activity")
-    assert d.exists(f"{len(rows)} transaction", contains=True, timeout=5), "the imported rows aren't all in Activity"
+    # The summary counts the payments behind "spent" (QA 12 Nov: it said transactions).
+    assert d.exists(f"{len(rows)} payment", contains=True, timeout=5), "the imported rows aren't all in Activity"
 
 
 def check_budget():
@@ -266,7 +267,7 @@ def check_restricted():
     out = d.shell(f"dumpsys package {d.PACKAGE}")
     assert "packageSource=" in out or "installerPackageName" in out, "not installed"
     d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
     s.finish_welcome()
     s.open_more_row("Auto-capture")
@@ -286,7 +287,7 @@ def check_rtl():
     # translation stays left-to-right (Android falls back to English, direction and all).
     d.shell(f"cmd locale set-app-locales {d.PACKAGE} --locales ar-XB")
     d.shell(f"am force-stop {d.PACKAGE}")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
 
     def plain(label):
@@ -308,7 +309,7 @@ def check_rtl():
     finally:
         d.shell(f"cmd locale set-app-locales {d.PACKAGE} --locales en-US")
         d.shell(f"am force-stop {d.PACKAGE}")
-        d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+        d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
         time.sleep(3)
 
 
