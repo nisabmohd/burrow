@@ -1454,12 +1454,11 @@
     <string name="delete_goal_text_money">%1$sは元の口座に戻ります。</string>
     <string name="delete_goal_text_empty">まだ何も追加されていません。</string>
     <string name="ready_to_save">保存できます</string>
-    <string name="knows_these_shops">Burrow が知っているお店</string>
+    <string name="review_seen_before">前にも見たもの</string>
     <string name="pick_a_category_header">カテゴリを選ぶ</string>
-    <string name="new_shops">新しいお店</string>
+    <string name="review_new">Burrow には初めて</string>
     <string name="not_sure_tap_to_pick">Burrow にはわかりません · タップして選ぶ</string>
     <string name="pick_categories_first">先にカテゴリを選んでください</string>
-    <string name="what_was_it_for">何に使いましたか?</string>
     <plurals name="save_n_ready">
         <item quantity="other">準備できた %d 件を保存</item>
     </plurals>

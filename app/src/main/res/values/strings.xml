@@ -1574,12 +1574,11 @@
     <string name="delete_goal_text_money">%1$s goes back to the accounts it came from.</string>
     <string name="delete_goal_text_empty">Nothing was added to it.</string>
     <string name="ready_to_save">Ready to save</string>
-    <string name="knows_these_shops">Burrow knows these shops</string>
+    <string name="review_seen_before">Seen before</string>
     <string name="pick_a_category_header">Pick a category</string>
-    <string name="new_shops">New shops</string>
+    <string name="review_new">New to Burrow</string>
     <string name="not_sure_tap_to_pick">Burrow isn’t sure · tap to pick</string>
     <string name="pick_categories_first">Pick categories first</string>
-    <string name="what_was_it_for">What was it for?</string>
     <plurals name="save_n_ready">
         <item quantity="one">Save %d ready</item>
         <item quantity="other">Save %d ready</item>

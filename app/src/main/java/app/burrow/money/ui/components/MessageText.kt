@@ -45,12 +45,12 @@ data class Mark(val range: IntRange, val style: MarkStyle)
  * With [onTap], tapping reports the character offset that was tapped (Teach).
  */
 @Composable
-fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
+fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false) {
     val c = MaterialTheme.colorScheme
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     Text(
         text,
-        style = BurrowType.bodyLarge,
+        style = if (compact) BurrowType.body else BurrowType.bodyLarge,
         color = c.onSurface,
         onTextLayout = { layout = it },
         modifier = modifier
@@ -87,9 +87,10 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
 
 /**
  * The grey box a message sits in: a small header (sms icon, sender or bank, time) and the text.
+ * [compact] in a sheet (Review 234, What was it for? 241): `body`; on its own page (Check a message, Rule): `bodyLarge`.
  */
 @Composable
-fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
+fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null, compact: Boolean = false) {
     val c = MaterialTheme.colorScheme
     Column(
         modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainer).padding(horizontal = Space.card, vertical = Space.block),
@@ -100,7 +101,7 @@ fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modif
             Icon(painterResource(R.drawable.ic_sms_duotone), null, tint = c.onSurfaceVariant, modifier = Modifier.size(Size.iconSmall))
             Text(header, style = BurrowType.label, color = c.onSurfaceVariant)
         }
-        MessageText(text, marks, onTap = onTap)
+        MessageText(text, marks, onTap = onTap, compact = compact)
     }
 }
 

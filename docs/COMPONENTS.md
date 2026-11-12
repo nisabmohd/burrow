@@ -51,7 +51,6 @@ if something is missing, add a component here first.
 | `ComingRow` + `comingUp()` | Plan › Coming up (22): bills and future-dated payments in one list grouped Overdue · This week · This month · Later; circle · name · ↻/📅 "in 5 days · ICICI" · amount over date; swipe right Paid / Add now (green), left Skip (grey) / Delete (red) (on `SwipeRow`) | ui/plan/PlanScreen.kt, ComingUp.kt |
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet` (both kinds: Expense group then Income group; **New category** last, from `LocalNewCategory`, 167), `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
-| `CategoryGrid` | pick a category from a grid (What was it for?, 241): 4 equal columns, 56 dp category circle + short name ("Food & drinks" → "Food", `gridLabel`), tiles 4 dp padded, 6 dp circle → name (`Space.tileLabel`, PNG 241), rows 12 apart, columns 4; one tap picks | ui/pickers/Pickers.kt |
 | `LabeledField` | a form field with its label above (New bill, New goal, New account) | Fields.kt |
 | `SelectField` | a choice inside a form (New credit card › Bank, 191/192): the `PillTextField` pill with the label above, the value and ⌄ on the right, **no lead icon**; a tap opens its pick sheet (Bank sheet 196: pill search, Your banks / All banks, text-only `PickRow`s) | Fields.kt |
 | `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |

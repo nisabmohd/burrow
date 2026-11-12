@@ -32,7 +32,6 @@ object Space {
     val empty = 40.dp         // above and below an empty state
     val emptyTop = 32.dp      // above the illustrated empty state (the ghost cards)
     val keypad = 6.dp         // between keypad keys (17)
-    val tileLabel = 6.dp      // a grid tile's circle → its name (What was it for?, 241)
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
     val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
     val navBarEnd = 8.dp      // at each end of the bottom nav, so its end pills sit ~16 dp in, like the screen

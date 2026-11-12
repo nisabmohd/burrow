@@ -117,8 +117,8 @@ stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue 
   (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.
 
 ## Review sorted (Room v11, 12 Nov)
-- `CaptureEntity.categoryPicked` (default false): set when the user picks the category in Review (the Review sheet's chips,
-  More, or What was it for? 241). To review's **Ready to save** = a transfer, a refund, a picked category, or the category
+- `CaptureEntity.categoryPicked` (default false): set when the user picks the category in Review (the Review sheet's chips
+  or More). To review's **Ready to save** = a transfer, a refund, a picked category, or the category
   Burrow *knows* (`CaptureRepository.knownCategory`: the merchant's usual category, else the message's words). Anything else
   waits under **Pick a category** ("Burrow isn't sure"); "Save N ready" never saves those.
 

@@ -1515,12 +1515,11 @@
     <string name="delete_goal_text_money">%1$s geht zurück auf die Konten, von denen es kam.</string>
     <string name="delete_goal_text_empty">Es wurde nichts hinzugefügt.</string>
     <string name="ready_to_save">Bereit zum Speichern</string>
-    <string name="knows_these_shops">Burrow kennt diese Läden</string>
+    <string name="review_seen_before">Schon bekannt</string>
     <string name="pick_a_category_header">Kategorie wählen</string>
-    <string name="new_shops">Neue Läden</string>
+    <string name="review_new">Neu für Burrow</string>
     <string name="not_sure_tap_to_pick">Burrow ist unsicher · tippen zum Wählen</string>
     <string name="pick_categories_first">Erst Kategorien wählen</string>
-    <string name="what_was_it_for">Wofür war das?</string>
     <plurals name="save_n_ready">
         <item quantity="one">%d bereite speichern</item>
         <item quantity="other">%d bereite speichern</item>

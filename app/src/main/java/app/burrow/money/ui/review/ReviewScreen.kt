@@ -101,7 +101,6 @@ fun ReviewScreen(
     var tab by rememberSaveable { mutableStateOf(start) }
     var open by rememberSaveable { mutableStateOf<Long?>(null) }
     var moreFor by rememberSaveable { mutableStateOf<Long?>(null) }
-    var pickFor by rememberSaveable { mutableStateOf<Long?>(null) }
     val snackbar = LocalSnackbar.current
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
@@ -124,7 +123,7 @@ fun ReviewScreen(
         )
         AnimatedContent(tab, Modifier.weight(1f), transitionSpec = { fadeThrough() }, label = "review") { t ->
             when (t) {
-                ReviewTab.TO_REVIEW -> ToReviewTab(items, missed.size, onOpen = { open = it }, onPick = { pickFor = it }, onSave = save, onIgnore = ignore, onBack = onBack, onMissed = { tab = ReviewTab.NOT_UNDERSTOOD })
+                ReviewTab.TO_REVIEW -> ToReviewTab(items, missed.size, onOpen = { open = it }, onSave = save, onIgnore = ignore, onBack = onBack, onMissed = { tab = ReviewTab.NOT_UNDERSTOOD })
                 ReviewTab.NOT_UNDERSTOOD -> NotUnderstoodTab(
                     missed, onTeach,
                     onIgnore = { id -> missedVm.ignore(id) { undo -> snackbar.show(context.getString(R.string.ignored), undo) } },
@@ -172,9 +171,6 @@ fun ReviewScreen(
             onDismiss = { open = null },
         )
     }
-    items.firstOrNull { it.capture.id == pickFor }?.let { item ->
-        PickCategorySheet(item, onPick = { vm.choose(item.capture.id, it); pickFor = null }, onDismiss = { pickFor = null })
-    }
     items.firstOrNull { it.capture.id == moreFor }?.let { item ->
         CategorySheet(item.allCategories, null, item.category?.id, { vm.choose(item.capture.id, it.id); moreFor = null }, { moreFor = null })
     }
@@ -185,7 +181,6 @@ private fun ToReviewTab(
     items: List<ReviewItem>,
     missed: Int,
     onOpen: (Long) -> Unit,
-    onPick: (Long) -> Unit,
     onSave: (Long) -> Unit,
     onIgnore: (Long) -> Unit,
     onBack: () -> Unit,
@@ -211,7 +206,7 @@ private fun ToReviewTab(
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = Space.screen)) {
         // Ready to save: Burrow knows these shops. Swipe right Save, left Ignore; tap opens the Review sheet (234).
         if (ready.isNotEmpty()) {
-            item(key = "ready-header", contentType = "header") { SectionHeader(stringResource(R.string.ready_to_save), meta = stringResource(R.string.knows_these_shops)) }
+            item(key = "ready-header", contentType = "header") { SectionHeader(stringResource(R.string.ready_to_save), meta = stringResource(R.string.review_seen_before)) }
             item(key = "ready", contentType = "group") {
                 ListGroup {
                     ready.forEachIndexed { i, item ->
@@ -235,9 +230,9 @@ private fun ToReviewTab(
                 }
             }
         }
-        // Pick a category: new shops. Tap opens What was it for? (241); only Ignore by swipe (nothing to save yet).
+        // Pick a category: new shops. Tap opens the same Review sheet, nothing picked yet; only Ignore by swipe.
         if (unsure.isNotEmpty()) {
-            item(key = "unsure-header", contentType = "header") { SectionHeader(stringResource(R.string.pick_a_category_header), meta = stringResource(R.string.new_shops)) }
+            item(key = "unsure-header", contentType = "header") { SectionHeader(stringResource(R.string.pick_a_category_header), meta = stringResource(R.string.review_new)) }
             item(key = "unsure", contentType = "group") {
                 ListGroup {
                     unsure.forEachIndexed { i, item ->
@@ -254,7 +249,7 @@ private fun ToReviewTab(
                                     supportingColor = MaterialTheme.colorScheme.primary,
                                     lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
                                     trailing = { AmountTrailing(item.amountText(money)) },
-                                    onClick = { onPick(cap.id) },
+                                    onClick = { onOpen(cap.id) },
                                 )
                             }
                         }
@@ -336,7 +331,8 @@ private fun Hint(text: String) {
 
 /**
  * Review sheet (234): the payee, "−₹180 · HDFC Savings · 8:05 AM", the message with what was read
- * highlighted, Category chips (the guess, two more, More), Edit details, then Ignore · Save.
+ * highlighted, Category chips (the guess, two more, More), Edit details, then Ignore · Save. Every row opens it, new
+ * shops too (user, 12 Nov: no separate What was it for? sheet): those start with no chip picked and Save waits.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -352,16 +348,23 @@ private fun ReviewSheet(
     val money = LocalMoney.current
     val dates = rememberDateText()
     val cap = item.capture
+    // Save before a category: say so under the chips, in the sheet (a snackbar would sit behind it), as New expense does.
+    var tried by rememberSaveable(cap.id) { mutableStateOf(false) }
     BurrowSheet(onDismiss) {
         SheetHeader(item.title(), onDismiss, listOfNotNull(item.amountText(money), item.accountName, whenText(cap, dates)).joinToString(" · "))
         SheetBody {
-            if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, marksFor(item.spans))
+            if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, marksFor(item.spans), compact = true)
             Column {
                 SectionHeader(stringResource(R.string.category))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
-                    item.chips.forEach { cat -> Chip(cat.name, cat.id == item.category?.id, { onChoose(cat.id) }) }
+                    // A new shop starts with nothing picked: Burrow's guess is only "your most used" (44, user 12 Nov).
+                    item.chips.forEach { cat -> Chip(cat.name, item.sure && cat.id == item.category?.id, { onChoose(cat.id) }) }
                     Chip(stringResource(R.string.more), false, onMore, icon = painterResource(R.drawable.ic_more_horiz_regular))
                 }
+                if (tried && !item.sure) Text(
+                    stringResource(R.string.pick_category_to_save), style = BurrowType.body, color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth().padding(start = Space.headingInset, top = Space.small),
+                )
             }
             ListGroup {
                 ListRow(
@@ -374,25 +377,10 @@ private fun ReviewSheet(
         }
         SheetFooter {
             BurrowButton(stringResource(R.string.ignore), onIgnore, Modifier.weight(1f), ButtonKind.TONAL, height = Size.buttonBottom)
-            BurrowButton(stringResource(R.string.save), onSave, Modifier.weight(1f), icon = painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom)
-        }
-    }
-}
-
-/**
- * What was it for? (241): for a payment Burrow isn't sure of. "Myntra · −₹1,499 · Yesterday", a grid of the
- * categories, then the message itself. One tap picks; the row moves up to Ready to save.
- */
-@Composable
-private fun PickCategorySheet(item: ReviewItem, onPick: (Long) -> Unit, onDismiss: () -> Unit) {
-    val money = LocalMoney.current
-    val dates = rememberDateText()
-    val cap = item.capture
-    BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.what_was_it_for), onDismiss, listOf(item.title(), item.amountText(money), whenText(cap, dates)).joinToString(" · "))
-        SheetBody {
-            app.burrow.money.ui.pickers.CategoryGrid(item.allCategories, { onPick(it.id) })
-            if (cap.body.isNotEmpty()) MessageBox(item.from, cap.body, emptyList())
+            BurrowButton(
+                stringResource(R.string.save), { if (item.sure) onSave() else tried = true }, Modifier.weight(1f), if (item.sure) ButtonKind.FILLED else ButtonKind.OFF,
+                icon = painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom,
+            )
         }
     }
 }

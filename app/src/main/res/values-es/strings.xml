@@ -1572,12 +1572,11 @@
     <string name="delete_goal_text_money">%1$s vuelve a las cuentas de las que salió.</string>
     <string name="delete_goal_text_empty">No se le añadió nada.</string>
     <string name="ready_to_save">Listos para guardar</string>
-    <string name="knows_these_shops">Burrow conoce estas tiendas</string>
+    <string name="review_seen_before">Ya conocidos</string>
     <string name="pick_a_category_header">Elige una categoría</string>
-    <string name="new_shops">Tiendas nuevas</string>
+    <string name="review_new">Nuevos para Burrow</string>
     <string name="not_sure_tap_to_pick">Burrow no está seguro · toca para elegir</string>
     <string name="pick_categories_first">Primero elige las categorías</string>
-    <string name="what_was_it_for">¿Para qué fue?</string>
     <plurals name="save_n_ready">
         <item quantity="one">Guardar %d listo</item>
         <item quantity="other">Guardar %d listos</item>

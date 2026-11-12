@@ -861,8 +861,8 @@ def sms_capture_dedupes_and_reviews():
     assert d.exists("Pick a category", timeout=5), "new shops aren't under Pick a category"
     assert d.exists("Pick categories first", timeout=2), "Save should wait while no payment is ready"
     tap_node(d.find("isn’t sure", contains=True, timeout=2))
-    assert d.exists("What was it for?", timeout=3), "a new shop didn't open What was it for?"
-    d.tap("Food")
+    pick_in_review_sheet("Food & drinks")
+    d.tap("Close")
     assert d.exists("Ready to save", timeout=3), "picking a category didn't move the payment to Ready to save"
     save = [n for n in d.dump() if n.label == "Save 1 ready"]
     assert save, "no Save 1 ready button (only the known shop saves)"
@@ -1114,15 +1114,23 @@ def licences_open_their_text():
     d.back()
 
 
+def pick_in_review_sheet(category):
+    """A new shop's Review sheet (234): nothing picked and Save off; More › [category] picks it (user 12 Nov: no 241)."""
+    assert d.exists("Edit details", timeout=3), "a new shop didn't open the Review sheet"
+    d.tap("More")
+    d.tap(category)
+    time.sleep(0.5)
+
+
 def save_everything_waiting():
-    """To review: give every new shop a category (What was it for?), then the one Save button."""
+    """To review: give every new shop a category in its Review sheet, then the one Save button."""
     for _ in range(10):
         unsure = d.find("isn’t sure", contains=True, timeout=2)
         if unsure is None:
             break
         tap_node(unsure)
-        assert d.exists("What was it for?", timeout=3), "a new shop didn't open What was it for?"
-        d.tap("Other")
+        pick_in_review_sheet("Other")
+        d.tap("Close")
         time.sleep(0.5)
     for label in ("Save all", "Save payment", "ready"):
         n = d.find(label, contains=True, timeout=1)
@@ -1146,19 +1154,19 @@ def review_cards_save_one_by_one():
     assert d.exists("To review · ", contains=True, timeout=5), "Review has no To review tab with its count"
     row = d.find("tea7001", contains=True, timeout=3)
     assert row is not None, "the payment is not a row in To review"
-    tap_node(row)  # a new shop: What was it for? first (241), then it is ready
-    assert d.exists("What was it for?", timeout=3), "a new shop didn't open What was it for?"
-    d.tap("Food")
-    tap_node(d.find("tea7001", contains=True, timeout=3))
-    assert d.exists("Edit details", timeout=3), "tapping a ready row did not open the Review sheet"
+    tap_node(row)  # a new shop: the Review sheet with nothing picked; Save waits for a category
+    assert d.exists("Edit details", timeout=3), "tapping a row did not open the Review sheet"
+    tap_last("Save")
+    assert d.exists("Pick a category to save", timeout=2), "Save didn't wait for a category"
+    pick_in_review_sheet("Food & drinks")
     tap_last("Save")
     assert d.exists("Saved", timeout=3), "Save in the Review sheet didn't save"
-    # tea7002 is a new shop: tap → What was it for? (241) → pick; it moves up to Ready to save.
+    # tea7002 is a new shop: pick in its Review sheet, close; it moves up to Ready to save and swipes.
     row = d.find("tea7002", contains=True, timeout=3)
     assert row is not None, "the second payment is not in To review"
     tap_node(row)
-    assert d.exists("What was it for?", timeout=3), "a new shop didn't open What was it for?"
-    d.tap("Food")
+    pick_in_review_sheet("Food & drinks")
+    d.tap("Close")
     ready = any(d.exists(t, contains=True, timeout=2) for t in ("Save all", "Save payment", "ready"))
     assert ready, "picking a category didn't make it ready"
     row = d.find("tea7002", contains=True, timeout=3)

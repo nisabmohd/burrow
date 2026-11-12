@@ -6,7 +6,7 @@
 - Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
 - Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
 
-- Review sorts what it found: **Ready to save** (shops Burrow knows) and **Pick a category** (new shops, "Burrow isn't sure"). A new shop opens **What was it for?**, a grid of categories with the message; picking one moves it up. The bottom button saves only what is ready ("Save 2 ready", then "Save all 3").
+- Review sorts what it found: **Ready to save** (payees Burrow has seen before) and **Pick a category** (new to Burrow, "Burrow isn't sure"). Tapping a new shop opens the same Review sheet with nothing picked; picking a category moves it up. The bottom button saves only what is ready ("Save 2 ready", then "Save all 3").
 - Not understood shows how many messages to check, each by its bank's name ("Kotak Bank", not "AX-KOTAKB"), and **Check them one by one**.
 
 - Messages Burrow couldn't read are now **checked, not taught**: Burrow reads the amount, who was paid, the account and the type itself and asks "Is this right?". Yes saves it and moves to the next one ("1 of 2"); No, fix it lists the parts, and fixing one rings what it could be in the message. When the message doesn't say whether money went out or in, Burrow asks.

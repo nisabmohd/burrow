@@ -23,7 +23,6 @@ class TokensTest {
     /** Gaps measured off a PNG that sit off the grid, with where they were measured. */
     private val offGrid = mapOf(
         "keypad" to "6 dp between keypad keys, PNG 17 (measured 12 Nov)",
-        "tileLabel" to "6 dp circle → name in the category grid, PNG 241 / prototype .vtile gap",
     )
 
     @Test fun everySpaceIsOnTheGrid() {
