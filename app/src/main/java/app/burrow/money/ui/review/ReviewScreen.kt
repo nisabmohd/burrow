@@ -217,7 +217,7 @@ private fun ToReviewTab(
                     else IconCircle(painterResource(R.drawable.ic_help_duotone))
                 },
                 title = item.title(),
-                line = listOfNotNull(item.accountName, whenText(cap, dates)).joinToString(" · "),
+                line = listOfNotNull(item.accountName, whenText(cap.receivedAt, dates)).joinToString(" · "),
                 amount = item.amountText(money),
                 messageFrom = item.from,
                 message = cap.body,
@@ -287,7 +287,7 @@ private fun NotUnderstoodTab(
             CheckCard(
                 lead = { IconCircle(painterResource(if (r.typeUnknown) R.drawable.ic_help_duotone else app.burrow.money.ui.teach.typeIcon(r.type))) },
                 title = r.picks[Part.PAYEE]?.let { app.burrow.money.ui.teach.payeeName(r.text.substring(it)) } ?: row.bank ?: app.burrow.money.ui.capture.senderName(m.sender),
-                line = listOfNotNull(app.burrow.money.ui.teach.accountText(r), dates.weekdayDay(dates.date(m.receivedAt))).joinToString(" · "),
+                line = listOfNotNull(app.burrow.money.ui.teach.accountText(r), whenText(m.receivedAt, dates)).joinToString(" · "),
                 // Unsigned until the type is known (116: "₹899"), then "−₹899" (244).
                 amount = if (r.typeUnknown) (r.read?.let { money.plain(it.amountMinor) } ?: "") else app.burrow.money.ui.teach.amountText(r, money),
                 messageFrom = row.bank ?: app.burrow.money.ui.capture.senderName(m.sender),
@@ -329,5 +329,5 @@ private fun ReviewItem.amountText(money: app.burrow.money.domain.MoneyFormat): S
 
 /** "8:05 AM" today, else "Yesterday" / the day. */
 @Composable
-private fun whenText(cap: CaptureEntity, dates: app.burrow.money.ui.DateText): String =
-    dates.day(dates.date(cap.receivedAt)).let { d -> if (d == stringResource(R.string.today)) dates.time(cap.receivedAt) else d }
+private fun whenText(at: Long, dates: app.burrow.money.ui.DateText): String =
+    dates.day(dates.date(at)).let { d -> if (d == stringResource(R.string.today)) dates.time(at) else d }

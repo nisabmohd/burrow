@@ -146,7 +146,10 @@ class CaptureRepository(
      */
     suspend fun nameFor(merchant: String?, body: String): String? {
         val alias = merchant?.let { db.txns().aliasFor(tidyPayee(it), it.trim()) }
-        return (alias ?: categoryWords(merchant, body)?.name ?: merchant?.let(::upiName))
+        // A readable payee names it ("swiggy.food@icici" is Swiggy Food, never "Food"); the message's plain word
+        // ("Petrol", "Medicines") only names a payment whose payee is missing or a code.
+        val readable = merchant?.let(::upiName) ?: merchant?.takeIf(::readablePayee)
+        return (alias ?: merchant?.let(::upiName) ?: (if (readable == null) categoryWords(merchant, body)?.name else null))
             ?.takeIf { merchant == null || !it.equals(tidyPayee(merchant), ignoreCase = true) }
     }
 
@@ -383,4 +386,10 @@ fun categoryTypeOf(type: app.burrow.money.capture.MoneyType): String? = when (ty
     app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
     app.burrow.money.capture.MoneyType.TRANSFER, app.burrow.money.capture.MoneyType.NOT_PAYMENT -> null
     else -> TxnType.EXPENSE
+}
+
+/** A payee that reads as a name: letters, not a UPI id and not a code of four or more digits. */
+fun readablePayee(raw: String): Boolean {
+    val p = raw.trim()
+    return '@' !in p && p.any(Char::isLetter) && p.count(Char::isDigit) < 4
 }

@@ -487,14 +487,12 @@ def new_transfer_between_accounts():
     d.tap("Transfer")
     assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
     keypad("1000")
-    # Your own account comes first (Kotak, made above; samples never default: QA 12 Nov) and the
-    # "to" account is filled in beside it.
+    # Your own accounts are filled in, from and to side by side (samples never default: QA 12 Nov). Onboarding's
+    # HDFC Savings is yours too, so it may be the From and Kotak (made above) the To.
     nodes = d.dump()
-    srcs = [n for n in nodes if n.label == "Kotak"]
-    assert srcs, "a transfer doesn't start from your own account"
-    # "Kotak" may show more than once (a recent pill too): the one with an account beside it is the From.
-    to = [n for src in srcs for n in nodes if n.label and n is not src and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
-    assert to, f"no 'to' account beside Kotak: {[x.label for x in nodes if x.label][:30]}"
+    mine = [n for n in nodes if n.label in ("Kotak", "HDFC Savings")]
+    pair = [(a, b) for a in mine for b in mine if a is not b and a.label != b.label and abs(a.center[1] - b.center[1]) < 40]
+    assert pair, f"the transfer's from and to aren't your own accounts: {[x.label for x in nodes if x.label][:30]}"
     d.tap("Save")
     snackbar()
     d.nav("Activity")
@@ -830,7 +828,11 @@ def capture_intro_turns_on():
         d.tap("ALLOW")
     # The intro opens the notification-access settings; grant it the way the switch there would.
     d.shell(f"cmd notification allow_listener {d.PACKAGE}/{d.PACKAGE}.capture.PaymentNotificationListener")
-    d.back()
+    # Back to the app: one step on API 35, two on 36 (it opens the list, then the app's page).
+    for _ in range(3):
+        d.back()
+        if d.exists("Bank SMS", timeout=3):
+            break
     assert d.exists("Bank SMS", timeout=5), "Allow did not end on Auto-capture"
 
 
@@ -1431,7 +1433,7 @@ def on_a_tab():
 # action → something only that screen shows
 LINKS = [
     ("NEW_EXPENSE", "New expense"), ("NEW_INCOME", "New income"), ("OPEN_PLAN", "Budgets"),
-    ("OPEN_INSIGHTS", "By category"), ("OPEN_ACCOUNTS", "Net worth"), ("OPEN_REVIEW", "To review"),
+    ("OPEN_INSIGHTS", "By category"), ("OPEN_ACCOUNTS", "Net worth"), ("OPEN_REVIEW", "Review"),
     ("SUNDAY_REVIEW", "Sunday review"), ("SEARCH", "Search payee, amount, note"),
 ]
 
@@ -1764,6 +1766,8 @@ def welcome_skip_budget_leaves_none():
 def two_cards_one_bill():
     # Designs 186–201: a second card from the same bank on the Same bill; SMS from either card's
     # digits land on the one account and each payment says which card paid it.
+    # It runs after the last fresh install (welcome_skip_budget_leaves_none): turn capture on first.
+    capture_intro_turns_on()
     recover()
     d.nav("Today")
     d.tap("Accounts")

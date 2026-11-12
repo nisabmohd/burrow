@@ -24,7 +24,8 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
    (so a renamed category is still found). The merchant's usual category comes first (what you chose wins), then
    the words' category, then your most used. Whole words only.
    **Merchant and expense name**: the merchant the message named is kept on the payment, hidden (`TxnEntity.merchant`);
-   the expense is named by its plain word when there is one ("Medicines"), else by the merchant. The notification,
+   the expense is named by the merchant when it reads as a name ("swiggy.food@icici" is Swiggy Food, "Sai Pharmacy"),
+   else by the message's plain word ("Medicines") when the merchant is missing or a code. The notification,
    To review and the Transaction screen (a Merchant row) show both; with no merchant the title is "₹500 on Petrol".
    Usual categories and bill matching read the hidden merchant too.
    **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")

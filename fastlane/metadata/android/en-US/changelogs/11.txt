@@ -1,0 +1,7 @@
+- Review: approve each payment right in its card, with the whole SMS and category chips.
+- Not understood: Burrow marks what it read; say yes once and messages like it are read.
+- Fix it rings what each part could be.
+- Long histories stay fast; card pages show their full history.
+- Payments are named by who was paid.
+- Dates read the way your language writes them.
+- Icons and empty states follow the final design.

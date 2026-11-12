@@ -32,7 +32,7 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
   each card account with digits one card (empty name, shown as "Card"). Backups v4 carry `cards`.
 - **Merchant and expense name** (v7): `txn.merchant` = the merchant the bank message named, kept out of sight (the
   payee is the expense's own name, "Medicines"); usual categories, aliases and bill matching read it. `capture.name` =
-  the expense name the message's words gave ("Petrol"), when they gave one. See CAPTURE.md.
+  the expense name: the readable merchant, else the message's plain word ("Petrol"), when there is one. See CAPTURE.md.
 - **Exchange rates**: `rate` (currency, perPrimary as BigDecimal text, setAt); each txn keeps its own `fxRate`.
 
 ## Entities

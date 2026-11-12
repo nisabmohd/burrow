@@ -17,4 +17,12 @@ class UpiNameTest {
         assertNull(upiName("Third Wave Coffee"))
         assertNull(upiName("@ybl"))
     }
+
+    @Test fun aReadablePayeeIsAName() {
+        // Its name comes from the payee, never from a category word inside it ("swiggy.food@icici" is not "Food").
+        assertEquals("Swiggy Food", upiName("swiggy.food@icici"))
+        org.junit.Assert.assertTrue(readablePayee("Sai Pharmacy"))
+        org.junit.Assert.assertFalse(readablePayee("PAYTMQR28100505"))
+        org.junit.Assert.assertFalse(readablePayee("9876543210@ybl"))
+    }
 }

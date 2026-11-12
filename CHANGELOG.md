@@ -12,6 +12,12 @@
 - Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.
 - Empty states stand out in light mode: the illustration's cards are white, with a fine outline and a soft shadow, instead of melting into the page; the back card is no longer cut off at one edge.
 - Not understood, when empty, says "Nothing to check"; a new payee in To review asks "what was it for?".
+- Review and New expense open the same category list, with this month's spending beside each category.
+- With large text, a Review card puts the amount under the name, so the name is never cut short.
+- A captured payment is named by who was paid: swiggy.food@icici is "Swiggy Food", no longer "Food". A word like "Petrol" names it only when the message has no readable payee.
+- Not understood cards show the time today, like To review, instead of a long date.
+- Date ranges follow your language: "Nov 1 – 13" in US English (it read "1 – Nov 13"), "1 – 13 Nov" elsewhere; a numeric date format keeps both dates whole.
+- New store screenshots: Today with your balance, Review and Not understood as cards.
 
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).

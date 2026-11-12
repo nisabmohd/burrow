@@ -118,10 +118,10 @@ fun FilterSheet(
 @Composable
 private fun Label(text: Int) = Text(stringResource(text), style = BurrowType.button, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = Space.headingInset, top = Space.small)) // every heading at 24 dp (TOKENS; the rule wins over PNG 13's 20)
 
-/** "1 – 19 Oct", "19 Oct", "28 Sep – 4 Oct". */
+/** "1 – 19 Oct" (or "Oct 1 – 19", as the locale writes it), "19 Oct", "28 Sep – 4 Oct". */
 fun DateText.range(r: DayRange): String = when {
     r.start == r.end -> shortDay(r.start)
-    r.start.month == r.end.month && r.start.year == r.end.year -> "${r.start.dayOfMonth} – ${shortDay(r.end)}"
+    r.start.month == r.end.month && r.start.year == r.end.year -> sameMonth(r.start, r.end)
     else -> "${shortDay(r.start)} – ${shortDay(r.end)}"
 }
 
