@@ -3,20 +3,13 @@
 Only what is left. Finished work lives in git history and `CHANGELOG.md`; tick a box, then delete it.
 Screen numbers point to `design/screens/`.
 
-## 0.4.0: left for me (emulator)
-- [ ] Package: release APKs + AAB + source zip in `build/dist/v0.4.0/` (building now)
-- [ ] Compare with the PNGs (light; dark in the app): 17, 36, 44, 52, 63, 91, 116, 117, 149, 170, 175, 178, 234–238;
-      savings 202–205, 208, 209, 211, 213–226 and empty states 09, 16, 41, 185, 222, 223
-- [ ] Smoke: savings (New savings Once / Every month / Any time / market value, Add money → new deposit, Pay instalment,
-      Update value, Edit savings, Sunday review Update values); Teach Type sheet; refund capture with a taught rule
-- [ ] Last commit (not pushed) and the rebuilt `build/dist/v0.4.0/` (store screenshots stay as they are: user, 13 Nov)
 
 ## Needs you
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
 - [ ] Google Cloud: OAuth clients of type Android for `app.burrow.money` with the SHA-1 of the Play app-signing key,
       the release key and the debug key; turn on the Google Drive API
-- [ ] Play Console Data safety for Drive backup (`release/data-safety.md`)
+- [ ] When Drive goes on: Google Cloud setup (`~/Downloads/burrow-google-drive-setup.md`), set `DRIVE_BACKUP` true in app/build.gradle.kts, Play Console Data safety (`release/data-safety.md`)
 
 ## On your phone (USB debugging; user will connect it)
 - [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch

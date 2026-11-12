@@ -1739,7 +1739,7 @@ def two_cards_one_bill():
     n = d.find("to review", contains=True, timeout=6)
     assert n is not None, "the card payments aren't waiting in To review"
     tap_node(n)
-    d.tap("Save 2 payments", contains=True)
+    d.tap("payments", contains=True)  # "Save N payments": earlier checks may leave others waiting
     time.sleep(1)
     d.back()
     d.nav("Activity")
