@@ -86,6 +86,9 @@ object Size {
     val wavyHeight = 14.dp
     val thinBar = 8.dp
     val handle = 32.dp        // a sheet's drag handle (4 dp high: Space.grid)
+    val handleArea = 12.dp    // the handle's area above a sheet's content (8 above the 4 dp handle)
+    val markPad = 4.dp        // a highlighted word's pill reaches this far past its letters
+    val markRing = 1.5.dp     // the outline of a ringed (tappable, not yet picked) word
     val dot = 8.dp            // step dots (intro); the current step is a pill
     val lineChart = 140.dp    // Insights' running-total line
     val sparkline = 48.dp     // small lines in widgets
@@ -154,6 +157,8 @@ object Chart {
     val lineBefore = 2.dp      // the dashed period before; also a Sparkline
     val linePad = 2.dp         // half the line, so its top and ends aren't cut
     val lineDot = 3.dp         // a running total with one day
+    val legendSwatch = 16.dp   // a legend's line sample (36)
+    val legendSolid = 3.dp     // this period's sample: solid primary
     val sparkPad = 1.dp
     val stackGap = 3.dp        // between parts of the By category bar; the smallest part
     val splitGap = 4.dp        // between Money in and Money out

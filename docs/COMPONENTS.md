@@ -13,7 +13,7 @@ if something is missing, add a component here first.
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing, **2 dp primary ring while focused** (137, 143); `lines > 1` = a tall box with 24 dp corners, icon and text at the top (Paste a message 121) | Controls.kt |
 | `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle (`neutral` for something not yours: a built-in pack, 118); the centred header when the big line is words ("142 payments recorded") | Blocks.kt |
 | `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); header optional (none under a card that already names the sender, 116) | MessageText.kt |
-| `MessageCard` | a message the app found (To review 44, Not understood 116): circle, title, line, optional amount, ✕; the message; optional chips; **one full-width tonal button** (Teach), or two side by side (To review: Edit · Save; stacked at large text). The only cards with buttons; they never swipe (C2) | MessageCard.kt |
+| `ReviewSheet` (Review, 234) | a found payment opened from its row: payee, "−₹180 · account · time", `MessageBox`, Category chips + More, "Edit details" row, footer Ignore (tonal) · Save. To review and Not understood are plain `ListRow`s in `SwipeRow`s (no cards with buttons) | ReviewScreen.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
@@ -36,6 +36,7 @@ if something is missing, add a component here first.
 | `CappedFontScale` | caps font scaling (1.3×) for text inside fixed shapes only: nav labels, keypad digits, ring numbers | CappedFontScale.kt |
 | `ThinBar` | a thin progress bar (budget and goal rows) | Blocks.kt |
 | `ChartCard` / `AverageLegend` / `ChartHeaderLink` | card with icon + label (+ legend, or "All days" as a `ChartHeaderLink`: plain primary text, never a TextButton in the 24 dp row), the big number, one line, then the chart | ChartCard.kt |
+| `LineLegend` | one legend entry under a line chart (36): a 16 dp line sample (this period solid 3 dp primary in the text colour; before dashed 2 dp outline, muted) + "1 – 19 Oct  ₹16.4k" | ChartCard.kt |
 | `CumulativeLineChart` · `Sparkline` · `StackBar` · `DonutChart` · `SplitBar` · `heatColor` | the Insights line vs the period before; widget lines; By category bar; Top category ring; Money in and out; heatmap tones | Charts.kt |
 | `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |

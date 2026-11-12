@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 private const val MAX_SHEET_FRACTION = 0.9f
 
 /** The sheet's drag handle area (8 dp above a 4 dp handle), which sits above the content. */
-private val DRAG_HANDLE = 12.dp
+private val DRAG_HANDLE = app.burrow.money.ui.theme.Size.handleArea
 
 /**
  * Every bottom sheet in the app: opens fully, sits on the bottom edge, and leaves the top 10% of

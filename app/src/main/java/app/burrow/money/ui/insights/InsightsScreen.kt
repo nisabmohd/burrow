@@ -172,19 +172,16 @@ private fun SpendCard(s: InsightsState) {
     ) {
         CumulativeLineChart(s.line, s.previousLine, Modifier.semantics { contentDescription = "${money.plain(s.spent)}" })
         Spacer(Modifier.height(Space.small))
-        // Large text: the legend gets its own line under the dates so nothing breaks mid-word.
-        val large = isLargeText()
-        val legend = @Composable {
-            Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Spacer(Modifier.size(Space.card))
-            Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-        }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant)
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) { if (!large) legend() }
+        // The x-axis keeps only the start and end dates; under it one legend: this period solid, before dashed,
+        // each with its total (36). Large text puts the two entries one under the other.
+        Row(Modifier.fillMaxWidth()) {
+            Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f))
             Text(dates.shortDay(s.range.end), style = BurrowType.label, color = c.onSurfaceVariant)
         }
-        if (large) Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.Center) { legend() }
+        val now = @Composable { app.burrow.money.ui.components.LineLegend(stringResource(R.string.legend_period, dates.range(s.range), money.short(s.spent)), before = false) }
+        val before = @Composable { app.burrow.money.ui.components.LineLegend(stringResource(R.string.legend_period, dates.range(s.previousRange), money.short(s.previousSpent)), before = true) }
+        if (isLargeText()) Column(Modifier.padding(top = Space.block), verticalArrangement = Arrangement.spacedBy(Space.small)) { now(); if (s.previousSpent > 0) before() }
+        else Row(Modifier.fillMaxWidth().padding(top = Space.block), horizontalArrangement = Arrangement.spacedBy(Space.card)) { now(); if (s.previousSpent > 0) before() }
     }
 }
 

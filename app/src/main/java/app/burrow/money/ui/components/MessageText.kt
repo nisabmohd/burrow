@@ -61,7 +61,7 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
             )
             .drawBehind {
                 val l = layout ?: return@drawBehind
-                val padX = 4.dp.toPx()
+                val padX = app.burrow.money.ui.theme.Size.markPad.toPx()
                 marks.forEach { m ->
                     if (m.range.isEmpty() || m.range.last >= text.length) return@forEach
                     val first = l.getLineForOffset(m.range.first)
@@ -77,7 +77,7 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
                         when (m.style) {
                             MarkStyle.STRONG -> drawRoundRect(c.primaryContainer, Offset(left, top), GSize(right - left, h), r)
                             MarkStyle.SOFT -> drawRoundRect(c.secondaryContainer, Offset(left, top), GSize(right - left, h), r)
-                            MarkStyle.RING -> drawRoundRect(c.primary, Offset(left, top), GSize(right - left, h), r, style = Stroke(1.5.dp.toPx()))
+                            MarkStyle.RING -> drawRoundRect(c.primary, Offset(left, top), GSize(right - left, h), r, style = Stroke(app.burrow.money.ui.theme.Size.markRing.toPx()))
                         }
                     }
                 }

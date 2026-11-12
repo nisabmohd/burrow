@@ -54,6 +54,13 @@ class ProjectRulesTest {
     @Test fun textSizesOnlyInTypeKt() = assertNone("raw .sp outside Type.kt",
         violations { f, _, l -> f.name != "Type.kt" && Regex("""\d\.sp\b|\d+\.sp\b""").containsMatchIn(l) && !l.trim().startsWith("//") && !l.trim().startsWith("*") })
 
+    /** One place for sizes: change Dimens.kt and the whole app follows (as colours, text and motion). 0.dp is not a size. */
+    @Test fun sizesOnlyInDimensKt() = assertNone("raw .dp outside Dimens.kt: add a token to Space / Size / Chart",
+        violations { f, _, l ->
+            f.path.replace('\\', '/').contains("/ui/theme/").not() &&
+                Regex("""(?<![\w.])(?!0\.dp)\d+(\.\d+)?\.dp\b""").containsMatchIn(l) && !l.trim().startsWith("//") && !l.trim().startsWith("*")
+        })
+
     @Test fun noHardCodedUserText() = assertNone("Text(\"…\") with words: use strings.xml",
         violations { _, _, l ->
             Regex("""\bText\(\s*"([^"]*)"""").find(l)?.groupValues?.get(1)
@@ -173,8 +180,8 @@ class ProjectRulesTest {
             "ui/plan/PlanDetailScreens.kt" to listOf("s.rows.isEmpty()", "s.txns.isEmpty()", "s.added.isEmpty()"),
             "ui/insights/InsightsScreen.kt" to listOf("s.txns.isEmpty()"),
             "ui/accounts/AccountScreens.kt" to listOf("s.txns.isEmpty()"),
-            "ui/teach/MissedScreen.kt" to listOf("items.isEmpty()"),
-            "ui/review/ReviewScreen.kt" to listOf("items.isEmpty()"),
+            // Both Review tabs: To review and Not understood (44, 117).
+            "ui/review/ReviewScreen.kt" to listOf("items.isEmpty()", "missed.isEmpty()"),
         )
         val missing = need.flatMap { (path, checks) ->
             val t = File(main, "java/app/burrow/money/$path").readText()

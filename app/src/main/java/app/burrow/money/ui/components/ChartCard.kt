@@ -67,6 +67,32 @@ fun AverageLegend(text: String) {
 }
 
 /**
+ * One legend entry under a line chart (36): a line sample, the period and its total. This period is
+ * a solid primary line and reads in the text colour; [before] is a dashed outline line and muted.
+ */
+@Composable
+fun LineLegend(text: String, before: Boolean, modifier: Modifier = Modifier) {
+    val c = MaterialTheme.colorScheme
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.small)) {
+        androidx.compose.foundation.Canvas(Modifier.size(app.burrow.money.ui.theme.Chart.legendSwatch, app.burrow.money.ui.theme.Chart.legendSolid)) {
+            val y = size.height / 2
+            if (before) drawLine(
+                c.outline, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y),
+                strokeWidth = app.burrow.money.ui.theme.Chart.lineBefore.toPx(),
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(size.width / 5, size.width / 5)),
+            ) else drawLine(
+                c.primary, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y),
+                strokeWidth = size.height, cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            )
+        }
+        Text(
+            text, style = BurrowType.label, color = if (before) c.onSurfaceVariant else c.onSurface,
+            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/**
  * A text link for a [ChartCard] header ("All days"): plain text in primary, because the header row
  * is 24 dp and a TextButton's padding clipped it. The 48 dp tap area still reaches past the row.
  */
