@@ -52,10 +52,11 @@ private val REFERENCE = Regex("(?i)(?:ref(?:erence)?\\s*(?:no\\.?)?|refno|utr|tx
 fun referenceIn(body: String): String? = REFERENCE.find(body)?.groupValues?.get(1)
 
 private val MONEY = Regex("(?i)(?:rs\\.?|inr|₹|aed|usd|eur|gbp|[$€£])\\s?\\d")
-private val MONEY_WORDS = Regex("(?i)\\b(debited|credited|spent|paid|sent|received|withdrawn|purchase|dr\\.?|cr\\.?)\\b")
+private val MONEY_WORDS = Regex("(?i)\\b(debited|credited|spent|paid|sent|received|withdrawn|purchase|dr\\.?|cr\\.?|txn|transaction)\\b")
 
 /**
- * A message worth keeping for Teach when no rule reads it: an amount and a money word, from a
+ * A message worth keeping for Teach when no rule reads it: an amount and a money word ("Txn" too: a card's
+ * "Txn of Rs 899" says neither out nor in, so Check a message asks, 240), from a
  * business sender (alphanumeric ids like "AX-KOTAKB", or an app). Personal numbers never count.
  */
 fun looksLikePayment(sender: String, body: String): Boolean {

@@ -1600,4 +1600,28 @@
         <item quantity="one">Check it</item>
         <item quantity="other">Check them one by one</item>
     </plurals>
+    <string name="check_a_message">Check a message</string>
+    <string name="n_of_m">%1$d of %2$d</string>
+    <string name="burrow_read_it_as">Burrow read it as</string>
+    <string name="from_your_sms">From your SMS</string>
+    <string name="is_this_right">Is this right?</string>
+    <string name="no_fix_it">No, fix it</string>
+    <string name="yes_save">Yes, save</string>
+    <string name="whats_wrong">What’s wrong?</string>
+    <string name="tap_part_to_fix">Tap the part to fix.</string>
+    <string name="tap_right_amount">Tap the right amount</string>
+    <string name="tap_right_name">Tap the right name</string>
+    <string name="tap_right_account">Tap the right account</string>
+    <string name="ringed_line">The ringed parts of the message are what it could be.</string>
+    <string name="type_unknown">Type unknown</string>
+    <string name="to_name">to %1$s</string>
+    <string name="from_name">from %1$s</string>
+    <string name="did_money_go">Did money go out or in?</string>
+    <string name="message_doesnt_say">The message doesn’t say.</string>
+    <string name="saved_read_from_now">Saved · messages like this are read from now on</string>
+    <string name="all_checked">All checked</string>
+    <string name="all_checked_line">Messages like these are read by themselves from now on.</string>
+    <string name="back_to_review">Back to Review</string>
+    <string name="not_set">Not set</string>
+    <string name="pick_type_first">Pick Expense, Income, Refund or Transfer first</string>
 </resources>

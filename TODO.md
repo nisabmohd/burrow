@@ -17,6 +17,9 @@ Screen numbers point to `design/screens/`.
       the alignment rule says every heading starts at 24 dp (screen titles, section headers, sheet titles do).
       Follow the PNG (keep 20) or the rule (move to 24)?
 
+- [ ] India pack: an SBI Card rule ("Txn of Rs 899.00 on SBI Card ending 3321 at …", sender JD-SBICRD); until then Check a
+      message names it "SBICRD", not "SBI Card" (design 240). Use the capture-rules skill with real messages
+
 ## On your phone (USB debugging; user will connect it)
 - [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
       account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging

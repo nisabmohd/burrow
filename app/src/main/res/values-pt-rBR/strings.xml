@@ -1598,4 +1598,28 @@
         <item quantity="one">Conferir</item>
         <item quantity="other">Conferir uma por uma</item>
     </plurals>
+    <string name="check_a_message">Conferir uma mensagem</string>
+    <string name="n_of_m">%1$d de %2$d</string>
+    <string name="burrow_read_it_as">O Burrow leu assim</string>
+    <string name="from_your_sms">Do seu SMS</string>
+    <string name="is_this_right">Está certo?</string>
+    <string name="no_fix_it">Não, corrigir</string>
+    <string name="yes_save">Sim, salvar</string>
+    <string name="whats_wrong">O que está errado?</string>
+    <string name="tap_part_to_fix">Toque na parte a corrigir.</string>
+    <string name="tap_right_amount">Toque no valor certo</string>
+    <string name="tap_right_name">Toque no nome certo</string>
+    <string name="tap_right_account">Toque na conta certa</string>
+    <string name="ringed_line">As partes circuladas da mensagem são as opções possíveis.</string>
+    <string name="type_unknown">Tipo desconhecido</string>
+    <string name="to_name">para %1$s</string>
+    <string name="from_name">de %1$s</string>
+    <string name="did_money_go">O dinheiro saiu ou entrou?</string>
+    <string name="message_doesnt_say">A mensagem não diz.</string>
+    <string name="saved_read_from_now">Salvo · mensagens assim serão lidas daqui em diante</string>
+    <string name="all_checked">Tudo conferido</string>
+    <string name="all_checked_line">Mensagens assim serão lidas sozinhas daqui em diante.</string>
+    <string name="back_to_review">Voltar para Revisar</string>
+    <string name="not_set">Não definido</string>
+    <string name="pick_type_first">Escolha primeiro Gasto, Receita, Reembolso ou Transferência</string>
 </resources>

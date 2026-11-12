@@ -1598,4 +1598,28 @@
         <item quantity="one">Le vérifier</item>
         <item quantity="other">Les vérifier un par un</item>
     </plurals>
+    <string name="check_a_message">Vérifier un message</string>
+    <string name="n_of_m">%1$d sur %2$d</string>
+    <string name="burrow_read_it_as">Burrow l’a lu ainsi</string>
+    <string name="from_your_sms">De votre SMS</string>
+    <string name="is_this_right">Est-ce juste ?</string>
+    <string name="no_fix_it">Non, corriger</string>
+    <string name="yes_save">Oui, enregistrer</string>
+    <string name="whats_wrong">Qu’est-ce qui ne va pas ?</string>
+    <string name="tap_part_to_fix">Touchez la partie à corriger.</string>
+    <string name="tap_right_amount">Touchez le bon montant</string>
+    <string name="tap_right_name">Touchez le bon nom</string>
+    <string name="tap_right_account">Touchez le bon compte</string>
+    <string name="ringed_line">Les parties entourées du message sont les choix possibles.</string>
+    <string name="type_unknown">Type inconnu</string>
+    <string name="to_name">à %1$s</string>
+    <string name="from_name">de %1$s</string>
+    <string name="did_money_go">L’argent est-il sorti ou entré ?</string>
+    <string name="message_doesnt_say">Le message ne le dit pas.</string>
+    <string name="saved_read_from_now">Enregistré · les messages semblables seront lus désormais</string>
+    <string name="all_checked">Tout est vérifié</string>
+    <string name="all_checked_line">Les messages semblables seront lus tout seuls désormais.</string>
+    <string name="back_to_review">Retour à Vérifier</string>
+    <string name="not_set">Non défini</string>
+    <string name="pick_type_first">Choisissez d’abord Dépense, Revenu, Remboursement ou Virement</string>
 </resources>

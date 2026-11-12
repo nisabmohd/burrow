@@ -9,6 +9,9 @@
 - Review sorts what it found: **Ready to save** (shops Burrow knows) and **Pick a category** (new shops, "Burrow isn't sure"). A new shop opens **What was it for?**, a grid of categories with the message; picking one moves it up. The bottom button saves only what is ready ("Save 2 ready", then "Save all 3").
 - Not understood shows how many messages to check, each by its bank's name ("Kotak Bank", not "AX-KOTAKB"), and **Check them one by one**.
 
+- Messages Burrow couldn't read are now **checked, not taught**: Burrow reads the amount, who was paid, the account and the type itself and asks "Is this right?". Yes saves it and moves to the next one ("1 of 2"); No, fix it lists the parts, and fixing one rings what it could be in the message. When the message doesn't say whether money went out or in, Burrow asks.
+- Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.
+
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
 - Rate in About opens Google Play's rating card (Google Play build).

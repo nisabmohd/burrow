@@ -1475,4 +1475,28 @@
     <plurals name="check_them_one_by_one">
         <item quantity="other">1 件ずつ確認</item>
     </plurals>
+    <string name="check_a_message">メッセージを確認</string>
+    <string name="n_of_m">%1$d / %2$d</string>
+    <string name="burrow_read_it_as">Burrow の読み取り</string>
+    <string name="from_your_sms">SMS の内容</string>
+    <string name="is_this_right">合っていますか?</string>
+    <string name="no_fix_it">いいえ、直す</string>
+    <string name="yes_save">はい、保存</string>
+    <string name="whats_wrong">どこが違いますか?</string>
+    <string name="tap_part_to_fix">直す部分をタップしてください。</string>
+    <string name="tap_right_amount">正しい金額をタップ</string>
+    <string name="tap_right_name">正しい名前をタップ</string>
+    <string name="tap_right_account">正しい口座をタップ</string>
+    <string name="ringed_line">囲まれた部分が候補です。</string>
+    <string name="type_unknown">種類が不明</string>
+    <string name="to_name">%1$s へ</string>
+    <string name="from_name">%1$s から</string>
+    <string name="did_money_go">お金は出ましたか、入りましたか?</string>
+    <string name="message_doesnt_say">メッセージには書かれていません。</string>
+    <string name="saved_read_from_now">保存しました · 同じようなメッセージは次から読み取ります</string>
+    <string name="all_checked">すべて確認しました</string>
+    <string name="all_checked_line">同じようなメッセージは次から自動で読み取ります。</string>
+    <string name="back_to_review">確認に戻る</string>
+    <string name="not_set">未設定</string>
+    <string name="pick_type_first">先に支出・収入・返金・振替を選んでください</string>
 </resources>

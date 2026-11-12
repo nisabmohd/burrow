@@ -45,6 +45,9 @@ class CaptureLogicTest {
         assertTrue(looksLikePayment("AX-KOTAKB", "Rs.2,350.00 debited from A/c XX4471"))
         assertFalse(looksLikePayment("+919812345678", "Rs.500 sent, check pls"))
         assertFalse(looksLikePayment("AX-KOTAKB", "Your statement is ready"))
+        // Final 12 Nov (240): a card's "Txn of Rs 899" has no out/in word, but it is a payment: Check a message asks.
+        assertTrue(looksLikePayment("JD-SBICRD", "Txn of Rs 899.00 on SBI Card ending 3321 at DECATHLON on 17/10/26. Avl lmt: Rs 62,101"))
+        assertFalse(looksLikePayment("JD-SBICRD", "Your card bill of Rs 5,000.00 is due on 28 Oct."))
     }
 
     @Test fun accountMatching() {

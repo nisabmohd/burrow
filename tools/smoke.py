@@ -963,8 +963,17 @@ def not_understood_waits_for_teach():
     row = d.find("Kotak Bank", timeout=3)  # the bank by name, never its sender id (116)
     assert row is not None, "the missed message doesn't name its bank"
     tap_node(row)
-    assert d.exists("Teach a message", timeout=5), "tapping a missed message did not open Teach"
-    d.tap("Close")
+    # Final 12 Nov (52): Burrow reads it first and asks; Yes, save keeps the rule and moves on.
+    assert d.exists("Check a message", timeout=5), "tapping a missed message did not open Check a message"
+    assert d.exists("Burrow read it as", timeout=2) and d.exists("Is this right?", timeout=2), "Check a message doesn't show its reading"
+    assert d.exists("−₹2,350", timeout=2), "Burrow didn't read the amount"
+    d.tap("No, fix it")
+    assert d.exists("What’s wrong?", timeout=3), "No, fix it didn't open Fix it"
+    d.tap("Amount")
+    assert d.exists("Tap the right amount", timeout=3), "fixing the amount doesn't ask for it"
+    d.tap("Done")
+    d.tap("Yes, save")
+    assert d.exists("messages like this are read", contains=True, timeout=3), "saving didn't say messages like it are read now"
     d.back()
 
 
@@ -1178,7 +1187,7 @@ def builtin_rules_list_like_yours_and_rename():
 
 
 @check
-def teach_has_type_filled_in():
+def pasted_message_is_read_first():
     open_more_row("Auto-capture")
     d.scroll_to("Message rules")
     d.tap("Message rules")
@@ -1188,9 +1197,9 @@ def teach_has_type_filled_in():
     tap_node(nodes[0]); d.type_text("Rs.99.00 debited from A/c XX1111")
     tap_node(nodes[1]); d.type_text("TESTBK")
     d.tap("Continue")
-    # 2026-11-12 (52, 235): Amount · Paid to · Account are tapped; Type is filled in by Burrow.
-    assert d.exists("Tap it in the message", timeout=5), "Teach doesn't say where to tap"
-    assert d.exists("Filled in after the account", timeout=2), "Teach has no Type row"
+    # Final 12 Nov (52): a pasted message is read the same way; its type comes from "debited".
+    assert d.exists("Burrow read it as", timeout=5), "a pasted message isn't read first"
+    assert d.exists("Expense", contains=True, timeout=2), "the type isn't filled in from the message's words"
     d.tap("Close")
     d.back()
 

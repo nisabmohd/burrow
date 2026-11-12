@@ -1541,4 +1541,28 @@
         <item quantity="one">Prüfen</item>
         <item quantity="other">Nacheinander prüfen</item>
     </plurals>
+    <string name="check_a_message">Nachricht prüfen</string>
+    <string name="n_of_m">%1$d von %2$d</string>
+    <string name="burrow_read_it_as">Burrow hat es so gelesen</string>
+    <string name="from_your_sms">Aus deiner SMS</string>
+    <string name="is_this_right">Stimmt das?</string>
+    <string name="no_fix_it">Nein, korrigieren</string>
+    <string name="yes_save">Ja, speichern</string>
+    <string name="whats_wrong">Was stimmt nicht?</string>
+    <string name="tap_part_to_fix">Tippe auf den Teil, der falsch ist.</string>
+    <string name="tap_right_amount">Tippe auf den richtigen Betrag</string>
+    <string name="tap_right_name">Tippe auf den richtigen Namen</string>
+    <string name="tap_right_account">Tippe auf das richtige Konto</string>
+    <string name="ringed_line">Die eingekreisten Teile der Nachricht kommen infrage.</string>
+    <string name="type_unknown">Art unbekannt</string>
+    <string name="to_name">an %1$s</string>
+    <string name="from_name">von %1$s</string>
+    <string name="did_money_go">Ging Geld raus oder rein?</string>
+    <string name="message_doesnt_say">Die Nachricht sagt es nicht.</string>
+    <string name="saved_read_from_now">Gespeichert · solche Nachrichten werden ab jetzt gelesen</string>
+    <string name="all_checked">Alles geprüft</string>
+    <string name="all_checked_line">Solche Nachrichten werden ab jetzt von selbst gelesen.</string>
+    <string name="back_to_review">Zurück zur Prüfung</string>
+    <string name="not_set">Nicht festgelegt</string>
+    <string name="pick_type_first">Wähle zuerst Ausgabe, Einnahme, Erstattung oder Umbuchung</string>
 </resources>

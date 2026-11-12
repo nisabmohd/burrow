@@ -49,6 +49,14 @@ number style) · **Test it** (paste any message; parts highlight live) · Use th
 taps (literal text around the tapped spans, digits generalised to `[\d,.]+`, the sender as the sender
 regex), shows a test on the original message, and saves a user rule.
 
+**Check a message (final 12 Nov, 52/235/239/240/149).** Not understood is checked, not taught: Burrow reads the message
+itself first (`RuleBuilder.firstAmount`, `guessPayee`: the first name after to / at / towards / VPA / from, `guessAccount`:
+a masked number or the digits after Card / ending / A/c; null rather than a wrong guess) and asks **Is this right?**.
+Yes, save keeps the rule and moves to the next waiting message ("1 of 2"); No, fix it lists Amount · Paid to · Account ·
+Type, and a part being fixed rings what it could be (`RuleBuilder.candidates`). With no out/in word the type is unknown
+(red), the screen asks **Did money go out or in?** and Yes, save waits for a pick. A message counts as a payment worth
+checking when it has an amount and a money word, "Txn" / "transaction" included (a card's "Txn of Rs 899").
+
 **Type (12 Nov, 235/236).** The user taps only Amount, Paid to and Account. Burrow fills in the type from the
 words in the message (`capture/TypeWords.kt`, tried in this order): Not a payment ("requested", "is due",
 "will be debited") · Refund ("refund", "refunded", "reversal", "cashback") · Transfer ("self transfer", "to your

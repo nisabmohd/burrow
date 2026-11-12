@@ -1514,4 +1514,28 @@
         <item quantity="one">जाँचें</item>
         <item quantity="other">एक-एक करके जाँचें</item>
     </plurals>
+    <string name="check_a_message">संदेश जाँचें</string>
+    <string name="n_of_m">%2$d में से %1$d</string>
+    <string name="burrow_read_it_as">Burrow ने इसे ऐसे पढ़ा</string>
+    <string name="from_your_sms">आपके SMS से</string>
+    <string name="is_this_right">क्या यह सही है?</string>
+    <string name="no_fix_it">नहीं, ठीक करें</string>
+    <string name="yes_save">हाँ, सेव करें</string>
+    <string name="whats_wrong">क्या गलत है?</string>
+    <string name="tap_part_to_fix">ठीक करने वाले हिस्से पर टैप करें।</string>
+    <string name="tap_right_amount">सही राशि पर टैप करें</string>
+    <string name="tap_right_name">सही नाम पर टैप करें</string>
+    <string name="tap_right_account">सही खाते पर टैप करें</string>
+    <string name="ringed_line">संदेश के घेरे गए हिस्से इसके विकल्प हैं।</string>
+    <string name="type_unknown">प्रकार पता नहीं</string>
+    <string name="to_name">%1$s को</string>
+    <string name="from_name">%1$s से</string>
+    <string name="did_money_go">पैसा गया या आया?</string>
+    <string name="message_doesnt_say">संदेश में नहीं लिखा है।</string>
+    <string name="saved_read_from_now">सेव हुआ · ऐसे संदेश अब से पढ़े जाएँगे</string>
+    <string name="all_checked">सब जाँच लिया</string>
+    <string name="all_checked_line">ऐसे संदेश अब से अपने-आप पढ़े जाएँगे।</string>
+    <string name="back_to_review">समीक्षा पर लौटें</string>
+    <string name="not_set">तय नहीं</string>
+    <string name="pick_type_first">पहले खर्च, आय, रिफ़ंड या ट्रांसफ़र चुनें</string>
 </resources>
