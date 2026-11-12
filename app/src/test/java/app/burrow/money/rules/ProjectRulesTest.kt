@@ -321,4 +321,16 @@ class ProjectRulesTest {
         }
         assertNone("Text( without style =", found)
     }
+
+    /**
+     * The one alignment rule (TOKENS): heading text (section labels, field labels; `button`, `label` or `titleSmall`
+     * on its own line) starts 24 dp from the edge, i.e. `Space.headingInset` inside the 16 dp content. A heading
+     * indented by any other step drifts off that line (the Filter sheet's labels sat at 20, 12 Nov).
+     */
+    @Test fun headingsStartAtTheHeadingInset() = assertNone("heading Text indented by something other than Space.headingInset",
+        violations { f, _, l ->
+            val c = code(l)
+            !inTheme(f) && Regex("""private fun \w*(Label|Header|Heading)\w*\(""").containsMatchIn(c) &&
+                Regex("""padding\(start = Space\.(?!headingInset)\w+""").containsMatchIn(c)
+        })
 }

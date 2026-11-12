@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The developer mark "mid apps", reversed for dark mode (user, 12 Nov): dark eyes and mouth on a white tile, so it shows on a dark page. Same geometry as drawable/ic_mid_apps.xml. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="44dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M112,0H400A112,112 0,0 1,512 112V400A112,112 0,0 1,400 512H112A112,112 0,0 1,0 400V112A112,112 0,0 1,112 0Z" />
+    <path
+        android:fillColor="#1C1B22"
+        android:pathData="M190,198a24,24 0,1 1,0 48a24,24 0,1 1,0 -48ZM322,198a24,24 0,1 1,0 48a24,24 0,1 1,0 -48Z" />
+    <path
+        android:strokeColor="#1C1B22"
+        android:strokeWidth="26"
+        android:strokeLineCap="round"
+        android:pathData="M172,324H340" />
+</vector>
