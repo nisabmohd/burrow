@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar add (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_add_duotone), tint = …) -->
+<!-- Solar add (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_add_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M4 12L20 12" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M12.0204 4L12.0205 20.0003" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12 5.5v13M5.5 12h13" />
 </vector>

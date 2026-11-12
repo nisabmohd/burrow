@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar clipboard-text (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_content_paste_duotone), tint = …) -->
+<!-- Solar content_paste (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_content_paste_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M16 4.00195C18.175 4.01406 19.3529 4.11051 20.1213 4.87889C21 5.75757 21 7.17179 21 10.0002V16.0002C21 18.8286 21 20.2429 20.1213 21.1215C19.2426 22.0002 17.8284 22.0002 15 22.0002H9C6.17157 22.0002 4.75736 22.0002 3.87868 21.1215C3 20.2429 3 18.8286 3 16.0002V10.0002C3 7.17179 3 5.75757 3.87868 4.87889C4.64706 4.11051 5.82497 4.01406 8 4.00195" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M7 14.5H15" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M7 18H12.5" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M8 3.5C8 2.67157 8.67157 2 9.5 2H14.5C15.3284 2 16 2.67157 16 3.5V4.5C16 5.32843 15.3284 6 14.5 6H9.5C8.67157 6 8 5.32843 8 4.5V3.5Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M16 4.002c2.175.012 3.353.109 4.121.877C21 5.758 21 7.172 21 10v6c0 2.829 0 4.243-.879 5.122C19.243 22 17.828 22 15 22H9c-2.828 0-4.243 0-5.121-.878C3 20.242 3 18.829 3 16v-6c0-2.828 0-4.242.879-5.121c.768-.768 1.946-.865 4.121-.877" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M8 14h8m-9-3.5h10m-8 7h6" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M8 3.5A1.5 1.5 0 0 1 9.5 2h5A1.5 1.5 0 0 1 16 3.5v1A1.5 1.5 0 0 1 14.5 6h-5A1.5 1.5 0 0 1 8 4.5z" />
 </vector>

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar bag (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_local_mall_fill), tint = …) -->
+<!-- Solar local_mall (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_local_mall_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M3.74181 20.5545C3.74181 20.5545 3.74181 20.5545 3.74181 20.5545C4.94143 22 7.17414 22 11.6395 22H12.3607C16.8261 22 19.0589 22 20.2585 20.5545M3.74181 20.5545C2.54219 19.1091 2.95365 16.9146 3.77657 12.5257C4.36179 9.40452 4.65441 7.84393 5.7653 6.92196M20.2585 20.5545C20.2585 20.5545 20.2585 20.5545 20.2585 20.5545C21.4581 19.1091 21.0466 16.9146 20.2237 12.5257C19.6385 9.40452 19.3459 7.84393 18.235 6.92196M18.235 6.92196C18.235 6.92196 18.235 6.92196 18.235 6.92196C17.1241 6 15.5363 6 12.3607 6H11.6395C8.46398 6 6.8762 6 5.7653 6.92196C5.7653 6.92196 5.7653 6.92196 5.7653 6.92196" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M3.794 12.03C4.331 9.342 4.6 8 5.487 7.134a4 4 0 0 1 .53-.434C7.04 6 8.41 6 11.15 6h1.703c2.739 0 4.108 0 5.13.7q.285.196.53.435C19.4 8 19.67 9.343 20.207 12.03c.771 3.856 1.157 5.784.269 7.15q-.241.373-.56.683C18.75 21 16.785 21 12.853 21H11.15c-3.933 0-5.899 0-7.065-1.138a4 4 0 0 1-.559-.683c-.888-1.366-.502-3.294.27-7.15Z" />
+    <path android:fillColor="@android:color/white" android:pathData="M14,9a1,1 0 1,0 2,0a1,1 0 1,0 -2,0Z" />
+    <path android:fillColor="@android:color/white" android:pathData="M8,9a1,1 0 1,0 2,0a1,1 0 1,0 -2,0Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M9 6V5a3 3 0 1 1 6 0v1" />
 </vector>

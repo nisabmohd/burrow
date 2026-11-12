@@ -5,6 +5,8 @@ Each meaning gets ic_<name>_regular.xml, ic_<name>_fill.xml and ic_<name>_duoton
 container (pill, circle), not the glyph. Viewport 24, white strokes (tint it).
 
 usage: python3 tools/solar_icon.py <path to @iconify-json/solar package> [meaning ...]
+       python3 tools/solar_icon.py --kit design/icons/solar-icons.json   # the design's own paths (12 Nov):
+           every meaning the kit has and the app uses is rewritten from it (bare glyphs included: add, close, check)
 e.g.   npm pack @iconify-json/solar && tar xzf iconify-json-solar-*.tgz
        python3 tools/solar_icon.py package                 # every icon in ICONS below
        python3 tools/solar_icon.py package hand_tap        # one
@@ -117,7 +119,14 @@ def shapes(body):
     out = []
 
     def walk(el, alpha, paint):
-        a = el.attrib
+        a = dict(el.attrib)
+        # A circle moved or flipped by a plain matrix (Solar's info dot: matrix(1 0 0 -1 11 9)): fold it into cx / cy.
+        if "transform" in a and el.tag == "circle":
+            m = [float(x) for x in a["transform"].removeprefix("matrix(").rstrip(")").replace(",", " ").split()]
+            if a["transform"].startswith("matrix(") and len(m) == 6 and m[1] == m[2] == 0 and abs(m[0]) == abs(m[3]) == 1:
+                a["cx"] = str(m[0] * float(a.get("cx", 0)) + m[4])
+                a["cy"] = str(m[3] * float(a.get("cy", 0)) + m[5])
+                del a["transform"]
         if "transform" in a or "clip-path" in a or "mask" in a or "stroke-dasharray" in a:
             raise ValueError(f"unsupported attribute on <{el.tag}>")
         alpha *= float(a.get("opacity", 1))
@@ -188,7 +197,31 @@ def main(pkg, names):
         sys.exit("\n".join(problems))
 
 
+def from_kit(path):
+    """Rewrites every weight the app has for each meaning in the design kit's solar-icons.json (meaning → SVG body)."""
+    kit = json.load(open(os.path.expanduser(path)))
+    problems, written = [], 0
+    for name, body in sorted(kit.items()):
+        weights = [w for w in WEIGHTS if os.path.exists(os.path.join(OUT, f"ic_{name}_{w}.xml"))]
+        if not weights:
+            continue  # the design has it, the app doesn't use it
+        try:
+            els = shapes(body)
+        except ValueError as e:
+            problems.append(f"{name}: {e}")
+            continue
+        for weight in weights:
+            open(os.path.join(OUT, f"ic_{name}_{weight}.xml"), "w").write(drawable(name, weight, f"{name} (design kit)", els))
+            written += 1
+    print(f"wrote {written} drawables from {path}")
+    if problems:
+        sys.exit("\n".join(problems))
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2:])
+    if sys.argv[1] == "--kit":
+        from_kit(sys.argv[2])
+    else:
+        main(sys.argv[1], sys.argv[2:])

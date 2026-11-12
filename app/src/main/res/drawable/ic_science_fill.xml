@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar test-tube (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_science_fill), tint = …) -->
+<!-- Solar science (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_science_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M19 7.80374L18.1594 7.31987L9.74872 2.49415M9.74872 2.49415L2.65093 14.7455C1.31093 17.0584 2.10615 20.0159 4.42709 21.3513C6.74803 22.6867 9.7158 21.8942 11.0558 19.5813L12.5511 17.0003M9.74872 2.49415L8.91283 2M12.5511 17.0003L14.1886 14.1738L15.902 11.2163L18.1594 7.31987M15.902 11.2163L13.344 9.74451M14.1886 14.1738L9.98568 11.7556M12.5511 17.0003L9.93838 15.4971" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M22 14.9166C22 16.0672 21.1046 16.9999 20 16.9999C18.8954 16.9999 18 16.0672 18 14.9166C18 14.1967 18.783 13.2358 19.3691 12.6174C19.7161 12.2512 20.2839 12.2512 20.6309 12.6174C21.217 13.2358 22 14.1967 22 14.9166Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="m9.749 2.494l8.41 4.826M9.75 2.494l-7.1 12.252a4.827 4.827 0 0 0 1.776 6.605a4.86 4.86 0 0 0 6.629-1.77l1.495-2.58M9.75 2.493L8.913 2m9.246 5.32l-2.257 3.896m2.257-3.896l.841.484m-3.098 3.412l-1.713 2.958m1.713-2.958l-2.558-1.471m.845 4.429L12.55 17m1.638-2.826l-4.203-2.418M12.55 17l-2.613-1.503" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M22 14.917c0 1.15-.895 2.083-2 2.083s-2-.933-2-2.083c0-.72.783-1.681 1.37-2.3a.86.86 0 0 1 1.26 0c.587.619 1.37 1.58 1.37 2.3Z" />
 </vector>
