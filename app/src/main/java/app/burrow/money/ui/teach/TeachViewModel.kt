@@ -50,9 +50,8 @@ data class TeachState(
     fun wordsFor(type: MoneyType): List<String> = TypeWords.merged(ownWords, language, removedWords)[type].orEmpty()
     /** What the message is: the user's pick, else its word, else an expense. */
     val type: MoneyType get() = pickedType ?: found?.type ?: MoneyType.EXPENSE
-    /** Type shows once the three tapped parts are picked or skipped (52: "Filled in after the account"). */
-    val typeReady get() = step == null
-    val canSave get() = rule != null && typeReady
+    /** Type is always shown and can be changed; Save needs only a rule that reads the amount back. */
+    val canSave get() = rule != null
     /** The amount the message seems to have, ringed before the first tap (52). */
     val guess: IntRange? get() = if (Part.AMOUNT in picks) null else RuleBuilder.firstAmount(text)
 }

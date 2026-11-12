@@ -1465,7 +1465,6 @@
     <string name="edit_details">विवरण बदलें</string>
     <string name="edit_details_line">रकम, किसे, खाता, तारीख</string>
     <string name="tap_it_in_message">संदेश में टैप करें</string>
-    <string name="type_after_account">खाते के बाद भरा जाता है</string>
     <string name="type_it_says">%1$s · इसमें लिखा है “%2$s”</string>
     <string name="type_sheet_line">ऐसे संदेश का मतलब</string>
     <string name="words_that_mean">%1$s वाले शब्द</string>

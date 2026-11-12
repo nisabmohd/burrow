@@ -1549,7 +1549,6 @@
     <string name="edit_details">Editar detalles</string>
     <string name="edit_details_line">Importe, beneficiario, cuenta, fecha</string>
     <string name="tap_it_in_message">Tócalo en el mensaje</string>
-    <string name="type_after_account">Se completa después de la cuenta</string>
     <string name="type_it_says">%1$s · dice “%2$s”</string>
     <string name="type_sheet_line">Qué significa un mensaje como este</string>
     <string name="words_that_mean">Palabras que significan %1$s</string>

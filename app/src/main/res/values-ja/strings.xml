@@ -1431,7 +1431,6 @@
     <string name="edit_details">詳細を編集</string>
     <string name="edit_details_line">金額、支払先、口座、日付</string>
     <string name="tap_it_in_message">メッセージ内をタップ</string>
-    <string name="type_after_account">口座のあとに入ります</string>
     <string name="type_it_says">%1$s · 「%2$s」とあります</string>
     <string name="type_sheet_line">このようなメッセージの意味</string>
     <string name="words_that_mean">%1$sを表す言葉</string>

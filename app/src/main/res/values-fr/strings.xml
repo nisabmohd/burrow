@@ -1549,7 +1549,6 @@
     <string name="edit_details">Modifier les détails</string>
     <string name="edit_details_line">Montant, bénéficiaire, compte, date</string>
     <string name="tap_it_in_message">Touchez-le dans le message</string>
-    <string name="type_after_account">Rempli après le compte</string>
     <string name="type_it_says">%1$s · il dit « %2$s »</string>
     <string name="type_sheet_line">Ce que veut dire un message comme celui-ci</string>
     <string name="words_that_mean">Mots qui veulent dire %1$s</string>

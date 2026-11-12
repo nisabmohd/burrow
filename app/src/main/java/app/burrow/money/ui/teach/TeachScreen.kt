@@ -59,7 +59,8 @@ import app.burrow.money.ui.theme.Space
  * Teach a message (52, 235): close · title · Save; one instruction line; the message, where a tap
  * picks the word for the current part; rows Amount · Paid to · Account (tapped; the current one
  * tinted, the rest "Next") and Type, filled in by Burrow from the message's words ("Expense · it says
- * “debited”"). Tapping Type opens the Type sheet (236). Save turns on once the rule reads the message back.
+ * “debited”") and tappable at any time: Type sheet (236). Save turns on once the amount is picked and
+ * the rule reads the message back; Paid to and Account are optional, in any order.
  */
 @Composable
 fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
@@ -100,7 +101,7 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
             )
             val header = listOfNotNull(s.sender.ifBlank { null }, s.receivedAt?.let { dates.day(dates.date(it)) }).joinToString(" · ")
             MessageBox(header.ifBlank { stringResource(R.string.message) }, s.text, marks(s), onTap = { offset -> haptics.tick(); vm.tap(offset) })
-            if (s.picks[Part.AMOUNT] != null && s.typeReady && s.rule == null) {
+            if (s.picks[Part.AMOUNT] != null && s.rule == null) {
                 Text(stringResource(R.string.teach_fails), style = BurrowType.body, color = c.error, modifier = Modifier.padding(start = Space.grid))
             }
             ListGroup {
@@ -123,15 +124,14 @@ fun TeachScreen(vm: TeachViewModel, onClose: () -> Unit) {
                 }
                 val word = s.found?.takeIf { it.type == s.type }?.word
                 ListRow(
-                    if (s.typeReady) stringResource(typeName(s.type)) else stringResource(R.string.type), count - 1, count,
+                    stringResource(typeName(s.type)), count - 1, count,
                     supporting = when {
-                        !s.typeReady -> stringResource(R.string.type_after_account)
                         word != null -> stringResource(R.string.type_it_says, stringResource(R.string.type), word)
                         else -> stringResource(R.string.type)
                     },
-                    lead = { IconCircle(painterResource(typeIcon(if (s.typeReady) s.type else null))) },
-                    trailing = { if (s.typeReady) Chevron() },
-                    onClick = if (s.typeReady) ({ typeSheet = true }) else null,
+                    lead = { IconCircle(painterResource(typeIcon(s.type))) },
+                    trailing = { Chevron() },
+                    onClick = { typeSheet = true },
                 )
             }
             // All set (149): whether the rule keeps reading the next ones. No category here: a rule reads
@@ -182,10 +182,11 @@ private fun TypeSheet(s: TeachState, vm: TeachViewModel, onDismiss: () -> Unit) 
                 SectionHeader(stringResource(R.string.words_that_mean, stringResource(typeName(s.type))))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
                     // Every word has ✕: the user's own goes, a built-in one is taken away for this rule only.
+                    // Plain outline chips sized to their word (236), not ChipRow's equal-width ones.
                     s.wordsFor(s.type).forEach { w ->
-                        Chip(w, false, { vm.removeWord(s.type, w) }, icon = painterResource(R.drawable.ic_close_regular), check = false)
+                        Chip(w, false, { vm.removeWord(s.type, w) }, icon = painterResource(R.drawable.ic_close_regular))
                     }
-                    Chip(stringResource(R.string.add_a_word), false, { vm.startAddingWord(); onDismiss() }, icon = painterResource(R.drawable.ic_add_regular), check = false)
+                    Chip(stringResource(R.string.add_a_word), false, { vm.startAddingWord(); onDismiss() }, icon = painterResource(R.drawable.ic_add_regular))
                 }
                 Text(
                     stringResource(R.string.type_words_line), style = BurrowType.body, color = c.onSurfaceVariant,
@@ -226,8 +227,7 @@ private fun typeLine(t: MoneyType) = when (t) {
     MoneyType.NOT_PAYMENT -> R.string.type_not_payment_line
 }
 
-private fun typeIcon(t: MoneyType?) = when (t) {
-    null -> R.drawable.ic_swap_vert_duotone
+private fun typeIcon(t: MoneyType) = when (t) {
     MoneyType.EXPENSE -> R.drawable.ic_arrow_upward_duotone
     MoneyType.INCOME -> R.drawable.ic_arrow_downward_duotone
     MoneyType.REFUND -> R.drawable.ic_undo_duotone
@@ -263,5 +263,5 @@ private fun instruction(s: TeachState, onSkip: () -> Unit): AnnotatedString {
 private fun marks(s: TeachState): List<Mark> = buildList {
     s.picks.forEach { (part, range) -> add(Mark(range, if (part == s.step) MarkStyle.RING else MarkStyle.STRONG)) }
     s.guess?.takeIf { s.step == Part.AMOUNT }?.let { add(Mark(it, MarkStyle.RING)) }
-    if (s.typeReady) s.found?.takeIf { it.type == s.type }?.let { f -> if (s.picks.values.none { it.first <= f.range.last && f.range.first <= it.last }) add(Mark(f.range, MarkStyle.SOFT)) }
+    s.found?.takeIf { it.type == s.type }?.let { f -> if (s.picks.values.none { it.first <= f.range.last && f.range.first <= it.last }) add(Mark(f.range, MarkStyle.SOFT)) }
 }

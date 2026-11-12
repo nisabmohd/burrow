@@ -1551,7 +1551,6 @@
     <string name="edit_details">Edit details</string>
     <string name="edit_details_line">Amount, payee, account, date</string>
     <string name="tap_it_in_message">Tap it in the message</string>
-    <string name="type_after_account">Filled in after the account</string>
     <string name="type_it_says">%1$s · it says “%2$s”</string>
     <string name="type_sheet_line">What a message like this means</string>
     <string name="words_that_mean">Words that mean %1$s</string>

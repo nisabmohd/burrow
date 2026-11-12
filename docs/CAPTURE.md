@@ -53,7 +53,8 @@ regex), shows a test on the original message, and saves a user rule.
 words in the message (`capture/TypeWords.kt`, tried in this order): Not a payment ("requested", "is due",
 "will be debited") · Refund ("refund", "refunded", "reversal", "cashback") · Transfer ("self transfer", "to your
 own") · Income ("credited", "received", "deposited") · Expense ("debited", "spent", "paid", "sent", "withdrawn",
-"purchase"). Whole words, any case. The Type sheet changes it and adds words (`Rule.typeWords`). When the words
+"purchase"). Whole words, any case. The Type row is there from the start and can be tapped at any time; Save needs
+only the amount (Paid to and Account are optional, any order; 0.4.1). The Type sheet changes it and adds words (`Rule.typeWords`). When the words
 agree with the type, the rule decides by words each time (a "credited" message from the same bank is income); when
 they don't, the rule keeps the picked type (`Rule.type`). A capture stores its type in `direction`: OUT, IN,
 REFUND or TRANSFER. Not a payment is never stored. A refund links to the latest expense with the same payee in the

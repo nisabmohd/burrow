@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+- Teach: the type can be checked and changed at any time, and Save works as soon as the amount is picked. Paid to and Account are optional and can be picked in any order; they no longer have to be filled one by one first.
+- Teach › Type: the words that mean a type are small chips sized to their word, as in the design, instead of stretching across the sheet.
+
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
 - Rate in About opens Google Play's rating card (Google Play build).

@@ -1492,7 +1492,6 @@
     <string name="edit_details">Details bearbeiten</string>
     <string name="edit_details_line">Betrag, Empfänger, Konto, Datum</string>
     <string name="tap_it_in_message">In der Nachricht antippen</string>
-    <string name="type_after_account">Wird nach dem Konto ausgefüllt</string>
     <string name="type_it_says">%1$s · da steht „%2$s“</string>
     <string name="type_sheet_line">Was eine Nachricht wie diese bedeutet</string>
     <string name="words_that_mean">Wörter für %1$s</string>
