@@ -82,7 +82,8 @@ object Size {
     val ghostLine = 9.dp       // a pill bar's height, and the gap between bars
     val ghostCircle = 28.dp
     val ghostIcon = 16.dp
-    val ghostShadow = 10.dp    // deep enough that the white cards stand off a near-white page (user, 12 Nov)
+    val ghostShadow = 12.dp    // the ghost cards' far shadow (the design's 0 12px 28px)
+    val ghostShadowNear = 2.dp // and its near one (0 2px 6px): together the soft two-layer shadow (final 12 Nov)
     val ghostHairline = 1.dp   // the ghost cards' hairline in dark mode
     val emptyLine = 280.dp     // an empty state's line never runs wider
     val headerLine = 300.dp    // a centred title header's line never runs wider (116; prototype max-width 300)

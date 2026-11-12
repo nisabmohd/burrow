@@ -179,5 +179,12 @@ Kit: Rose 345 seed · Lexend 400/500 · six text styles · 4 dp grid · 16 dp sc
 | `screens/88-today-safe-to-spend.png` | Today | safe to spend in the hero line |
 | `screens/109-expense-type-pills.png` | New expense | type pills |
 | `screens/153–157-small-*-2x.png` | 320 dp + 2× text | five screens at the smallest size |
-| `screens/dark/` | every screen, dark | all 239 |
+| `screens/dark/` | a few key screens, dark | 100; not every screen (user, 12 Nov) |
+
+## Fixes round (12 Nov, second zip)
+| File | Screen | Notes |
+|---|---|---|
+| `screens/243-review-sms-open.png` | To review, SMS opened in a CheckCard | reference only; not built (no buttons inside cards) |
+| `screens/244-not-understood-type-picked.png` | Not understood, type picked in a CheckCard | reference only; Check a message (52, 240) covers it |
+| empty-state PNGs (09, 16, 41, 117, 170, 185, 222, 223, 229–233) | ghost cards | white front, hairline, soft two-layer shadow (built) |
 

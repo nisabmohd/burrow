@@ -1151,8 +1151,8 @@
     </plurals>
     <string name="not_understood_title">समझ नहीं आए</string>
     <string name="not_understood_line">ये भुगतान जैसे लगे, पर कोई नियम इन्हें पढ़ नहीं पाया। एक बार सिखाएँ, फिर ऐसे संदेश पढ़े जाएँगे।</string>
-    <string name="nothing_to_teach">सिखाने को कुछ नहीं</string>
-    <string name="nothing_to_teach_line">जो संदेश ऐप नहीं पढ़ पाता, वे यहाँ दिखते हैं।</string>
+    <string name="nothing_to_check">जाँचने को कुछ नहीं</string>
+    <string name="nothing_to_check_line">जो संदेश Burrow अभी पढ़ नहीं पाता, वे यहाँ दिखते हैं।</string>
     <string name="teach">सिखाएँ</string>
     <string name="capture_off_title">ऑटो-कैप्चर बंद है</string>
     <string name="capture_off_line">पेमेंट अपने-आप दर्ज हों, इसके लिए बैंक SMS या पेमेंट ऐप चालू करें</string>
@@ -1491,7 +1491,7 @@
     <string name="review_seen_before">पहले देखे हुए</string>
     <string name="pick_a_category_header">श्रेणी चुनें</string>
     <string name="review_new">Burrow के लिए नए</string>
-    <string name="not_sure_tap_to_pick">Burrow को पक्का नहीं · चुनने के लिए टैप करें</string>
+    <string name="review_not_sure">Burrow को पक्का नहीं · यह किसके लिए था?</string>
     <string name="pick_categories_first">पहले श्रेणियाँ चुनें</string>
     <plurals name="save_n_ready">
         <item quantity="one">%d तैयार सेव करें</item>

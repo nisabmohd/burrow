@@ -12,6 +12,9 @@
 - Messages Burrow couldn't read are now **checked, not taught**: Burrow reads the amount, who was paid, the account and the type itself and asks "Is this right?". Yes saves it and moves to the next one ("1 of 2"); No, fix it lists the parts, and fixing one rings what it could be in the message. When the message doesn't say whether money went out or in, Burrow asks.
 - Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.
 
+- Empty states stand out in light mode: the illustration's cards are white, with a fine outline and a soft shadow, instead of melting into the page; the back card is no longer cut off at one edge.
+- Not understood, when empty, says "Nothing to check"; a new payee in To review asks "what was it for?".
+
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
 - Rate in About opens Google Play's rating card (Google Play build).

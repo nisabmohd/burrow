@@ -260,8 +260,13 @@ fun Ghost(icon: Painter, hue: Float? = null) {
     val c = MaterialTheme.colorScheme
     val g = app.burrow.money.ui.theme.ghostColors()
     val card: (Color) -> Modifier = { fill ->
+        val tint = g.shadowTint ?: c.scrim
         Modifier
-            .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = c.scrim.copy(alpha = g.shadowAlpha), spotColor = c.scrim.copy(alpha = g.shadowAlpha))
+            .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = tint.copy(alpha = g.shadowAlpha), spotColor = tint.copy(alpha = g.shadowAlpha))
+            .then(
+                if (g.nearShadowAlpha > 0f) Modifier.shadow(Size.ghostShadowNear, Shapes.ghost, ambientColor = tint.copy(alpha = g.nearShadowAlpha), spotColor = tint.copy(alpha = g.nearShadowAlpha))
+                else Modifier,
+            )
             .background(fill, Shapes.ghost)
             .then(g.line?.let { Modifier.border(Size.ghostHairline, it, Shapes.ghost) } ?: Modifier)
             .padding(horizontal = Space.card, vertical = Size.ghostPadV)
@@ -281,7 +286,7 @@ fun Ghost(icon: Painter, hue: Float? = null) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.inline + Space.row)) {
                 val colors = hue?.let { categoryColors(it) }
-                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: g.back, Shapes.pill), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: g.circle, Shapes.pill), contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = colors?.onContainer ?: c.onSurfaceVariant, modifier = Modifier.size(Size.ghostIcon))
                 }
                 bar(0.52f, g.barFront)

@@ -1233,8 +1233,8 @@
     </plurals>
     <string name="not_understood_title">Não entendidas</string>
     <string name="not_understood_line">Pareciam pagamentos, mas nenhuma regra conseguiu ler. Ensine uma vez e mensagens parecidas serão lidas daí em diante.</string>
-    <string name="nothing_to_teach">Nada para ensinar</string>
-    <string name="nothing_to_teach_line">As mensagens que o app não consegue ler aparecem aqui.</string>
+    <string name="nothing_to_check">Nada para conferir</string>
+    <string name="nothing_to_check_line">As mensagens que o Burrow ainda não consegue ler aparecem aqui.</string>
     <string name="teach">Ensinar</string>
     <string name="capture_off_title">A captura automática está desligada</string>
     <string name="capture_off_line">Ligue SMS do banco ou Apps de pagamento para os pagamentos se registrarem sozinhos</string>
@@ -1575,7 +1575,7 @@
     <string name="review_seen_before">Já vistos</string>
     <string name="pick_a_category_header">Escolha uma categoria</string>
     <string name="review_new">Novos para o Burrow</string>
-    <string name="not_sure_tap_to_pick">O Burrow não tem certeza · toque para escolher</string>
+    <string name="review_not_sure">O Burrow não tem certeza · foi para quê?</string>
     <string name="pick_categories_first">Escolha as categorias primeiro</string>
     <plurals name="save_n_ready">
         <item quantity="one">Salvar %d pronto</item>

@@ -3,7 +3,7 @@
 Burrow is a small, private expense tracker for Android. It records payments by itself from
 bank messages, reminds you of bills, and shows what is left. These are the rules every screen follows.
 The live reference is the prototype (`design/prototype/burrow-prototype.html`, not in git) and the
-PNGs in `design/screens/` (light) and `design/screens/dark/` (dark, all screens since 12 Nov).
+PNGs in `design/screens/` (light; `design/screens/dark/` has a few key screens in dark, not every one).
 
 ## The feel
 Clean, calm, Material You Expressive, minimal, as if Google made it. Not a clone of any other app.
@@ -16,7 +16,7 @@ Rose accent, Lexend, soft tonal surfaces, round shapes, no clutter. A screen sho
    Categories, Message rules) and details (account, bill, goal, budget, category, transaction).
 3. **One signal per number.** A ring *or* a bar, plus one short line ("₹710 over", "₹5,310 left").
    Never ring + bar + % + red text together.
-4. **No buttons inside cards.** Tap the row to open it. One main action per screen: the FAB, one
+4. **No buttons inside cards.** (Kept over the 12 Nov kit’s Review CheckCards: Review stays rows + one sheet.) Tap the row to open it. One main action per screen: the FAB, one
    Review (12 Nov, 44/116/234) has no cards: To review and Not understood are plain rows; tap opens the Review sheet or Teach, swipe right Save / left Ignore.
    bottom button, or the single "Mark paid" on the Next-up card.
 5. **Notes go first.** Any notice (overdue, paused, suggestion, goal reached) is the first thing on
@@ -143,4 +143,4 @@ an icon + label, a 22 sp value, one line and a 60 dp visual at the bottom.
 
 ## Dark theme
 Same structure; tones from `TOKENS.md`. Category circles get darker containers with light icons.
-Check every new screen in both themes before calling it done (`design/screens/dark/` for reference).
+Check every new screen in both themes before calling it done (dark in the app; a dark PNG only where one exists).

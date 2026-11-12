@@ -140,7 +140,7 @@ width, light (dark mode is checked in the app). "→" means what a tap opens.
 ## Design requests (24 Oct) — 116–159 (light, in screens/)
 | PNG | Screen | Notes |
 |---|---|---|
-| 116 / 117 | Not understood tab (final 12 Nov) | **Step through:** 64 dp `primaryContainer` circle with the SMS icon, "2 messages to check", line "Burrow couldn't read these. Check each one once and messages like them are read after that."; rows: SMS circle · bank name ("Kotak Bank", never the sender id AX-KOTAKB) · date · chevron; swipe left Ignore. Bottom: **Check them one by one** → Check a message (52). Empty (117) "Nothing to teach" |
+| 116 / 117 | Not understood tab (final 12 Nov) | **Step through:** 64 dp `primaryContainer` circle with the SMS icon, "2 messages to check", line "Burrow couldn't read these. Check each one once and messages like them are read after that."; rows: SMS circle · bank name ("Kotak Bank", never the sender id AX-KOTAKB) · date · chevron; swipe left Ignore. Bottom: **Check them one by one** → Check a message (52). Empty (117) "Nothing to check" |
 | 118-builtin-pack | Built-in pack (India) | centred header (globe, count, "rules · built in · read-only"), "Use this pack" switch, "Rules in this pack" rows (sender · N payments · chevron) |
 | 50-rule / 120-rule-builtin | Rule yours / built-in | yours: pencil in the bar (→ 119), "Use this rule", Delete rule; built-in: no pencil, no switch, footer "Built-in · India" |
 | 119-rename-rule-sheet | Rename rule | one pill field (pencil, ✕ clear), Save off while empty |
@@ -255,7 +255,7 @@ word goes to Not understood; the type picked there adds its word. A Refund links
 within 60 days) and lowers that category; never income.
 
 ## Final round (12 Nov) — 239–242, Review and Check a message (`burrow-design-final-1112.zip`)
-Every PNG was re-captured, **light in `design/screens/` and dark in `design/screens/dark/`** (all 239). New expense
+Every PNG was re-captured in light. Dark PNGs stay a few key screens (`design/screens/dark/`, 100), not a copy of every screen (user, 12 Nov): dark follows the tokens and is checked in the app. New expense
 stays as it is (labels, two steps and calmer variants were tried and not kept). `CHANGES-1112.md` in the zip has the full notes.
 
 | # | Screen | Design |
@@ -263,7 +263,7 @@ stays as it is (labels, two steps and calmer variants were tried and not kept). 
 | 44 | To review, sorted | see Auto-capture above: Ready to save · Pick a category, Save 2 ready / Save all 3 |
 | 241 | What was it for? | **dropped (user, 12 Nov):** a new shop opens the Review sheet (234) like every row, no chip picked; Save waits for one. One sheet, one way |
 | 242 | To review, all ready | nothing unsure: one group, bottom **Save all 3** |
-| 116 / 117 | Not understood | header circle + "2 messages to check" + line; bank-name rows; **Check them one by one**; empty "Nothing to teach" |
+| 116 / 117 | Not understood | header circle + "2 messages to check" + line; bank-name rows; **Check them one by one**; empty "Nothing to check" |
 | 52 | Check a message | Burrow read it as · From your SMS · Is this right? · No, fix it / Yes, save |
 | 235 | Fix it | "What's wrong?" rows: Amount · Paid to · Account · Type |
 | 239 | Fix it › amount | title "Tap the right amount"; the parts it could be are **ringed** in the message (1.5 dp primary, `Size.markRing`); tap one to pick it |
@@ -279,6 +279,14 @@ stays as it is (labels, two steps and calmer variants were tried and not kept). 
 
 The type words (debited, spent, credited, refund, reversed…) come from the language pack; a message with none lands in
 Not understood, and the type picked there adds its word.
+
+## Fixes round (12 Nov, second `burrow-design-final-1112.zip`) — 243, 244, empty states
+| # | Screen | What we built (rules win: CLAUDE.md § Hard rules, DESIGN.md rule 4) |
+|---|---|---|
+| 09 · 16 · 41 · 117 · 170 · 185 · 222 · 223 · 229–233 | Empty states, light | **Built as drawn:** a white front ghost card and a surfaceContainerLow back one, each with a 1 dp surfaceContainer hairline and a soft two-layer shadow, so they no longer melt into the page. The neutral icon has no visible circle |
+| 44 · 243 · 116 · 244 | Review as CheckCards | **Not built (rule):** the kit puts the SMS, chips and **Ignore · Edit · Save** inside each card. DESIGN.md rule 4 (no buttons inside cards) and the 12 Nov Review rule (plain rows, tap opens the Review sheet) win: To review stays rows → Review sheet (234); Not understood stays rows → Check a message (52). 243 (SMS opened in the card) and 244 (type picked in the card) are covered there: the sheet shows the whole SMS; Check a message asks out or in (240) |
+| 241 | Category grid from More | **Not built:** More opens the category list sheet, as everywhere (241 dropped, user 12 Nov) |
+| 44 | Copy | "Burrow isn’t sure · what was it for?" under a new payee; Not understood empty: "Nothing to check" · "Messages Burrow can’t read yet show up here." Section hints stay "Seen before" / "New to Burrow" (user: payments aren’t only shops) |
 
 ## Edge cases that must exist (each has a design)
 no data · sample data · auto-capture paused · permission denied · can't save yet · foreign currency ·

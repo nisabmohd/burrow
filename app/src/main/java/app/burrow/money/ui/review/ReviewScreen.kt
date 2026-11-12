@@ -245,7 +245,7 @@ private fun ToReviewTab(
                             ) {
                                 ListRow(
                                     item.title(), i, unsure.size,
-                                    supporting = stringResource(R.string.not_sure_tap_to_pick),
+                                    supporting = stringResource(R.string.review_not_sure),
                                     supportingColor = MaterialTheme.colorScheme.primary,
                                     lead = { IconCircle(painterResource(R.drawable.ic_help_duotone)) },
                                     trailing = { AmountTrailing(item.amountText(money)) },
@@ -264,7 +264,7 @@ private fun ToReviewTab(
 /**
  * Not understood (116): step through. A 64 dp circle, "2 messages to check" and one line, then one row per message
  * (the bank by name, never its sender id; the day; a chevron). Tap checks that one; swipe left ignores; the docked
- * "Check them one by one" starts at the first. Empty (117): Nothing to teach.
+ * "Check them one by one" starts at the first. Empty (117): Nothing to check.
  */
 @Composable
 private fun NotUnderstoodTab(missed: List<app.burrow.money.ui.teach.MissedRow>, onTeach: (Long) -> Unit, onIgnore: (Long) -> Unit, onBack: () -> Unit) {
@@ -272,8 +272,8 @@ private fun NotUnderstoodTab(missed: List<app.burrow.money.ui.teach.MissedRow>, 
         // An empty list: the Ghost, like every other list (DESIGN § Empty states).
         EmptyState(
             shape = { Ghost(painterResource(R.drawable.ic_help_regular)) },
-            title = stringResource(R.string.nothing_to_teach),
-            line = stringResource(R.string.nothing_to_teach_line),
+            title = stringResource(R.string.nothing_to_check),
+            line = stringResource(R.string.nothing_to_check_line),
             button = { BurrowButton(stringResource(R.string.done), onBack, kind = ButtonKind.TONAL) },
         )
         return

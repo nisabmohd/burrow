@@ -1121,8 +1121,8 @@
     </plurals>
     <string name="not_understood_title">読み取れなかったもの</string>
     <string name="not_understood_line">支払いのようですが、どのルールでも読み取れませんでした。一度教えれば、似たメッセージはそれ以降読み取られます。</string>
-    <string name="nothing_to_teach">教えるものはありません</string>
-    <string name="nothing_to_teach_line">アプリが読み取れないメッセージがここに表示されます。</string>
+    <string name="nothing_to_check">確認するものはありません</string>
+    <string name="nothing_to_check_line">Burrow がまだ読めないメッセージがここに表示されます。</string>
     <string name="teach">教える</string>
     <string name="capture_off_title">自動記録はオフです</string>
     <string name="capture_off_line">銀行 SMS か支払いアプリをオンにすると支払いが自動で記録されます</string>
@@ -1457,7 +1457,7 @@
     <string name="review_seen_before">前にも見たもの</string>
     <string name="pick_a_category_header">カテゴリを選ぶ</string>
     <string name="review_new">Burrow には初めて</string>
-    <string name="not_sure_tap_to_pick">Burrow にはわかりません · タップして選ぶ</string>
+    <string name="review_not_sure">Burrow にはわかりません · 何に使いましたか?</string>
     <string name="pick_categories_first">先にカテゴリを選んでください</string>
     <plurals name="save_n_ready">
         <item quantity="other">準備できた %d 件を保存</item>

@@ -90,7 +90,7 @@ enough) · confirm (save, Done). Long-press keeps the system long-press.
 
 ## Gestures
 - Coming up row (bills and future-dated payments): swipe right = Paid / Add now (or open it, when Customise › Transactions › Swipe right is Edit), swipe left = Skip / Delete (Undo snackbar). Tap = open.
-- **To review and Messages not understood never swipe** (C2): each card has its own full-width tonal button (Save / Teach); ✕ ignores; "Save N payments" saves all.
+- **To review** rows swipe right Save / left Ignore (a new payee: left only); **Not understood** rows swipe left Ignore. Tap opens the Review sheet (234) or Check a message (52). No cards with buttons (DESIGN rule 4; the 12 Nov kit's CheckCards were not built). The docked "Save N ready" / "Save all N" saves every row that has a category.
 - Activity row: swipe right = Edit or Duplicate, swipe left = Delete, when chosen in Customise › Transactions (off by default).
 - Transaction row: long-press = sheet (Duplicate, Change category, Delete).
 - Pull down on a sheet closes it; predictive back closes sheets and pops screens.
@@ -142,7 +142,7 @@ the last row to the edges.
 
 ## Empty state (illustrated, 9 Nov)
 Used for every "list is empty / nothing matches" state. Centred, 32 dp from the content above, in this order:
-- **Illustration (`Ghost`):** two ghost rows tilted like loose cards. The back one is 120 × 78 dp at −7°, 70% opacity. The front one is 166 × 96 dp at +4°. Both are surfaceContainerLowest with 20 dp corners and a clear shadow (10 dp, 35% in light so they stand off the page; user 12 Nov). The front card holds a 28 dp circle with the subject's icon (the account's own colour and icon when there is one, otherwise neutral) and 9 dp pill bars in surfaceContainerHighest.
+- **Illustration (`Ghost`):** two ghost rows tilted like loose cards. The back one is 120 × 78 dp at −7°, 70% opacity, surfaceContainerLow. The front one is 166 × 96 dp at +4°, surfaceContainerLowest (white). **Light (final 12 Nov):** both have a 1 dp surfaceContainer hairline and a soft two-layer shadow in the accent's dark neutral (near 2 dp, far 12 dp), so they stand off the page; before, both were the page's colour and disappeared. 20 dp corners. The front card holds a 28 dp circle with the subject's icon (the account's own colour and icon when there is one; neutral = no visible circle, just the icon) and 9 dp pill bars in surfaceContainerHighest. The back card's see-through is drawn without an offscreen layer (ModulateAlpha), so its shadow and corners are never cut.
 - **Title:** 22 sp / 500, naming what's missing ("No instalments yet", "No results for “petrol”").
 - **Line:** 14 sp muted, at most about 280 dp wide. It says what will show up here.
 - **Dark mode:** the cards sit one tone above the page (front surfaceContainer, back surfaceContainerLow, no opacity) with a 1 dp hairline and a deeper shadow; bars ~27% lightness on the front card, ~21% on the back (`ghostColors()` in Color.kt). Dark PNGs: `design/screens/dark/`.

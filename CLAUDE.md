@@ -10,7 +10,7 @@ quick-settings tile), the store icon and feature graphic (`release/`, fastlane, 
 Never hand-edit those files; change the script and run it.
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
-`docs/SCREENS.md` (with `design/screens/*.png` light and `design/screens/dark/*.png` dark; 239–242 are the final 12 Nov round), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
+`docs/SCREENS.md` (with `design/screens/*.png`, light; `design/screens/dark/` keeps a few key screens in dark, not a copy of every one (user, 12 Nov); 239–244 are the final 12 Nov rounds), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
 `docs/CAPTURE.md`, `docs/DATA.md`, `docs/COPY.md`, `docs/ICONS.md`. Today's work: `TODO.md`.
 The PNGs are the source of truth for layout, sizes and colours. `design/prototype/burrow-prototype.html`
 (not in git) is the clickable version.
@@ -109,4 +109,4 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 ## Working with Claude
 - Start each session with `TODO.md`: pick the next unticked day, build it screen by screen against its PNGs.
 - Skills in `.claude/skills/`: `build-screen`, `add-feature`, `capture-rules`, `verify-app`, `release`.
-- After each screen: run, compare with the PNG (light) and its dark PNG (`design/screens/dark/`), fix, commit, tick the box.
+- After each screen: run, compare with the PNG (light), check dark mode in the app (a dark PNG only where one exists), fix, commit, tick the box.

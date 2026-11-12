@@ -152,6 +152,12 @@ val AccentSeeds = listOf(345f to "Rose", 12f to "Rust", 38f to "Amber", 150f to 
 data class GhostColors(
     val front: Color, val back: Color, val backAlpha: Float, val line: Color?,
     val barFront: Color, val barBack: Color, val shadowAlpha: Float,
+    /** The shadow's colour (light: the accent's dark neutral, as the design's hsla(h, 30%, 30%)); null = scrim. */
+    val shadowTint: Color? = null,
+    /** A second, near shadow under the far one (light only: the design's two-layer shadow); 0 = none. */
+    val nearShadowAlpha: Float = 0f,
+    /** The neutral icon circle on the front card (light: the card's own white, so only the icon shows, as PNG 16). */
+    val circle: Color = back,
 )
 
 fun ghostColors(c: androidx.compose.material3.ColorScheme, dark: Boolean) = if (dark) {
@@ -162,8 +168,13 @@ fun ghostColors(c: androidx.compose.material3.ColorScheme, dark: Boolean) = if (
         shadowAlpha = 0.4f,
     )
 } else {
-    // Light: white cards on a near-white page show only by their shadow, so it is a clear one (0.12 blended in; user, 12 Nov).
-    GhostColors(c.surfaceContainerLowest, c.surfaceContainerLowest, 0.7f, null, c.surfaceContainerHighest, c.surfaceContainerHighest, 0.35f)
+    // Light (final 12 Nov kit: before, both cards were the page's colour and disappeared): a white front card and a
+    // surfaceContainerLow back one, each with a 1 dp surfaceContainer hairline and a soft two-layer shadow in the accent's
+    // dark neutral (near 2 dp, far 12 dp).
+    GhostColors(
+        c.surfaceContainerLowest, c.surfaceContainerLow, 0.7f, c.surfaceContainer, c.surfaceContainerHighest, c.surfaceContainerHighest,
+        shadowAlpha = 0.30f, shadowTint = c.onSurfaceVariant, nearShadowAlpha = 0.24f, circle = c.surfaceContainerLowest,
+    )
 }
 
 /**
