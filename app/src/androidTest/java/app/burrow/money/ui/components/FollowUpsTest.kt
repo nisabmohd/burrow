@@ -120,43 +120,6 @@ class FollowUpsTest {
         assertTrue(rule.onNodeWithText("Food").isSelected())
     }
 
-    // To review card: Edit · Save (44)
-
-    private fun reviewCard(fontScale: Float, onEdit: () -> Unit, onSave: () -> Unit) = rule.show(360.dp, fontScale) {
-        MessageCard(
-            lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
-            title = "Chaayos", line = "HDFC Savings · 8:05 AM", amount = "−₹180",
-            ignoreLabel = "Ignore", onIgnore = {},
-            button = "Save", buttonIcon = painterResource(R.drawable.ic_check_regular), onButton = onSave,
-            second = "Edit", secondIcon = painterResource(R.drawable.ic_edit_regular), onSecond = onEdit,
-        ) { MessageBox("HDFC Bank", "Rs.180.00 debited from A/c XX1234 to VPA chaayos.paytm@hdfc.", emptyList()) }
-    }
-
-    @Test fun editAndSaveAreTwoEqualButtonsEditFirst() {
-        var edits = 0; var saves = 0
-        reviewCard(1f, { edits++ }, { saves++ })
-        val edit = rule.onNodeWithText("Edit").getUnclippedBoundsInRoot()
-        val save = rule.onNodeWithText("Save").getUnclippedBoundsInRoot()
-        assertEquals("same row", edit.top.value, save.top.value, 1f)
-        assertTrue("Edit first", edit.right <= save.left)
-        rule.onNodeWithText("Edit").performClick()
-        rule.onNodeWithText("Save").performClick()
-        rule.runOnIdle { assertEquals(1, edits); assertEquals(1, saves) }
-    }
-
-    @Test fun editAndSaveStackAtLargeText() {
-        reviewCard(2f, {}, {})
-        val edit = rule.onNodeWithText("Edit").getUnclippedBoundsInRoot()
-        val save = rule.onNodeWithText("Save").getUnclippedBoundsInRoot()
-        assertTrue("Edit above Save", edit.bottom <= save.top)
-        // The pill grows with the text (48 dp is the least), so the label is whole inside it.
-        // (assertTextFits can't be used here: inside a Material Button the layout reports the full row width.)
-        rule.onNodeWithText("Save").assertHeightIsAtLeast(48.dp)
-        val label = rule.onNodeWithText("Save", useUnmergedTree = true)
-        label.assertNotClipped()
-        assertInside(label, rule.onNodeWithText("Save"))
-    }
-
     // Swipe (171–173)
 
     @Test fun theLabelShowsFromTheFirstTouchAndLettingGoArmedRunsIt() {

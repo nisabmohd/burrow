@@ -346,9 +346,11 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
     val today = remember { LocalDate.now() }
     var picking by rememberSaveable { mutableStateOf(false) }
     // The calendar button (42, 231): the same Dates sheet as Insights, so both pages keep one range.
-    DetailFrame(onBack, actions = {
+    val days = remember(s.txns) { s.txns.groupBy { it.day() }.toList() }
+    app.burrow.money.ui.plan.LazyDetailFrame(onBack, actions = {
         app.burrow.money.ui.components.TonalIconButton(painterResource(R.drawable.ic_calendar_month_regular), stringResource(R.string.dates), { picking = true })
     }) {
+      item(key = "top", contentType = "top") { androidx.compose.foundation.layout.Column {
         val diff = s.total - s.previousTotal
         CenterHeader(
             icon = { CategoryCircle(s.category.icon, s.category.colorHue, Size.iconCircleBig) },
@@ -385,9 +387,11 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
                 )
             }
         }
-        s.txns.groupBy { it.day() }.forEach { (d, list) ->
-            SectionHeader(dates.day(d, today), meta = money.signed(-list.sumOf { it.txn.amount }))
-            ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }
+      } }
+        // A long range (a year of groceries) stays smooth: each day is composed only when on screen.
+        days.forEach { (d, list) ->
+            item(key = "day-$d", contentType = "header") { SectionHeader(dates.day(d, today), meta = money.signed(-list.sumOf { it.txn.amount })) }
+            item(key = "group-$d", contentType = "group") { ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } } }
         }
     }
     if (picking) DatesSheet(s.range, onApply = { vm.setRange(it); picking = false }, onDismiss = { picking = false })

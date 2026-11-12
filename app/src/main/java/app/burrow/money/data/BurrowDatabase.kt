@@ -96,7 +96,7 @@ data class CategoryEntity(
 )
 
 @kotlinx.serialization.Serializable
-@Entity(indices = [Index("at"), Index("accountId"), Index("categoryId"), Index("refundOf")])
+@Entity(indices = [Index("at"), Index("accountId"), Index("toAccountId"), Index("categoryId"), Index("refundOf")])
 data class TxnEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: String,            // EXPENSE, INCOME, TRANSFER, REFUND, ADJUSTMENT
@@ -349,7 +349,7 @@ const val CARDS_FROM_ACCOUNTS =
         SplitEntity::class, FavouriteEntity::class, ImportMapEntity::class, CardEntity::class,
         DepositEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2), // account number, parsed capture fields
@@ -360,6 +360,7 @@ const val CARDS_FROM_ACCOUNTS =
         AutoMigration(from = 6, to = 7), // hidden merchant on payments, expense name on captures
         AutoMigration(from = 7, to = 8, spec = V7To8::class), // two cards, one bill: card rows, the card a payment used
         AutoMigration(from = 8, to = 9), // savings: once / every month / any time, market value, deposits
+        AutoMigration(from = 9, to = 10), // index on toAccountId: an account page reads its own rows (0.4.1)
     ],
 )
 abstract class BurrowDatabase : RoomDatabase() {

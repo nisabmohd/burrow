@@ -84,6 +84,27 @@ fun DetailFrame(
     }
 }
 
+/**
+ * [DetailFrame] for a page whose list grows with use (an account's history): the same top bar,
+ * margins and look, but rows are composed only when they scroll on screen.
+ */
+@Composable
+fun LazyDetailFrame(
+    onBack: () -> Unit,
+    title: String? = null,
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
+    content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
+) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
+        ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = title, actions = actions)
+        androidx.compose.foundation.lazy.LazyColumn(
+            Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = Space.screen, end = Space.screen, bottom = Space.screen),
+            content = content,
+        )
+    }
+}
+
 /** Subscriptions (29): the suggestion note, what they cost, the active ones. */
 @Composable
 fun SubscriptionsScreen(vm: SubscriptionsViewModel, onBack: () -> Unit, onAdd: (BillForm?) -> Unit, onOpen: (Long) -> Unit) {
@@ -153,9 +174,12 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
     val line = s.line
     val month = dates.month(s.period.start)
     val cat = line?.category
-    DetailFrame(onBack, actions = {
+    val today = remember { LocalDate.now() }
+    val days = remember(s.txns) { s.txns.groupBy { dates.date(it.txn.at) }.toList() }
+    LazyDetailFrame(onBack, actions = {
         TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { edit = true })
     }) {
+      item(key = "top", contentType = "top") { Column {
         CenterHeader(
             icon = { if (cat != null) CategoryCircle(cat.icon, cat.colorHue, Size.iconCircleBig) else HeaderIcon(painterResource(R.drawable.ic_donut_large_regular)) },
             title = cat?.name ?: stringResource(R.string.month_budget, month),
@@ -177,12 +201,11 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
                 title = stringResource(R.string.nothing_spent_yet),
                 line = stringResource(R.string.budget_empty_line, cat.name, money.plain(line?.left ?: 0)),
             )
-        } else {
-            val today = LocalDate.now()
-            s.txns.groupBy { dates.date(it.txn.at) }.forEach { (day, list) ->
-                SectionHeader(dates.day(day, today), meta = money.signed(-list.sumOf { it.txn.amount }))
-                ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }
-            }
+        }
+      } }
+        if (vm.categoryId != null) days.forEach { (day, list) ->
+            item(key = "day-$day", contentType = "header") { SectionHeader(dates.day(day, today), meta = money.signed(-list.sumOf { it.txn.amount })) }
+            item(key = "group-$day", contentType = "group") { ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } } }
         }
     }
     if (edit) {

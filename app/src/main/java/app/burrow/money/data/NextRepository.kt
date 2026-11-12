@@ -72,10 +72,10 @@ class NextRepository(private val db: BurrowDatabase, private val money: MoneyRep
     private val zone = ZoneId.systemDefault()
     private fun <T> seeded(source: () -> Flow<T>): Flow<T> = flow { money.ensureSeeded(); emitAll(source()) }
 
-    /** Every transaction, newest first, with splits and refunds unfolded for the numbers. */
-    val stats: Flow<List<TxnView>> = combine(money.latest(), seeded { db.next().splits() }) { views, parts -> expandForStats(views, parts) }
-
-    /** [stats] for payments dated in [from, to) only: Insights reads the days it shows, not all history (20k test, 2026-11-02). */
+    /**
+     * Payments dated in [from, to), newest first, with splits and refunds unfolded for the numbers.
+     * Every screen reads only the days it shows, never all history (20k test, 2026-11-02; 0.4.1).
+     */
     fun statsBetween(from: Long, to: Long): Flow<List<TxnView>> =
         combine(money.between(from, to), seeded { db.next().splits() }) { views, parts -> expandForStats(views, parts) }
 

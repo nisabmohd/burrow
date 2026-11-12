@@ -200,8 +200,20 @@ class MoneyRepository(
 
     val categories: Flow<List<CategoryEntity>> = seededFlow { db.categories().all() }
 
-    /** Newest first. Activity reads everything for now; paging by month comes with the 20k-row test (Day 28). */
-    fun latest(limit: Int = Int.MAX_VALUE): Flow<List<TxnView>> = seededFlow { db.txns().latest(limit) }
+    /** The newest [limit] rows (Today's Recent). Screens never read the whole history: see [between], [forAccount]. */
+    fun latest(limit: Int): Flow<List<TxnView>> = seededFlow { db.txns().latest(limit) }
+
+    /** Every row, for the CSV export only (one read, off the main thread). */
+    fun everything(): Flow<List<TxnView>> = seededFlow { db.txns().latest(Int.MAX_VALUE) }
+
+    /** One account's rows, newest first, at most [limit]. */
+    fun forAccount(accountId: Long, limit: Int): Flow<List<TxnView>> = seededFlow { db.txns().forAccount(accountId, limit) }
+
+    /** A card's spending from [from] (its statement day) on. */
+    fun expenseSince(accountId: Long, from: Long): Flow<Long> = seededFlow { db.txns().expenseSince(accountId, from) }
+
+    /** Activity's filter columns for every posted row: the Filter sheet's count and "older months to load". */
+    val postedKeys: Flow<List<FilterKey>> = seededFlow { db.txns().postedKeys() }
 
     fun txn(id: Long): Flow<TxnView?> = seededFlow { db.txns().view(id) }
 

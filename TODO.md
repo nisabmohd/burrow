@@ -14,6 +14,8 @@ Screen numbers point to `design/screens/`.
 ## On your phone (USB debugging; user will connect it)
 - [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
       account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging
+- [ ] 0.4.1 long history on a real phone with a year or more of payments: Activity scrolls back past 3 months with no
+      gap or jump; a card used rarely shows its payments and the right "since statement"; Filter sheet count = rows shown
 
 
 ## Notes

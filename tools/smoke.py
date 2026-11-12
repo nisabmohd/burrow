@@ -265,6 +265,20 @@ def accounts_card_and_loan():
 
 
 @check
+def account_page_lists_its_own_history():
+    # 0.4.1: the page reads its own rows (not the newest few hundred of every account) in a lazy list.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    d.tap("ICICI Amazon Pay")
+    assert d.exists("Since statement", contains=True, timeout=5), "card has no since-statement row"
+    assert d.scroll_to("Uber"), "card page has no Uber payment in its history"
+    assert not crashed(), "crash scrolling the card's history"
+    d.back()
+    d.back()
+
+
+@check
 def insights_heatmap_opens_activity():
     recover()
     d.nav("Insights")

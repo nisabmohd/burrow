@@ -15,6 +15,7 @@ if something is missing, add a component here first.
 | `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); header optional (none under a card that already names the sender, 116) | MessageText.kt |
 | `ReviewSheet` (Review, 234) | a found payment opened from its row: payee, "−₹180 · account · time", `MessageBox`, Category chips + More, "Edit details" row, footer Ignore (tonal) · Save. To review and Not understood are plain `ListRow`s in `SwipeRow`s (no cards with buttons) | ReviewScreen.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
+| `DetailFrame` / `LazyDetailFrame` | a pushed page: back bar + actions, 16 dp margins. `LazyDetailFrame` looks the same but its list is lazy: one `item` for the top, then one per day header and day group (keys `day-…`, `group-…`). Use it when the page lists transactions (account, budget, category insights) | PlanDetailScreens.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
 | `ListGroup` + `ListRow` | rows 2 dp apart, 24/6 corners, 72 dp (56 one-line), lead · headline + line · trailing; optional long-press, and `lifted` while dragged | Lists.kt |

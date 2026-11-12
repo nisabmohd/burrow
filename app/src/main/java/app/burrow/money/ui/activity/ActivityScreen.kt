@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,6 +69,17 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
     val deleteLabel = stringResource(R.string.delete)
     val deletedLabel = stringResource(R.string.txn_deleted)
     var confirmDelete by rememberSaveable { mutableStateOf<Long?>(null) }
+    val list = androidx.compose.foundation.lazy.rememberLazyListState()
+    // Older months load before the list reaches its end (also when what is loaded doesn't fill the screen).
+    state?.takeIf { it.hasMore }?.let { s ->
+        androidx.compose.runtime.LaunchedEffect(list, s.loadedFrom) {
+            androidx.compose.runtime.snapshotFlow {
+                val info = list.layoutInfo
+                info.totalItemsCount > 0 && (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - ACTIVITY_LOAD_AHEAD
+            }.first { it }
+            vm.loadMore()
+        }
+    }
     TabScreen(
         title = stringResource(R.string.tab_activity),
         actions = {
@@ -120,7 +132,7 @@ fun ActivityScreen(vm: ActivityViewModel, onAdd: () -> Unit, onOpen: (Long) -> U
                     line = stringResource(R.string.no_results_line),
                     button = { BurrowButton(stringResource(R.string.clear_search), { vm.search("") }, kind = ButtonKind.TONAL) },
                 )
-                else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = padding) {
+                else -> LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = padding) {
                     if (query.isBlank() && s.comingThisWeek.isNotEmpty()) item(key = "coming", contentType = "row") {
                         val n = s.comingThisWeek.size
                         app.burrow.money.ui.components.ListGroup(Modifier.padding(bottom = Space.small)) {

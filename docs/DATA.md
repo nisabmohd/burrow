@@ -116,6 +116,10 @@ stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue 
 - DataStore: `upcomingLowersSafe` (true): Safe to spend takes off unpaid expenses due before the period ends
   (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.
 
+## Index on transfers in (Room v10, 0.4.1)
+- `TxnEntity` gains an index on `toAccountId` (auto-migration 9 → 10): an account page reads its own rows,
+  paid from it or moved into it, with one indexed query. No column changes; backups are unchanged.
+
 ## Savings (Room v9, backup v6)
 - `AccountEntity.savingsMode` ONCE / MONTHLY / ANY (null = before v9: ONCE with a maturity date, else ANY); `marketValue`,
   `marketGain` (typed value minus balance at the time) and `valueUpdatedAt`. Worth = balance + marketGain.

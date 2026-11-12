@@ -3,6 +3,8 @@
 ## 0.4.1
 - Teach: the type can be checked and changed at any time, and Save works as soon as the amount is picked. Paid to and Account are optional and can be picked in any order; they no longer have to be filled one by one first.
 - Teach › Type: the words that mean a type are small chips sized to their word, as in the design, instead of stretching across the sheet.
+- Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
+- Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
 
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).

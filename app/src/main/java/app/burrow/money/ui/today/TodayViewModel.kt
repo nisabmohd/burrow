@@ -96,8 +96,14 @@ class TodayViewModel(
     private val period = BudgetPeriod.containing(today, monthStartDay)
     private fun Long.day(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 
+    /**
+     * The oldest day a widget reads: the net-worth line's 8 weekly points (7 weeks back), the budget
+     * month and the last 7 days. Only these rows load, not all history (0.4.1).
+     */
+    private val widgetsFrom = minOf(period.start, today.minusWeeks(7)).atStartOfDay(zone).toInstant().toEpochMilli()
+
     private val widgets = combine(
-        next.stats, // splits count in their own categories, refunds lower spending
+        next.statsBetween(widgetsFrom, Long.MAX_VALUE), // splits count in their own categories, refunds lower spending
         repo.netWorth,
         plan.occurrences(today.minusDays(62), today.plusDays(62)),
         plan.goals,

@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 import app.burrow.money.data.AccountWithBalance
 import app.burrow.money.data.CategoryEntity
+import app.burrow.money.data.FilterKey
 import app.burrow.money.data.MoneyRepository
 import app.burrow.money.data.TxnType
 import app.burrow.money.data.TxnView
@@ -23,6 +24,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
@@ -60,11 +65,15 @@ data class ActivityUiState(
     val categories: List<CategoryEntity>,
     /** Overdue and this week's coming-up items: the folded "3 coming up" row (11). */
     val comingThisWeek: List<app.burrow.money.ui.plan.ComingItem> = emptyList(),
+    /** Browsing loads [loadedFrom] onwards; older months come in as the list nears its end. */
+    val loadedFrom: Long = Long.MIN_VALUE,
+    val hasMore: Boolean = false,
 )
 
 /**
  * Activity (11–16): every transaction, newest first, grouped by day; search; the Filter and Dates
  * sheets; the chart card, where tapping a bar shows only that day. Work runs off the main thread.
+ * Browsing reads three months at a time ([loadMore]); search and filters read what they need.
  */
 class ActivityViewModel(private val repo: MoneyRepository, private val store: FilterStore, plan: app.burrow.money.data.PlanRepository? = null) : ViewModel() {
     /** Swipe to delete (Customise › Transactions); Undo puts it back. */
@@ -76,7 +85,32 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
     private val query = MutableStateFlow("")
     val searchText: StateFlow<String> = query.asStateFlow()
     private val selected = MutableStateFlow<Int?>(null)
-    @Volatile private var all: List<TxnView> = emptyList()
+    @Volatile private var keys: List<FilterKey> = emptyList()
+
+    /** While browsing (no search, no filter): three months, then three more each time the list nears its end. */
+    private val loadedFrom = MutableStateFlow(monthStart(ACTIVITY_MONTHS - 1L))
+
+    private fun monthStart(monthsBack: Long): Long =
+        java.time.YearMonth.now(zone).minusMonths(monthsBack).atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
+
+    /**
+     * The rows Activity reads, [from, to). Picked dates: just those days. A search or a filter: all
+     * history, so nothing is missed. Browsing: from [loadedFrom]. Never every row up front (0.4.1).
+     */
+    private fun window(f: Filters, searching: Boolean, from: Long): Pair<Long, Long> {
+        val range = f.range
+        return when {
+            range != null -> range.start.atStartOfDay(zone).toInstant().toEpochMilli() to range.end.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+            searching || f.count > 0 -> Long.MIN_VALUE to Long.MAX_VALUE
+            else -> from to Long.MAX_VALUE
+        }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val rows: kotlinx.coroutines.flow.Flow<Pair<Pair<Long, Long>, List<TxnView>>> =
+        combine(store.activity, query.map { it.isNotBlank() }.distinctUntilChanged(), loadedFrom) { f, searching, from -> window(f, searching, from) }
+            .distinctUntilChanged()
+            .flatMapLatest { w -> repo.between(w.first, w.second).map { w to it } }
 
     private val coming = plan?.let { p ->
         val today = LocalDate.now(zone)
@@ -84,11 +118,15 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
     } ?: kotlinx.coroutines.flow.flowOf(emptyList())
 
     val state: StateFlow<ActivityUiState?> = combine(
-        combine(repo.latest(), coming) { a, b -> a to b }, query, store.activity, selected, combine(repo.accounts, repo.categories) { a, c -> a to c },
-    ) { (everything, comingUp), q, f, sel, (accounts, categories) ->
+        combine(rows, coming, repo.postedKeys, loadedFrom) { a, b, k, from -> Triple(a, b, k to from) }, query, store.activity, selected, combine(repo.accounts, repo.categories) { a, c -> a to c },
+    ) { (loaded, comingUp, keysFrom), q, f, sel, (accounts, categories) ->
+        val (w, everything) = loaded
+        val (allKeys, from) = keysFrom
+        keys = allKeys
+        // Rows read for the filters just before these: wait for the right ones (no flash of "nothing matches").
+        if (w != window(f, q.isNotBlank(), from)) return@combine null
         // Upcoming payments live in Coming up; they never mix into the history.
         val txns = everything.filter { it.txn.status == app.burrow.money.data.TxnStatus.POSTED }
-        all = txns
         val today = LocalDate.now(zone)
         val range = f.range ?: DayRange.lastDays(14, today)
         val income = f.type == TypeFilter.INCOME
@@ -118,12 +156,24 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
                 income, if (bucket == Bucket.DAY) sel else null,
             ),
             groups = groups,
-            isEmpty = txns.isEmpty(),
+            isEmpty = allKeys.isEmpty(),
             accounts = accounts,
             categories = categories,
             comingThisWeek = comingUp.filter { it.group == app.burrow.money.ui.plan.ComingGroup.OVERDUE || it.group == app.burrow.money.ui.plan.ComingGroup.THIS_WEEK },
+            loadedFrom = w.first,
+            // Browsing only: picked dates and searches already read all they need.
+            hasMore = w.first == from && allKeys.any { it.at < from },
         )
-    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    }.filterNotNull().flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** The list is near its end: three more months, if there are older rows. */
+    fun loadMore() {
+        val s = state.value ?: return
+        if (!s.hasMore || s.loadedFrom != loadedFrom.value) return
+        val now = java.time.YearMonth.now(zone)
+        val loaded = java.time.YearMonth.from(Instant.ofEpochMilli(loadedFrom.value).atZone(zone))
+        loadedFrom.value = monthStart(java.time.temporal.ChronoUnit.MONTHS.between(loaded, now) + ACTIVITY_MONTHS)
+    }
 
     private fun TxnView.date(): LocalDate = Instant.ofEpochMilli(txn.at).atZone(zone).toLocalDate()
 
@@ -141,9 +191,15 @@ class ActivityViewModel(private val repo: MoneyRepository, private val store: Fi
         selected.value = if (selected.value == index) null else index
     }
 
-    /** How many transactions [f] would show, for the sheet's button. */
-    fun count(f: Filters): Int = all.count { f.matches(it, zone) }
+    /** How many transactions [f] would show, for the sheet's button: counted over every posted row. */
+    fun count(f: Filters): Int = keys.count { f.matches(it, zone) }
 }
+
+/** Months Activity reads at a time while browsing. */
+const val ACTIVITY_MONTHS = 3
+
+/** Rows from the end at which Activity reads the next months, so they are in before you get there. */
+const val ACTIVITY_LOAD_AHEAD = 30
 
 private fun unit(currency: String): Long {
     var u = 1L

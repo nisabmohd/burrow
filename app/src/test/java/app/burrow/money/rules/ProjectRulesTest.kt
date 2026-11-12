@@ -224,4 +224,43 @@ class ProjectRulesTest {
         }
         assertNone("unescaped ' (aapt drops the text after it)", bad)
     }
+
+    // --- Long data (docs/PERFORMANCE.md): years of payments over many accounts and cards stay fast. ---
+
+    /** Only the CSV export reads every row; screens read the days they show (a quiet card lost its history, 0.4.1). */
+    @Test fun noScreenReadsAllHistory() = assertNone("whole-history read outside the CSV export: read a range (between) or one account (forAccount)",
+        violations { f, _, l ->
+            !l.trim().startsWith("//") && !l.trim().startsWith("*") && (
+                (Regex("""\.everything\(\)""").containsMatchIn(l) && f.name != "CsvTransfer.kt") ||
+                    (Regex("""latest\(\s*(Int\.MAX_VALUE)?\s*\)""").containsMatchIn(l) && f.name != "MoneyRepository.kt") ||
+                    Regex("""\bnext\.stats\b""").containsMatchIn(l)
+                )
+        })
+
+    /** Every query that lists transactions with names is bounded: a WHERE (range, account, status) or a LIMIT. */
+    @Test fun transactionListQueriesAreBounded() {
+        val daos = File(main, "java/app/burrow/money/data/Daos.kt").readText()
+        val found = Regex("""@Query\(\s*\"\"\"(.*?)\"\"\",?\s*\)\s*fun (\w+)\([^)]*\):\s*Flow<List<TxnView>>""", RegexOption.DOT_MATCHES_ALL)
+            .findAll(daos).filter { m -> m.groupValues[1].let { "WHERE" !in it && "LIMIT" !in it } }.map { it.groupValues[2] }.toList()
+        assertNone("Flow<List<TxnView>> query with neither WHERE nor LIMIT", found)
+    }
+
+    /** A transaction row is drawn inside a lazy list item (Activity, accounts, budgets, category insights, Today). */
+    @Test fun transactionRowsAreInLazyLists() {
+        val found = kotlin.filter { it.name != "TxnRow.kt" }.flatMap { f ->
+            val lines = f.readLines()
+            lines.indices.filter { "TxnRow(" in lines[it] && !lines[it].trim().startsWith("//") }.mapNotNull { i ->
+                val before = (maxOf(0, i - 16)..i).joinToString("\n") { lines[it] }
+                if (Regex("""\b(item|items|itemsIndexed)\(""").containsMatchIn(before)) null else "${rel(f)}:${i + 1}: ${lines[i].trim().take(110)}"
+            }
+        }
+        assertNone("TxnRow outside a LazyColumn item: use LazyDetailFrame / LazyColumn with keys", found)
+    }
+
+    /** Lazy items have stable keys, so rows keep their state and skip when the list changes. */
+    @Test fun lazyItemsHaveKeys() = assertNone("item/items/itemsIndexed over data without key = (TimeWheel, tabs and static text lists excepted)",
+        violations { f, _, l ->
+            f.name !in setOf("TimeWheel.kt", "Controls.kt", "SettingsScreens.kt") && !l.trim().startsWith("//") &&
+                Regex("""\b(itemsIndexed|items)\(""").containsMatchIn(l) && "key" !in l
+        })
 }
