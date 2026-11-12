@@ -53,13 +53,14 @@ object HomeSurfaces {
         val locale = java.util.Locale.getDefault()
         val money = MoneyFormat.of(s.mainCurrency, locale, s.numberFormat, s.currencyDisplay, s.decimals).withHidden(s.hideAmounts)
         val period = BudgetPeriod.containing(today, s.monthStartDay)
-        val budget = app.money.overallBudget(period).first()?.amount
+        // With carry-over, like Today's hero and the Sunday review.
+        val budget = app.plan.budgets(period).first().first?.amount
         val spent = app.money.spent(period).first()
         val spentToday = app.next.spentToday(today).first()
         val daysLeft = period.daysLeft(today)
         val left = (budget ?: 0) - spent
         val bill = app.plan.occurrences(today.minusDays(30), today.plusDays(62)).first()
-            .filter { it.occurrence.status == OccurrenceStatus.UPCOMING }.minByOrNull { it.occurrence.dueDate }
+            .filter { it.occurrence.status == OccurrenceStatus.UPCOMING && !it.income }.minByOrNull { it.occurrence.dueDate }
         return HomeNumbers(
             budget = budget, spent = spent, left = left,
             safeToday = if (budget == null) 0 else safeToSpendToday(left, spentToday, daysLeft, money.digits, app.comingUpDue(period, today)),

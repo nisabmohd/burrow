@@ -149,9 +149,9 @@ fun TypeSheet(type: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
 }
 
 /**
- * Repeat or lend (112): Once · Repeat · Subscription · Lent · Borrowed, one choice; then How often
- * (Weekly / Monthly / Yearly) or who it was; Done. Repeat and Subscription make a bill on save;
- * income has no Subscription; Customise › Expense decides whether repeat and lend show.
+ * Repeat or lend (112): expense Once · Repeat · Subscription · Lent; income Once · Repeat · Borrowed;
+ * one choice; then How often (Weekly / Monthly / Yearly) or who it was; Done. Repeat and Subscription
+ * make a bill on save; Customise › Expense decides whether repeat and lend show.
  */
 @Composable
 fun RepeatOrLendSheet(vm: AddActions, s: AddUiState, onDismiss: () -> Unit) {
@@ -165,12 +165,14 @@ fun RepeatOrLendSheet(vm: AddActions, s: AddUiState, onDismiss: () -> Unit) {
     val options = buildList {
         add(Triple(CHOICE_ONCE, R.string.once to R.string.once_line, R.drawable.ic_block_duotone))
         if (s.repeatOffered) {
-            add(Triple(CHOICE_REPEAT, R.string.extra_repeat to R.string.repeat_bill_line, R.drawable.ic_event_repeat_duotone))
+            add(Triple(CHOICE_REPEAT, R.string.extra_repeat to if (f.type == TxnType.INCOME) R.string.repeat_income_line else R.string.repeat_bill_line, R.drawable.ic_event_repeat_duotone))
             if (f.type == TxnType.EXPENSE) add(Triple(CHOICE_SUB, R.string.subscription to R.string.is_subscription_line, R.drawable.ic_autorenew_duotone))
         }
-        if (s.shows(app.burrow.money.data.FormExtra.LEND)) {
-            add(Triple(Lend.LENT, R.string.lent to R.string.lent_line, R.drawable.ic_handshake_duotone))
-            add(Triple(Lend.BORROWED, R.string.borrowed to R.string.borrowed_line, R.drawable.ic_handshake_duotone))
+        // Money out can be lent, money in borrowed (user, 2026-11-12): income "lent to Ravi" counted as
+        // income and also said Ravi owed you.
+        if (s.shows(app.burrow.money.data.FormExtra.LEND)) when (f.type) {
+            TxnType.EXPENSE -> add(Triple(Lend.LENT, R.string.lent to R.string.lent_line, R.drawable.ic_handshake_duotone))
+            TxnType.INCOME -> add(Triple(Lend.BORROWED, R.string.borrowed to R.string.borrowed_line, R.drawable.ic_handshake_duotone))
         }
     }
     fun pick(key: String) {

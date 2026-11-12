@@ -840,7 +840,7 @@
     <string name="welcome_currency_title">Your main currency</string>
     <string name="welcome_currency_line">Totals and budgets use this. Accounts can still be in other currencies.</string>
     <string name="welcome_accounts_title">Where is your money?</string>
-    <string name="welcome_accounts_line">Add the accounts you pay from. Rough balances are fine; the app fixes them from your SMS.</string>
+    <string name="welcome_accounts_line">Add the accounts you pay from. Rough balances are fine; you can fix one any time.</string>
     <string name="card">Card</string>
     <string name="remove_account">Remove %1$s</string>
     <!-- Customise (80–85) and More v2 -->
@@ -1266,7 +1266,7 @@
         <item quantity="other">%d messages not understood</item>
     </plurals>
     <string name="teach_once_line">Teach once and messages like it are read</string>
-    <string name="not_understood_line">These looked like payments but no rule could read them. Teach once, and messages like it are read from then on.</string>
+    <string name="not_understood_line">These looked like payments, but no rule could read them. Teach one and messages like it are read from then on.</string>
     <string name="nothing_to_teach">Nothing to teach</string>
     <string name="nothing_to_teach_line">Messages the app can\'t read show up here.</string>
     <string name="teach">Teach</string>
@@ -1539,4 +1539,32 @@
     <string name="goal_pace_line">Adding %1$s a month gets you there by %2$s.</string>
     <string name="pay_emi">Pay EMI</string>
     <string name="emi_paid">EMI paid</string>
+    <string name="mark_received">Mark received</string>
+    <string name="marked_received">Marked received</string>
+    <string name="received_in">Received in</string>
+    <string name="received_before">Received before</string>
+    <string name="received_in_short">Received in %1$s</string>
+    <string name="dynamic_colour_on">On · colours come from your wallpaper</string>
+    <string name="legend_period">%1$s  %2$s</string>
+    <string name="review">Review</string>
+    <string name="review_hint">Tap one to check its message. Swipe right to save, left to ignore.</string>
+    <string name="edit_details">Edit details</string>
+    <string name="edit_details_line">Amount, payee, account, date</string>
+    <string name="tap_it_in_message">Tap it in the message</string>
+    <string name="type_after_account">Filled in after the account</string>
+    <string name="type_it_says">%1$s · it says “%2$s”</string>
+    <string name="type_sheet_line">What a message like this means</string>
+    <string name="words_that_mean">Words that mean %1$s</string>
+    <string name="add_a_word">Add a word</string>
+    <string name="type_words_line">Built-in words come from the pack for this language. A message with none of them lands in Not understood.</string>
+    <string name="not_a_payment">Not a payment</string>
+    <string name="type_refund_line">Money back for something you bought</string>
+    <string name="type_not_payment_line">Skip messages like this</string>
+    <string name="teach_add_word">Tap the &lt;b&gt;word&lt;/b&gt; in the message to add it.</string>
+    <string name="teach_check_type">Check the type, then save.</string>
+    <string name="repeat_income_line">Comes in again in Plan › Coming up</string>
+    <string name="archive_named">Archive %1$s?</string>
+    <string name="archive_with_money">%1$s leaves net worth, and its bills stop. You can bring it back from Undo right after.</string>
+    <string name="archive">Archive</string>
+    <string name="split_explain_short">Each part counts in its own category</string>
 </resources>

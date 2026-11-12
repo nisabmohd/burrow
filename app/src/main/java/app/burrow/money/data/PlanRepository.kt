@@ -115,6 +115,16 @@ class PlanRepository(
     suspend fun deleteBill(id: Long) = db.bills().archive(id)
 
     /**
+     * Archiving an account ends the bills paid from it or into it, so Coming up stops asking for them
+     * (QA 12 Nov). Returns how to bring them back (Undo).
+     */
+    suspend fun endBillsOf(accountId: Long): suspend () -> Unit {
+        val ended = db.bills().all().first().filter { it.accountId == accountId || it.toAccountId == accountId }
+        ended.forEach { db.bills().archive(it.id) }
+        return { ended.forEach { db.bills().upsert(it) } }
+    }
+
+    /**
      * New expense › Repeat (75): a bill from a saved transaction. Its first due date is the
      * transaction's day, already paid by it; the next ones follow [every] (WEEK, MONTH, YEAR).
      */
@@ -142,11 +152,20 @@ class PlanRepository(
      * the principal is a transfer into the loan and the interest an expense in Fees & interest; a
      * card bill is a transfer into the card. Returns how to undo it.
      */
-    suspend fun markPaid(occurrenceId: Long, at: Long = System.currentTimeMillis()): (suspend () -> Unit)? = db.withTransaction {
-        val o = db.bills().occurrence(occurrenceId) ?: return@withTransaction null
-        if (o.status == OccurrenceStatus.PAID) return@withTransaction null
-        val b = db.bills().find(o.billId) ?: return@withTransaction null
-        val account = db.accounts().all().first().firstOrNull { it.id == b.accountId } ?: return@withTransaction null
+    suspend fun markPaid(
+        occurrenceId: Long,
+        at: Long = System.currentTimeMillis(),
+        /** Pay EMI / Pay bill on the account page: the account it came from and what was paid. */
+        from: Long? = null,
+        paid: Long? = null,
+    ): (suspend () -> Unit)? = db.withTransaction {
+        val o0 = db.bills().occurrence(occurrenceId) ?: return@withTransaction null
+        if (o0.status == OccurrenceStatus.PAID) return@withTransaction null
+        val b0 = db.bills().find(o0.billId) ?: return@withTransaction null
+        val b = if (from != null) b0.copy(accountId = from) else b0
+        val o = if (paid != null) o0.copy(amount = paid) else o0
+        // byId, not all(): all() leaves out archived accounts and the swipe did nothing (QA 12 Nov).
+        val account = db.accounts().byId(b.accountId) ?: return@withTransaction null
         val amount = o.amount ?: b.amount
         fun txn(type: String, value: Long, category: Long? = null, to: Long? = null) = TxnEntity(
             type = type, amount = value, currency = account.currency, baseAmount = value, accountId = b.accountId,
@@ -165,13 +184,17 @@ class PlanRepository(
                 )
             }
             BillKind.CARD, BillKind.SAVINGS -> listOf(money.save(txn(TxnType.TRANSFER, amount, to = b.toAccountId)))
-            else -> listOf(money.save(txn(TxnType.EXPENSE, amount, category = b.categoryId)))
+            else -> {
+                // A repeating salary is a bill in an income category: receiving it is income, not an expense.
+                val income = b.categoryId?.let { id -> db.categories().all().first().firstOrNull { it.id == id } }?.kind == "INCOME"
+                listOf(money.save(txn(if (income) TxnType.INCOME else TxnType.EXPENSE, amount, category = b.categoryId)))
+            }
         }
         db.bills().updateOccurrence(o.copy(status = OccurrenceStatus.PAID, txnId = ids.first(), amount = amount))
         val undo: suspend () -> Unit = {
             db.withTransaction {
                 db.txns().deleteIds(ids)
-                db.bills().updateOccurrence(o)
+                db.bills().updateOccurrence(o0)
             }
         }
         undo
@@ -227,18 +250,45 @@ class PlanRepository(
         undo
     }
 
-    /** A captured payment that matches a due bill marks it Paid, linked to that transaction. */
-    suspend fun settleFromPayment(txn: TxnEntity): Boolean {
-        if (txn.type != TxnType.EXPENSE) return false
+    /** The earliest unpaid due date of the EMI or card bill paid into [accountId], if it has one. */
+    suspend fun nextDueInto(accountId: Long, kind: String): Long? =
+        db.bills().occurrences(0, Long.MAX_VALUE).first()
+            .filter { it.kind == kind && it.occurrence.status == OccurrenceStatus.UPCOMING }
+            .filter { o -> db.bills().find(o.occurrence.billId)?.toAccountId == accountId }
+            .minByOrNull { it.occurrence.dueDate }?.occurrence?.id
+
+    /**
+     * A captured payment that matches a due bill marks it Paid, linked to that transaction. Money out
+     * matches bills, money in a repeating salary (marked received). A card bill, savings instalment or
+     * EMI paid this way becomes what Plan's Paid makes: a transfer into the card / savings / loan (an EMI's
+     * interest an expense), so it is never counted as spending on top of the purchases (QA 12 Nov).
+     */
+    suspend fun settleFromPayment(txn: TxnEntity): Boolean = db.withTransaction {
+        if (txn.type != TxnType.EXPENSE && txn.type != TxnType.INCOME) return@withTransaction false
+        val incoming = txn.type == TxnType.INCOME
         val date = txn.at.date()
         val due = db.bills().occurrences(date.minusDays(4).millis(), date.plusDays(4).millis()).first()
-            .filter { it.occurrence.status == OccurrenceStatus.UPCOMING }
+            .filter { it.occurrence.status == OccurrenceStatus.UPCOMING && it.income == incoming }
         val bills = due.map { DueBill(it.occurrence.id, it.name, it.amount, it.occurrence.dueDate.date()) }
         // The hidden merchant ("BESCOM") first: the expense may be named by its words ("Electricity").
-        val hit = txn.merchant?.let { matchBill(it, txn.amount, date, bills) } ?: matchBill(txn.payee, txn.amount, date, bills) ?: return false
-        val o = db.bills().occurrence(hit.occurrenceId) ?: return false
+        val hit = txn.merchant?.let { matchBill(it, txn.amount, date, bills) } ?: matchBill(txn.payee, txn.amount, date, bills) ?: return@withTransaction false
+        val o = db.bills().occurrence(hit.occurrenceId) ?: return@withTransaction false
+        val b = db.bills().find(o.billId) ?: return@withTransaction false
+        when (b.kind) {
+            BillKind.CARD, BillKind.SAVINGS -> if (b.toAccountId != null) {
+                db.txns().upsert(txn.copy(type = TxnType.TRANSFER, toAccountId = b.toAccountId, categoryId = null, billOccurrenceId = o.id))
+            }
+            BillKind.EMI -> if (b.toAccountId != null) {
+                val loan = money.accounts.first().firstOrNull { it.account.id == b.toAccountId }
+                val rate = loan?.account?.interestRate?.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                val interest = if (loan != null) loanSchedule(-loan.balance, rate, txn.amount, o.dueDate.date(), 1, max = 1, unit = wholeUnit(txn.currency)).firstOrNull()?.interest ?: 0L else 0L
+                db.txns().upsert(txn.copy(type = TxnType.TRANSFER, amount = txn.amount - interest, baseAmount = txn.baseAmount - interest, toAccountId = b.toAccountId, categoryId = null, billOccurrenceId = o.id))
+                if (interest > 0) money.save(txn.copy(id = 0, amount = interest, baseAmount = interest, categoryId = feesCategory(), billOccurrenceId = o.id))
+            }
+            else -> db.txns().upsert(txn.copy(billOccurrenceId = o.id))
+        }
         db.bills().updateOccurrence(o.copy(status = OccurrenceStatus.PAID, txnId = txn.id, amount = txn.amount))
-        return true
+        true
     }
 
     suspend fun skip(occurrenceId: Long): (suspend () -> Unit)? {
@@ -301,7 +351,9 @@ class PlanRepository(
         val before = db.budgets().exact(month, categoryId)
         db.budgets().upsert((before ?: BudgetEntity(month = month, categoryId = categoryId, amount = 0)).copy(amount = amount, carryOver = carryOver, isSample = false))
         return {
-            if (before != null) db.budgets().upsert(before) else db.budgets().exact(month, categoryId)?.let { db.budgets().upsert(it.copy(amount = 0)) }
+            // A row this change added goes again, so an earlier month's budget carries on as before
+            // (setting it to 0 hid that budget, or made the overall one ₹0: QA 12 Nov).
+            if (before != null) db.budgets().upsert(before) else db.budgets().exact(month, categoryId)?.let { db.budgets().deleteId(it.id) }
         }
     }
 

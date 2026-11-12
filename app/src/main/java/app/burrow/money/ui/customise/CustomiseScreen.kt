@@ -336,17 +336,17 @@ private fun CurrencyTab(vm: CustomiseViewModel, settings: Settings, s: Customise
     SectionHeader(stringResource(R.string.show_amounts_as))
     ChoiceTiles(
         listOf(
-            Choice("SYMBOL", stringResource(R.string.symbol), MoneyFormat.of(main, locale, settings.numberFormat, "SYMBOL", "AUTO").plain(1_240_00)),
-            Choice("CODE", stringResource(R.string.code), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "AUTO").plain(1_240_00)),
+            Choice("SYMBOL", stringResource(R.string.symbol), MoneyFormat.of(main, locale, settings.numberFormat, "SYMBOL", "AUTO").plain(1_240 * sampleUnit(main))),
+            Choice("CODE", stringResource(R.string.code), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "AUTO").plain(1_240 * sampleUnit(main))),
         ),
         settings.currencyDisplay, vm::display, columns = 2,
     )
     SectionHeader(stringResource(R.string.decimal_places))
     ChoiceTiles(
         listOf(
-            Choice("AUTO", stringResource(R.string.auto), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "AUTO").number(1_240_50).trimEnd('0')),
-            Choice("NONE", stringResource(R.string.dec_none), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "NONE").number(1_240_00)),
-            Choice("ALWAYS", stringResource(R.string.dec_always), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "ALWAYS").number(1_240_00)),
+            Choice("AUTO", stringResource(R.string.auto), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "AUTO").number(1_240 * sampleUnit(main) + sampleUnit(main) / 2)),
+            Choice("NONE", stringResource(R.string.dec_none), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "NONE").number(1_240 * sampleUnit(main))),
+            Choice("ALWAYS", stringResource(R.string.dec_always), MoneyFormat.of(main, locale, settings.numberFormat, "CODE", "ALWAYS").number(1_240 * sampleUnit(main))),
         ),
         settings.decimals, vm::decimals,
     )
@@ -448,4 +448,11 @@ private fun RateSheet(code: String, main: String, current: app.burrow.money.data
         onConfirm = { valid?.let(onSave) }, onDismiss = onDismiss,
         secondary = if (current != null) stringResource(R.string.remove) to onRemove else null,
     )
+}
+
+/** One whole unit of [currency] in minor units (₹1 = 100, ¥1 = 1): the previews show 1,240 of it (QA 12 Nov). */
+private fun sampleUnit(currency: String): Long {
+    var u = 1L
+    repeat(app.burrow.money.data.minorDigits(currency)) { u *= 10 }
+    return u
 }

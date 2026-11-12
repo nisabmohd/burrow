@@ -82,7 +82,7 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
             val open = android.content.Intent(context, app.burrow.money.MainActivity::class.java)
                 .setAction(app.burrow.money.MainActivity.ACTION_OPEN_TXN).putExtra(app.burrow.money.MainActivity.EXTRA_ID, t.id)
                 .addFlags(android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            planNotifier.show(30_000 + (t.id % 1_000_000).toInt(), string(R.string.upcoming_added_title, name, fmt.plain(t.amount)), string(R.string.upcoming_added_line), open)
+            planNotifier.show(NotificationIds.UPCOMING + (t.id % NotificationIds.BLOCK).toInt(), string(R.string.upcoming_added_title, name, fmt.plain(t.amount)), string(R.string.upcoming_added_line), open)
         }
     }
     if (last != null) {
@@ -94,7 +94,7 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
         for (e in all.filter { it.at in (last + 1)..now }) {
             val o = e.o
             val amount = money.plain(o.amount)
-            val id = 20_000 + (o.occurrence.id % 1_000_000).toInt()
+            val id = NotificationIds.BILL + (o.occurrence.id % NotificationIds.BLOCK).toInt()
             when {
                 !e.dueDay -> notifier?.show(id, if (o.remindDaysBefore == 1) string(R.string.reminder_soon, o.name) else context.resources.getQuantityString(R.plurals.reminder_in_days, o.remindDaysBefore, o.name, o.remindDaysBefore), string(R.string.reminder_line, amount, o.accountName), Notifier.openBill(context, o.occurrence.billId))
                 o.onDue == OnDue.RECORD -> {
@@ -119,7 +119,7 @@ suspend fun AppContainer.runBillReminders(now: Long = System.currentTimeMillis()
             // "₹1,12,000 goes to HDFC Savings on Mon, 26 Oct" (166).
             val day = app.burrow.money.ui.DateText(context, java.util.Locale.getDefault(), st.dateFormat).weekdayDay(maturity)
             val line = if (payout != null) string(R.string.deposit_reminder_line, fmt.plain(total), payout, day) else string(R.string.deposit_reminder_line_alone, fmt.plain(total), day)
-            notifier?.show(60_000 + (e.key % 10_000).toInt(), string(R.string.deposit_reminder, a.name), line, Notifier.openAccounts(context))
+            notifier?.show(NotificationIds.DEPOSIT + (e.key % NotificationIds.BLOCK).toInt(), string(R.string.deposit_reminder, a.name), line, Notifier.openAccounts(context))
         }
     }
     settings.setBillsCheckedAt(now)
@@ -192,7 +192,7 @@ suspend fun AppContainer.checkBudgets(saved: TxnEntity, before: TxnEntity?) {
         val title = if (level == 100) strings(R.string.alert_100, name) else strings(R.string.alert_80, name)
         val text = if (line.over) strings(R.string.alert_over_line, money.plain(line.spent - line.amount), money.plain(line.amount))
         else strings(R.string.alert_left_line, money.plain(line.left), money.plain(line.amount))
-        planNotifier.show(30_000 + (line.category?.id ?: 0).toInt() * 2 + if (level == 100) 1 else 0, title, text, Notifier.openPlan(context))
+        planNotifier.show(NotificationIds.BUDGET + ((line.category?.id ?: 0) % (NotificationIds.BLOCK / 2)).toInt() * 2 + if (level == 100) 1 else 0, title, text, Notifier.openPlan(context))
     }
 }
 
@@ -220,7 +220,7 @@ suspend fun AppContainer.runMonthlySummary(today: LocalDate = LocalDate.now()) {
     val monthName = last.month.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
     val kept = app.burrow.money.domain.keptPercent(income, spent)
     val line = if (kept != null) strings(R.string.summary_line_kept, money.plain(spent), kept) else strings(R.string.summary_line, money.plain(spent))
-    planNotifier.show(40_000, strings(R.string.summary_title, monthName), line, Notifier.openInsights(context))
+    planNotifier.show(NotificationIds.MONTH_SUMMARY, strings(R.string.summary_title, monthName), line, Notifier.openInsights(context))
 }
 
 /**
@@ -236,6 +236,21 @@ suspend fun AppContainer.runSettleReminders(now: Long = System.currentTimeMillis
         money.setPersonReminder(p.person.id, null)
         if (!s.notifyBills) continue
         val line = if (p.balance > 0) strings(R.string.settle_owes_you, money0.plain(p.balance)) else strings(R.string.settle_you_owe, money0.plain(-p.balance))
-        planNotifier.show(50_000 + (p.person.id % 10_000).toInt(), strings(R.string.settle_up_with, p.person.name), line, Notifier.openAccounts(context))
+        planNotifier.show(NotificationIds.SETTLE + (p.person.id % NotificationIds.BLOCK).toInt(), strings(R.string.settle_up_with, p.person.name), line, Notifier.openAccounts(context))
     }
+}
+
+/**
+ * One block of ids per kind of notification, so one never replaces another (a budget alert and a
+ * "payment added" note shared ids: QA 12 Nov). Capture notifications use 10_000..1_009_999.
+ */
+object NotificationIds {
+    const val BLOCK = 1_000_000L
+    const val BILL = 2_000_000
+    const val UPCOMING = 3_000_000
+    const val BUDGET = 4_000_000
+    const val SETTLE = 5_000_000
+    const val DEPOSIT = 6_000_000
+    const val MONTH_SUMMARY = 7_000_000
+    const val WEEKLY = 7_000_001
 }

@@ -98,6 +98,7 @@ class MoneyRepository(
         settings.settings.map { it.countUpcoming }.distinctUntilChanged().flatMapLatest { up ->
             combine(a.all(), a.outSums(up), a.inSums(up)) { accounts, out, into -> accounts to (out to into) }
         }.map { (accounts, sums) ->
+            app.burrow.money.ui.AccountNames.names = accounts.map { it.name }
             val (out, into) = sums
             val b = balances(accounts.associate { it.id to it.openingBalance }, out, into.associate { it.accountId to it.total })
             accounts.map { AccountWithBalance(it, b[it.id] ?: it.openingBalance) }
@@ -314,12 +315,38 @@ class MoneyRepository(
     /** Runs after any change to transactions (the home-screen widget and the Review shortcut refresh). */
     var changed: (suspend () -> Unit)? = null
 
-    /** Deletes and returns the transaction, for the Undo snackbar. */
-    suspend fun delete(id: Long): TxnEntity? = db.txns().get(id)?.also { db.txns().delete(it); changed?.invoke() }
+    /** What went with a deleted transaction: its refunds, and the bill due dates it paid. */
+    private class WentWith(val refunds: List<TxnEntity>, val paid: List<BillOccurrenceEntity>)
+    private val wentWith = java.util.concurrent.ConcurrentHashMap<Long, WentWith>()
 
-    /** Puts a deleted transaction back with its old id. */
+    /**
+     * Deletes and returns the transaction, for the Undo snackbar. Its refunds go with it (a refund of
+     * nothing made spending negative), and a bill due date it paid is unpaid again so it comes back to
+     * Coming up (QA 12 Nov). [restore] puts all of it back.
+     */
+    suspend fun delete(id: Long): TxnEntity? = db.withTransaction {
+        val t = db.txns().get(id) ?: return@withTransaction null
+        val paid = db.bills().occurrencesPaidBy(id)
+        // The payment that paid a due date takes the rest of it along (an EMI's interest row); deleting
+        // just the interest leaves the principal and the due date paid.
+        val refunds = db.next().refundsOf(id).first() +
+            paid.flatMap { o -> db.txns().byOccurrence(o.id) }.filter { it.id != id }
+        refunds.forEach { db.txns().delete(it) }
+        paid.forEach { db.bills().updateOccurrence(it.copy(status = OccurrenceStatus.UPCOMING, txnId = null, amount = null)) }
+        db.txns().delete(t)
+        if (refunds.isNotEmpty() || paid.isNotEmpty()) wentWith[id] = WentWith(refunds, paid)
+        t
+    }.also { if (it != null) changed?.invoke() }
+
+    /** Puts a deleted transaction back with its old id, with what went with it. */
     suspend fun restore(txn: TxnEntity) {
-        db.txns().upsert(txn)
+        db.withTransaction {
+            db.txns().upsert(txn)
+            wentWith.remove(txn.id)?.let { w ->
+                w.refunds.forEach { db.txns().upsert(it) }
+                w.paid.forEach { db.bills().updateOccurrence(it) }
+            }
+        }
         changed?.invoke()
     }
 
@@ -363,13 +390,34 @@ class MoneyRepository(
     /** Accounts of yours in [currency]: asked about when the main currency changes. */
     suspend fun accountsIn(currency: String): Int = db.accounts().countIn(currency)
 
-    /** Moves accounts (and their transactions) from [from] to [to], for a new main currency. */
+    /**
+     * Moves accounts (and their transactions, bills and favourites) from [from] to [to], for a new main
+     * currency. A currency with other decimals rescales the amounts first, so ₹75,000 stays 75,000.
+     */
     suspend fun moveCurrency(from: String, to: String) {
         db.withTransaction {
+            val (mul, div) = scale(from, to)
+            if (mul != div) db.currencyMove().run {
+                splits(from, mul, div); occurrences(from, mul, div); bills(from, mul, div)
+                favourites(from, mul, div); txns(from, mul, div); accounts(from, mul, div)
+            }
             db.accounts().moveCurrency(from, to)
             db.txns().moveCurrency(from, to)
         }
         changed?.invoke()
+    }
+
+    /** A new main currency: budgets and goals (kept in it) follow its decimals, whether accounts move or not. */
+    suspend fun rescaleMain(from: String, to: String) {
+        val (mul, div) = scale(from, to)
+        if (mul != div) db.withTransaction { db.currencyMove().budgets(mul, div); db.currencyMove().goals(mul, div) }
+    }
+
+    /** 10^(to's decimals) over 10^(from's): ₹ → ¥ is 1 / 100. */
+    private fun scale(from: String, to: String): Pair<Long, Long> {
+        fun pow(n: Int): Long { var u = 1L; repeat(n) { u *= 10 }; return u }
+        val a = minorDigits(from); val b = minorDigits(to)
+        return if (b >= a) pow(b - a) to 1L else 1L to pow(a - b)
     }
 
     /** "Remove" on the sample note. */

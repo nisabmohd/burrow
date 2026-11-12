@@ -78,7 +78,8 @@ fun weeklySummary(
     val period = BudgetPeriod.containing(today, monthStartDay)
     val left = (budget ?: 0) - monthSpent
     val due = occurrences.filter {
-        it.occurrence.status == OccurrenceStatus.UPCOMING &&
+        // Bills only: a repeating salary is money coming in, not a bill due (QA 12 Nov).
+        it.occurrence.status == OccurrenceStatus.UPCOMING && !it.income &&
             !Instant.ofEpochMilli(it.occurrence.dueDate).atZone(zone).toLocalDate().isAfter(today.plusDays(6))
     }.sortedBy { it.occurrence.dueDate }
     return WeeklySummary(
@@ -105,7 +106,8 @@ fun AppContainer.weeklySummaryFlow(today: LocalDate = LocalDate.now()): Flow<Wee
         next.spentToday(today),
     ) { (stats, review, occ), s, spentToday ->
         val period = BudgetPeriod.containing(today, s.monthStartDay)
-        val budget = money.overallBudget(period).first()?.amount
+        // With carry-over, like Today's hero: the three surfaces show one number (CLAUDE.md).
+        val budget = plan.budgets(period).first().first?.amount
         val monthSpent = money.spent(period).first()
         weeklySummary(
             today, runCatching { java.time.DayOfWeek.valueOf(s.weekStart) }.getOrDefault(java.time.DayOfWeek.MONDAY), s.monthStartDay,
@@ -136,7 +138,7 @@ suspend fun AppContainer.runWeeklyReview(now: LocalDateTime = LocalDateTime.now(
         sum.budget?.let { strings(R.string.weekly_left, money.short(sum.left.coerceAtLeast(0))) },
     )
     val line = (parts.joinToString(" · ").takeIf { it.isNotEmpty() }?.let { "$it. " } ?: "") + strings(R.string.weekly_takes_30s)
-    planNotifier.show(60_000, strings(R.string.weekly_title, money.plain(sum.spent)), line, Notifier.openSundayReview(context), strings(R.string.sunday_review))
+    planNotifier.show(NotificationIds.WEEKLY, strings(R.string.weekly_title, money.plain(sum.spent)), line, Notifier.openSundayReview(context), strings(R.string.sunday_review))
 }
 
 /** Sets one inexact alarm for the next Sunday at the review time (no exact-alarm permission). */

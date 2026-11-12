@@ -373,6 +373,7 @@ abstract class BurrowDatabase : RoomDatabase() {
     abstract fun backup(): BackupDao
     abstract fun rules(): RuleDao
     abstract fun extras(): ExtrasDao
+    abstract fun currencyMove(): CurrencyMoveDao
     abstract fun next(): NextDao
     abstract fun cards(): CardDao
     abstract fun savings(): SavingsDao

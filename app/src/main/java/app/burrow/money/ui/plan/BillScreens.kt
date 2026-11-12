@@ -122,13 +122,15 @@ fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, re
                 bad = s.overdue,
             )
             val repeat = Repeat.parse(b.repeatRule)
+            // A repeating salary is received into an account, not paid from it.
+            val income = s.category?.kind == "INCOME"
             ListGroup {
                 ListRow(
                     s.category?.name ?: kindLabel(b.kind), 0, 4, supporting = stringResource(R.string.category),
                     lead = { CategoryCircle(b.icon ?: s.category?.icon, b.colorHue ?: s.category?.colorHue) },
                 )
                 ListRow(
-                    s.account?.account?.name.orEmpty(), 1, 4, supporting = stringResource(R.string.paid_from),
+                    s.account?.account?.name.orEmpty(), 1, 4, supporting = stringResource(if (income) R.string.received_in else R.string.paid_from),
                     lead = { CategoryCircle(s.account?.account?.icon, s.account?.account?.colorHue) },
                 )
                 ListRow(
@@ -143,12 +145,12 @@ fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, re
                 )
             }
             if (s.paidBefore.isNotEmpty()) {
-                SectionHeader(stringResource(R.string.paid_before))
+                SectionHeader(stringResource(if (income) R.string.received_before else R.string.paid_before))
                 ListGroup {
                     s.paidBefore.take(12).forEachIndexed { i, o ->
                         ListRow(
                             dates.fullDay(o.occurrence.dueDate.toDate()), i, minOf(12, s.paidBefore.size),
-                            supporting = stringResource(R.string.paid_from_short, shortName(o.accountName)),
+                            supporting = stringResource(if (income) R.string.received_in_short else R.string.paid_from_short, shortName(o.accountName)),
                             lead = { CategoryCircle(s.account?.account?.icon, s.account?.account?.colorHue) },
                             trailing = { app.burrow.money.ui.components.AmountTrailing(money.plain(o.amount)) },
                         )
@@ -159,7 +161,8 @@ fun BillScreen(vm: BillViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, re
                 Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.spacedBy(Space.inline)) {
                     BurrowButton(stringResource(R.string.skip), { vm.skip { undo -> snackbar.show(context.getString(R.string.skipped), undo) } }, Modifier.weight(1f), ButtonKind.TONAL)
                     BurrowButton(
-                        stringResource(R.string.mark_paid), { vm.markPaid { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } },
+                        stringResource(if (income) R.string.mark_received else R.string.mark_paid),
+                        { vm.markPaid { undo -> snackbar.show(context.getString(if (income) R.string.marked_received else R.string.marked_paid), undo) } },
                         Modifier.weight(1f), icon = painterResource(R.drawable.ic_check_regular),
                     )
                 }

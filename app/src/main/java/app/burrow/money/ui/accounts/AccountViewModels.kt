@@ -227,6 +227,17 @@ class AccountViewModel(
         onDone { money.delete(txnId) }
     }
 
+    /**
+     * Pay EMI / Pay card bill: pays the next unpaid due date the same way Plan's Paid does (an EMI's
+     * interest is an expense, the rest a transfer into the loan) and marks it Paid, so Coming up doesn't
+     * ask again (QA 12 Nov). With no bill set up it is a plain transfer in.
+     */
+    fun payDue(kind: String, from: Long, amount: Long, day: java.time.LocalDate, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
+        val due = plan?.nextDueInto(id, kind)
+        val undo = due?.let { plan?.markPaid(it, atMillis(day), from = from, paid = amount) }
+        if (undo != null) onDone(undo) else payIn(from, amount, day, onDone)
+    }
+
     /** Card Pay bill / loan Prepay: a transfer from [from] into this account. */
     /** A transfer into this card or loan from [from], on [day] (now, if today). */
     fun payIn(from: Long, amount: Long, day: java.time.LocalDate = java.time.LocalDate.now(), onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {
@@ -385,7 +396,8 @@ class NewAccountViewModel(
 
     /** Other cards, for "Shares the limit of" (one credit line for several cards). */
     val otherCards: StateFlow<List<AccountEntity>> = money.accounts
-        .map { list -> list.map { it.account }.filter { it.type == AccountType.CARD && it.id != editId && !it.archived } }
+        // Never a sample card: a real card joined to one went away with the samples (QA 12 Nov).
+        .map { list -> list.map { it.account }.filter { it.type == AccountType.CARD && it.id != editId && !it.archived && !it.isSample } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val isEdit get() = editId != 0L
 
@@ -396,7 +408,7 @@ class NewAccountViewModel(
 
     /** Your accounts' names, for "Your banks" in the Bank sheet (196). */
     val accountNames: StateFlow<List<String>> = money.accounts
-        .map { list -> list.filter { !it.account.archived }.map { it.account.name } }
+        .map { list -> list.filter { !it.account.archived && !it.account.isSample }.map { it.account.name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
@@ -456,12 +468,18 @@ class NewAccountViewModel(
     fun setCards(cards: List<CardDraft>) = edit { it.copy(cards = cards) }
 
     /** Archive account (107): gone from lists and pickers, its history kept; hands back how to undo. */
+    /** What the account holds now: archiving one that isn't empty asks first (user, 2026-11-12). */
+    val balance: StateFlow<Long> = money.accounts
+        .map { list -> list.firstOrNull { it.account.id == editId }?.balance ?: 0L }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
+
     fun archive(onDone: (suspend () -> Unit) -> Unit) {
         val a = original ?: return
         viewModelScope.launch {
             money.updateAccount(a.copy(archived = true))
             plan?.syncSavingsBill(a.copy(archived = true))
-            onDone { money.updateAccount(a); plan?.syncSavingsBill(a) }
+            val bills = plan?.endBillsOf(a.id)
+            onDone { money.updateAccount(a); bills?.invoke(); plan?.syncSavingsBill(a) }
         }
     }
 

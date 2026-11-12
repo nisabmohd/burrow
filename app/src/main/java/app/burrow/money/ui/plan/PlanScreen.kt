@@ -154,7 +154,7 @@ private fun BillsSection(
         return
     }
     val right: (ComingItem) -> Unit = { item ->
-        item.occurrence?.let { o -> vm.markPaid(o.occurrence.id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } }
+        item.occurrence?.let { o -> vm.markPaid(o.occurrence.id) { undo -> snackbar.show(context.getString(if (o.income) R.string.marked_received else R.string.marked_paid), undo) } }
         item.txn?.let { t -> vm.addNow(t.txn.id) { undo -> snackbar.show(context.getString(R.string.added_now), undo) } }
     }
     val left: (ComingItem) -> Unit = { item ->
@@ -222,7 +222,13 @@ private fun ComingRow(item: ComingItem, index: Int, count: Int, onOpen: (ComingI
     val c = MaterialTheme.colorScheme
     val today = remember { LocalDate.now() }
     val late = item.group == ComingGroup.OVERDUE
-    val rightLabel = stringResource(if (item.repeats) R.string.mark_paid else R.string.add_now)
+    val rightLabel = stringResource(
+        when {
+            !item.repeats -> R.string.add_now
+            item.income -> R.string.mark_received
+            else -> R.string.mark_paid
+        },
+    )
     val leftLabel = stringResource(if (item.repeats) R.string.skip else R.string.delete)
     SwipeRow(
         SwipeAction(painterResource(if (item.repeats) R.drawable.ic_check_regular else R.drawable.ic_add_regular), rightLabel, SwipeTone.SUCCESS) { right(item) },

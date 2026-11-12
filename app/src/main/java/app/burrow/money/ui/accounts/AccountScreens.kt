@@ -413,7 +413,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 ),
             ) { from, amount, day ->
                 sheet = null
-                vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
+                vm.payDue(app.burrow.money.data.BillKind.CARD, from, amount, day) { undo -> snackbar.show(context.getString(R.string.paid), undo) }
             }
         }
         AccountSheet.PAY_EMI -> {
@@ -424,7 +424,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                 loan?.emi?.takeIf { it > 0 } ?: unit * 50_000, payFrom, { sheet = null },
             ) { from, amount, day ->
                 sheet = null
-                vm.payIn(from, amount, day) { undo -> snackbar.show(context.getString(R.string.emi_paid), undo) }
+                vm.payDue(app.burrow.money.data.BillKind.EMI, from, amount, day) { undo -> snackbar.show(context.getString(R.string.emi_paid), undo) }
             }
         }
         AccountSheet.PREPAY -> {
@@ -839,7 +839,20 @@ fun NewAccountScreen(vm: NewAccountViewModel, onClose: () -> Unit, onSaved: (Str
                 }
             }
             if (vm.isEdit) {
-                BurrowButton(stringResource(R.string.archive_account), { vm.archive(onArchived) }, Modifier.fillMaxWidth(), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular))
+                // Money still in it: say what happens first (user, 2026-11-12); an empty one goes with Undo.
+                val held by vm.balance.collectAsStateWithLifecycle()
+                var confirmArchive by remember { mutableStateOf(false) }
+                BurrowButton(
+                    stringResource(R.string.archive_account), { if (held != 0L) confirmArchive = true else vm.archive(onArchived) },
+                    Modifier.fillMaxWidth(), ButtonKind.DANGER, painterResource(R.drawable.ic_delete_regular),
+                )
+                if (confirmArchive) app.burrow.money.ui.components.ConfirmDialog(
+                    painterResource(R.drawable.ic_delete_regular),
+                    stringResource(R.string.archive_named, f.name),
+                    stringResource(R.string.archive_with_money, money.plain(held)),
+                    stringResource(R.string.archive), stringResource(R.string.cancel),
+                    onConfirm = { confirmArchive = false; vm.archive(onArchived) }, onDismiss = { confirmArchive = false },
+                )
             }
             if (f.tried && !vm.canSave(f)) Text(stringResource(R.string.account_cant_save), style = app.burrow.money.ui.theme.BurrowType.body, color = c.error)
         }
