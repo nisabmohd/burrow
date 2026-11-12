@@ -162,7 +162,8 @@ fun ghostColors(c: androidx.compose.material3.ColorScheme, dark: Boolean) = if (
         shadowAlpha = 0.4f,
     )
 } else {
-    GhostColors(c.surfaceContainerLowest, c.surfaceContainerLowest, 0.7f, null, c.surfaceContainerHighest, c.surfaceContainerHighest, 0.12f)
+    // Light: white cards on a near-white page show only by their shadow, so it is a clear one (0.12 blended in; user, 12 Nov).
+    GhostColors(c.surfaceContainerLowest, c.surfaceContainerLowest, 0.7f, null, c.surfaceContainerHighest, c.surfaceContainerHighest, 0.35f)
 }
 
 /**

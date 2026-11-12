@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -268,7 +269,10 @@ fun Ghost(icon: Painter, hue: Float? = null) {
     val bar: @Composable (Float, Color) -> Unit = { w, col -> Box(Modifier.fillMaxWidth(w).height(Size.ghostLine).background(col, Shapes.pill)) }
     Box(Modifier.size(Size.ghostWidth, Size.ghostHeight).clearAndSetSemantics { }) {
         Column(
-            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT).alpha(g.backAlpha).size(Size.ghostBackWidth, Size.ghostBackHeight).then(card(g.back)),
+            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT)
+                // See-through without an offscreen layer: .alpha() clipped the card's shadow and tilted corners to its box.
+                .graphicsLayer { alpha = g.backAlpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
+                .size(Size.ghostBackWidth, Size.ghostBackHeight).then(card(g.back)),
             verticalArrangement = Arrangement.spacedBy(Size.ghostLine, Alignment.CenterVertically),
         ) { bar(0.6f, g.barBack); bar(0.8f, g.barBack) }
         Column(
