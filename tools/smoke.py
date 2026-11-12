@@ -1709,6 +1709,48 @@ def welcome_skip_budget_leaves_none():
     assert d.exists("Spent in", contains=True, timeout=5) or d.exists("Nothing here yet", contains=True, timeout=3), "a budget appeared after Skip for now"
 
 
+@check
+def two_cards_one_bill():
+    # Designs 186–201: a second card from the same bank on the Same bill; SMS from either card's
+    # digits land on the one account and each payment says which card paid it.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    for name, digits, hint in (("Flipkart", "7711", "Regalia, Millennia…"), ("RuPay", "8822", "Visa, Amex, RuPay…")):
+        d.tap("Add account")
+        d.tap("Credit card")
+        d.tap("Choose the bank")
+        d.tap("Axis Bank")
+        if digits == "8822":
+            assert d.exists("Same bill", timeout=3), "a second Axis card isn't offered the Same bill"
+        d.tap(hint)
+        d.type_text(name)
+        d.back()
+        d.tap("Used to match its SMS")
+        d.type_text(digits)
+        d.back()
+        d.tap("Save")
+    assert d.exists("Flipkart ••7711 · RuPay ••8822", contains=True, timeout=5), "the two cards aren't one account"
+    for amount, digits, shop in (("311.00", "7711", "CROMA"), ("422.00", "8822", "DECATHLON")):
+        d.adb("emu", "sms", "send", "HDFCBK", f"Spent Rs.{amount} On HDFC Bank Card {digits} At {shop} On 2026-11-12:10:11:03.Not You? To Block+Reissue Call 18002586161")
+        time.sleep(3)
+    recover()
+    d.nav("Today")
+    n = d.find("to review", contains=True, timeout=6)
+    assert n is not None, "the card payments aren't waiting in To review"
+    tap_node(n)
+    d.tap("Save 2 payments", contains=True)
+    time.sleep(1)
+    d.back()
+    d.nav("Activity")
+    d.tap("Croma")  # payees read tidied ("CROMA" → "Croma")
+    assert d.exists("Flipkart ••7711", contains=True, timeout=5), "the payment doesn't say which card paid it"
+    d.back()
+    d.tap("Decathlon")
+    assert d.exists("RuPay ••8822", contains=True, timeout=5), "the second card's payment doesn't say which card"
+    d.back()
+
+
 def recover():
     """After a failure, back out of sheets and inner screens to the tabs so later checks run."""
     d.shell("cmd statusbar collapse")

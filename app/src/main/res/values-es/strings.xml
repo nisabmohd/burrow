@@ -1565,4 +1565,6 @@
     <string name="archive_with_money">%1$s sale del patrimonio y sus facturas se detienen. Puedes recuperarla con Deshacer justo después.</string>
     <string name="archive">Archivar</string>
     <string name="split_explain_short">Cada parte cuenta en su propia categoría</string>
+    <string name="no_accounts_to_pick">Aún no hay cuentas</string>
+    <string name="no_accounts_to_pick_line">Añade una cuenta bancaria, efectivo o un monedero en Cuentas y elígelo aquí.</string>
 </resources>

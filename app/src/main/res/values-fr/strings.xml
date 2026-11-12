@@ -1565,4 +1565,6 @@
     <string name="archive_with_money">%1$s quitte le patrimoine et ses factures s’arrêtent. Annuler juste après le fait revenir.</string>
     <string name="archive">Archiver</string>
     <string name="split_explain_short">Chaque partie compte dans sa propre catégorie</string>
+    <string name="no_accounts_to_pick">Pas encore de compte</string>
+    <string name="no_accounts_to_pick_line">Ajoutez un compte bancaire, des espèces ou un portefeuille dans Comptes, puis choisissez-le ici.</string>
 </resources>

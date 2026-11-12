@@ -1567,4 +1567,6 @@
     <string name="archive_with_money">%1$s leaves net worth, and its bills stop. You can bring it back from Undo right after.</string>
     <string name="archive">Archive</string>
     <string name="split_explain_short">Each part counts in its own category</string>
+    <string name="no_accounts_to_pick">No accounts here yet</string>
+    <string name="no_accounts_to_pick_line">Add a bank account, cash or a wallet in Accounts, then pick it here.</string>
 </resources>

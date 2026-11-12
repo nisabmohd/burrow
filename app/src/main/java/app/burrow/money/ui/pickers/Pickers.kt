@@ -148,6 +148,13 @@ fun AccountSheet(
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.account), onDismiss, stringResource(R.string.account_sheet_line))
         SheetBody {
+            // No account to pick (only a card, say): say what to add instead of an empty sheet (QA 13 Nov).
+            if (accounts.isEmpty()) app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_account_balance_regular)) },
+                title = stringResource(R.string.no_accounts_to_pick),
+                line = stringResource(R.string.no_accounts_to_pick_line),
+                top = app.burrow.money.ui.theme.Space.block,
+            )
             ListGroup {
                 accounts.forEachIndexed { i, a ->
                     app.burrow.money.ui.components.PickRow(

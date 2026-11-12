@@ -1481,4 +1481,6 @@
     <string name="archive_with_money">%1$s कुल संपत्ति से हट जाएगा और इसके बिल रुक जाएँगे। तुरंत पूर्ववत करके वापस ला सकते हैं।</string>
     <string name="archive">संग्रहित करें</string>
     <string name="split_explain_short">हर हिस्सा अपनी श्रेणी में गिना जाता है</string>
+    <string name="no_accounts_to_pick">अभी कोई खाता नहीं</string>
+    <string name="no_accounts_to_pick_line">खाते में बैंक खाता, नकद या वॉलेट जोड़ें, फिर यहाँ चुनें।</string>
 </resources>

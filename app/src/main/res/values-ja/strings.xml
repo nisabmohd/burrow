@@ -1447,4 +1447,6 @@
     <string name="archive_with_money">%1$sは純資産から外れ、請求も止まります。直後なら元に戻せます。</string>
     <string name="archive">アーカイブ</string>
     <string name="split_explain_short">各パートはそれぞれのカテゴリに入ります</string>
+    <string name="no_accounts_to_pick">まだ口座がありません</string>
+    <string name="no_accounts_to_pick_line">口座で銀行口座、現金、ウォレットを追加してから、ここで選んでください。</string>
 </resources>

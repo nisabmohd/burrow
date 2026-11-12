@@ -1565,4 +1565,6 @@
     <string name="archive_with_money">%1$s sai do patrimônio e as contas dela param. Dá para trazer de volta com Desfazer logo depois.</string>
     <string name="archive">Arquivar</string>
     <string name="split_explain_short">Cada parte conta na própria categoria</string>
+    <string name="no_accounts_to_pick">Nenhuma conta ainda</string>
+    <string name="no_accounts_to_pick_line">Adicione uma conta bancária, dinheiro ou carteira em Contas e escolha aqui.</string>
 </resources>

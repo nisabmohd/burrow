@@ -1508,4 +1508,6 @@
     <string name="archive_with_money">%1$s fällt aus dem Vermögen und seine Rechnungen enden. Gleich danach mit Rückgängig zurückholen.</string>
     <string name="archive">Archivieren</string>
     <string name="split_explain_short">Jeder Teil zählt in seiner eigenen Kategorie</string>
+    <string name="no_accounts_to_pick">Noch keine Konten</string>
+    <string name="no_accounts_to_pick_line">Füge unter Konten ein Bankkonto, Bargeld oder eine Wallet hinzu und wähle es dann hier.</string>
 </resources>
