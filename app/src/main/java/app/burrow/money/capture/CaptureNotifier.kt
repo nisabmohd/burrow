@@ -102,7 +102,7 @@ class CaptureNotifier(private val context: Context) {
 
     private fun titleFor(capture: CaptureEntity, hideAmount: Boolean): String {
         val amount = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount).plain(capture.amount ?: 0)
-        val incoming = capture.direction == Direction.IN.name
+        val incoming = MoneyType.ofStored(capture.direction).direction == Direction.IN
         return when {
             // No merchant: the words say what it was ("₹500 on Petrol").
             capture.payee == null && capture.name != null -> context.getString(R.string.notif_on, amount, capture.name)

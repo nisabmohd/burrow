@@ -36,7 +36,9 @@ data class ReviewItem(
     val from: String,
     val spans: Map<Part, IntRange>,
 ) {
-    val isIncome get() = capture.direction == Direction.IN.name
+    /** Money in (income, refund): shown with +. */
+    val isIncome get() = app.burrow.money.capture.MoneyType.ofStored(capture.direction).direction == Direction.IN
+    val type get() = app.burrow.money.capture.MoneyType.ofStored(capture.direction)
 }
 
 /** To review (44): payments the app found, each saved with one tap, or all at once. */
@@ -61,11 +63,12 @@ class ReviewViewModel(
         Quad(list, cats, accounts, rules)
     }.mapLatest { (list, cats, accounts, rules) ->
         list.map { c ->
-            val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
+            // Income picks income categories; a refund the spending one it lowers; a transfer none.
+            val type = app.burrow.money.data.categoryTypeOf(app.burrow.money.capture.MoneyType.ofStored(c.direction))
             val kind = if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
-            val ofKind = cats.filter { it.kind == kind }
+            val ofKind = if (type == null) emptyList() else cats.filter { it.kind == kind }
             val chosen = cats.firstOrNull { it.id == c.categoryId }
-            val suggested = capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
+            val suggested = if (type == null) emptyList() else capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
             val rule = rules.firstOrNull { it.id == c.ruleId }
             val accountId = capture.accountFor(c)
             ReviewItem(

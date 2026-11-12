@@ -14,11 +14,14 @@ const val DEDUPE_WINDOW_MS = 10 * 60 * 1000L
 /**
  * The same payment twice (the bank SMS and the payment app's notification): same amount within
  * 10 minutes and the same account or reference. A notification from a payment app often names
- * neither, so a pair from different sources where one has no account also counts.
+ * neither, so a pair from different sources where one has no account also counts. Two different
+ * references are never the same payment.
  */
 fun findDuplicate(source: String, amount: Long, account: String?, reference: String?, at: Long, seen: List<Seen>): Seen? =
     seen.firstOrNull { s ->
-        s.amount == amount && abs(s.at - at) <= DEDUPE_WINDOW_MS && (
+        // Two different references are two payments, however alike (two ₹99 orders: QA 12 Nov).
+        val differentRefs = reference != null && s.reference != null && reference != s.reference
+        !differentRefs && s.amount == amount && abs(s.at - at) <= DEDUPE_WINDOW_MS && (
             (account != null && s.account != null && sameAccount(account, s.account)) ||
                 (reference != null && reference == s.reference) ||
                 (source != s.source && (account == null || s.account == null))

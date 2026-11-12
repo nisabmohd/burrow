@@ -24,6 +24,17 @@ object RuleBuilder {
         return start..end
     }
 
+    /**
+     * The first word that looks like an amount with a currency ("Rs.2,350.00", "₹180"), else the first
+     * plain number with decimals: Teach rings it before the first tap (52). Null when there is none.
+     */
+    fun firstAmount(text: String): IntRange? {
+        val tokens = Regex("\\S+").findAll(text).mapNotNull { m -> tokenAt(text, m.range.first) }.filter { isAmount(text.substring(it)) }.toList()
+        // "XX4471" looks like an amount too: only a currency in front ("Rs.", "INR", "₹") counts first.
+        val currency = Regex("(?i)^(rs\\.?|inr|aed|usd|eur|gbp|[₹$€£])\\s?\\d")
+        return tokens.firstOrNull { currency.containsMatchIn(text.substring(it)) } ?: tokens.firstOrNull { text[it.first].isDigit() && text.substring(it).contains('.') }
+    }
+
     /** An amount token: optional currency letters/symbol, then a number. */
     fun isAmount(token: String): Boolean = AMOUNT_TOKEN.matches(token)
 

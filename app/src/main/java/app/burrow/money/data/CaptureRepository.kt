@@ -106,19 +106,21 @@ class CaptureRepository(
             db.captures().insert(CaptureEntity(source = source, sender = sender, body = body, receivedAt = at, status = CaptureStatus.UNREAD))
             return@withContext CaptureResult.NotUnderstood
         }
+        // "Not a payment" (236): messages like this are skipped, never stored.
+        if (parsed.type == app.burrow.money.capture.MoneyType.NOT_PAYMENT) return@withContext CaptureResult.Ignored
         val reference = referenceIn(body)
         val seen = db.captures().since(at - app.burrow.money.capture.DEDUPE_WINDOW_MS)
             .map { Seen(it.id, it.source, it.amount ?: 0, it.account, it.reference, it.receivedAt) }
         val dup = findDuplicate(source, parsed.amountMinor, parsed.account, reference, at, seen)
         val rule = rules.firstOrNull { it.id == parsed.ruleId }
         if (rule?.userMade == true) db.rules().used(rule.id)
-        val type = if (parsed.direction == Direction.IN) TxnType.INCOME else TxnType.EXPENSE
+        val type = categoryTypeOf(parsed.type)
         val capture = CaptureEntity(
             source = source, sender = sender, body = body, receivedAt = at,
             status = if (dup != null) CaptureStatus.MERGED else CaptureStatus.REVIEW,
             amount = parsed.amountMinor, currency = parsed.currency ?: main, payee = parsed.payee, account = parsed.account,
-            direction = parsed.direction.name, ruleId = parsed.ruleId, reference = reference,
-            categoryId = suggestions(parsed.payee, type, body).firstOrNull(),
+            direction = parsed.type.stored, ruleId = parsed.ruleId, reference = reference,
+            categoryId = if (type == null) null else suggestions(parsed.payee, type, body).firstOrNull(),
             name = nameFor(parsed.payee, body),
         )
         val id = db.captures().insert(capture)
@@ -169,18 +171,29 @@ class CaptureRepository(
         if (c.status != CaptureStatus.REVIEW || c.amount == null) return c.txnId
         val accountId = accountFor(c) ?: return null
         val now = System.currentTimeMillis()
-        val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
+        val kind = app.burrow.money.capture.MoneyType.ofStored(c.direction)
+        // A refund links to the expense it pays back (same payee, the 60 days before) and takes its
+        // category, so it lowers that spending; never income. A transfer has no category.
+        val original = if (kind == app.burrow.money.capture.MoneyType.REFUND) c.payee?.let { p ->
+            db.txns().refundMatch(tidyPayee(p), p.trim(), c.receivedAt - REFUND_WINDOW_MS, c.receivedAt, c.amount)
+        } else null
+        val type = txnTypeOf(kind)
+        val category = when {
+            kind == app.burrow.money.capture.MoneyType.TRANSFER -> null
+            original != null -> original.categoryId
+            else -> categoryId ?: c.categoryId
+        }
         val txnId = money.save(
             TxnEntity(
                 type = type, amount = c.amount, currency = c.currency ?: "INR", baseAmount = c.amount,
-                accountId = accountId, categoryId = categoryId ?: c.categoryId,
+                accountId = accountId, categoryId = category, refundOf = original?.id,
                 // The expense is named by the message's words when it had some; the merchant stays hidden.
                 payee = c.name ?: c.payee?.let(::tidyPayee), merchant = c.payee?.let(::tidyPayee),
                 at = c.receivedAt, source = c.source, createdAt = now, updatedAt = now,
                 cardId = matchCard(c.account, accountId, cardRefs()),
             ),
         )
-        db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId ?: c.categoryId))
+        db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = category))
         onResolved(captureId)
         return txnId
     }
@@ -292,12 +305,14 @@ class CaptureRepository(
         for (c in waiting) {
             val p = engine.parse(c.sender, c.body, rules) { cur -> minorDigits(cur ?: main) } ?: continue
             if (rules.firstOrNull { it.id == p.ruleId }?.userMade == true) db.rules().used(p.ruleId)
-            val type = if (p.direction == Direction.IN) TxnType.INCOME else TxnType.EXPENSE
+            // Taught "Not a payment": the waiting message goes, like one skipped on arrival.
+            if (p.type == app.burrow.money.capture.MoneyType.NOT_PAYMENT) { db.captures().update(c.copy(status = CaptureStatus.IGNORED)); continue }
+            val type = categoryTypeOf(p.type)
             db.captures().update(
                 c.copy(
                     status = CaptureStatus.REVIEW, amount = p.amountMinor, currency = p.currency ?: main, payee = p.payee,
-                    account = p.account, direction = p.direction.name, ruleId = p.ruleId, reference = referenceIn(c.body),
-                    categoryId = suggestions(p.payee, type, c.body).firstOrNull(), name = nameFor(p.payee, c.body),
+                    account = p.account, direction = p.type.stored, ruleId = p.ruleId, reference = referenceIn(c.body),
+                    categoryId = if (type == null) null else suggestions(p.payee, type, c.body).firstOrNull(), name = nameFor(p.payee, c.body),
                 ),
             )
             moved++
@@ -328,3 +343,21 @@ fun upiName(raw: String): String? {
 
 /** Longest rule name kept (it shows as a row title and a header). */
 const val RULE_NAME_MAX = 40
+
+/** How far back a refund looks for the expense it pays back. */
+const val REFUND_WINDOW_MS = 60L * 24 * 3_600_000
+
+/** The transaction a capture of [type] becomes. */
+fun txnTypeOf(type: app.burrow.money.capture.MoneyType): String = when (type) {
+    app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
+    app.burrow.money.capture.MoneyType.REFUND -> TxnType.REFUND
+    app.burrow.money.capture.MoneyType.TRANSFER -> TxnType.TRANSFER
+    else -> TxnType.EXPENSE
+}
+
+/** Which categories a capture of [type] picks from: income ones for income, none for a transfer, else spending. */
+fun categoryTypeOf(type: app.burrow.money.capture.MoneyType): String? = when (type) {
+    app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
+    app.burrow.money.capture.MoneyType.TRANSFER, app.burrow.money.capture.MoneyType.NOT_PAYMENT -> null
+    else -> TxnType.EXPENSE
+}

@@ -49,6 +49,17 @@ number style) · **Test it** (paste any message; parts highlight live) · Use th
 taps (literal text around the tapped spans, digits generalised to `[\d,.]+`, the sender as the sender
 regex), shows a test on the original message, and saves a user rule.
 
+**Type (12 Nov, 235/236).** The user taps only Amount, Paid to and Account. Burrow fills in the type from the
+words in the message (`capture/TypeWords.kt`, tried in this order): Not a payment ("requested", "is due",
+"will be debited") · Refund ("refund", "refunded", "reversal", "cashback") · Transfer ("self transfer", "to your
+own") · Income ("credited", "received", "deposited") · Expense ("debited", "spent", "paid", "sent", "withdrawn",
+"purchase"). Whole words, any case. The Type sheet changes it and adds words (`Rule.typeWords`). When the words
+agree with the type, the rule decides by words each time (a "credited" message from the same bank is income); when
+they don't, the rule keeps the picked type (`Rule.type`). A capture stores its type in `direction`: OUT, IN,
+REFUND or TRANSFER. Not a payment is never stored. A refund links to the latest expense with the same payee in the
+60 days before, at least as large, and takes its category; with no match it keeps the category picked in Review.
+Never income. A transfer has no category and counts as neither spending nor income.
+
 ## Number styles
 | Style | Example | Notes |
 |---|---|---|

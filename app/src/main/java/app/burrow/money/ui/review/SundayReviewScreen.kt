@@ -1,5 +1,7 @@
 package app.burrow.money.ui.review
 
+import app.burrow.money.capture.MoneyType
+import app.burrow.money.data.categoryTypeOf
 import app.burrow.money.ui.findActivity
 
 import app.burrow.money.ui.filters.range
@@ -68,8 +70,8 @@ class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
     fun saveAll(onDone: (Int, (suspend () -> Unit)?) -> Unit) = viewModelScope.launch {
         val waiting = app.capture.toReview.first()
         val saved = waiting.mapNotNull { c ->
-            val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-            val category = c.categoryId ?: app.capture.suggestions(c.payee, type, c.body).firstOrNull()
+            val type = categoryTypeOf(MoneyType.ofStored(c.direction))
+            val category = c.categoryId ?: type?.let { app.capture.suggestions(c.payee, it, c.body).firstOrNull() }
             app.capture.save(c.id, category)?.let { c.id }
         }
         onDone(saved.size, if (saved.isEmpty()) null else ({ saved.forEach { app.capture.unsave(it) } }))

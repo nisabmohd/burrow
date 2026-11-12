@@ -117,4 +117,11 @@ class CaptureLogicTest {
         assertNull(cardOfBank("Axis Bank", listOf(hdfc, icici)))
         assertNull(cardOfBank("HDFC Bank", listOf(hdfc, icici))) // a bank account, not a card
     }
+
+    @Test fun differentReferencesAreTwoPayments() {
+        val seen = listOf(Seen(1, "SMS", 9900, "XX1234", "700100", 0))
+        org.junit.Assert.assertNull(findDuplicate("SMS", 9900, "XX1234", "700200", 60_000, seen))
+        org.junit.Assert.assertNotNull(findDuplicate("SMS", 9900, "XX1234", "700100", 60_000, seen))
+        org.junit.Assert.assertNotNull(findDuplicate("SMS", 9900, "XX1234", null, 60_000, seen))
+    }
 }
