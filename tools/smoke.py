@@ -52,7 +52,7 @@ def fresh_install():
         time.sleep(2)
     assert "Success" in out, f"install failed: {out}"
     d.shell(f"pm grant {d.PACKAGE} android.permission.POST_NOTIFICATIONS")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(3)
 
 
@@ -172,7 +172,7 @@ def welcome_shows_once():
     d.tap("Done")
     assert d.exists("Today", timeout=10), "Today not shown after onboarding"
     d.shell(f"am force-stop {d.PACKAGE}")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2.5)
     assert not d.exists("Get started", timeout=1.5), "welcome shown again after restart"
 
@@ -451,6 +451,7 @@ def add_account_with_decimal_balance():
     d.nav("Today")
     d.tap("Accounts")
     d.tap("Add account")
+    d.tap("Bank account")  # Add account opens a sheet of kinds first (190)
     d.tap("HDFC Savings, Cash…")
     d.type_text("Kotak")
     d.back()  # keyboard down
@@ -472,13 +473,14 @@ def new_transfer_between_accounts():
     d.tap("Transfer")
     assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
     keypad("1000")
-    # The "to" account comes filled in (another account); tap it, right of the arrow, to change it.
+    # Your own account comes first (Kotak, made above; samples never default: QA 12 Nov) and the
+    # "to" account is filled in beside it.
     nodes = d.dump()
-    src = next(n for n in nodes if n.label == "HDFC Savings")
-    to = [n for n in nodes if n.label and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
-    assert to, "no 'to' account beside HDFC Savings"
-    tap_node(to[0])
-    d.tap("Kotak")
+    srcs = [n for n in nodes if n.label == "Kotak"]
+    assert srcs, "a transfer doesn't start from your own account"
+    # "Kotak" may show more than once (a recent pill too): the one with an account beside it is the From.
+    to = [n for src in srcs for n in nodes if n.label and n is not src and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
+    assert to, f"no 'to' account beside Kotak: {[x.label for x in nodes if x.label][:30]}"
     d.tap("Save")
     snackbar()
     d.nav("Activity")
@@ -577,7 +579,8 @@ def new_category_saves_and_shows_in_new_expense():
     assert d.scroll_to("Plants"), "the new category isn't listed"
     open_add()
     # The category chips scroll sideways; More (the category sheet) is the last one.
-    chip = next(n for n in d.dump() if n.label == "Food & drinks")
+    # The lowest "Food & drinks": a Recent pill above can read the same (no payee: its category).
+    chip = max((n for n in d.dump() if n.label == "Food & drinks"), key=lambda n: n.center[1])
     w = d.screen_size()[0]
     for _ in range(3):
         if d.exists("More", timeout=0.5):
@@ -804,9 +807,9 @@ def capture_intro_turns_on():
     d.nav("More")
     d.tap("Auto-capture")
     d.tap("How it works")
-    d.tap("Next")
-    d.tap("Next")
-    d.tap("Allow")
+    d.tap("Next", timeout=6)  # the intro may still be opening
+    d.tap("Next", timeout=6)
+    d.tap("Allow", timeout=6)
     for _ in range(3):  # Android's own permission dialogs, one per permission group
         if not d.exists("ALLOW", timeout=3):
             break
@@ -934,11 +937,12 @@ def not_understood_waits_for_teach():
     # "1 message not understood · Teach it the ones it missed" opens the list (sender on each card).
     assert d.exists("1 message not understood", timeout=5), "unreadable bank SMS not kept for Teach"
     d.tap("1 message not understood")
-    assert d.exists("Not understood", timeout=5), "the list of missed messages did not open"
-    assert d.exists("KOTAKB", contains=True), "the missed message doesn't say who sent it"
-    assert d.exists("Ignore", timeout=2), "no Ignore (✕) on the missed message"
-    d.tap("Teach")
-    assert d.exists("Teach a message", timeout=5), "Teach did not open"
+    # 2026-11-12 (116): Review opens on its Not understood tab; a row is sender · message · date, tap = Teach.
+    assert d.exists("Not understood · 1", timeout=5), "Review did not open on the Not understood tab"
+    row = d.find("KOTAKB", contains=True, timeout=3)
+    assert row is not None, "the missed message doesn't say who sent it"
+    tap_node(row)
+    assert d.exists("Teach a message", timeout=5), "tapping a missed message did not open Teach"
     d.tap("Close")
     d.back()
 
@@ -972,7 +976,7 @@ def capture_status_follows_real_access():
     d.shell(f"pm revoke {d.PACKAGE} android.permission.RECEIVE_SMS")
     d.shell(f"pm revoke {d.PACKAGE} android.permission.READ_SMS")
     try:
-        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")  # revoking SMS restarts the app
+        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/app.burrow.money.MainActivity")  # revoking SMS restarts the app
         time.sleep(2)
         d.nav("More")
         assert d.exists("Needs access", timeout=5), "More tile doesn't say Needs access without access"
@@ -993,7 +997,7 @@ def capture_status_follows_real_access():
     # Access is read again when the app comes back (as from Settings): leave it, then reopen.
     d.shell("input keyevent KEYCODE_HOME")
     time.sleep(1)
-    d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/.MainActivity")
+    d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
     d.nav("More")
     assert d.exists("On", timeout=12), "More tile doesn't come back to On with access"
@@ -1082,23 +1086,28 @@ def licences_open_their_text():
 
 @check
 def review_cards_save_one_by_one():
-    # 2026-10-24: To review cards don't swipe; each has its own Save button.
-    d.adb("emu", "sms", "send", "HDFCBK", "Rs.75.00 debited from A/c XX1234 to VPA tea@okaxis. UPI Ref 7001.")
-    time.sleep(3)
+    # 2026-11-12 (44, 234): To review rows; tap opens the Review sheet (Ignore · Save); swipe right saves.
+    # Different amounts: the same amount and account within 10 minutes is one payment (dedupe).
+    for ref, amount in (("7001", "75.00"), ("7002", "86.00")):
+        d.adb("emu", "sms", "send", "HDFCBK", f"Rs.{amount} debited from A/c XX1234 to VPA tea{ref}@okaxis. UPI Ref {ref}.")
+        time.sleep(3)
     recover()
     d.nav("Today")
     n = d.find("to review", contains=True, timeout=6)
     assert n is not None, "no payments to review"
     tap_node(n)
-    before = [x for x in d.dump() if x.label == "Save"]
-    assert before, "a review card has no Save button"
-    y = before[0].center[1]
-    d.swipe(150, y - 200, 1000, y - 200, 250)  # a swipe must not save or ignore anything
-    time.sleep(1)
-    assert len([x for x in d.dump() if x.label == "Save"]) == len(before), "swiping a review card changed it"
-    tap_node(before[0])
-    time.sleep(0.5)
-    assert d.exists("Saved", timeout=3), "Save on the card didn't save"
+    assert d.exists("To review · ", contains=True, timeout=5), "Review has no To review tab with its count"
+    row = d.find("tea7001", contains=True, timeout=3)
+    assert row is not None, "the payment is not a row in To review"
+    tap_node(row)
+    assert d.exists("Edit details", timeout=3), "tapping a row did not open the Review sheet"
+    tap_last("Save")
+    assert d.exists("Saved", timeout=3), "Save in the Review sheet didn't save"
+    row = d.find("tea7002", contains=True, timeout=3)
+    assert row is not None, "the second payment is not in To review"
+    y = row.center[1]
+    d.swipe(150, y, 1000, y, 250)  # right = Save
+    assert d.exists("Saved", timeout=3), "swiping right didn't save"
     d.back()
 
 
@@ -1121,7 +1130,7 @@ def builtin_rules_list_like_yours_and_rename():
 
 
 @check
-def teach_has_money_in_or_out_and_checks():
+def teach_has_type_filled_in():
     open_more_row("Auto-capture")
     d.scroll_to("Message rules")
     d.tap("Message rules")
@@ -1131,7 +1140,9 @@ def teach_has_money_in_or_out_and_checks():
     tap_node(nodes[0]); d.type_text("Rs.99.00 debited from A/c XX1111")
     tap_node(nodes[1]); d.type_text("TESTBK")
     d.tap("Continue")
-    assert d.exists("Money in or out", timeout=5), "Teach has no Money in or out part"
+    # 2026-11-12 (52, 235): Amount · Paid to · Account are tapped; Type is filled in by Burrow.
+    assert d.exists("Tap it in the message", timeout=5), "Teach doesn't say where to tap"
+    assert d.exists("Filled in after the account", timeout=2), "Teach has no Type row"
     d.tap("Close")
     d.back()
 
@@ -1269,14 +1280,14 @@ def import_bad_file_says_nothing_to_import():
 
 @check
 def shortcut_new_income_opens_form():
-    d.shell(f"am start -a app.burrow.money.action.NEW_INCOME -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -a app.burrow.money.action.NEW_INCOME -n {d.PACKAGE}/app.burrow.money.MainActivity")
     assert d.exists("New income", timeout=6), "New income shortcut did not open the form"
     d.tap("Close")
 
 
 @check
 def shortcut_search_focuses_activity():
-    d.shell(f"am start -a app.burrow.money.action.SEARCH -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -a app.burrow.money.action.SEARCH -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
     assert d.exists("Search payee, amount, note", timeout=5), "Search shortcut did not open Activity"
     shown = "mInputShown=true" in d.shell("dumpsys input_method")
@@ -1358,7 +1369,7 @@ def open_link(action, extra_id=None, cold=False):
     # Single top, as the app's notifications, widgets and tile send them: without it an intent equal
     # to the one that started the task only brings the task forward (no onNewIntent), so a warm link
     # after the same cold one did nothing.
-    d.shell(f"am start -W --activity-single-top -a {ACTION}{action}{extra} -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W --activity-single-top -a {ACTION}{action}{extra} -n {d.PACKAGE}/app.burrow.money.MainActivity")
     time.sleep(2)
 
 
@@ -1464,7 +1475,7 @@ def launcher_long_press_shows_shortcuts():
 
 def pin_widget(which):
     """Asks the launcher to put a Burrow widget on the home screen (debug build) and accepts its dialog."""
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     d.shell(f"am broadcast -a app.burrow.money.debug.PIN_WIDGET --es which {which} -p {d.PACKAGE}")
     for label in ("Add to home screen", "ADD TO HOME SCREEN", "Add automatically", "Add"):
         if d.exists(label, timeout=3):
@@ -1631,6 +1642,64 @@ def widget_taps_open_the_app():
 
 
 @check
+def category_sheet_search():
+    # 184 / 185: the category sheet filters by name; no match shows the shared empty state.
+    recover()
+    open_add()
+    # The lowest "Food & drinks": a Recent pill above can read the same (no payee: its category).
+    chip = max((n for n in d.dump() if n.label == "Food & drinks"), key=lambda n: n.center[1])
+    w = d.screen_size()[0]
+    for _ in range(3):
+        if d.exists("More", timeout=0.5):
+            break
+        d.drag(int(w * 0.85), chip.center[1], int(w * 0.15), chip.center[1])
+    d.tap("More")
+    field = next((n for n in d.dump() if n.cls.endswith("EditText")), None)
+    assert field, "the category sheet has no search field"
+    tap_node(field)
+    d.type_text("trans")
+    assert d.exists("Transport", timeout=3), "search didn't find Transport"
+    assert not d.exists("Food & drinks", timeout=1), "search didn't filter the list"
+    d.tap("Clear", contains=True)
+    tap_node(next(n for n in d.dump() if n.cls.endswith("EditText")))
+    d.type_text("zzzz")
+    assert d.exists("No results for", contains=True, timeout=3), "no empty state for a search with no match"
+    assert d.exists("Clear search", timeout=2), "no Clear search button"
+    d.tap("Clear search")
+    assert d.exists("Food & drinks", timeout=3), "Clear search didn't bring the list back"
+    recover()
+
+
+@check
+def foss_backup_has_no_drive():
+    # foss (F-Droid) has no Google code: Backup has no Google Drive section.
+    open_more_row("Backup")
+    assert d.exists("Backup and restore", timeout=5), "Backup didn't open"
+    assert not d.scroll_to("Google Drive"), "foss shows Google Drive"
+    recover()
+
+
+@check
+def play_backup_shows_drive():
+    # 179: the play build has a Google Drive section after Settings. Installed over foss (same debug
+    # key), then the suite goes back to foss with a fresh install.
+    play = os.path.join(ROOT, "app/build/outputs/apk/play/debug/app-play-debug.apk")
+    try:
+        out = d.adb("install", "-r", play)
+        assert "Success" in out, f"play install failed: {out}"
+        d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
+        time.sleep(3)
+        open_more_row("Backup")
+        # DRIVE_BACKUP is off until the Google Cloud setup (user, 12 Nov): no Drive section, no Connect.
+        assert d.exists("Backup and restore", timeout=5), "Backup didn't open"
+        assert not d.scroll_to("Connect Google Drive"), "Connect Google Drive shows while DRIVE_BACKUP is off"
+    finally:
+        recover()
+        fresh_install()
+        finish_welcome()
+
+
+@check
 def welcome_skip_budget_leaves_none():
     # Last: a second fresh install that skips the budget step. Today then shows what was spent.
     fresh_install()
@@ -1640,10 +1709,98 @@ def welcome_skip_budget_leaves_none():
     assert d.exists("Spent in", contains=True, timeout=5) or d.exists("Nothing here yet", contains=True, timeout=3), "a budget appeared after Skip for now"
 
 
+@check
+def two_cards_one_bill():
+    # Designs 186–201: a second card from the same bank on the Same bill; SMS from either card's
+    # digits land on the one account and each payment says which card paid it.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    for name, digits, hint in (("Flipkart", "7711", "Regalia, Millennia…"), ("RuPay", "8822", "Visa, Amex, RuPay…")):
+        d.tap("Add account")
+        d.tap("Credit card")
+        d.tap("Choose the bank")
+        d.tap("Axis Bank")
+        if digits == "8822":
+            assert d.exists("Same bill", timeout=3), "a second Axis card isn't offered the Same bill"
+        d.tap(hint)
+        d.type_text(name)
+        d.back()
+        d.tap("Used to match its SMS")
+        d.type_text(digits)
+        d.back()
+        d.tap("Save")
+    assert d.exists("Flipkart ••7711 · RuPay ••8822", contains=True, timeout=5), "the two cards aren't one account"
+    for amount, digits, shop in (("311.00", "7711", "CROMA"), ("422.00", "8822", "DECATHLON")):
+        d.adb("emu", "sms", "send", "HDFCBK", f"Spent Rs.{amount} On HDFC Bank Card {digits} At {shop} On 2026-11-12:10:11:03.Not You? To Block+Reissue Call 18002586161")
+        time.sleep(3)
+    recover()
+    d.nav("Today")
+    n = d.find("to review", contains=True, timeout=6)
+    assert n is not None, "the card payments aren't waiting in To review"
+    tap_node(n)
+    d.tap("payments", contains=True)  # "Save N payments": earlier checks may leave others waiting
+    time.sleep(1)
+    d.back()
+    d.nav("Activity")
+    d.tap("Croma")  # payees read tidied ("CROMA" → "Croma")
+    assert d.exists("Flipkart ••7711", contains=True, timeout=5), "the payment doesn't say which card paid it"
+    d.back()
+    d.tap("Decathlon")
+    assert d.exists("RuPay ••8822", contains=True, timeout=5), "the second card's payment doesn't say which card"
+    d.back()
+
+
+@check
+def savings_once_add_money_and_other_kinds():
+    # Savings (202–228, SAVINGS-SIMPLE): a Once deposit; Add money starts a new deposit (205, 207);
+    # Every month and Any time save too; Edit savings opens like Edit account.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+
+    def new_savings(name, kind, amount, rate=None, market=False):
+        d.tap("Add account")
+        d.tap("Savings")
+        d.tap("Deposit, emergency fund, child’s future…")
+        d.type_text(name)
+        d.back()
+        d.tap(kind)
+        if market:
+            d.tap("Market value")
+        d.tap("Type the amount")
+        keypad(amount)
+        d.tap("Done")
+        if rate:
+            d.tap("Add the rate")
+            keypad(rate)
+            d.tap("Done")
+        d.tap("Save")
+        assert d.exists("Saved", timeout=4) or d.exists(name, timeout=2), f"{name} ({kind}) didn't save"
+
+    new_savings("SBI FD", "Once", "50000", rate="7.1")
+    d.scroll_to("SBI FD")
+    d.tap("SBI FD")
+    assert d.exists("at maturity", contains=True, timeout=5), "a fixed deposit doesn't say what it pays at maturity"
+    d.tap("Add money")
+    assert d.exists("New deposit", timeout=4), "Add money to a Once deposit doesn't start a new deposit (207)"
+    d.tap("Add")
+    snackbar()
+    assert d.scroll_to("Deposits"), "the savings page has no Deposits list"
+    d.tap("Edit")
+    assert d.exists("Archive account", timeout=4) or d.scroll_to("Archive account"), "Edit savings isn't like Edit account"
+    d.tap("Close")
+    d.back()
+    new_savings("RD", "Every month", "2000", rate="6.5")
+    new_savings("Gold", "Any time", "10000", market=True)
+    assert d.scroll_to("Gold"), "a market-value savings isn't listed"
+    d.back()
+
+
 def recover():
     """After a failure, back out of sheets and inner screens to the tabs so later checks run."""
     d.shell("cmd statusbar collapse")
-    d.shell(f"am start -W -n {d.PACKAGE}/.MainActivity")
+    d.shell(f"am start -W -n {d.PACKAGE}/app.burrow.money.MainActivity")
     for _ in range(5):
         if d.on_tab():
             return

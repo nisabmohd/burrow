@@ -17,8 +17,9 @@ suspend fun AppContainer.onMessage(
     val result = capture.handle(source, sender, body, at, extra)
     if (result is CaptureResult.Found) {
         val c = result.capture
-        val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-        val ids = capture.suggestions(c.payee, type, c.body)
+        // A transfer has no category; a refund picks from spending, like an expense.
+        val type = app.burrow.money.data.categoryTypeOf(MoneyType.ofStored(c.direction)) ?: TxnType.EXPENSE
+        val ids = if (MoneyType.ofStored(c.direction) == MoneyType.TRANSFER) emptyList() else capture.suggestions(c.payee, type, c.body)
         val categories = money.categories.first()
         val suggested = ids.mapNotNull { id -> categories.firstOrNull { it.id == id } }
         val account = capture.accountFor(c)?.let { id -> money.accounts.first().firstOrNull { it.account.id == id }?.account }

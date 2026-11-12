@@ -24,6 +24,17 @@ object RuleBuilder {
         return start..end
     }
 
+    /**
+     * The first word that looks like an amount with a currency ("Rs.2,350.00", "₹180"), else the first
+     * plain number with decimals: Teach rings it before the first tap (52). Null when there is none.
+     */
+    fun firstAmount(text: String): IntRange? {
+        val tokens = Regex("\\S+").findAll(text).mapNotNull { m -> tokenAt(text, m.range.first) }.filter { isAmount(text.substring(it)) }.toList()
+        // "XX4471" looks like an amount too: only a currency in front ("Rs.", "INR", "₹") counts first.
+        val currency = Regex("(?i)^(rs\\.?|inr|aed|usd|eur|gbp|[₹$€£])\\s?\\d")
+        return tokens.firstOrNull { currency.containsMatchIn(text.substring(it)) } ?: tokens.firstOrNull { text[it.first].isDigit() && text.substring(it).contains('.') }
+    }
+
     /** An amount token: optional currency letters/symbol, then a number. */
     fun isAmount(token: String): Boolean = AMOUNT_TOKEN.matches(token)
 
@@ -71,15 +82,33 @@ object RuleBuilder {
 
     private val IN_STEMS = listOf("credit", "receiv", "deposit", "refund", "added", "cashback", "reversal", "jama")
 
-    /** "AX-KOTAKB" → any sender ending in KOTAKB; a package name exactly; nothing → any sender. */
+    /**
+     * "AX-KOTAKB" or "JM-HDFCBK-S" → any sender with KOTAKB / HDFCBK as its name part (the operator
+     * prefix and the -S / -T / -P / -G type tag change); a package name exactly; nothing → any sender.
+     */
     fun senderPattern(sender: String?): String {
         val s = sender?.trim().orEmpty()
         return when {
             s.isEmpty() -> "(?s).*"
-            s.contains('.') && !s.contains(' ') -> "^" + escape(s) + "$"
-            else -> "(?i)" + escape(s.substringAfterLast('-')) + "$"
+            isPackage(s) -> "^" + escape(s) + "$"
+            else -> "(?i)" + escape(senderCore(s)) + TYPE_TAG + "$"
         }
     }
+
+    /** "JM-HDFCBK-S" → "HDFCBK", "AX-KOTAKB" → "KOTAKB": the bank's part of an SMS sender. A package stays whole. */
+    fun senderCore(sender: String): String {
+        val s = sender.trim()
+        if (isPackage(s)) return s
+        var parts = s.split('-').filter { it.isNotBlank() }
+        if (parts.size > 1 && parts.last().length == 1) parts = parts.dropLast(1)
+        if (parts.size > 1 && parts.first().length == 2) parts = parts.drop(1)
+        return parts.joinToString("-").ifBlank { s }
+    }
+
+    /** The optional "-S" / "-T" / "-P" / "-G" an Indian sender ends with. */
+    const val TYPE_TAG = "(?:-[A-Z])?"
+
+    fun isPackage(s: String) = s.contains('.') && !s.contains(' ')
 
     private fun group(part: Part, token: String): String = when (part) {
         Part.AMOUNT -> {

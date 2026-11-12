@@ -105,6 +105,16 @@ fun SubscriptionsScreen(vm: SubscriptionsViewModel, onBack: () -> Unit, onAdd: (
                 modifier = Modifier.padding(bottom = Space.block),
             )
         }
+        if (s.rows.isEmpty()) {
+            // Nothing to total yet: the Ghost, not "₹0" over an empty list.
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_autorenew_regular)) },
+                title = stringResource(R.string.no_subscriptions),
+                line = stringResource(R.string.no_subscriptions_line),
+                button = { BurrowButton(stringResource(R.string.add_subscription), { onAdd(BillForm(kind = "SUBSCRIPTION")) }, kind = ButtonKind.TONAL, icon = painterResource(R.drawable.ic_add_regular)) },
+            )
+            return@DetailFrame
+        }
         CenterHeader(
             icon = { HeaderIcon(painterResource(R.drawable.ic_autorenew_regular)) },
             title = stringResource(R.string.every_month),
@@ -161,6 +171,12 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
         if (vm.categoryId == null) {
             SectionHeader(stringResource(R.string.categories))
             BudgetRows(s.categories, onOpenCategory)
+        } else if (s.txns.isEmpty() && cat != null) {
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(cat.icon)), cat.colorHue) },
+                title = stringResource(R.string.nothing_spent_yet),
+                line = stringResource(R.string.budget_empty_line, cat.name, money.plain(line?.left ?: 0)),
+            )
         } else {
             val today = LocalDate.now()
             s.txns.groupBy { dates.date(it.txn.at) }.forEach { (day, list) ->
@@ -185,7 +201,7 @@ fun BudgetScreen(vm: BudgetViewModel, onBack: () -> Unit, onOpenCategory: (Long)
  * was added and from where, Add money (35).
  */
 @Composable
-fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
+fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onOpenTxn: (Long) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val s = state ?: return
     val money = LocalMoney.current
@@ -198,7 +214,7 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
     DetailFrame(
         onBack,
         actions = { TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(g.id) }) },
-        bottom = if (!s.line.reached) ({
+        bottom = if (!s.line.reached && s.added.isNotEmpty()) ({
             BurrowButton(stringResource(R.string.add_money), { adding = true }, Modifier.fillMaxWidth(), icon = painterResource(R.drawable.ic_add_regular), height = Size.buttonBottom)
         }) else null,
     ) {
@@ -222,6 +238,20 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
             ).joinToString(" · "),
             progress = s.line.fraction,
         )
+        // Nothing added (233): the empty state's tonal Add money replaces the docked button.
+        if (s.added.isEmpty()) {
+            val pace = by?.let { end ->
+                val months = java.time.temporal.ChronoUnit.MONTHS.between(java.time.YearMonth.now(), java.time.YearMonth.from(end)).coerceAtLeast(1)
+                val left = (g.target - s.line.saved).coerceAtLeast(0)
+                if (left > 0) stringResource(R.string.goal_pace_line, money.plain(money.whole((left + months - 1) / months)), dates.monthYear(end)) else null
+            }
+            app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(g.icon)), g.colorHue) },
+                title = stringResource(R.string.nothing_added),
+                line = listOfNotNull(stringResource(R.string.goal_empty_line, g.name), pace).joinToString(" "),
+                button = if (!s.line.reached) ({ BurrowButton(stringResource(R.string.add_money), { adding = true }, kind = ButtonKind.TONAL, icon = painterResource(R.drawable.ic_add_regular)) }) else null,
+            )
+        }
         if (s.added.isNotEmpty()) {
             SectionHeader(stringResource(R.string.added))
             ListGroup {
@@ -232,6 +262,8 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
                         supporting = stringResource(R.string.from_account, from?.name.orEmpty()),
                         lead = { CategoryCircle(from?.icon, from?.colorHue) },
                         trailing = { AmountTrailing(money.plain(t.amount)) },
+                        // Its own page: Delete there takes the money back out of the goal, with Undo.
+                        onClick = { onOpenTxn(t.id) },
                     )
                 }
             }
@@ -247,7 +279,8 @@ fun GoalScreen(vm: GoalViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
     }
     if (confirmDelete) {
         ConfirmDialog(
-            painterResource(R.drawable.ic_delete_regular), stringResource(R.string.delete_goal_title), stringResource(R.string.delete_goal_text),
+            painterResource(R.drawable.ic_delete_regular), stringResource(R.string.delete_goal_title),
+            if (s.line.saved > 0) stringResource(R.string.delete_goal_text_money, money.plain(s.line.saved)) else stringResource(R.string.delete_goal_text_empty),
             stringResource(R.string.delete), stringResource(R.string.cancel),
             onConfirm = { confirmDelete = false; vm.delete(onBack) }, onDismiss = { confirmDelete = false },
         )
@@ -312,7 +345,7 @@ fun NewGoalScreen(vm: NewGoalViewModel, onClose: () -> Unit, onSaved: () -> Unit
             // The goal as it will look (133): its circle and name.
             androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth(), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.block)) {
                 CategoryCircle(f.icon, f.hue, size = app.burrow.money.ui.theme.Size.iconCircleBig)
-                androidx.compose.material3.Text(f.name.ifBlank { stringResource(R.string.new_goal) }, style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface, maxLines = 1)
+                androidx.compose.material3.Text(f.name.ifBlank { stringResource(R.string.new_goal) }, style = app.burrow.money.ui.theme.BurrowType.titleSmall, color = c.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
             LabeledField(stringResource(R.string.name)) {
                 PillTextField(f.name, { v -> vm.edit { it.copy(name = v) } }, stringResource(R.string.goal_name_hint), leading = painterResource(R.drawable.ic_edit_note_regular), clearLabel = stringResource(R.string.clear))

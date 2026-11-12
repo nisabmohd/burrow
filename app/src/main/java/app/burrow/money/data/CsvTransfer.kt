@@ -20,10 +20,13 @@ class CsvTransfer(private val money: MoneyRepository, private val db: BurrowData
         val rows = money.latest().first().filter { !it.txn.isSample }.map { t ->
             val x = t.txn
             listOf(
-                stamp.format(Instant.ofEpochMilli(x.at).atZone(zone)), x.type, x.payee.orEmpty(),
+                // Money put into a goal is its own type: a goal isn't an account to import into.
+                stamp.format(Instant.ofEpochMilli(x.at).atZone(zone)), if (x.goalId != null) "GOAL" else x.type, x.payee.orEmpty(),
                 java.math.BigDecimal.valueOf(x.amount, minorDigits(x.currency)).toPlainString(), x.currency,
                 t.categoryName.orEmpty(), if (x.type == TxnType.TRANSFER) "${t.accountName} → ${t.toAccountName ?: t.goalName.orEmpty()}" else t.accountName,
                 x.note.orEmpty(),
+                // Lent or borrowed: kept out of spending and income, also after importing it back.
+                if (x.excludeFromStats) "yes" else "",
             )
         }
         Csv.write(rows)

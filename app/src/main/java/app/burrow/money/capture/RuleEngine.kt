@@ -47,10 +47,13 @@ class RuleEngine {
         val digits = fractionDigits(currency)
         val minor = runCatching { amount.setScale(digits, RoundingMode.HALF_EVEN).movePointRight(digits).longValueExact() }.getOrNull() ?: return null
         if (minor <= 0) return null
-        val dir = rule.direction ?: when {
-            rule.inWords.any { body.contains(it, ignoreCase = true) } -> Direction.IN
-            else -> Direction.OUT
-        }
+        // The type the user picked wins; then a fixed direction; then the words in the message
+        // (the language's list, the rule's own, its older in/out words). No word at all: an expense, as before.
+        val type = rule.type
+            ?: rule.direction?.let { if (it == Direction.IN) MoneyType.INCOME else MoneyType.EXPENSE }
+            ?: TypeWords.detect(body, wordsOf(rule), rule.language, rule.removedWords)?.type
+            ?: MoneyType.EXPENSE
+        val dir = type.direction
         val payee = m.groupOrNull("payee")
         val account = m.groupOrNull("account")
         val spans = buildMap {
@@ -58,7 +61,15 @@ class RuleEngine {
             payee?.let { put(Part.PAYEE, it.range) }
             account?.let { put(Part.ACCOUNT, it.range) }
         }
-        return Parsed(minor, currency, dir, payee?.value?.trim()?.trimEnd('.', ',')?.ifBlank { null }, account?.value, rule.id, spans)
+        return Parsed(minor, currency, dir, payee?.value?.trim()?.trimEnd('.', ',')?.ifBlank { null }, account?.value, rule.id, spans, type)
+    }
+
+    /** A rule's own words, with its older in / out words (built-in ones it took away stay away). */
+    private fun wordsOf(rule: Rule): Map<MoneyType, List<String>> {
+        fun keep(t: MoneyType, ws: List<String>) = ws.filter { w -> rule.removedWords[t].orEmpty().none { it.equals(w, ignoreCase = true) } }
+        return rule.typeWords +
+            (MoneyType.INCOME to keep(MoneyType.INCOME, rule.inWords) + rule.typeWords[MoneyType.INCOME].orEmpty()) +
+            (MoneyType.EXPENSE to keep(MoneyType.EXPENSE, rule.outWords) + rule.typeWords[MoneyType.EXPENSE].orEmpty())
     }
 
     private fun MatchResult.groupOrNull(name: String): MatchGroup? = runCatching { groups[name] }.getOrNull()

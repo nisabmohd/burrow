@@ -78,6 +78,9 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `cloud` | cloud |
 | `cloud_done` | cloud-check |
 | `cloud_upload` | cloud-upload |
+| `cloud_download` | cloud-download |
+| `account_switch` | user-rounded |
+| `logout` | logout-2 |
 | `code` | code |
 | `coffee` | cup-hot |
 | `content_copy` | copy |
@@ -99,7 +102,7 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `doctor` | stethoscope |
 | `donut_large` | pie-chart-3 |
 | `download` | download-minimalistic |
-| `drag_indicator` | reorder |
+| `drag_indicator` | the ⠿ six-dot grip, drawn in the repo (Solar has no grip; its "reorder" lines read as a menu) |
 | `edit` | pen-2 |
 | `edit_note` | pen-new-square |
 | `envelope` | letter |

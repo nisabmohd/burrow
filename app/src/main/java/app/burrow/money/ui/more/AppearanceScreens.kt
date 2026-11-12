@@ -66,25 +66,30 @@ fun AppearanceScreen(settings: Settings, actions: AppearanceActions, onBack: () 
     DetailFrame(onBack, stringResource(R.string.appearance)) {
         SectionHeader(stringResource(R.string.theme))
         ButtonGroup(listOf(ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK), t.mode, { themeLabel(it) }, actions::mode)
-        SectionHeader(stringResource(R.string.colour))
-        val dark = t.isDark()
-        // Seven equal columns: every swatch fits the card on a narrow phone, none is cut off.
-        app.burrow.money.ui.components.SwatchGrid(AccentSeeds, columns = AccentSeeds.size) { (hue, _) ->
-            val on = !t.dynamicColor && hue == t.accentHue
-            app.burrow.money.ui.components.Swatch(on, accentName(hue, false), { actions.accent(hue) }) {
-                val swatch = seedColorScheme(hue, dark)
-                Box(Modifier.fillMaxSize().padding(Space.group).clip(Shapes.pill).background(swatch.primary), contentAlignment = Alignment.Center) {
-                    if (on) Icon(painterResource(R.drawable.ic_check_regular), null, tint = swatch.onPrimary, modifier = Modifier.size(Size.iconSmall))
-                }
-            }
-        }
+        // Dynamic colour above the colour circles (user, 2026-11-12). The circles stay while it is on, with none
+        // checked (the wallpaper picks the colour). Android 11 and older have no dynamic colour.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ListGroup(Modifier.padding(top = Space.block)) {
                 ListRow(
-                    stringResource(R.string.dynamic_colour), 0, 1, supporting = stringResource(R.string.dynamic_colour_line),
+                    stringResource(R.string.dynamic_colour), 0, 1,
+                    supporting = stringResource(if (t.dynamicColor) R.string.dynamic_colour_on else R.string.dynamic_colour_line),
                     lead = { IconCircle(painterResource(R.drawable.ic_wallpaper_duotone)) },
                     trailing = { BurrowSwitch(t.dynamicColor, actions::dynamic) },
                 )
+            }
+        }
+        run {
+            SectionHeader(stringResource(R.string.colour))
+            val dark = t.isDark()
+            // Seven equal columns: every swatch fits the card on a narrow phone, none is cut off.
+            app.burrow.money.ui.components.SwatchGrid(AccentSeeds, columns = AccentSeeds.size) { (hue, _) ->
+                val on = !t.dynamicColor && hue == t.accentHue
+                app.burrow.money.ui.components.Swatch(on, accentName(hue, false), { actions.accent(hue) }) {
+                    val swatch = seedColorScheme(hue, dark)
+                    Box(Modifier.fillMaxSize().padding(Space.group).clip(Shapes.pill).background(swatch.primary), contentAlignment = Alignment.Center) {
+                        if (on) Icon(painterResource(R.drawable.ic_check_regular), null, tint = swatch.onPrimary, modifier = Modifier.size(Size.iconSmall))
+                    }
+                }
             }
         }
         // Language lives in More › Customise › Language and region: one place for each setting.

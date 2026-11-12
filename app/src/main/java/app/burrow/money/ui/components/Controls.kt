@@ -146,13 +146,20 @@ fun BurrowButton(
         modifier = modifier.heightIn(min = height),
         shape = Shapes.pill,
         colors = ButtonDefaults.buttonColors(containerColor = bg, contentColor = fg),
-        contentPadding = PaddingValues(horizontal = Space.sheet, vertical = Space.small),
+        contentPadding = PaddingValues(horizontal = Space.screen, vertical = Space.small),
     ) {
         if (icon != null) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(Size.iconButton20))
             Spacer(Modifier.width(Space.small))
         }
-        Text(text, style = BurrowType.button, maxLines = 1)
+        // One line that never wraps: a long label ("Show 1914 transactions" in a half-width footer
+        // button) shrinks to fit, centred, then ends in "…". Wrapping hid the last word and left the
+        // label off-centre (user, 2026-11-09).
+        androidx.compose.foundation.text.BasicText(
+            text, style = BurrowType.button.copy(color = androidx.compose.material3.LocalContentColor.current, textAlign = TextAlign.Center),
+            maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = ButtonMinText, maxFontSize = BurrowType.button.fontSize),
+        )
     }
 }
 
@@ -168,20 +175,28 @@ fun <T> ButtonGroup(options: List<T>, selected: T, label: @Composable (T) -> Str
     val density = androidx.compose.ui.platform.LocalDensity.current
     BoxWithConstraints(modifier.fillMaxWidth()) {
         // Side by side while every label fits a pill at its smallest size with the check; else
-        // (a long translation, a small phone, large text) one pill a row, full width: never clipped.
+        // (a long translation, a small phone, large text, many options) wrapping chips, never a
+        // tall stack of full-width pills (user, 2026-11-09).
         val each = (maxWidth - Space.group * (options.size - 1)) / options.size
         val widest = with(density) { labels.maxOf { measurer.measure(it, BurrowType.button.copy(fontSize = ButtonMinText), maxLines = 1).size.width }.toDp() }
-        val stacked = widest + Size.iconSmall + Space.group + Space.small * 2 > each
+        val wraps = widest + Size.iconSmall + Space.group + Space.small * 2 > each
         val pill: @Composable (Int, Modifier) -> Unit = { i, m -> GroupPill(labels[i], options[i] == selected, { onSelect(options[i]) }, m) }
-        if (stacked) {
-            Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Space.group)) {
-                options.indices.forEach { pill(it, Modifier.fillMaxWidth()) }
-            }
+        if (wraps) {
+            ChoiceChips(options, selected, labels, onSelect)
         } else {
             Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.group)) {
                 options.indices.forEach { pill(it, Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+/** Pick one as wrapping [Chip]s (the selected one checked): Filter › Type, and [ButtonGroup] when it can't fit a row. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun <T> ChoiceChips(options: List<T>, selected: T, labels: List<String>, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Space.small), verticalArrangement = Arrangement.spacedBy(Space.small)) {
+        options.forEachIndexed { i, o -> Chip(labels[i], o == selected, { if (o != selected) onSelect(o) }) }
     }
 }
 
@@ -371,8 +386,8 @@ fun Chip(
         selected = selected,
         onClick = { haptics.tick(); onClick() },
         label = {
-            if (check) Text(label, style = BurrowType.button, maxLines = 1)
-            else Text(label, style = BurrowType.button, maxLines = 1, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            if (check) Text(label, style = BurrowType.button, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            else Text(label, style = BurrowType.button, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         },
         modifier = modifier.height(Size.chip),
         shape = Shapes.pill,
@@ -386,6 +401,8 @@ fun Chip(
             selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
             selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            // Unselected icons are quiet, as the label (13, 40): primary icons read as selected.
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
     )
 }

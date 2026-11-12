@@ -13,7 +13,7 @@ if something is missing, add a component here first.
 | `PillTextField` | the one text field: 56 dp pill, `surfaceContainer`, optional icon, clear button when typing, **2 dp primary ring while focused** (137, 143); `lines > 1` = a tall box with 24 dp corners, icon and text at the top (Paste a message 121) | Controls.kt |
 | `HeaderIcon` / `CenterTitleHeader` | 64 dp primaryContainer icon circle (`neutral` for something not yours: a built-in pack, 118); the centred header when the big line is words ("142 payments recorded") | Blocks.kt |
 | `MessageBox` / `MessageText` | a bank message in a surfaceContainer box with pill highlights (amount strong, payee/account soft, ring while teaching); header optional (none under a card that already names the sender, 116) | MessageText.kt |
-| `MessageCard` | a message the app found (To review 44, Not understood 116): circle, title, line, optional amount, ✕; the message; optional chips; **one full-width tonal button** (Teach), or two side by side (To review: Edit · Save; stacked at large text). The only cards with buttons; they never swipe (C2) | MessageCard.kt |
+| `ReviewSheet` (Review, 234) | a found payment opened from its row: payee, "−₹180 · account · time", `MessageBox`, Category chips + More, "Edit details" row, footer Ignore (tonal) · Save. To review and Not understood are plain `ListRow`s in `SwipeRow`s (no cards with buttons) | ReviewScreen.kt |
 | `CenterHeader` | 64 dp icon circle → 12 dp → `titleSmall` → `display` amount → `body` line → thin bar | Blocks.kt |
 | `BudgetHero` (Today only) | `primaryContainer` (errorContainer when over), 24 dp, 20 dp inside: label + `display` amount counting up once + line + `WavyProgress` | ui/today/BudgetHero.kt |
 | `Note` | 72 dp, 24 dp, solid 40 dp icon circle, title + line, one text button or arrow; info / warn / error | Blocks.kt |
@@ -36,13 +36,14 @@ if something is missing, add a component here first.
 | `CappedFontScale` | caps font scaling (1.3×) for text inside fixed shapes only: nav labels, keypad digits, ring numbers | CappedFontScale.kt |
 | `ThinBar` | a thin progress bar (budget and goal rows) | Blocks.kt |
 | `ChartCard` / `AverageLegend` / `ChartHeaderLink` | card with icon + label (+ legend, or "All days" as a `ChartHeaderLink`: plain primary text, never a TextButton in the 24 dp row), the big number, one line, then the chart | ChartCard.kt |
+| `LineLegend` | one legend entry under a line chart (36): a 16 dp line sample (this period solid 3 dp primary in the text colour; before dashed 2 dp outline, muted) + "1 – 19 Oct  ₹16.4k" | ChartCard.kt |
 | `CumulativeLineChart` · `Sparkline` · `StackBar` · `DonutChart` · `SplitBar` · `heatColor` | the Insights line vs the period before; widget lines; By category bar; Top category ring; Money in and out; heatmap tones | Charts.kt |
 | `RingPercent` | budget / goal ring: 40 dp in rows (tiny % inside), 52 in widgets, 104 wide; red when over, check when reached | Charts.kt |
 | `ProgressRing` | ring with a gap, round caps; 40 (rows), 52 (widgets), 104 (wide widget) | Charts.kt |
 | Heatmap | 7 columns of 38 dp circles, 5 tonal steps of primary, today ringed, future muted | Charts.kt (`heatLevel`) |
-| `ButtonGroup` | settings choices only (theme, text size, week start, Recent 3 / 5 / 10, Bill / Subscription, Repeat every): 2–3 options, 48 dp pills 4 dp apart; selected = primary **with a check**, check + label centred together. Labels shrink to 10 sp; when one still can't fit beside the check (a long translation, a small phone, large text) the pills stack, one a row, full width. Never tabs | Controls.kt |
+| `ButtonGroup` | settings choices only (theme, text size, week start, Recent 3 / 5 / 10, Bill / Subscription, Repeat every): 2–3 options, 48 dp pills 4 dp apart; selected = primary **with a check**, check + label centred together. Labels shrink to 10 sp; when one still can't fit beside the check (a long translation, a small phone, large text) they wrap as `ChoiceChips`, never a stack of full-width pills. Never tabs | Controls.kt |
 | `PillTabs` | **tabs** (§ Pill tabs): Plan (22–24) fixed = equal widths, 44 dp; Customise (80–85) `scrolling` = own widths, 40 dp, open tab scrolled into view. Fixed labels shrink to 10 sp on one line; only a label that can't fit even then takes two lines ("Coming / up"), the tabs growing together, a word never split. 8 dp apart, selected primary / onPrimary, others `surfaceContainerHigh` / onSurfaceVariant, label centred, no check | Controls.kt |
-| `Chip` / `ChipWrap` | 36 dp pills; selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
+| `Chip` / `ChipWrap` / `ChoiceChips` | 36 dp pills; `ChoiceChips` = pick one (Filter › Type, a `ButtonGroup` that can't fit); selected `secondaryContainer` + check, else outline; optional icon ("More"); `ChipWrap` wraps in sheets | Controls.kt |
 | `BurrowButton` | filled (primary), tonal (secondaryContainer), danger (errorContainer), off (looks disabled, still taps); 48 dp, 56 dp at the bottom | Controls.kt |
 | `AddFab` | `primaryContainer`, 56 dp, pill, icon + label; moves up over the snackbar; **icon only at large text** (150–152) | Bars.kt |
 | `TypeSheet` / `RepeatOrLendSheet` | from "New expense ▾" (111): Expense · Income · Transfer; Repeat or lend (112): Once · Repeat · Subscription · Lent · Borrowed, then How often or who, Done | ui/add/ExtrasSheets.kt |
@@ -50,6 +51,7 @@ if something is missing, add a component here first.
 | `BurrowSheet` + `SheetHeader` / `SheetBody` / `SheetFooter` | every bottom sheet; title + one line + close button; body scrolls; footer buttons pinned | BurrowSheet.kt |
 | Pickers | `CategorySheet` (both kinds: Expense group then Income group; **New category** last, from `LocalNewCategory`, 167), `AccountSheet`, `DateSheet`, `TextSheet`: shared by every form | ui/pickers/Pickers.kt |
 | `LabeledField` | a form field with its label above (New bill, New goal, New account) | Fields.kt |
+| `SelectField` | a choice inside a form (New credit card › Bank, 191/192): the `PillTextField` pill with the label above, the value and ⌄ on the right, **no lead icon**; a tap opens its pick sheet (Bank sheet 196: pill search, Your banks / All banks, text-only `PickRow`s) | Fields.kt |
 | `KeepTopVisible` | scrolls a list back to the top when a note appears above its first item | Lists.kt |
 | `DatesSheet` / `MonthCalendar` | presets row + month calendar (locale's first weekday), range band, today ringed, future muted, "Show 1 – 19 Oct" | ui/filters/FilterSheets.kt |
 | `FilterSheet` / `ActiveFilterChips` | Type (Activity only) · Accounts · Categories chips · Reset / "Show 14 transactions"; removable chips + Clear all under the search | ui/filters/FilterSheets.kt |
@@ -59,7 +61,7 @@ if something is missing, add a component here first.
 | `TimeWheelSheet` | **every time** (TIME-PICKER, 24 Oct): title + line, three snapping columns (hour · minute in 5s · AM/PM; 00–23 and no AM/PM on a 24-hour phone), 72 dp columns, 48 dp rows, five showing, the middle row on a `surfaceContainerHigh` pill band, top and bottom rows fading out, a tick on each snap, a tap scrolls a row to the middle; Done. New expense time (135), Bill reminder time (160), Sunday review time | TimeWheel.kt |
 | `NumberPad` | the value sheet's 3 × 4 keypad: the same 52 dp keys, 1–9, `.` (a gap for days and time), 0, ⌫ (hold clears) | Keypad.kt |
 | `ValueText` / `ValuePill` / `Caret` | a value on a screen that opens its value sheet: big `display` text (Welcome budget 99) or a tonal pill in a row (Split parts 95); the 3 dp blinking caret (also New expense) | ValueSheet.kt |
-| `EmptyState` + `Cookie` | 128 dp wavy cookie shape (`primaryContainer`), icon centred at 42%, title, one line, one tonal button | Blocks.kt |
+| `EmptyState` + `Ghost` / `Cookie` | every empty list or no-results state: `Ghost` (two tilted ghost rows, § Empty state), title, one line, one tonal button. Status screens (deleted, import failed) keep the 128 dp `Cookie`; To review and Not understood use the `Ghost` too | Blocks.kt |
 | `UndoSnackbar` (`LocalSnackbar`) | after every change, ~4 s, Undo runs in the app scope; above the nav bar | Snackbar.kt |
 | `ConfirmDialog` | delete and replace data only (a wrong password shows inside the password sheet, 144) | Dialogs.kt |
 | `BurrowSwitch` | Material 3 switch, primary track, toggle haptic | Controls.kt |
@@ -136,3 +138,12 @@ share of the width and 48 dp tall; TalkBack reads the full day name and its sele
 full rows); `HuePicker` (the 12 category hues) and `IconPicker` are built on it. Used by Edit category
 (62), Edit account (106/107) and the accent colours on Appearance (seven columns). Never a FlowRow: on a large display size it wrapped to 5 and spread
 the last row to the edges.
+
+## Empty state (illustrated, 9 Nov)
+Used for every "list is empty / nothing matches" state. Centred, 32 dp from the content above, in this order:
+- **Illustration (`Ghost`):** two ghost rows tilted like loose cards. The back one is 120 × 78 dp at −7°, 70% opacity. The front one is 166 × 96 dp at +4°. Both are surfaceContainerLowest with 20 dp corners and a soft shadow. The front card holds a 28 dp circle with the subject's icon (the account's own colour and icon when there is one, otherwise neutral) and 9 dp pill bars in surfaceContainerHighest.
+- **Title:** 22 sp / 500, naming what's missing ("No instalments yet", "No results for “petrol”").
+- **Line:** 14 sp muted, at most about 280 dp wide. It says what will show up here.
+- **Dark mode:** the cards sit one tone above the page (front surfaceContainer, back surfaceContainerLow, no opacity) with a 1 dp hairline and a deeper shadow; bars ~27% lightness on the front card, ~21% on the back (`ghostColors()` in Color.kt). Dark PNGs: `design/screens/dark/`.
+- **Button:** one tonal button that does the next step ("Pay first instalment", "Add money", "Change dates"). On a page that has it, the matching action row is hidden so the action isn't shown twice.
+Status screens (deleted, import failed) keep the cookie shape, because they confirm something rather than show an empty list. "All caught up" in To review and "Nothing to teach" are empty lists: Ghost.

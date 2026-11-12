@@ -319,11 +319,11 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<AccountsRoute> {
                         val vm = viewModel { AccountsViewModel(container.money) }
-                        AccountsScreen(vm, onBack = { nav.popBackStack() }, onAdd = { nav.navigate(NewAccountRoute()) }, onOpen = { nav.navigate(AccountRoute(it)) })
+                        AccountsScreen(vm, onBack = { nav.popBackStack() }, onAdd = { type -> nav.navigate(NewAccountRoute(type = type)) }, onOpen = { nav.navigate(AccountRoute(it)) })
                     }
                     composable<AccountRoute> { e ->
                         val id = e.toRoute<AccountRoute>().id
-                        val vm = viewModel { AccountViewModel(container.money, container.strings, id) { container.runBillReminders() } }
+                        val vm = viewModel { AccountViewModel(container.money, container.strings, id, container.plan) { container.runBillReminders() } }
                         AccountScreen(
                             vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewAccountRoute(it)) },
                             onTransfer = { nav.navigate(AddRoute(type = "TRANSFER", accountId = it)) }, onOpenTxn = openTxn,
@@ -331,10 +331,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     }
                     composable<NewAccountRoute> { e ->
                         val r = e.toRoute<NewAccountRoute>()
-                        val vm = viewModel { NewAccountViewModel(container.money, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }) { container.runBillReminders() } }
+                        val vm = viewModel {
+                            NewAccountViewModel(container.money, container.strings, r.editId, digits, settings.mainCurrency, r.type.ifEmpty { null }, container.plan) { container.runBillReminders() }
+                                .also { v -> v.loadBanks { container.capture.cardBanks(settings.enabledPacks) } }
+                        }
                         val saved = stringResource(R.string.saved)
                         NewAccountScreen(
-                            vm, onClose = { nav.popBackStack() }, onSaved = { snackbar.show(saved); nav.popBackStack() },
+                            vm, onClose = { nav.popBackStack() }, onSaved = { msg -> snackbar.show(msg ?: saved); nav.popBackStack() },
                             onArchived = { undo ->
                                 snackbar.show(context.getString(R.string.account_archived), undo)
                                 // Back to the list: the account's own screen has nothing to show now.
@@ -345,7 +348,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                     composable<GoalRoute> { e ->
                         val id = e.toRoute<GoalRoute>().id
                         val vm = viewModel { GoalViewModel(container.plan, container.money, id) }
-                        GoalScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewGoalRoute(it)) })
+                        GoalScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(NewGoalRoute(it)) }, onOpenTxn = openTxn)
                     }
                     composable<NewGoalRoute> { e ->
                         val id = e.toRoute<NewGoalRoute>().editId
@@ -409,6 +412,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                                 val old = settings.mainCurrency
                                 container.appScope.launch {
                                     if (move) container.money.moveCurrency(old, code)
+                                    container.money.rescaleMain(old, code)
                                     container.settings.setMainCurrency(code)
                                     container.money.resampleIn(code) // an untouched sample month follows the new currency
                                 }
@@ -471,8 +475,9 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         )
                     }
                     composable<ReviewRoute> {
-                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules) }
-                        ReviewScreen(vm, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onMissed = { nav.navigate(MissedRoute) })
+                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules, { a -> container.maybeAskForReview(a, fromToReview = true) }) }
+                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
+                        ReviewScreen(vm, missed, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) }, onTeach = { nav.navigate(TeachRoute(captureId = it)) })
                     }
                     composable<CaptureIntroRoute> {
                         CaptureIntroScreen(
@@ -514,8 +519,13 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                         app.burrow.money.ui.rules.PackRulesScreen(vm, e.toRoute<PackRulesRoute>().id, onBack = { nav.popBackStack() }, onOpen = { nav.navigate(RuleRoute(it)) })
                     }
                     composable<MissedRoute> {
-                        val vm = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
-                        app.burrow.money.ui.teach.MissedScreen(vm, onBack = { nav.popBackStack() }, onTeach = { nav.navigate(TeachRoute(captureId = it)) })
+                        // "Not understood" opens Review on its tab (116): one screen for both lists.
+                        val vm = viewModel { ReviewViewModel(container.capture, container.money, container.rules, { a -> container.maybeAskForReview(a, fromToReview = true) }) }
+                        val missed = viewModel { app.burrow.money.ui.teach.MissedViewModel(container.capture) }
+                        ReviewScreen(
+                            vm, missed, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(AddRoute(captureId = it)) },
+                            onTeach = { nav.navigate(TeachRoute(captureId = it)) }, start = app.burrow.money.ui.review.ReviewTab.NOT_UNDERSTOOD,
+                        )
                     }
                     composable<RuleRoute> { e ->
                         val id = e.toRoute<RuleRoute>().id
@@ -552,6 +562,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                                 nav.popBackStack()
                             },
                             onFavourites = { nav.navigate(FavouritesRoute) },
+                            onSplit = { nav.navigate(SplitRoute(r.editId)) },
                         )
                     }
                     composable<FavouritesRoute> {
@@ -571,6 +582,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
                             onBills = { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) },
                             onBudget = { nav.navigate(BudgetRoute()) },
                             onCategory = { nav.navigate(CategoryInsightsRoute(it)) },
+                            onAccount = { id -> if (id == null) nav.navigate(AccountsRoute) else nav.navigate(AccountRoute(id)) },
                         )
                     }
                     composable<ImportRoute> {

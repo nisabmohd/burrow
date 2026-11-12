@@ -5,7 +5,7 @@ RECORDS ITSELF
 • Not the right category? Tap Edit on the notification to open it filled in.
 • Learns the category you usually pick for each payee.
 • Payments that match a due bill mark it paid.
-• Message rules work for any bank, region and language; teach a new format by tapping the amount.
+• Message rules work for any bank, region and language; teach a new format with three taps, and Burrow tells expenses, income, refunds and transfers apart by the bank's own words.
 
 KNOW WHAT IS LEFT
 • One calm Today screen: what is left of your monthly budget, and how much you can spend a day.
@@ -15,13 +15,13 @@ KNOW WHAT IS LEFT
 
 YOUR WAY
 • Customise Today, the New expense form and what happens when a payment is found.
-• Category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.
+• Search categories; category icons for where money really goes: rent, recharge, fuel, EMI, insurance, gold and more.
 • Notes, tags, repeating payments, receipts and lend or borrow, when you want them.
 • Your currency and number format; type in exchange rates for other currencies.
-• Light and dark themes, colours from your wallpaper, four fonts, English and Hindi.
+• Light and dark themes, colours from your wallpaper, four fonts, in English, Hindi, Spanish, German, French, Portuguese and Japanese.
 
 PRIVATE BY DESIGN
-• Burrow never sends your data anywhere. Everything stays on your phone.
+• Burrow never sends your data anywhere. Everything stays on your phone unless you back it up.
 • No account, no ads, no analytics.
 • Encrypted backups to a folder you choose. App lock with PIN or fingerprint.
 

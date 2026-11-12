@@ -109,7 +109,8 @@ Only two shapes exist (user, 2026-10-19):
 - **Surfaces: 24 dp corners.** Cards, widgets, list groups (24 outside / 6 between rows), sheets (top), dialogs, notes, snackbar, tiles.
 - **Everything small or tappable: full circle or pill.** Icon circles, buttons, icon buttons, chips, checkboxes (round), radios,
   switches, keypad keys, badges, highlights in SMS text, heatmap days, chart bars.
-No 4/8/12 dp squares anywhere. App icon: 112/512 corner (the launcher masks it anyway).
+The one exception is a drawing, not a surface: the empty state's ghost rows (`Shapes.ghost`, 20 dp, with a soft shadow; 9 Nov).
+No 4/8/12 dp squares anywhere. App icon: 112/512 corner (the launcher masks it anyway). Logo: `tools/burrow_mark.py` (see CLAUDE.md).
 
 ## Elevation
 Tonal, not shadows. Level 0: page, cards, rows. Level 1: sheets. Level 3: FAB, snackbar.

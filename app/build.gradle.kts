@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -19,8 +18,8 @@ android {
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 9
-        versionName = "0.3.2"
+        versionCode = 10
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // About screen links. They open in the browser.
         buildConfigField("String", "REPO_URL", "\"https://github.com/nisabmohd/burrow\"")
@@ -34,10 +33,16 @@ android {
         // declaration (release/sms-declaration.md) before a release with it can go out.
         create("play") {
             dimension = "distribution"
+            // Android Studio opens playDebug by default (as Weft). With fossDebug, src/drive and src/play
+            // aren't part of the project and DriveBackup / PlayReview show as unresolved in the editor.
+            isDefault = true
             buildConfigField("boolean", "PLAY_STORE", "true")
             buildConfigField("boolean", "PLAY_LISTED", "true") // live on Play (2026-10-28): "Rate on Play Store" in About
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "false") // Play updates it
+            // Google Drive backup: true once the Google Cloud OAuth clients are set up (after Play publishing;
+            // ~/Downloads/burrow-google-drive-setup.md). False hides Connect and every Drive row (user, 2026-11-12).
+            buildConfigField("boolean", "DRIVE_BACKUP", "false")
         }
         // F-Droid: no Google code at all.
         create("foss") {
@@ -47,6 +52,7 @@ android {
             buildConfigField("boolean", "PLAY_LISTED", "false")
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "false") // F-Droid updates it
+            buildConfigField("boolean", "DRIVE_BACKUP", "false")
         }
         // The APK on GitHub Releases. Same as foss, plus the update check (as Sprout): the only build
         // with INTERNET, used for nothing but asking GitHub for the latest release.
@@ -57,7 +63,19 @@ android {
             buildConfigField("boolean", "PLAY_LISTED", "false")
             buildConfigField("boolean", "SMS_CAPTURE", "true")
             buildConfigField("boolean", "GITHUB_UPDATES", "true")
+            // Google Drive backup: true once the Google Cloud OAuth clients are set up (after Play publishing;
+            // ~/Downloads/burrow-google-drive-setup.md). False hides Connect and every Drive row (user, 2026-11-12).
+            buildConfigField("boolean", "DRIVE_BACKUP", "false")
         }
+    }
+
+    sourceSets {
+        // src/play: Play's In-App Review; src/drive: Google Drive backup (play and github, as Weft).
+        // foss has neither and gets the stand-ins, so it never contains Google code.
+        // AGP 9 compiles Kotlin itself and reads Kotlin files from the `kotlin` source set (as Weft).
+        getByName("play").kotlin.srcDir("src/drive/java")
+        getByName("github").kotlin.srcDirs("src/drive/java", "src/noPlay/java")
+        getByName("foss").kotlin.srcDirs("src/noDrive/java", "src/noPlay/java")
     }
 
     signingConfigs {
@@ -151,6 +169,9 @@ baselineProfile {
 }
 
 dependencies {
+    "playImplementation"(libs.play.review)
+    "playImplementation"(libs.play.services.auth)
+    "githubImplementation"(libs.play.services.auth)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

@@ -12,4 +12,4 @@ description: Cut a Burrow release — version bump, checks, baseline profile, ch
 5. Copy outputs to `build/dist/v<version>/` (keep older versions).
 6. Add a `## <version>` section to `CHANGELOG.md` ("- " lines become What's new).
 7. Commit, tag `v<version>`, push the tag: CI builds signed APKs, SHA-256 sums and the GitHub release.
-8. Play: upload the AAB to the track; update screenshots (`python3 tools/store_shots.py`), feature graphic (`design/logo/play-feature-graphic-1024x500.png`), data safety ("no data collected or shared"), and the SMS permission declaration if SMS capture is enabled for play.
+8. Play: upload the AAB to the track; update screenshots (`python3 tools/capture.py` on the emulator: raw shots, framed store shots, fastlane and docs/screenshots), feature graphic (`design/logo/play-feature-graphic-1024x500.png`), data safety (`release/data-safety.md`: nothing collected; optional Drive backup goes encrypted to the user's own Drive), and the SMS permission declaration if SMS capture is enabled for play.

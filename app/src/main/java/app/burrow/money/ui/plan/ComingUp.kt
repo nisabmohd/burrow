@@ -35,11 +35,13 @@ data class ComingItem(
     val group: ComingGroup,
     val occurrence: OccurrenceView? = null,
     val txn: TxnView? = null,
+    /** The same bill's later unpaid due dates (a weekly bill is due 4 times a month): safe to spend counts them. */
+    val later: List<Pair<LocalDate, Long>> = emptyList(),
 ) {
     val repeats get() = occurrence != null
-    /** Expenses only lower "safe to spend"; transfers (card bill, EMI) and income don't. */
+    /** Expenses only lower "safe to spend"; transfers (card bill, EMI, savings instalment) and income don't. */
     val countsAsSpending get() = !income && (txn?.txn?.type ?: TxnType.EXPENSE) == TxnType.EXPENSE &&
-        occurrence?.kind.let { it != "EMI" && it != "CARD" }
+        occurrence?.kind.let { it != "EMI" && it != "CARD" && it != "SAVINGS" }
 }
 
 private fun Long.date(zone: ZoneId): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
@@ -62,9 +64,13 @@ fun comingUp(occurrences: List<OccurrenceView>, txns: List<TxnView>, today: Loca
         !d.isAfter(monthEnd) -> ComingGroup.THIS_MONTH
         else -> ComingGroup.LATER
     }
+    val nextIds = next.map { it.occurrence.id }.toSet()
     val bills = (overdue + next).map { o ->
         val d = o.occurrence.dueDate.date(zone)
-        ComingItem("o${o.occurrence.id}", d, o.name, o.amount, false, o.icon, o.hue, o.accountName, group(d), occurrence = o)
+        val later = if (o.occurrence.id !in nextIds) emptyList() else unpaid
+            .filter { it.occurrence.billId == o.occurrence.billId && it.occurrence.dueDate > o.occurrence.dueDate }
+            .map { it.occurrence.dueDate.date(zone) to it.amount }
+        ComingItem("o${o.occurrence.id}", d, o.name, o.amount, o.income, o.icon, o.hue, o.accountName, group(d), occurrence = o, later = later)
     }
     val once = txns.map { t ->
         val d = t.txn.at.date(zone)
@@ -76,7 +82,8 @@ fun comingUp(occurrences: List<OccurrenceView>, txns: List<TxnView>, today: Loca
 
 /** What still leaves before [monthEnd]: unpaid expenses due by then, overdue ones too (Safe to spend, 88). */
 fun dueThisMonth(items: List<ComingItem>, monthEnd: LocalDate): Long =
-    items.filter { it.countsAsSpending && !it.date.isAfter(monthEnd) }.sumOf { it.amount }
+    items.filter { it.countsAsSpending && !it.date.isAfter(monthEnd) }
+        .sumOf { it.amount + it.later.filter { (d, _) -> !d.isAfter(monthEnd) }.sumOf { (_, a) -> a } }
 
 /** Coming up as a Flow (Plan, Today's row, Activity's row). */
 fun AppContainer.comingUpFlow(today: LocalDate): Flow<List<ComingItem>> =

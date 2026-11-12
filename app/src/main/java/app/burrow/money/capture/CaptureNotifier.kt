@@ -94,7 +94,7 @@ class CaptureNotifier(private val context: Context) {
     fun showSaved(capture: CaptureEntity, category: String, txnId: Long, hideAmount: Boolean = false) {
         if (!allowed()) return
         createChannel()
-        post(notificationId(capture.id), titleFor(capture, hideAmount), context.getString(R.string.notif_saved_to, category), open(MainActivity.ACTION_OPEN_TXN, txnId))
+        post(notificationId(capture.id), titleFor(capture, hideAmount), context.getString(R.string.notif_saved_to, category), open(MainActivity.ACTION_OPEN_TXN, txnId), saved = true)
     }
 
     private fun allowed() = Build.VERSION.SDK_INT < 33 ||
@@ -102,7 +102,7 @@ class CaptureNotifier(private val context: Context) {
 
     private fun titleFor(capture: CaptureEntity, hideAmount: Boolean): String {
         val amount = MoneyFormat.of(capture.currency ?: "INR").withHidden(hideAmount).plain(capture.amount ?: 0)
-        val incoming = capture.direction == Direction.IN.name
+        val incoming = MoneyType.ofStored(capture.direction).direction == Direction.IN
         return when {
             // No merchant: the words say what it was ("₹500 on Petrol").
             capture.payee == null && capture.name != null -> context.getString(R.string.notif_on, amount, capture.name)
@@ -124,7 +124,7 @@ class CaptureNotifier(private val context: Context) {
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
-    private fun post(id: Int, title: String, line: String, tap: PendingIntent) {
+    private fun post(id: Int, title: String, line: String, tap: PendingIntent, saved: Boolean = false) {
         val n = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
@@ -133,11 +133,22 @@ class CaptureNotifier(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(tap)
+            .apply { if (saved) extras.putBoolean(EXTRA_SAVED, true) }
             .build()
         app.burrow.money.notify.postNotification(context, id, n)
     }
 
     fun cancel(captureId: Long) = NotificationManagerCompat.from(context).cancel(notificationId(captureId))
+
+    /** Clears payment notifications whose payment no longer waits in To review ([waiting] = their ids). */
+    fun clearDone(waiting: Collection<Long>) {
+        val keep = waiting.map(::notificationId).toSet()
+        val manager = context.getSystemService(NotificationManager::class.java)
+        runCatching { manager.activeNotifications }.getOrDefault(emptyArray())
+            // "Saved to Food" (Save it for me) is news, not a question: it stays until swiped.
+            .filter { it.notification.channelId == CHANNEL && it.id !in keep && !it.notification.extras.getBoolean(EXTRA_SAVED) }
+            .forEach { manager.cancel(it.tag, it.id) }
+    }
 
     private fun action(action: String, captureId: Long, categoryId: Long): PendingIntent {
         val intent = Intent(context, CaptureActionReceiver::class.java)
@@ -162,6 +173,7 @@ class CaptureNotifier(private val context: Context) {
     companion object {
         const val CHANNEL = "capture"
         private const val ID_BASE = 10_000
+        private const val EXTRA_SAVED = "app.burrow.money.saved"
 
         fun notificationId(captureId: Long) = ID_BASE + (captureId % 1_000_000).toInt()
 

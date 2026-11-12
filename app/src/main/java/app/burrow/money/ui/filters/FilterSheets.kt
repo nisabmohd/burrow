@@ -43,7 +43,6 @@ import app.burrow.money.domain.DayRange
 import app.burrow.money.ui.DateText
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.BurrowSheet
-import app.burrow.money.ui.components.ButtonGroup
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.Chip
 import app.burrow.money.ui.components.LinkButton
@@ -86,9 +85,10 @@ fun FilterSheet(
         SheetBody {
             if (showType) {
                 Label(R.string.type)
-                ButtonGroup(
+                // Chips like Accounts and Categories below: one look for the whole sheet. Pick one.
+                app.burrow.money.ui.components.ChoiceChips(
                     TypeFilter.entries, f.type,
-                    { stringResource(when (it) { TypeFilter.ALL -> R.string.all; TypeFilter.SPENT -> R.string.spent; TypeFilter.INCOME -> R.string.type_income; TypeFilter.TRANSFERS -> R.string.transfers }) },
+                    TypeFilter.entries.map { stringResource(when (it) { TypeFilter.ALL -> R.string.all; TypeFilter.SPENT -> R.string.spent; TypeFilter.INCOME -> R.string.type_income; TypeFilter.TRANSFERS -> R.string.transfers }) },
                     { f = f.copy(type = it) },
                 )
             }
@@ -275,7 +275,7 @@ private fun RemovableChip(label: String, close: androidx.compose.ui.graphics.pai
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.small),
     ) {
-        Text(label, style = BurrowType.button, color = c.onSecondaryContainer, maxLines = 1)
+        Text(label, style = BurrowType.button, color = c.onSecondaryContainer, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         androidx.compose.material3.Icon(close, null, tint = c.onSecondaryContainer, modifier = Modifier.size(Size.iconSmall))
     }
     }

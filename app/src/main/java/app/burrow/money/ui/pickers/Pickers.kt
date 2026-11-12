@@ -1,6 +1,7 @@
 package app.burrow.money.ui.pickers
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import app.burrow.money.ui.components.ChipRow
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,11 +69,39 @@ fun CategorySheet(
 ) {
     val money = LocalMoney.current
     val haptics = LocalHapticFeedback.current
+    var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    val shown = if (query.isBlank()) categories else categories.filter { it.name.contains(query.trim(), ignoreCase = true) }
     BurrowSheet(onDismiss) {
-        SheetHeader(stringResource(R.string.category), onDismiss, if (spent != null) stringResource(R.string.category_sheet_line) else null)
+        val newCategory = LocalNewCategory.current
+        // No match (185): the header keeps only its title, so the empty state has the room.
+        SheetHeader(stringResource(R.string.category), onDismiss, if (spent != null && shown.isNotEmpty()) stringResource(R.string.category_sheet_line) else null)
+        // Pinned above the list, so it stays while the categories scroll under it.
+        if (categories.size > SEARCH_FROM) {
+            PillTextField(
+                query, { query = it }, stringResource(R.string.search_categories),
+                Modifier.padding(horizontal = app.burrow.money.ui.theme.Space.screen).padding(bottom = app.burrow.money.ui.theme.Space.block),
+                leading = painterResource(R.drawable.ic_search_regular), clearLabel = stringResource(R.string.clear),
+                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.None,
+            )
+        }
         SheetBody {
+            // No match: the same empty state as Activity's search (Ghost, "No results for …", Clear search).
+            if (shown.isEmpty()) {
+                app.burrow.money.ui.components.EmptyState(
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_search_off_regular)) },
+                    title = stringResource(R.string.no_results, query.trim()),
+                    line = stringResource(R.string.no_category_match),
+                    // Clear search (tonal) · New category (filled), as 185.
+                    button = {
+                        androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(app.burrow.money.ui.theme.Space.inline)) {
+                            BurrowButton(stringResource(R.string.clear_search), { query = "" }, kind = app.burrow.money.ui.components.ButtonKind.TONAL)
+                            newCategory?.let { onNew -> BurrowButton(stringResource(R.string.new_category), { onDismiss(); onNew() }) }
+                        }
+                    },
+                )
+            }
             // Both kinds in one list: Expense first, then Income, each under its own header.
-            val groups = categories.groupBy { it.kind == app.burrow.money.data.CategoryKind.INCOME }.toSortedMap()
+            val groups = shown.groupBy { it.kind == app.burrow.money.data.CategoryKind.INCOME }.toSortedMap()
             groups.forEach { (income, cats) ->
                 if (groups.size > 1) app.burrow.money.ui.components.SectionHeader(stringResource(if (income) R.string.type_income else R.string.type_expense))
                 ListGroup {
@@ -90,7 +119,7 @@ fun CategorySheet(
                     }
                 }
             }
-            LocalNewCategory.current?.let { onNew ->
+            if (shown.isNotEmpty()) newCategory?.let { onNew ->
                 ListGroup {
                     ListRow(
                         stringResource(R.string.new_category), 0, 1, supporting = stringResource(R.string.new_category_line),
@@ -102,6 +131,9 @@ fun CategorySheet(
         }
     }
 }
+
+/** The category sheet shows its search field once there are more categories than this. */
+private const val SEARCH_FROM = 8
 
 /** Account (20): accounts with their balance and kind. */
 @Composable
@@ -116,6 +148,13 @@ fun AccountSheet(
     BurrowSheet(onDismiss) {
         SheetHeader(stringResource(R.string.account), onDismiss, stringResource(R.string.account_sheet_line))
         SheetBody {
+            // No account to pick (only a card, say): say what to add instead of an empty sheet (QA 13 Nov).
+            if (accounts.isEmpty()) app.burrow.money.ui.components.EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_account_balance_regular)) },
+                title = stringResource(R.string.no_accounts_to_pick),
+                line = stringResource(R.string.no_accounts_to_pick_line),
+                top = app.burrow.money.ui.theme.Space.block,
+            )
             ListGroup {
                 accounts.forEachIndexed { i, a ->
                     app.burrow.money.ui.components.PickRow(

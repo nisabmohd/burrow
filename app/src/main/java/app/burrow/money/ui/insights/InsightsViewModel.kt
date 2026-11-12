@@ -81,7 +81,11 @@ private fun window(vararg ranges: DayRange): Pair<Long, Long> {
     val end = ranges.maxOf { it.end }.plusDays(1)
     return start.atStartOfDay(zone).toInstant().toEpochMilli() to end.atStartOfDay(zone).toInstant().toEpochMilli()
 }
-internal fun TxnView.isSpending() = txn.type == TxnType.EXPENSE && !txn.excludeFromStats
+/** Spending that has happened: not a future-dated payment, not money lent (QA 12 Nov). */
+internal fun TxnView.isSpending() = txn.type == TxnType.EXPENSE && !txn.excludeFromStats && txn.status == app.burrow.money.data.TxnStatus.POSTED
+
+/** Income that has happened: borrowed money and future-dated income don't count. */
+internal fun TxnView.isIncome() = txn.type == TxnType.INCOME && !txn.excludeFromStats && txn.status == app.burrow.money.data.TxnStatus.POSTED
 
 /**
  * Insights (36–41): spending in the picked dates (this month by default) against the period before,
@@ -124,7 +128,7 @@ class InsightsViewModel(money: MoneyRepository, private val store: FilterStore, 
         val weekdays = byWeekday(perDay, range)
         val busiest = weekdays.maxByOrNull { it.value }?.takeIf { it.value > 0 }
         val (noSpend, days) = noSpendDays(perDay, range, today)
-        val income = matching.filter { it.txn.type == TxnType.INCOME && it.day() in range }.sumOf { it.txn.amount }
+        val income = matching.filter { it.isIncome() && it.day() in range }.sumOf { it.txn.amount }
         val payees = now.filter { it.txn.payee != null }.groupBy { it.txn.payee!! }.map { (n, l) -> Triple(n, l.sumOf { it.txn.amount }, l.size) }.sortedByDescending { it.second }
         val payee = payees.firstOrNull()
         val heatMonth = YearMonth.from(range.end)
@@ -170,7 +174,10 @@ data class CategoryInsightsState(
 
 /** Category insights (42): one category in the picked dates, by day, and its transactions. */
 @OptIn(ExperimentalCoroutinesApi::class)
-class CategoryInsightsViewModel(money: MoneyRepository, store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: StatsBetween) : ViewModel() {
+class CategoryInsightsViewModel(money: MoneyRepository, private val store: FilterStore, monthStartDay: Int, val categoryId: Long, stats: StatsBetween) : ViewModel() {
+    /** The calendar button: the same range as Insights (one Dates sheet, one range). */
+    fun setRange(r: DayRange?) { store.insights.value = store.insights.value.copy(range = r) }
+
     private val today = LocalDate.now(zone)
     private val defaultRange = DayRange(BudgetPeriod.containing(today, monthStartDay).start, today)
 

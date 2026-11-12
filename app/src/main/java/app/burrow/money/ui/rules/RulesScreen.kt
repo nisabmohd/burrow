@@ -235,7 +235,7 @@ private fun PasteSheet(onDismiss: () -> Unit, onContinue: (String, String) -> Un
 /** "AX-KOTAKB" from "(?i)KOTAKB$"-style patterns: the readable part of a sender rule. */
 @Composable
 fun senderLabel(rule: Rule): String {
-    val readable = rule.sender.removePrefix("(?i)").removePrefix("^").removeSuffix("$").replace("\\", "").substringBefore('|')
+    val readable = rule.sender.removePrefix("(?i)").removePrefix("^").removeSuffix("$").removeSuffix(app.burrow.money.capture.RuleBuilder.TYPE_TAG).replace("\\", "").substringBefore('|')
     return if (readable.isBlank() || readable.contains(".*")) stringResource(R.string.any_sender) else readable
 }
 

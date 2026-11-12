@@ -186,7 +186,7 @@ fun ValuePill(text: String, onClick: () -> Unit, label: String, modifier: Modifi
             Modifier.heightIn(min = Size.chip).clip(Shapes.pill).background(c.secondaryContainer)
                 .indication(interaction, androidx.compose.material3.ripple()).padding(horizontal = Space.block),
             contentAlignment = Alignment.Center,
-        ) { Text(text, style = BurrowType.titleSmall, color = c.onSecondaryContainer, maxLines = 1) }
+        ) { Text(text, style = BurrowType.titleSmall, color = c.onSecondaryContainer, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
     }
 }
 

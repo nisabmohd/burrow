@@ -21,7 +21,7 @@ STYLES = {"regular": "linear", "fill": "linear", "duotone": "linear"}
 
 # meaning (as used in R.drawable.ic_<meaning>_<weight>) → Solar name (without the style suffix)
 ICONS = {
-    "account_balance": "safe-square", "account_balance_wallet": "wallet", "add": "add", "alarm": "alarm",
+    "account_balance": "safe-square", "account_switch": "user-rounded", "cloud_download": "cloud-download", "logout": "logout-2", "account_balance_wallet": "wallet", "add": "add", "alarm": "alarm",
     "apartment": "buildings", "arrow_back": "arrow-left", "arrow_downward": "arrow-down",
     "arrow_drop_down": "alt-arrow-down", "arrow_forward": "arrow-right", "arrow_upward": "arrow-up",
     "arrow_upward_alt": "arrow-up", "attach_file": "paperclip", "attach_money": "dollar",

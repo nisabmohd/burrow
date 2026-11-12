@@ -43,7 +43,6 @@ import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CappedFontScale
 import app.burrow.money.ui.components.CenterHeader
 import app.burrow.money.ui.components.ChartCard
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.CumulativeLineChart
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.FilterHeaderButtons
@@ -105,7 +104,7 @@ fun InsightsScreen(vm: InsightsViewModel, onCategory: (Long) -> Unit, onDayInAct
             ActiveFilterChips(s.filters, s.accounts, s.categories, vm::setFilters, Modifier.padding(horizontal = Space.screen).padding(bottom = Space.small))
             if (s.isEmpty) {
                 EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_event_busy_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_event_busy_regular)) },
                     title = stringResource(R.string.no_spending_in, dates.range(s.range)),
                     line = stringResource(R.string.no_spending_line),
                     button = { BurrowButton(stringResource(R.string.change_dates), { sheet = InsightsSheet.DATES }, kind = ButtonKind.TONAL) },
@@ -173,19 +172,16 @@ private fun SpendCard(s: InsightsState) {
     ) {
         CumulativeLineChart(s.line, s.previousLine, Modifier.semantics { contentDescription = "${money.plain(s.spent)}" })
         Spacer(Modifier.height(Space.small))
-        // Large text: the legend gets its own line under the dates so nothing breaks mid-word.
-        val large = isLargeText()
-        val legend = @Composable {
-            Text("— " + stringResource(R.string.this_period), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
-            Spacer(Modifier.size(Space.card))
-            Text("··· " + stringResource(R.string.before), style = BurrowType.label, color = c.onSurfaceVariant, maxLines = 1)
-        }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant)
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) { if (!large) legend() }
+        // The x-axis keeps only the start and end dates; under it one legend: this period solid, before dashed,
+        // each with its total (36). Large text puts the two entries one under the other.
+        Row(Modifier.fillMaxWidth()) {
+            Text(dates.shortDay(s.range.start), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.weight(1f))
             Text(dates.shortDay(s.range.end), style = BurrowType.label, color = c.onSurfaceVariant)
         }
-        if (large) Row(Modifier.fillMaxWidth().padding(top = Space.small), horizontalArrangement = Arrangement.Center) { legend() }
+        val now = @Composable { app.burrow.money.ui.components.LineLegend(stringResource(R.string.legend_period, dates.range(s.range), money.short(s.spent)), before = false) }
+        val before = @Composable { app.burrow.money.ui.components.LineLegend(stringResource(R.string.legend_period, dates.range(s.previousRange), money.short(s.previousSpent)), before = true) }
+        if (isLargeText()) Column(Modifier.padding(top = Space.block), verticalArrangement = Arrangement.spacedBy(Space.small)) { now(); if (s.previousSpent > 0) before() }
+        else Row(Modifier.fillMaxWidth().padding(top = Space.block), horizontalArrangement = Arrangement.spacedBy(Space.card)) { now(); if (s.previousSpent > 0) before() }
     }
 }
 
@@ -348,7 +344,11 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
     val dates = rememberDateText()
     var selected by rememberSaveable { mutableStateOf<Int?>(null) }
     val today = remember { LocalDate.now() }
-    DetailFrame(onBack) {
+    var picking by rememberSaveable { mutableStateOf(false) }
+    // The calendar button (42, 231): the same Dates sheet as Insights, so both pages keep one range.
+    DetailFrame(onBack, actions = {
+        app.burrow.money.ui.components.TonalIconButton(painterResource(R.drawable.ic_calendar_month_regular), stringResource(R.string.dates), { picking = true })
+    }) {
         val diff = s.total - s.previousTotal
         CenterHeader(
             icon = { CategoryCircle(s.category.icon, s.category.colorHue, Size.iconCircleBig) },
@@ -359,25 +359,36 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
                 if (s.previousTotal > 0) stringResource(if (diff < 0) R.string.less_than_before else R.string.more_than_before, money.plain(kotlin.math.abs(diff))) else null,
             ).joinToString(" · "),
         )
-        val sel = selected ?: s.bars.indices.maxByOrNull { s.bars[it].second }
-        val selBar = sel?.let { s.bars.getOrNull(it) }
-        val day = bucketFor(s.range) == Bucket.DAY
-        ChartCard(
-            icon = painterResource(R.drawable.ic_bar_chart_duotone),
-            label = stringResource(R.string.by_day),
-            value = money.plain(selBar?.second ?: 0),
-            line = selBar?.first?.let { dates.shortDay(it) },
-            modifier = Modifier.padding(top = Space.block),
-            trailing = { app.burrow.money.ui.components.AverageLegend(stringResource(R.string.avg, money.short(money.whole(if (s.bars.isEmpty()) 0 else s.total / s.bars.size)))) },
-        ) {
-            PillBarChart(
-                bars = s.bars.map { (d, v) -> Bar(if (day) d.dayOfMonth.toString() else dates.shortDay(d), v) },
-                selected = sel ?: 0, onSelect = { selected = it },
+        if (s.txns.isEmpty()) {
+            // Nothing in these dates (231): no empty chart, the Ghost with Change dates.
+            EmptyState(
+                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(s.category.icon)), s.category.colorHue) },
+                title = stringResource(R.string.no_category_in_dates, s.category.name),
+                line = stringResource(R.string.category_dates_line, s.category.name),
+                button = { BurrowButton(stringResource(R.string.change_dates), { picking = true }, kind = ButtonKind.TONAL, icon = painterResource(R.drawable.ic_calendar_month_regular)) },
             )
+        } else {
+            val sel = selected ?: s.bars.indices.maxByOrNull { s.bars[it].second }
+            val selBar = sel?.let { s.bars.getOrNull(it) }
+            val day = bucketFor(s.range) == Bucket.DAY
+            ChartCard(
+                icon = painterResource(R.drawable.ic_bar_chart_duotone),
+                label = stringResource(R.string.by_day),
+                value = money.plain(selBar?.second ?: 0),
+                line = selBar?.first?.let { dates.shortDay(it) },
+                modifier = Modifier.padding(top = Space.block),
+                trailing = { app.burrow.money.ui.components.AverageLegend(stringResource(R.string.avg, money.short(money.whole(if (s.bars.isEmpty()) 0 else s.total / s.bars.size)))) },
+            ) {
+                PillBarChart(
+                    bars = s.bars.map { (d, v) -> Bar(if (day) d.dayOfMonth.toString() else dates.shortDay(d), v) },
+                    selected = sel ?: 0, onSelect = { selected = it },
+                )
+            }
         }
         s.txns.groupBy { it.day() }.forEach { (d, list) ->
             SectionHeader(dates.day(d, today), meta = money.signed(-list.sumOf { it.txn.amount }))
             ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }
         }
     }
+    if (picking) DatesSheet(s.range, onApply = { vm.setRange(it); picking = false }, onDismiss = { picking = false })
 }

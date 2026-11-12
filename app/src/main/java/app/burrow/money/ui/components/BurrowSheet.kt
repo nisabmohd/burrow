@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 private const val MAX_SHEET_FRACTION = 0.9f
 
 /** The sheet's drag handle area (8 dp above a 4 dp handle), which sits above the content. */
-private val DRAG_HANDLE = 12.dp
+private val DRAG_HANDLE = app.burrow.money.ui.theme.Size.handleArea
 
 /**
  * Every bottom sheet in the app: opens fully, sits on the bottom edge, and leaves the top 10% of
@@ -87,8 +87,38 @@ fun BurrowSheet(onDismissRequest: () -> Unit, content: @Composable ColumnScope.(
             val max = if (constraints.hasBoundedHeight) minOf(byScreen, maxHeight - topGap - DRAG_HANDLE) else byScreen
             // The sheet takes focus itself, so opening one never pops up the keyboard: before
             // Android 9 the first text field in it would get focus on its own.
-            Column(Modifier.heightIn(max = max).focusable(), content = content)
+            // Scrolling a list back to its top stops there: it never drags or closes the sheet.
+            Column(Modifier.heightIn(max = max).nestedScroll(androidx.compose.runtime.remember { ScrollStaysInside() }).focusable(), content = content)
         }
+    }
+}
+
+/**
+ * The sheet scroll rule (from Weft): a scroll or fling that moved the sheet's content stops when the
+ * content reaches its top or end. What is left of it is used up here, so it never reaches the sheet
+ * and drags or closes it. A new drag that starts with the content already at its top still moves the
+ * sheet, so it can be pulled down on purpose.
+ */
+private class ScrollStaysInside : NestedScrollConnection {
+    /** True once the current gesture (or the fling after it) has scrolled the content. */
+    private var scrolledContent = false
+
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+        if (consumed.y != 0f) scrolledContent = true
+        return when {
+            // The fling after a drag never drags the sheet, whether or not it moved the content.
+            source == NestedScrollSource.SideEffect -> available
+            scrolledContent -> available
+            else -> Offset.Zero
+        }
+    }
+
+    override suspend fun onPreFling(available: Velocity): Velocity = Velocity.Zero
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+        val keep = scrolledContent || consumed.y != 0f
+        scrolledContent = false
+        return if (keep) available else Velocity.Zero
     }
 }
 

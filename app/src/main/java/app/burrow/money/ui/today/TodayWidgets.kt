@@ -195,7 +195,7 @@ private fun Figure(label: String, value: String, modifier: Modifier) {
     val c = MaterialTheme.colorScheme
     Column(modifier) {
         Text(label, style = BurrowType.label, color = c.onSurfaceVariant)
-        Text(value, style = BurrowType.title, color = c.onSurface, maxLines = 1)
+        Text(value, style = BurrowType.title, color = c.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 

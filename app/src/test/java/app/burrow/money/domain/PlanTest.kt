@@ -80,6 +80,30 @@ class PlanTest {
         assertEquals(atEnd, depositValue(2_00_000_00, BigDecimal("7.1"), start, maturity, maturity.plusYears(1)))
     }
 
+    @Test fun instalmentCounts() {
+        val start = LocalDate.of(2025, 7, 12)
+        assertEquals(36, instalmentCount(start, LocalDate.of(2028, 6, 12))) // 203: 36 months, Jul 2025 – Jun 2028
+        assertEquals(35, instalmentCount(start, LocalDate.of(2028, 6, 11)))
+        assertEquals(1, instalmentCount(start, start))
+        assertEquals(0, instalmentCount(start, start.minusDays(1)))
+    }
+
+    @Test fun recurringSavings() {
+        val start = LocalDate.of(2025, 7, 12)
+        val end = LocalDate.of(2028, 6, 12)
+        val v = recurringValue(5_000_00, BigDecimal("6.8"), start, 36, end, unit = 100)
+        // ₹1,80,000 put in; the first instalment grows about 3 years, the last not at all.
+        assertTrue("was $v", v in 1_98_000_00L..2_01_000_00L)
+        assertEquals(0L, v % 100)
+        assertEquals(5_000_00L, recurringValue(5_000_00, BigDecimal("6.8"), end, 1, end, unit = 100))
+        assertEquals(1_80_000_00L, recurringValue(5_000_00, BigDecimal.ZERO, start, 36, end, unit = 100))
+    }
+
+    @Test fun yearlyInterestRoundsToWholeUnits() {
+        assertEquals(13_100_00L, yearlyInterest(1_84_500_00, BigDecimal("7.1"), unit = 100)) // 204: ₹13,099.50 → ₹13,100
+        assertEquals(0L, yearlyInterest(0, BigDecimal("7.1"), unit = 100))
+    }
+
     @Test fun budgetAlerts() {
         assertEquals(80, budgetAlert(7_000, 8_200, 10_000))
         assertEquals(100, budgetAlert(9_000, 10_100, 10_000))

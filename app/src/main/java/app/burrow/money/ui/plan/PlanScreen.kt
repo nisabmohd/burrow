@@ -48,7 +48,6 @@ import app.burrow.money.ui.components.AmountTrailing
 import app.burrow.money.ui.components.BurrowButton
 import app.burrow.money.ui.components.ButtonKind
 import app.burrow.money.ui.components.CenterHeader
-import app.burrow.money.ui.components.Cookie
 import app.burrow.money.ui.components.EmptyState
 import app.burrow.money.ui.components.HeaderIcon
 import app.burrow.money.ui.components.LinkButton
@@ -147,7 +146,7 @@ private fun BillsSection(
     val c = MaterialTheme.colorScheme
     if (s.isEmpty) {
         EmptyState(
-            shape = { Cookie(painterResource(R.drawable.ic_event_upcoming_regular)) },
+            shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_event_upcoming_regular)) },
             title = stringResource(R.string.nothing_coming_up),
             line = stringResource(R.string.nothing_coming_up_line),
             button = { BurrowButton(stringResource(R.string.add_bill), onAddBill, kind = ButtonKind.TONAL) },
@@ -155,7 +154,7 @@ private fun BillsSection(
         return
     }
     val right: (ComingItem) -> Unit = { item ->
-        item.occurrence?.let { o -> vm.markPaid(o.occurrence.id) { undo -> snackbar.show(context.getString(R.string.marked_paid), undo) } }
+        item.occurrence?.let { o -> vm.markPaid(o.occurrence.id) { undo -> snackbar.show(context.getString(if (o.income) R.string.marked_received else R.string.marked_paid), undo) } }
         item.txn?.let { t -> vm.addNow(t.txn.id) { undo -> snackbar.show(context.getString(R.string.added_now), undo) } }
     }
     val left: (ComingItem) -> Unit = { item ->
@@ -223,7 +222,13 @@ private fun ComingRow(item: ComingItem, index: Int, count: Int, onOpen: (ComingI
     val c = MaterialTheme.colorScheme
     val today = remember { LocalDate.now() }
     val late = item.group == ComingGroup.OVERDUE
-    val rightLabel = stringResource(if (item.repeats) R.string.mark_paid else R.string.add_now)
+    val rightLabel = stringResource(
+        when {
+            !item.repeats -> R.string.add_now
+            item.income -> R.string.mark_received
+            else -> R.string.mark_paid
+        },
+    )
     val leftLabel = stringResource(if (item.repeats) R.string.skip else R.string.delete)
     SwipeRow(
         SwipeAction(painterResource(if (item.repeats) R.drawable.ic_check_regular else R.drawable.ic_add_regular), rightLabel, SwipeTone.SUCCESS) { right(item) },
@@ -258,6 +263,7 @@ fun kindLabel(kind: String): String = stringResource(
         "SUBSCRIPTION" -> R.string.subscription
         "EMI" -> R.string.emi
         "CARD" -> R.string.card_bill
+        "SAVINGS" -> R.string.account_savings
         else -> R.string.bill
     },
 )
@@ -276,7 +282,7 @@ private fun BudgetsSection(s: BudgetsState, vm: PlanViewModel, padding: PaddingV
         item(key = "header") {
             if (o == null) {
                 EmptyState(
-                    shape = { Cookie(painterResource(R.drawable.ic_donut_large_regular)) },
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_donut_large_regular)) },
                     title = stringResource(R.string.no_budget),
                     line = stringResource(R.string.no_budget_line),
                     button = { BurrowButton(stringResource(R.string.set_budget), { edit = BudgetEdit(null, month, money.digitsUnit() * 30_000) }, kind = ButtonKind.TONAL) },
@@ -296,7 +302,16 @@ private fun BudgetsSection(s: BudgetsState, vm: PlanViewModel, padding: PaddingV
         }
         if (o != null) {
             item(key = "cats-h") { SectionHeader(stringResource(R.string.categories), trailing = { LinkButton(stringResource(R.string.add), { pickCategory = true }) }) }
-            item(key = "cats") { BudgetRows(s.lines) { onBudget(it) } }
+            // No category budgets yet: the empty state with the next step, like every list (user, 2026-11-13).
+            item(key = "cats") {
+                if (s.lines.isEmpty()) EmptyState(
+                    shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_donut_large_regular)) },
+                    title = stringResource(R.string.no_category_budgets),
+                    line = stringResource(R.string.no_category_budgets_line),
+                    button = { BurrowButton(stringResource(R.string.add_category_budget), { pickCategory = true }, kind = ButtonKind.TONAL) },
+                    top = Space.block,
+                ) else BudgetRows(s.lines) { onBudget(it) }
+            }
         }
     }
     edit?.let { e ->
@@ -379,7 +394,7 @@ private fun GoalsSection(s: GoalsState, padding: PaddingValues, onAddGoal: () ->
     val money = LocalMoney.current
     if (s.goals.isEmpty()) {
         EmptyState(
-            shape = { Cookie(painterResource(R.drawable.ic_flag_regular)) },
+            shape = { app.burrow.money.ui.components.Ghost(painterResource(R.drawable.ic_flag_regular)) },
             title = stringResource(R.string.no_goals),
             line = stringResource(R.string.no_goals_line),
             button = { BurrowButton(stringResource(R.string.add_goal), onAddGoal, kind = ButtonKind.TONAL) },

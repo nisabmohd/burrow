@@ -133,7 +133,17 @@ fun rememberDateText(): DateText {
 }
 
 /** The account's short name in rows ("HDFC Savings" → "HDFC"). */
-fun shortName(name: String): String = name.substringBefore(' ')
+fun shortName(name: String): String {
+    val short = name.substringBefore(' ')
+    // "HDFC Savings" and "HDFC" both read "HDFC": keep the full name when another account would look the same (user, 2026-11-12).
+    val clash = AccountNames.names.any { it != name && it.substringBefore(' ').equals(short, ignoreCase = true) }
+    return if (clash) name else short
+}
+
+/** The accounts' names, kept by MoneyRepository.accounts, so [shortName] can tell two alike apart. */
+object AccountNames {
+    @Volatile var names: List<String> = emptyList()
+}
 
 /** A row's title: the payee, "HDFC → ICICI" for a transfer without one, else the category. */
 fun TxnView.title(): String = txn.payee
@@ -144,4 +154,11 @@ fun MoneyFormat.forTxn(type: String, amount: Long): String = when (type) {
     TxnType.EXPENSE, TxnType.ADJUST_DOWN -> signed(-amount)
     TxnType.INCOME, TxnType.ADJUST_UP, TxnType.REFUND -> signed(amount)
     else -> plain(amount)
+}
+
+/** The activity behind a Compose context (it may be wrapped, e.g. for the app's language). */
+tailrec fun android.content.Context.findActivity(): android.app.Activity? = when (this) {
+    is android.app.Activity -> this
+    is android.content.ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

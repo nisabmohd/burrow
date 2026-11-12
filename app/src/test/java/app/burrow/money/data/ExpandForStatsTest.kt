@@ -32,4 +32,14 @@ class ExpandForStatsTest {
         val v = listOf(view(1, TxnType.INCOME, 100, 5), view(2, TxnType.TRANSFER, 50, null))
         assertEquals(v, expandForStats(v, listOf(part(9, 1, 1, "orphan"))))
     }
+
+    /** A payment in another currency counts at its main-currency value (QA 12 Nov: $50 counted as ₹50). */
+    @Test fun otherCurrencyCountsInTheMainOne() {
+        val usd = view(9, TxnType.EXPENSE, 50_00, 1).let { it.copy(txn = it.txn.copy(currency = "USD", baseAmount = 4_200_00)) }
+        val out = expandForStats(listOf(usd), emptyList()).single()
+        org.junit.Assert.assertEquals(4_200_00L, out.txn.amount)
+        // A split in dollars: each part at its share of the converted amount.
+        val parts = listOf(part(9, 1, 30_00, "Food"), part(9, 2, 20_00, "Fun"))
+        org.junit.Assert.assertEquals(listOf(2_520_00L, 1_680_00L), expandForStats(listOf(usd), parts).map { it.txn.amount })
+    }
 }

@@ -103,9 +103,10 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
             )
         }
         SectionHeader(stringResource(R.string.settings_section))
+        val folderName = remember(settings.backupFolder) { settings.backupFolder?.let { app.backup.folderLabel(it) } }
         ListGroup {
             ListRow(
-                settings.backupFolder?.let { app.backup.folderLabel(it) } ?: stringResource(R.string.pick_a_folder), 0, 4,
+                folderName ?: stringResource(R.string.pick_a_folder), 0, 4,
                 supporting = stringResource(R.string.folder), lead = { IconCircle(painterResource(R.drawable.ic_folder_duotone)) },
                 onClick = { pickFolder.launch(null) },
             )
@@ -123,6 +124,8 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
                 lead = { IconCircle(painterResource(R.drawable.ic_history_duotone)) },
             )
         }
+        // Google Drive (play and github): its own section after Settings (179, 180).
+        DriveSection(app, settings, onNeedPassword = { sheet = BackupSheet.PASSWORD }, restore = restore)
         SectionHeader(stringResource(R.string.restore))
         ListGroup {
             val n = files.size + 1
@@ -156,7 +159,7 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
                     opts.forEachIndexed { i, o ->
                         PickRow(scheduleLabel(o), i, opts.size, settings.backupSchedule == o, {
                             sheet = null
-                            scope.launch { app.settings.setBackupSchedule(o); app.backup.schedule() }
+                            scope.launch { app.settings.setBackupSchedule(o); app.backup.schedule(); app.drive.reschedule() }
                         })
                     }
                 }
@@ -170,11 +173,12 @@ fun BackupScreen(app: AppContainer, settings: Settings, onBack: () -> Unit) {
 private fun scheduleLabel(s: String) = stringResource(when (s) { "DAILY" -> R.string.daily; "WEEKLY" -> R.string.weekly; else -> R.string.off })
 
 /**
- * Restore from a file: try the saved password, else ask; a wrong one shows the dialog; then confirm
- * before replacing everything. Returns the function that starts it for a file.
+ * Restore from a file or a Drive backup: try the saved password, else ask; a wrong one shows in the
+ * sheet; then confirm before replacing everything. Returns the function that starts it for a file's
+ * [Uri] or a Drive backup's bytes ([ByteArray]).
  */
 @Composable
-fun rememberRestoreFlow(app: AppContainer, onRestored: suspend () -> Unit = {}): (Uri) -> Unit {
+fun rememberRestoreFlow(app: AppContainer, onRestored: suspend () -> Unit = {}): (Any) -> Unit {
     val context = LocalContext.current
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
@@ -222,9 +226,13 @@ fun rememberRestoreFlow(app: AppContainer, onRestored: suspend () -> Unit = {}):
             onDismiss = { ready = null; file = null },
         )
     }
-    return { uri ->
+    return { source ->
         scope.launch {
-            val bytes = runCatching { app.backup.read(uri) }.getOrNull() ?: return@launch snackbar.show(context.getString(R.string.not_a_backup))
+            val bytes = when (source) {
+                is ByteArray -> source
+                is Uri -> runCatching { app.backup.read(source) }.getOrNull()
+                else -> null
+            } ?: return@launch snackbar.show(context.getString(R.string.not_a_backup))
             file = bytes
             if (!tryOpen(bytes, app.backup.savedPassword())) askPassword = true
         }

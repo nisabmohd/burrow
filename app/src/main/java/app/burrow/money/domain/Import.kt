@@ -16,7 +16,7 @@ import java.util.Locale
 enum class ImportSource { CASHEW, WALNUT, MONEY_MANAGER, CSV }
 
 /** What a column holds. Only DATE and AMOUNT (or DEBIT / CREDIT) are needed. */
-enum class ImportField { DATE, TIME, AMOUNT, DEBIT, CREDIT, TYPE, PAYEE, CATEGORY, ACCOUNT, NOTE, CURRENCY }
+enum class ImportField { DATE, TIME, AMOUNT, DEBIT, CREDIT, TYPE, PAYEE, CATEGORY, ACCOUNT, NOTE, CURRENCY, EXCLUDED }
 
 /** One payment read from the file. [amount] is positive, in minor units; [income] gives the side. */
 data class ImportRow(
@@ -30,6 +30,12 @@ data class ImportRow(
     val currency: String?,
     /** Cashew's "Balance Correction": money moved between the user's own accounts, never spending. */
     val adjustment: Boolean = false,
+    /** Burrow's own export: money back for a purchase (lowers its category, never income). */
+    val refund: Boolean = false,
+    /** Burrow's own export: a transfer, "HDFC → Kotak", [account] the one it left and this the one it went to. */
+    val toAccount: String? = null,
+    /** Burrow's own export: kept out of spending and income (lent or borrowed money). */
+    val excluded: Boolean = false,
 )
 
 /** Two balance corrections that are one move between accounts: [from] lost the money, [to] got it. */
@@ -49,7 +55,7 @@ data class ParsedImport(
     /** Their category names used mostly for money in: they become income categories. */
     val incomeCategories: Set<String> get() = rows.filter { !it.adjustment && it.category != null }.groupBy { it.category!! }
         .filterValues { r -> r.count { it.income } * 2 > r.size }.keys
-    val accounts get() = rows.mapNotNull { it.account?.takeIf(String::isNotBlank) }.groupingBy { it }.eachCount()
+    val accounts get() = rows.flatMap { listOfNotNull(it.account, it.toAccount) }.filter(String::isNotBlank).groupingBy { it }.eachCount()
 }
 
 object Importer {
@@ -66,6 +72,7 @@ object Importer {
         ImportField.ACCOUNT to listOf("account", "account name", "bank", "wallet", "payment mode", "mode"),
         ImportField.NOTE to listOf("note", "notes", "memo", "remark", "remarks", "comment", "tags"),
         ImportField.CURRENCY to listOf("currency", "currency code"),
+        ImportField.EXCLUDED to listOf("excluded"),
     )
 
     /** Splits the file into rows of cells: commas, semicolons or tabs, quotes and line breaks in quotes. */
@@ -143,8 +150,14 @@ object Importer {
 
     private fun readRow(cell: (ImportField) -> String?, signedFile: Boolean, digitsOf: (String?) -> Int, source: ImportSource): ImportRow? {
         val typeText = cell(ImportField.TYPE)?.lowercase(Locale.ROOT)
-        if (typeText != null && "transfer" in typeText) return null // moving money between accounts isn't a payment
-        if (typeText != null && typeText.startsWith("adjust")) return null // Burrow's "Fix balance" rows
+        // Burrow's own export (QA 12 Nov): a transfer names both accounts ("HDFC → Kotak") and comes back as
+        // one; another app's transfer row, or one into a goal (not here any more), isn't a payment.
+        val arrow = cell(ImportField.ACCOUNT)?.split(" → ")?.takeIf { it.size == 2 && it.all(String::isNotBlank) }
+        val transfer = typeText != null && "transfer" in typeText
+        if (transfer && arrow == null) return null
+        if (typeText == "goal") return null
+        // Burrow's "Fix balance" rows: corrections of one account, never spending.
+        val fix = typeText != null && typeText.startsWith("adjust")
         val currency = cell(ImportField.CURRENCY)?.uppercase(Locale.ROOT)?.takeIf { it.length == 3 }
         val digits = digitsOf(currency)
         val debit = cell(ImportField.DEBIT)?.let { amount(it, digits) }?.takeIf { it != 0L }
@@ -152,8 +165,11 @@ object Importer {
         val signed = cell(ImportField.AMOUNT)?.let { amount(it, digits) }
         val value = signed ?: debit?.let { -kotlin.math.abs(it) } ?: credit?.let { kotlin.math.abs(it) } ?: return null
         if (value == 0L) return null
+        val refund = typeText == "refund"
         val income = when {
-            typeText != null && typeText in listOf("true", "income", "credit", "cr", "in", "inc", "deposit", "received", "refund") -> true
+            fix -> typeText == "adjust_up"
+            transfer || refund -> false
+            typeText != null && typeText in listOf("true", "income", "credit", "cr", "in", "inc", "deposit", "received") -> true
             typeText != null && (typeText in listOf("false", "expense", "expenses", "exp", "exp.", "debit", "dr", "out", "withdrawal", "spent", "paid")) -> false
             typeText != null && typeText.startsWith("inc") -> true
             typeText != null && typeText.startsWith("exp") -> false
@@ -169,8 +185,11 @@ object Importer {
             date = at, amount = kotlin.math.abs(value), income = income,
             payee = cell(ImportField.PAYEE), category = category, account = cell(ImportField.ACCOUNT),
             note = cell(ImportField.NOTE), currency = currency,
-            adjustment = source == ImportSource.CASHEW && category.equals(CASHEW_BALANCE_CORRECTION, ignoreCase = true),
-        )
+            adjustment = fix || (source == ImportSource.CASHEW && category.equals(CASHEW_BALANCE_CORRECTION, ignoreCase = true)),
+            refund = refund,
+            toAccount = arrow?.get(1)?.trim(),
+            excluded = cell(ImportField.EXCLUDED)?.lowercase(Locale.ROOT) in listOf("yes", "true", "1"),
+        ).let { r -> if (arrow != null) r.copy(account = arrow[0].trim(), category = null) else r }
     }
 
     /**

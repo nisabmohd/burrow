@@ -3,32 +3,21 @@
 Only what is left. Finished work lives in git history and `CHANGELOG.md`; tick a box, then delete it.
 Screen numbers point to `design/screens/`.
 
-## Release and stores
+
+## Needs you
 - [ ] Play Protect / sideload blocking: register in Android developer verification; send the github/foss APKs to the
       Play Protect appeals form; README install steps point to Play, F-Droid or Obtainium
+- [ ] Google Cloud: OAuth clients of type Android for `app.burrow.money` with the SHA-1 of the Play app-signing key,
+      the release key and the debug key; turn on the Google Drive API
+- [ ] When Drive goes on: Google Cloud setup (`~/Downloads/burrow-google-drive-setup.md`), set `DRIVE_BACKUP` true in app/build.gradle.kts, Play Console Data safety (`release/data-safety.md`)
 
-## Features
-- [ ] **Google Drive sync** (`play` and `github` only; `foss` keeps the folder backup, no Google code): encrypted
-      backup to the user's own Drive next to the folder backup, as Weft 1.5.0 does. Needs INTERNET + Google sign-in in
-      play (github already has INTERNET). Then update PRIVACY.md, data safety, About
-- [ ] **In-app review and rate** (`play` only): Play In-App Review prompt at a calm moment, and "Rate on Play Store"
-      in About opens it, as Weft 1.5.0 does. Ask before adding the Play review library; check the merged manifests
+## On your phone (USB debugging; user will connect it)
+- [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
+      account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging
 
-## Tests
-- [ ] Smoke takes ~2 h on the API 35 emulator (each `uiautomator dump` ~2.5 s); run a part with
-      `python3 tools/smoke.py <check names>`. Instrumented tests need API 35: API 36.1 can't run Espresso
-      (`InputManager.getInstance` is gone)
 
-## Check on a real phone
-Done on the emulator with `tools/phone_checks.py` (2026-11-02, 8/8): backup ↔ restore, CSV, budget alerts, bill match,
-category words, restricted settings note, RTL (ar-XB pseudolocale), 20k transactions. Still needs real hardware:
-- [ ] Budget alerts and bill match from a real bank SMS (the emulator's SMS follow the banks' published shapes)
-- [ ] Haptics on a phone without vibration primitives (Vivo / Oppo / Realme)
-- [ ] Activity scroll jank with 20k transactions (the emulator draws in software: its frame times mean nothing)
-
-## Every change
-- [ ] `playDebug` and `fossDebug` build; unit tests pass
-- [ ] Screen matches its PNG, light and dark, at 412 dp and on a small phone, and at 1.3× / 2× text
-- [ ] Shared components only; no raw colour, size or string in screens
-- [ ] play and foss merged manifests have no INTERNET (github: only the update check)
-- [ ] Committed with a clear message
+## Notes
+- Smoke takes ~1.5 h on the API 35 emulator with animations off; run a part with `python3 tools/smoke.py <names>`.
+  Instrumented tests need API 35 (36.1 can't run Espresso). Use `ANDROID_SERIAL=emulator-5558`.
+- Every change: playDebug and fossDebug build, unit tests pass, screen matches its PNG, shared components only, no
+  INTERNET in play/foss manifests beyond Drive, committed with a clear message.

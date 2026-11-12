@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- SMS capture is optional: tablets and Chromebooks without a SIM can still install Burrow. -->
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- Google Drive backup only (user, 2026-11-08, as Weft): encrypted backups to the user's own Drive.
+         Nothing else uses the network. main strips both for every build; this build puts them back. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="replace" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="replace" />
     <application>
+        <!-- The scheduled Google Drive backup (src/drive). -->
+        <service android:name="app.burrow.money.data.drive.DriveBackupJob" android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <receiver android:name="app.burrow.money.capture.SmsReceiver" android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter><action android:name="android.provider.Telephony.SMS_RECEIVED" /></intent-filter>

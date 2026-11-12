@@ -25,6 +25,11 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 - **Net worth**: `account.includeInNetWorth` (cards and loans default false).
 - **Shared credit line** (v6): `account.sharesLimitWith` = the card whose `creditLimit` this card uses (its own is
   cleared). Available = that limit − what every card on the line owes. One step only (`creditLine()`), so no loops.
+- **Cards on one bill** (v8): `card` (accountId, name, number, sortOrder). A card account holds one or more cards;
+  its `number` is kept as the first card's digits. Capture matches any card's digits to its account
+  (`withCards`), and `txn.cardId` records the card only when the account has two or more (`matchCard`); with one
+  card left, every `cardId` of that account is cleared. The v7 → v8 migration and restoring an older backup give
+  each card account with digits one card (empty name, shown as "Card"). Backups v4 carry `cards`.
 - **Merchant and expense name** (v7): `txn.merchant` = the merchant the bank message named, kept out of sight (the
   payee is the expense's own name, "Medicines"); usual categories, aliases and bill matching read it. `capture.name` =
   the expense name the message's words gave ("Petrol"), when they gave one. See CAPTURE.md.
@@ -40,18 +45,48 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
 ## DataStore keys
 homeTopCard, homeWidgetsOrder, homeRecentCount, homeShowReview, formExtras (note,repeat,attach,lend), formDefaultType, formDefaultAccount, formLastCategory, showTime, onPaymentFound (ASK / EDIT_FIRST / SAVE), countUpcoming, confirmDelete, swipeRight, swipeLeft, numberFormat, dateFormat, weekStart, currencyDisplay (SYMBOL / CODE), decimals (AUTO / 0 / 2), theme, dynamicColor (false), accentHue (345), font ("lexend"), textSize, languageTag, mainCurrency,
 monthStartDay (1), numberStyle, smsCapture, notificationCapture, enabledPacks, appLock, lockAfter,
-hideAmounts, backupFolderUri, backupSchedule, lastBackupAt, firstOpenAt, txnCount, sampleBannerHidden,
+hideAmounts, backupFolderUri, backupSchedule, lastBackupAt, driveAccount, driveWifiOnly (true), lastDriveBackupAt,
+driveBackupError, driveBackupCount, reviewAskedAt, firstOpenAt, txnCount, sampleBannerHidden,
 homeWidgets, supportPromptShownAt, supportPromptDismissCount.
 
-## Backup (no cloud, no sign-in)
+## Backup (folder; Drive below)
 - One encrypted file (`burrow-2026-10-19.burrow`): JSON of all tables, zipped, AES-GCM with a key from
   the user's password (PBKDF2-HMAC-SHA256, 200k iterations, random salt + IV in the header). Uses only
   `javax.crypto`, no library.
 - Saved by hand or on a schedule to a folder the user picks (Storage Access Framework). Pointing it at a
   cloud app's folder keeps a copy off the phone without Burrow going online. Keep last 7.
 - Restore replaces everything after a confirm dialog; wrong password = dialog, nothing changes.
+- A backup carries every table (rules included; message text never) and every setting the user chose:
+  theme, currency, month start, Today widgets, rule packs, hide amounts, notifications and their times, and
+  every Customise tab (v5). Left out, as they belong to the phone: PIN / app lock, backup folder and password,
+  Drive account, the capture switches (permissions are granted again). Older backups keep today's values for
+  what they don't carry.
 - CSV export/import of transactions (date, payee, amount, currency, category, account, note).
 - Android Auto Backup is OFF (`allowBackup=false`, data extraction rules exclude everything).
+
+## Drive backup (play and github, 2026-11-08, ported from Weft 1.5.0)
+- Backup › Google Drive: Connect (Google's account picker; needs the backup password first, then runs a
+  first backup), Back up to Drive now, Restore from Drive (sheet of the last 10, then the same password +
+  "Replace?" flow as a file), Wi-Fi only (on), Google account sheet: Switch account / Disconnect (backups
+  stay) / Delete backups from Drive (confirm dialog). Built only from Backup's own rows and sheets.
+- Each backup is the **same encrypted `.burrow` bytes** as a folder backup (sealed with the backup password),
+  named `burrow-backup-<ISO time>.burrow` in `drive.appdata` (hidden; only Burrow sees it), with
+  `appProperties` device + txns. Newest 10 kept. Google can't read them.
+- Scope `drive.appdata` + `email`; `AuthorizationClient` (play-services-auth) for consent, Drive v3 over plain
+  `HttpURLConnection` (no Google API client). Code: `src/drive` (play, github), stand-in `src/noDrive` (foss).
+- Schedule: Backup's Automatic backup (Daily / Weekly) drives both; Drive uses one persisted JobScheduler job
+  (`DriveBackupJob`, id 3101): next 1 AM (weekly: Monday 1 AM), charging, unmetered when Wi-Fi only. Skipped
+  within 6 h of a manual backup; a dropped connection retries. No WorkManager.
+- Errors (snackbar): offline, Wi-Fi only on mobile data, Drive full, Google needs you to allow Burrow again,
+  couldn't reach Drive, Drive unticked on Google's screen. 401 → token cleared and asked again once; 429/5xx
+  → two retries. One at a time (a mutex).
+- Owner setup: Google Cloud OAuth clients (Android) for `app.burrow.money` with the SHA-1 of the Play app-signing
+  key, the release key and the debug key; Google Drive API on. See TODO.md.
+
+## In-app review (play only)
+About › Rate opens Play's own rating card (`src/play` `PlayReview`; the store page if Play can't show it).
+Play's card also shows once when To review empties, after 30 real transactions and at most every 120 days
+(`domain/ReviewAsk.kt`). Burrow draws nothing of its own for it.
 
 ## Sample data
 First open seeds a realistic month (flagged `isSample`), with the "These are sample transactions"
@@ -80,3 +115,12 @@ stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue 
   Repeating ones are `bill`s. Upcoming items never show in Activity's history or any total.
 - DataStore: `upcomingLowersSafe` (true): Safe to spend takes off unpaid expenses due before the period ends
   (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.
+
+## Savings (Room v9, backup v6)
+- `AccountEntity.savingsMode` ONCE / MONTHLY / ANY (null = before v9: ONCE with a maturity date, else ANY); `marketValue`,
+  `marketGain` (typed value minus balance at the time) and `valueUpdatedAt`. Worth = balance + marketGain.
+- ONCE: the first deposit is the account's principal / interestRate / startDate / maturityDate; each later Add money is a
+  transfer in with a `DepositEntity(txnId, accountId, interestRate, maturityDate)`. A transfer in without one uses the account's rate and term.
+- MONTHLY: emi = each month, payoutAccountId = from; one `BillEntity(kind = SAVINGS, toAccountId = account)`; paying is a transfer.
+  Savings instalments never lower safe to spend.
+- All money in is a transfer, never spending. Opening a Once or Any time account moves no money (its amount is the opening balance).

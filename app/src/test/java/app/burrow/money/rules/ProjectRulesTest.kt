@@ -54,6 +54,13 @@ class ProjectRulesTest {
     @Test fun textSizesOnlyInTypeKt() = assertNone("raw .sp outside Type.kt",
         violations { f, _, l -> f.name != "Type.kt" && Regex("""\d\.sp\b|\d+\.sp\b""").containsMatchIn(l) && !l.trim().startsWith("//") && !l.trim().startsWith("*") })
 
+    /** One place for sizes: change Dimens.kt and the whole app follows (as colours, text and motion). 0.dp is not a size. */
+    @Test fun sizesOnlyInDimensKt() = assertNone("raw .dp outside Dimens.kt: add a token to Space / Size / Chart",
+        violations { f, _, l ->
+            f.path.replace('\\', '/').contains("/ui/theme/").not() &&
+                Regex("""(?<![\w.])(?!0\.dp)\d+(\.\d+)?\.dp\b""").containsMatchIn(l) && !l.trim().startsWith("//") && !l.trim().startsWith("*")
+        })
+
     @Test fun noHardCodedUserText() = assertNone("Text(\"…\") with words: use strings.xml",
         violations { _, _, l ->
             Regex("""\bText\(\s*"([^"]*)"""").find(l)?.groupValues?.get(1)
@@ -70,14 +77,24 @@ class ProjectRulesTest {
     @Test fun notificationsUseTheBurrowMark() = assertNone("setSmallIcon not R.drawable.ic_notification",
         violations { _, _, l -> "setSmallIcon(" in l && "ic_notification" !in l })
 
-    @Test fun noInternetOutsideTheGithubBuild() {
-        for (flavour in listOf("main", "play", "foss")) {
+    /**
+     * main and foss strip INTERNET; github (update check + Drive) and play (Drive backup only, user
+     * 2026-11-08) put it back. Only code in src/drive and src/github may open a connection.
+     */
+    @Test fun noInternetOutsideGithubAndDrive() {
+        for (flavour in listOf("main", "foss")) {
             val m = File(root, "app/src/$flavour/AndroidManifest.xml")
             if (!m.exists()) continue
             m.readLines().filter { "android.permission.INTERNET" in it }.forEach {
                 assertTrue("$flavour manifest may only strip INTERNET: $it", "tools:node=\"remove\"" in it)
             }
         }
+        val opens = File(root, "app/src").walkTopDown()
+            .filter { it.extension == "kt" && "openConnection(" in it.readText() }
+            .map { it.relativeTo(File(root, "app/src")).path }
+            .filterNot { it.startsWith("test/") || it.startsWith("drive/") || it.startsWith("main/java/app/burrow/money/data/update/") }
+            .toList()
+        assertTrue("network calls outside src/drive and the update check: $opens", opens.isEmpty())
     }
 
     @Test fun noPlusMinusSteppers() = assertNone(
@@ -95,6 +112,83 @@ class ProjectRulesTest {
         "a tab row built from ButtonGroup or chips (tabs are PillTabs)",
         violations { _, _, l -> "PlanSection.entries" in l && "ButtonGroup" in l || "CustomiseTab.entries" in l && "Chip(" in l },
     )
+
+    // --- consistency (user, 2026-11-09: "make sure this stays consistent") ------------------------
+
+    /** The Cookie is only for a status (a deleted payment, a failed import) and the lock; every empty list is the Ghost. */
+    @Test fun emptyListsUseTheGhost() = assertNone(
+        "Cookie( outside the status screens — an empty list or no results is EmptyState + Ghost (DESIGN § Empty states)",
+        violations { f, _, l -> "Cookie(" in l && f.name !in setOf("Blocks.kt", "TxnScreen.kt", "ImportScreens.kt", "LockScreens.kt") && !l.trim().startsWith("//") && !l.trim().startsWith("*") },
+    )
+
+    /** Empty states share one spacing: only the status screens move the picture down. */
+    @Test fun emptyStatesShareOneSpacing() = assertNone(
+        "EmptyState(top = …) outside the status screens",
+        violations { f, i, l -> "top = app.burrow.money.ui.theme.Space.empty" in l && f.name !in setOf("TxnScreen.kt", "ImportScreens.kt") &&
+            f.readLines().subList(maxOf(0, i - 2), i).any { "EmptyState(" in it } },
+    )
+
+    /** A sheet of chips stays chips: Filter's Type is ChoiceChips, never a ButtonGroup of tall pills. */
+    @Test fun filterSheetsAreAllChips() = assertNone(
+        "ButtonGroup in a filter sheet (Type, Accounts and Categories are all chips)",
+        violations { f, _, l -> f.parentFile.name == "filters" && "ButtonGroup(" in l },
+    )
+
+    /** ButtonGroup never falls back to a tall stack of full-width pills; it wraps as ChoiceChips. */
+    @Test fun buttonGroupNeverStacks() {
+        val src = File(main, "java/app/burrow/money/ui/components/Controls.kt").readText()
+        val body = src.substringAfter("fun <T> ButtonGroup(").substringBefore("\n}\n")
+        assertTrue("ButtonGroup must wrap as ChoiceChips when it can't fit one row", "ChoiceChips(" in body && "fillMaxWidth()) }" !in body)
+    }
+
+    /**
+     * A one-line label never wraps out of sight: "Show 1914 transactions" lost "transactions" and sat
+     * off-centre (user, 2026-11-09). Every Text(…, maxLines = 1) ends in "…" or shrinks to fit.
+     */
+    @Test fun oneLineTextNeverHidesWords() = assertNone(
+        "Text(maxLines = 1) without overflow / softWrap = false / autoSize",
+        violations { _, _, l -> "Text(" in l && "measure(" !in l && Regex("""maxLines = 1\b""").containsMatchIn(l) && !Regex("overflow|softWrap|autoSize").containsMatchIn(l) },
+    )
+
+    /** Every button label is one line that shrinks, never wraps (BurrowButton). */
+    @Test fun buttonLabelsShrinkNotWrap() {
+        val body = File(main, "java/app/burrow/money/ui/components/Controls.kt").readText().substringAfter("fun BurrowButton(").substringBefore("\n}\n")
+        assertTrue("BurrowButton's label must be softWrap = false with autoSize", "softWrap = false" in body && "autoSize" in body)
+    }
+
+    /** Every widget shows a real picture in the launcher's picker, light and dark (tools/widget_previews.py), never the app icon. */
+    @Test fun everyWidgetHasAPreviewImage() {
+        val providers = File(main, "res/xml").listFiles().orEmpty().filter { "<appwidget-provider" in it.readText() }
+        assertTrue("no widgets found", providers.isNotEmpty())
+        val missing = providers.flatMap { f ->
+            val name = Regex("""android:previewImage="@drawable/([a-z_]+)"""").find(f.readText())?.groupValues?.get(1)
+                ?: return@flatMap listOf("${f.name}: no android:previewImage")
+            listOf("drawable-nodpi", "drawable-night-nodpi").filter { !File(main, "res/$it/$name.webp").exists() }.map { "${f.name}: no $it/$name.webp" }
+        }
+        assertTrue(missing.joinToString("\n"), missing.isEmpty())
+    }
+
+    /** The Ghost's cards take ghostColors(), so they show in dark mode too (cards, not just bars). */
+    @Test fun ghostFollowsDarkMode() {
+        val src = File(main, "java/app/burrow/money/ui/components/Blocks.kt").readText()
+        assertTrue("Ghost must use ghostColors()", "ghostColors()" in src.substringAfter("fun Ghost(").substringBefore("\n}\n"))
+    }
+
+    /** A list on a detail page shows the Ghost when it is empty, never a header over nothing. */
+    @Test fun detailListsHaveAnEmptyState() {
+        val need = mapOf(
+            "ui/plan/PlanDetailScreens.kt" to listOf("s.rows.isEmpty()", "s.txns.isEmpty()", "s.added.isEmpty()"),
+            "ui/insights/InsightsScreen.kt" to listOf("s.txns.isEmpty()"),
+            "ui/accounts/AccountScreens.kt" to listOf("s.txns.isEmpty()"),
+            // Both Review tabs: To review and Not understood (44, 117).
+            "ui/review/ReviewScreen.kt" to listOf("items.isEmpty()", "missed.isEmpty()"),
+        )
+        val missing = need.flatMap { (path, checks) ->
+            val t = File(main, "java/app/burrow/money/$path").readText()
+            checks.filter { it !in t }.map { "$path: no `$it` empty state" }
+        }
+        assertTrue(missing.joinToString("\n"), missing.isEmpty())
+    }
 
     // --- strings ---------------------------------------------------------------------------------
 

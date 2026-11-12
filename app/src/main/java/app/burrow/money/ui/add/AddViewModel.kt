@@ -1,5 +1,6 @@
 package app.burrow.money.ui.add
 
+import app.burrow.money.capture.MoneyType
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -92,6 +94,8 @@ data class AddUiState(
     val topCategoryIds: List<Long> = emptyList(),
     /** The last few different entries of this type, for the Recent chips. */
     val recent: List<RecentSuggestion> = emptyList(),
+    /** Editing a split payment: its parts decide the categories, so the chips give way to one row. */
+    val splitParts: Int = 0,
 ) {
     /** The category chips (17): the 4 most used (then the rest in order); the chosen one always shows. */
     val quickCategories: List<CategoryEntity> get() {
@@ -105,7 +109,7 @@ data class AddUiState(
     val account get() = accounts.firstOrNull { it.account.id == form.accountId }
     val toAccount get() = accounts.firstOrNull { it.account.id == form.toAccountId }
     val amount get() = form.input.minor()
-    val missingCategory get() = form.type != TxnType.TRANSFER && category == null
+    val missingCategory get() = form.type != TxnType.TRANSFER && category == null && splitParts == 0
     val missingToAccount get() = form.type == TxnType.TRANSFER && (toAccount == null || form.toAccountId == form.accountId)
     val canSave get() = amount > 0 && account != null && !missingCategory && !missingToAccount
 
@@ -193,6 +197,7 @@ class AddViewModel(
     private val topCategories = MutableStateFlow<List<Long>>(emptyList())
     private val recent = MutableStateFlow<List<RecentSuggestion>>(emptyList())
     private var original: TxnEntity? = null
+    private val splitParts = if (editId != 0L) app.next.splitsOf(editId).map { parts -> parts.size } else flowOf(0)
     private val digits = MoneyFormat.of(currency).digits
     private var picked = false
 
@@ -203,9 +208,10 @@ class AddViewModel(
             val period = BudgetPeriod.containing(LocalDate.now(), monthStartDay)
             combine(
                 combine(repo.categories, repo.accounts, repo.spentByCategory(period)) { a, b, c -> Triple(a, b, c) },
-                combine(app.settings.settings, topCategories, recent) { a, b, r -> Triple(a, b, r) }, suggestions, repo.tags, app.next.favourites,
-            ) { (cats, accs, spent), (s, top, rec), sug, tags, favs ->
-                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs, top, rec)
+                combine(app.settings.settings, topCategories, recent, splitParts) { a, b, r, n -> Pair(Triple(a, b, r), n) }, suggestions, repo.tags, app.next.favourites,
+            ) { (cats, accs, spent), (t, parts), sug, tags, favs ->
+                val (s, top, rec) = t
+                AddUiState(f, editId != 0L, cats, accs, spent, s.formExtras, sug, tags.map { it.name }, favs, top, rec, parts)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -214,7 +220,9 @@ class AddViewModel(
         viewModelScope.launch {
             val s = app.settings.settings.first()
             val accounts = repo.accounts.first()
+            // The user's own accounts first: a sample one was picked by default and stayed forever (QA 12 Nov).
             val pay = accounts.filter { it.account.type != AccountType.LOAN && it.account.type != AccountType.SAVINGS }
+                .sortedBy { it.account.isSample }
             val source = (if (editId != 0L) editId else duplicateId).takeIf { it != 0L }?.let { repo.get(it) }
             original = source?.takeIf { editId != 0L }
             val capture = captureId.takeIf { it != 0L }?.let { app.capture.get(it) }
@@ -231,7 +239,12 @@ class AddViewModel(
                     settleRemind = false,
                 )
                 capture != null -> {
-                    val type = if (capture.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
+                    // New expense has Expense, Income and Transfer; a refund is checked as an expense to edit.
+                    val type = when (MoneyType.ofStored(capture.direction)) {
+                        MoneyType.INCOME -> TxnType.INCOME
+                        MoneyType.TRANSFER -> TxnType.TRANSFER
+                        else -> TxnType.EXPENSE
+                    }
                     val merchant = capture.payee?.let(::tidyPayee).orEmpty()
                     // Named by the message's words ("Petrol") when it had some; the merchant is kept hidden.
                     val payee = capture.name ?: merchant
@@ -358,7 +371,15 @@ class AddViewModel(
         val now = System.currentTimeMillis()
         val account = s.account!!.account
         val base = original
-        val lend = f.lend?.takeIf { f.type != TxnType.TRANSFER && f.person.isNotBlank() }
+        // Only the pairs that make sense: lent on money out, borrowed on money in (a type switched after
+        // picking one drops it); settling up works either way.
+        val lend = f.lend?.takeIf {
+            f.person.isNotBlank() && when (it) {
+                Lend.LENT -> f.type == TxnType.EXPENSE
+                Lend.BORROWED -> f.type == TxnType.INCOME
+                else -> f.type != TxnType.TRANSFER
+            }
+        }
         viewModelScope.launch {
             val personId = lend?.let { repo.personFor(f.person) }
             val txn = TxnEntity(
@@ -374,6 +395,8 @@ class AddViewModel(
                 note = f.note.trim().ifBlank { null },
                 // Hidden: kept through edits, set once from the message.
                 merchant = base?.merchant ?: if (captureId != 0L) app.capture.get(captureId)?.payee?.let(::tidyPayee) else null,
+                // The card it was paid with stays while the account does (194).
+                cardId = base?.cardId?.takeIf { base.accountId == account.id },
                 at = f.at,
                 source = base?.source ?: if (captureId != 0L) app.capture.get(captureId)?.source ?: "MANUAL" else "MANUAL",
                 // Money lent out isn't spending; money borrowed isn't income.

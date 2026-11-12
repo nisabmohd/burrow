@@ -1,5 +1,7 @@
 package app.burrow.money.ui.more
 
+import app.burrow.money.ui.findActivity
+
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import android.content.Intent
@@ -103,7 +105,7 @@ fun CategoriesScreen(vm: CategoriesViewModel, onBack: () -> Unit, onEdit: (Long)
                             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Space.small),
                         ) {
                             CategoryCircle(l.category.icon, l.category.colorHue, Size.categoryTile)
-                            Text(l.category.name.substringBefore(" &").substringBefore(" "), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                            Text(l.category.name.substringBefore(" &").substringBefore(" "), style = BurrowType.body, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     }
                     repeat((3 - lines.size % 3) % 3) { Spacer(Modifier.weight(1f)) }
@@ -247,6 +249,7 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
     val context = LocalContext.current
     val c = MaterialTheme.colorScheme
     fun open(url: String) = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+    val rateScope = androidx.compose.runtime.rememberCoroutineScope()
     DetailFrame(onBack, stringResource(R.string.about)) {
         Column(Modifier.fillMaxWidth().padding(vertical = Space.sheet), horizontalAlignment = Alignment.CenterHorizontally) {
             app.burrow.money.ui.components.BurrowLogo(Size.logo)
@@ -258,7 +261,11 @@ fun AboutScreen(updates: app.burrow.money.data.update.UpdateManager, onBack: () 
         val rows = buildList<Triple<Int, Int?, Pair<Int, (() -> Unit)?>>> {
             add(Triple(R.string.source_code, R.string.source_code_line, R.drawable.ic_code_duotone to { open(BuildConfig.REPO_URL) }))
             add(Triple(R.string.data_stays, R.string.data_stays_line, R.drawable.ic_shield_check_duotone to null))
-            if (BuildConfig.PLAY_LISTED) add(Triple(R.string.rate, null, R.drawable.ic_star_duotone to { open(BuildConfig.PLAY_STORE_URL) }))
+            // Play's own rating card over the app (play build, as Weft); the store page when Play can't show it.
+            if (BuildConfig.PLAY_LISTED) add(Triple(R.string.rate, null, R.drawable.ic_star_duotone to {
+                val activity = context.findActivity()
+                rateScope.launch { if (activity == null || !app.burrow.money.data.review.PlayReview.launch(activity)) open(BuildConfig.PLAY_STORE_URL) }
+            }))
             add(Triple(R.string.report_problem, null, R.drawable.ic_bug_report_duotone to { open(BuildConfig.REPO_URL + "/issues") }))
             add(Triple(R.string.licences, R.string.licences_line, R.drawable.ic_description_duotone to onLicences))
         }

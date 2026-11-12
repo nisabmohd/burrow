@@ -56,6 +56,32 @@ object AccountType {
     const val SAVINGS = "SAVINGS"
 }
 
+/** Savings: how money goes in (202–204). */
+object SavingsMode {
+    /** One amount; more money later starts a new deposit. */
+    const val ONCE = "ONCE"
+    /** A fixed amount every month (an instalment bill). */
+    const val MONTHLY = "MONTHLY"
+    /** Any amount, any time, no end date. */
+    const val ANY = "ANY"
+}
+
+/** A savings account's mode; one made before v9 is Once with a maturity date, else Any time. */
+fun savingsModeOf(a: AccountEntity): String = a.savingsMode ?: if (a.maturityDate != null) SavingsMode.ONCE else SavingsMode.ANY
+
+/** Money put into a savings account: a transfer in, the account it came from, and its deposit's own rate and maturity (Once). */
+data class SavingsIn(
+    val txnId: Long,
+    val amount: Long,
+    val at: Long,
+    val fromId: Long,
+    val fromName: String,
+    val fromIcon: String,
+    val fromHue: Float,
+    val rate: String?,
+    val maturity: Long?,
+)
+
 /** A transaction with the names a row needs, joined in one query. */
 data class TxnView(
     @Embedded val txn: TxnEntity,
@@ -70,6 +96,9 @@ data class TxnView(
     val toAccountHue: Float?,
     /** "Add money" to a goal: the goal's name. */
     val goalName: String? = null,
+    /** The card it was paid with (two or more cards on one bill): name ("" = "Card") and digits. */
+    val cardName: String? = null,
+    val cardNumber: String? = null,
 )
 
 /** SUM(amount) of transfers into one account. */
@@ -89,6 +118,8 @@ data class OccurrenceView(
     val accountName: String,
     val categoryId: Long?,
     val categoryName: String?,
+    /** EXPENSE or INCOME: a repeating salary is a bill in an income category. */
+    val categoryKind: String? = null,
     /** The bill's own circle, else its category's. */
     val icon: String?,
     val hue: Float?,
@@ -99,12 +130,18 @@ data class OccurrenceView(
     val remindAtMinutes: Int,
 ) {
     val amount get() = occurrence.amount ?: billAmount
+    /** Money coming in (a salary): "Mark received", recorded as income, never lowers safe to spend. */
+    val income get() = categoryKind == "INCOME"
 }
 
 @Dao
 interface AccountDao {
     @Query("SELECT * FROM AccountEntity WHERE archived = 0 ORDER BY sortOrder, id")
     fun all(): Flow<List<AccountEntity>>
+
+    /** One account, archived or not (a bill from an archived account can still be paid). */
+    @Query("SELECT * FROM AccountEntity WHERE id = :id")
+    suspend fun byId(id: Long): AccountEntity?
 
     /** Upcoming transactions count only with "Upcoming in balances" (Customise › Transactions). */
     @Query("SELECT accountId, type, SUM(amount) AS total FROM TxnEntity WHERE status = 'POSTED' OR :withUpcoming GROUP BY accountId, type")
@@ -177,16 +214,36 @@ interface CategoryDao {
 
 @Dao
 interface TxnDao {
+    /** Payments in [currency] whose baseAmount was never converted (saved before it was). */
+    @Query("SELECT * FROM TxnEntity WHERE currency = :currency AND baseAmount = amount AND amount != 0")
+    suspend fun unconverted(currency: String): List<TxnEntity>
+
+    @Query("UPDATE TxnEntity SET baseAmount = :base WHERE id = :id")
+    suspend fun setBase(id: Long, base: Long)
+
+    /** Every transaction that paid one due date (an EMI's transfer and its interest). */
+    @Query("SELECT * FROM TxnEntity WHERE billOccurrenceId = :occurrenceId")
+    suspend fun byOccurrence(occurrenceId: Long): List<TxnEntity>
+
+    /** The expense a refund pays back: same payee or merchant, in [from]..[to], at least [amount]; the latest. */
+    @Query(
+        """SELECT * FROM TxnEntity WHERE type = 'EXPENSE' AND (payee = :payee OR merchant = :payee OR merchant = :raw OR payee = :raw)
+        AND at BETWEEN :from AND :to AND amount >= :amount ORDER BY at DESC LIMIT 1""",
+    )
+    suspend fun refundMatch(payee: String, raw: String, from: Long, to: Long, amount: Long): TxnEntity?
+
     @Query(
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         ORDER BY t.at DESC, t.id DESC
         LIMIT :limit
         """,
@@ -197,12 +254,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.id = :id
         """,
     )
@@ -212,18 +271,18 @@ interface TxnDao {
     suspend fun get(id: Long): TxnEntity?
 
     /** Spending in [from, to): expenses less refunds. */
-    @Query("SELECT COALESCE(SUM(CASE WHEN type = 'REFUND' THEN -amount ELSE amount END), 0) FROM TxnEntity WHERE type IN ('EXPENSE', 'REFUND') AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
+    @Query("SELECT COALESCE(SUM(CASE WHEN type = 'REFUND' THEN -baseAmount ELSE baseAmount END), 0) FROM TxnEntity WHERE type IN ('EXPENSE', 'REFUND') AND excludeFromStats = 0 AND status = 'POSTED' AND at >= :from AND at < :to")
     fun spent(from: Long, to: Long): Flow<Long>
 
     /** Spending by category: a split payment counts in each part's category; refunds lower theirs. */
     @Query(
         """
         SELECT categoryId, SUM(total) AS total FROM (
-            SELECT t.categoryId AS categoryId, CASE WHEN t.type = 'REFUND' THEN -t.amount ELSE t.amount END AS total FROM TxnEntity t
+            SELECT t.categoryId AS categoryId, CASE WHEN t.type = 'REFUND' THEN -t.baseAmount ELSE t.baseAmount END AS total FROM TxnEntity t
             WHERE t.type IN ('EXPENSE', 'REFUND') AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
               AND NOT EXISTS (SELECT 1 FROM SplitEntity s WHERE s.txnId = t.id)
             UNION ALL
-            SELECT s.categoryId AS categoryId, s.amount AS total FROM SplitEntity s JOIN TxnEntity t ON t.id = s.txnId
+            SELECT s.categoryId AS categoryId, CASE WHEN t.amount = 0 THEN s.amount ELSE s.amount * t.baseAmount / t.amount END AS total FROM SplitEntity s JOIN TxnEntity t ON t.id = s.txnId
             WHERE t.type = 'EXPENSE' AND t.excludeFromStats = 0 AND t.status = 'POSTED' AND t.at >= :from AND t.at < :to
         ) WHERE categoryId IS NOT NULL GROUP BY categoryId
         """,
@@ -288,12 +347,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.at >= :from AND t.at < :to
         ORDER BY t.at DESC, t.id DESC
         """,
@@ -305,12 +366,14 @@ interface TxnDao {
         """
         SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
                a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
-               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
         FROM TxnEntity t
         JOIN AccountEntity a ON a.id = t.accountId
         LEFT JOIN CategoryEntity c ON c.id = t.categoryId
         LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
         LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
         WHERE t.status = 'UPCOMING'
         ORDER BY t.at, t.id
         """,
@@ -399,6 +462,9 @@ interface BudgetDao {
     @Query("SELECT * FROM BudgetEntity WHERE month = :month AND ((:categoryId IS NULL AND categoryId IS NULL) OR categoryId = :categoryId) LIMIT 1")
     suspend fun exact(month: String, categoryId: Long?): BudgetEntity?
 
+    @Query("DELETE FROM BudgetEntity WHERE id = :id")
+    suspend fun deleteId(id: Long)
+
     @Query("DELETE FROM BudgetEntity WHERE isSample = 1")
     suspend fun deleteSamples()
 }
@@ -426,7 +492,7 @@ interface BillDao {
     @Query(
         """
         SELECT o.*, b.name AS name, b.kind AS kind, b.amount AS billAmount, b.accountId AS accountId, a.name AS accountName,
-               b.categoryId AS categoryId, c.name AS categoryName, COALESCE(b.icon, c.icon) AS icon, COALESCE(b.colorHue, c.colorHue) AS hue,
+               b.categoryId AS categoryId, c.name AS categoryName, c.kind AS categoryKind, COALESCE(b.icon, c.icon) AS icon, COALESCE(b.colorHue, c.colorHue) AS hue,
                b.repeatRule AS repeatRule, b.onDue AS onDue, b.remindersOn AS remindersOn,
                b.remindDaysBefore AS remindDaysBefore, b.remindAtMinutes AS remindAtMinutes
         FROM BillOccurrenceEntity o
@@ -442,7 +508,7 @@ interface BillDao {
     @Query(
         """
         SELECT o.*, b.name AS name, b.kind AS kind, b.amount AS billAmount, b.accountId AS accountId, a.name AS accountName,
-               b.categoryId AS categoryId, c.name AS categoryName, COALESCE(b.icon, c.icon) AS icon, COALESCE(b.colorHue, c.colorHue) AS hue,
+               b.categoryId AS categoryId, c.name AS categoryName, c.kind AS categoryKind, COALESCE(b.icon, c.icon) AS icon, COALESCE(b.colorHue, c.colorHue) AS hue,
                b.repeatRule AS repeatRule, b.onDue AS onDue, b.remindersOn AS remindersOn,
                b.remindDaysBefore AS remindDaysBefore, b.remindAtMinutes AS remindAtMinutes
         FROM BillOccurrenceEntity o
@@ -466,6 +532,10 @@ interface BillDao {
 
     @Update
     suspend fun updateOccurrence(o: BillOccurrenceEntity)
+
+    /** The due date a payment paid, if any (deleting the payment un-pays it). */
+    @Query("SELECT * FROM BillOccurrenceEntity WHERE txnId = :txnId")
+    suspend fun occurrencesPaidBy(txnId: Long): List<BillOccurrenceEntity>
 
     /** Unpaid future dates go when a bill changes; they are made again from its new rule. */
     @Query("DELETE FROM BillOccurrenceEntity WHERE billId = :billId AND status = 'UPCOMING' AND dueDate >= :from")
@@ -545,6 +615,10 @@ interface CaptureDao {
     /** The 30-day promise (docs/CAPTURE.md § Keep): message text goes, the transaction stays. */
     @Query("UPDATE CaptureEntity SET body = '' WHERE receivedAt < :before AND body != ''")
     suspend fun forgetTextBefore(before: Long)
+
+    /** The first message a rule read: the one it was taught from. */
+    @Query("SELECT sender FROM CaptureEntity WHERE ruleId = :ruleId ORDER BY receivedAt ASC LIMIT 1")
+    suspend fun firstSenderFor(ruleId: String): String?
 }
 
 @Dao
@@ -770,4 +844,110 @@ interface BackupDao {
     @Query("DELETE FROM GoalEntity") suspend fun clearGoals()
     @Query("DELETE FROM CaptureRuleEntity") suspend fun clearRules()
     @Query("DELETE FROM CaptureEntity") suspend fun clearCaptures()
+    @Query("SELECT * FROM DepositEntity") suspend fun deposits(): List<DepositEntity>
+    @Insert suspend fun putDeposits(l: List<DepositEntity>)
+    @Query("DELETE FROM DepositEntity") suspend fun clearDeposits()
+    @Query("SELECT * FROM CardEntity") suspend fun cards(): List<CardEntity>
+    @Insert suspend fun putCards(l: List<CardEntity>)
+    @Query("DELETE FROM CardEntity") suspend fun clearCards()
+    @Query(CARDS_FROM_ACCOUNTS) suspend fun cardsFromAccounts()
+}
+
+/** Expenses paid with one card since a time (186: "27 payments this month"). */
+data class CardCount(val cardId: Long, val count: Int)
+
+/** Cards on a card account's bill (v8). */
+@Dao
+interface CardDao {
+    @Query("SELECT * FROM CardEntity ORDER BY accountId, sortOrder, id") fun all(): Flow<List<CardEntity>>
+    @Query("SELECT * FROM CardEntity ORDER BY accountId, sortOrder, id") suspend fun allNow(): List<CardEntity>
+    @Query("SELECT * FROM CardEntity WHERE accountId = :accountId ORDER BY sortOrder, id") suspend fun of(accountId: Long): List<CardEntity>
+    @Insert suspend fun insert(card: CardEntity): Long
+    @androidx.room.Update suspend fun update(card: CardEntity)
+    @Query("DELETE FROM CardEntity WHERE id = :id") suspend fun delete(id: Long)
+
+    @Query(
+        "SELECT cardId, COUNT(*) AS count FROM TxnEntity WHERE cardId IS NOT NULL AND type = 'EXPENSE' AND status = 'POSTED' " +
+            "AND at >= :from GROUP BY cardId",
+    )
+    fun counts(from: Long): Flow<List<CardCount>>
+
+    /** A removed card's payments, or an account back to one card: no "Paid with" any more. */
+    @Query("UPDATE TxnEntity SET cardId = NULL WHERE cardId = :cardId") suspend fun forgetCard(cardId: Long)
+    @Query("UPDATE TxnEntity SET cardId = NULL WHERE accountId = :accountId") suspend fun forgetCards(accountId: Long)
+
+    /** Cards of accounts that are gone (deleted samples) — run at app start. */
+    @Query("DELETE FROM CardEntity WHERE accountId NOT IN (SELECT id FROM AccountEntity)") suspend fun cleanOrphans()
+}
+
+@Dao
+interface SavingsDao {
+    /** Transfers into [accountId], newest first, each with its deposit row if it has one. */
+    @Query(
+        """
+        SELECT t.id AS txnId, t.amount AS amount, t.at AS at, t.accountId AS fromId, a.name AS fromName, a.icon AS fromIcon,
+               a.colorHue AS fromHue, d.interestRate AS rate, d.maturityDate AS maturity
+        FROM TxnEntity t
+        JOIN AccountEntity a ON a.id = t.accountId
+        LEFT JOIN DepositEntity d ON d.txnId = t.id
+        WHERE t.toAccountId = :accountId AND t.type = 'TRANSFER' AND t.status = 'POSTED'
+        ORDER BY t.at DESC, t.id DESC
+        """,
+    )
+    fun moneyIn(accountId: Long): Flow<List<SavingsIn>>
+
+    @Upsert suspend fun putDeposit(d: DepositEntity)
+
+    @Query("DELETE FROM DepositEntity WHERE txnId = :txnId") suspend fun deleteDeposit(txnId: Long)
+
+    /** Every deposit row, for the maturity reminders. */
+    @Query("SELECT * FROM DepositEntity") suspend fun deposits(): List<DepositEntity>
+
+    /** A savings account's instalment bill (archived too, so it comes back on undo). */
+    @Query("SELECT * FROM BillEntity WHERE kind = 'SAVINGS' AND toAccountId = :accountId ORDER BY id LIMIT 1")
+    suspend fun bill(accountId: Long): BillEntity?
+
+    @Query("SELECT * FROM BillEntity WHERE kind = 'SAVINGS' AND toAccountId = :accountId AND archived = 0 ORDER BY id LIMIT 1")
+    fun billFlow(accountId: Long): Flow<BillEntity?>
+
+    /** Instalments paid, by savings account (Accounts' ring, 210). */
+    @Query(
+        """
+        SELECT b.toAccountId AS accountId, COUNT(*) AS total FROM BillOccurrenceEntity o JOIN BillEntity b ON b.id = o.billId
+        WHERE b.kind = 'SAVINGS' AND b.archived = 0 AND b.toAccountId IS NOT NULL AND o.status = 'PAID' GROUP BY b.toAccountId
+        """,
+    )
+    fun paidCounts(): Flow<List<AccountInSum>>
+}
+
+/**
+ * Moving accounts to a currency with other decimals (₹ 2 → ¥ 0): every amount that belongs to them is
+ * rescaled once by [mul] / [div] before the code changes (QA 12 Nov: ₹75,000 became ¥7,500,000).
+ */
+@Dao
+interface CurrencyMoveDao {
+    @Query("UPDATE TxnEntity SET amount = ((amount * :mul + :div / 2) / :div), baseAmount = ((baseAmount * :mul + :div / 2) / :div) WHERE accountId IN (SELECT id FROM AccountEntity WHERE currency = :from) AND currency = :from")
+    suspend fun txns(from: String, mul: Long, div: Long)
+
+    @Query("UPDATE SplitEntity SET amount = ((amount * :mul + :div / 2) / :div) WHERE txnId IN (SELECT id FROM TxnEntity WHERE accountId IN (SELECT id FROM AccountEntity WHERE currency = :from) AND currency = :from)")
+    suspend fun splits(from: String, mul: Long, div: Long)
+
+    @Query("UPDATE BillOccurrenceEntity SET amount = ((amount * :mul + :div / 2) / :div) WHERE amount IS NOT NULL AND billId IN (SELECT id FROM BillEntity WHERE accountId IN (SELECT id FROM AccountEntity WHERE currency = :from))")
+    suspend fun occurrences(from: String, mul: Long, div: Long)
+
+    @Query("UPDATE BillEntity SET amount = ((amount * :mul + :div / 2) / :div) WHERE accountId IN (SELECT id FROM AccountEntity WHERE currency = :from)")
+    suspend fun bills(from: String, mul: Long, div: Long)
+
+    @Query("UPDATE FavouriteEntity SET amount = ((amount * :mul + :div / 2) / :div) WHERE accountId IN (SELECT id FROM AccountEntity WHERE currency = :from)")
+    suspend fun favourites(from: String, mul: Long, div: Long)
+
+    @Query("UPDATE AccountEntity SET openingBalance = ((openingBalance * :mul + :div / 2) / :div), creditLimit = ((creditLimit * :mul + :div / 2) / :div), emi = ((emi * :mul + :div / 2) / :div), principal = ((principal * :mul + :div / 2) / :div) WHERE currency = :from")
+    suspend fun accounts(from: String, mul: Long, div: Long)
+
+    /** Budgets and goals are in the main currency: they follow it. */
+    @Query("UPDATE BudgetEntity SET amount = ((amount * :mul + :div / 2) / :div)")
+    suspend fun budgets(mul: Long, div: Long)
+
+    @Query("UPDATE GoalEntity SET target = ((target * :mul + :div / 2) / :div)")
+    suspend fun goals(mul: Long, div: Long)
 }

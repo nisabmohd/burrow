@@ -11,7 +11,12 @@
     <!-- replace: main strips INTERNET for every build; this build alone puts it back. -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="replace" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Google Drive backup (src/drive): "offline" and "Wi-Fi only" need the network state. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="replace" />
     <application>
+        <!-- The scheduled Google Drive backup (src/drive). -->
+        <service android:name="app.burrow.money.data.drive.DriveBackupJob" android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <receiver android:name="app.burrow.money.capture.SmsReceiver" android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter><action android:name="android.provider.Telephony.SMS_RECEIVED" /></intent-filter>

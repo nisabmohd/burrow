@@ -17,6 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,12 +36,25 @@ data class ReviewItem(
     val from: String,
     val spans: Map<Part, IntRange>,
 ) {
-    val isIncome get() = capture.direction == Direction.IN.name
+    /** Money in (income, refund): shown with +. */
+    val isIncome get() = app.burrow.money.capture.MoneyType.ofStored(capture.direction).direction == Direction.IN
+    val type get() = app.burrow.money.capture.MoneyType.ofStored(capture.direction)
 }
 
 /** To review (44): payments the app found, each saved with one tap, or all at once. */
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReviewViewModel(private val capture: CaptureRepository, private val money: MoneyRepository, private val engine: RuleEngine) : ViewModel() {
+class ReviewViewModel(
+    private val capture: CaptureRepository,
+    private val money: MoneyRepository,
+    private val engine: RuleEngine,
+    /** Play's rating card at a calm moment (play build; AppContainer.maybeAskForReview). */
+    private val reviewPrompt: suspend (android.app.Activity) -> Unit = {},
+) : ViewModel() {
+
+    fun askForReview(activity: android.app.Activity) {
+        viewModelScope.launch { reviewPrompt(activity) }
+    }
+
 
     /** Messages no rule could read: a row to Not understood, so they are one tap away from here. */
     val notUnderstood: StateFlow<Int> = capture.notUnderstoodCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -49,11 +63,12 @@ class ReviewViewModel(private val capture: CaptureRepository, private val money:
         Quad(list, cats, accounts, rules)
     }.mapLatest { (list, cats, accounts, rules) ->
         list.map { c ->
-            val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
+            // Income picks income categories; a refund the spending one it lowers; a transfer none.
+            val type = app.burrow.money.data.categoryTypeOf(app.burrow.money.capture.MoneyType.ofStored(c.direction))
             val kind = if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
-            val ofKind = cats.filter { it.kind == kind }
+            val ofKind = if (type == null) emptyList() else cats.filter { it.kind == kind }
             val chosen = cats.firstOrNull { it.id == c.categoryId }
-            val suggested = capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
+            val suggested = if (type == null) emptyList() else capture.suggestions(c.payee, type, c.body).mapNotNull { id -> ofKind.firstOrNull { it.id == id } }
             val rule = rules.firstOrNull { it.id == c.ruleId }
             val accountId = capture.accountFor(c)
             ReviewItem(
@@ -89,8 +104,8 @@ class ReviewViewModel(private val capture: CaptureRepository, private val money:
     /** "Save N payments": every one with its chosen category. */
     fun saveAll(onDone: (Int, suspend () -> Unit) -> Unit) {
         viewModelScope.launch {
-            val ids = state.value.orEmpty().map { it.capture.id }
-            ids.forEach { capture.save(it, null) }
+            // Read the list fresh (the screen's copy may lag a save a moment ago); count only what saved.
+            val ids = capture.toReview.first().map { it.id }.filter { capture.save(it, null) != null }
             onDone(ids.size) { ids.forEach { capture.unsave(it) } }
         }
     }

@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.4.0
+- A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
+- Rate in About opens Google Play's rating card (Google Play build).
+- Search in the category sheet.
+- Two cards, one bill: a credit card account can hold several cards (ICICI RuPay + Visa). Messages from any of them land on the one account, with one statement, one due and one Pay bill; each payment says which card paid it. Cards with their own bills on one credit line stay separate cards that share the limit.
+- New credit card asks for the bank first: with a card from that bank already, choose Same bill or Its own bill. The Bank sheet has search, Your banks and All banks.
+- Add account opens a sheet of kinds (Bank account, Credit card, Cash or wallet, Loan, Savings).
+- Cards from before can be named (Edit account › Tap to name it).
+- Backup and restore shows the folder's name instead of a number.
+- Category rows say "Nothing this month".
+- Scrolling a list in a sheet back to its top no longer drags the sheet closed.
+- A payment you saved or ignored in To review no longer leaves its notification behind; Save all counts only what saved.
+- Play Console fixes (as Weft): edge-to-edge without the deprecated status and navigation bar colour calls, R8 shrinks resources with the code, Android Gradle plugin 9.1. The APK is a little smaller (3.2 MB).
+- New store screenshots.
+- Savings, one kind with one choice, How money goes in: Once (a deposit; adding more starts a new deposit with its own rate and maturity), Every month (instalments in Coming up, Pay instalment, a ring of instalments paid) or Any time (add whatever, whenever; what it earns a year at its rate). All money in is a transfer, never spending.
+- How it grows: Fixed rate, or Market value for funds, shares, gold or crypto. You type the value now and then (Update value); Burrow never looks it up. Net worth counts what it is worth, and Sunday review reminds you when a value is a month old, and updates several at once.
+- A new deposit picks its own rate and how long it runs (1, 2, 3 or 5 years, or a day). Edit savings has Colour, Icon and Archive. New savings asks for the rate instead of guessing one.
+- Accounts shows each loan's rate, when it ends and a ring of EMIs paid.
+- Savings pages look like a bank account's: what you can do in one list with Count in net worth, then the deposits, instalments or money added, each like a transaction row. Edit savings looks like Edit account.
+- Empty lists and searches with no results show a new picture of two loose cards, with the next step as a button.
+- Review is one screen with two tabs, To review and Not understood. Payments are plain rows: tap to check the message in a sheet, swipe right to save, left to ignore.
+- Teach asks for three taps only (amount, who was paid, account). Burrow fills in the type from the bank's words ("Expense · it says “debited”") and you can change it: Expense, Income, Refund, Transfer or Not a payment. Add or remove the words a bank uses; words for German, Spanish, French, Portuguese, Hindi and Japanese messages too.
+- A captured refund lowers the spending of the payment it pays back; a transfer counts as neither spending nor income; "Not a payment" messages are skipped.
+- A repeating salary in Coming up says Mark received, is saved as income and no longer lowers safe to spend or shows as the next bill.
+- Insights has a legend for this period and the one before. Dynamic colour sits above the colour circles. Recent amounts in New expense look like favourites.
+- Totals are right in more places: Insights leaves out money borrowed and payments dated in the future; a weekly bill lowers safe to spend for every week left; the widget and Sunday review show Today's safe-to-spend number with carry-over.
+- Deleting a payment takes its refunds with it and puts its bill back in Coming up; Undo brings all of it back.
+- Paying a card bill, an EMI or a savings instalment from a bank message, or with Pay EMI / Pay bill, marks that due date paid and records a transfer (an EMI's interest as an expense), never extra spending. A salary credit marks the repeating salary received.
+- Two payments with different references are never merged, however alike.
+- Lent shows on expenses and Borrowed on income only. Editing a split payment shows its parts instead of category chips.
+- Archiving an account that holds money asks first, and its bills stop. Bills from an archived account can still be marked paid.
+- Changing the main currency to one with other decimals (₹ to ¥) keeps every amount the same instead of multiplying it.
+- Sample accounts are never picked by default and never take your new card. Account names in rows stay full when two would look the same.
+- Undo after changing a budget brings the old one back. Notifications no longer replace each other.
+- Payments in another currency count at your typed-in rate in spending, budgets, Insights and Today (net worth already did); ones saved before are converted once.
+- Importing Burrow's own CSV brings refunds back as refunds, transfers as transfers between the two accounts, balance fixes as fixes, and lent or borrowed money still out of spending (the export has a new "excluded" column).
+- Deleting a goal gives its money back to the accounts it came from; tap a row in a goal's Added list to take that money out.
+- Back on a new day, every screen starts fresh with today's numbers. Captured payments match your own accounts, never a sample's.
+- Plan › Budgets and an empty account list show what to add next. A card's amount due leaves out what you spent after the statement. A weekly subscription counts every week in "₹X a month".
+
 ## 0.3.2
 - Payee names: a UPI id you renamed ("thirdwave@okicici" → "Third Wave Coffee") keeps that name on its next payments.
 - Words in a message pick the category ("petrol", "medicines", "Swiggy"), and the expense is named by them; the merchant shows on the transaction.

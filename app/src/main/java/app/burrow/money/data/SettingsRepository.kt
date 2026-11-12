@@ -68,6 +68,16 @@ data class Settings(
     val backupSchedule: String = "OFF", // OFF, DAILY, WEEKLY
     val lastBackupAt: Long? = null,
     val hasBackupPassword: Boolean = false,
+    // Google Drive backup (play and github; docs/DATA.md § Drive backup)
+    /** The connected Google account's email; null = not connected. */
+    val driveAccount: String? = null,
+    /** Scheduled Drive backups wait for Wi-Fi (Back up now says so on mobile data). */
+    val driveWifiOnly: Boolean = true,
+    val lastDriveBackupAt: Long? = null,
+    /** How the last Drive backup failed (a DriveResult name); null when it worked. */
+    val driveBackupError: String? = null,
+    /** Backups in Drive after the last backup or listing, for "7 backups". */
+    val driveBackupCount: Int = 0,
     // Customise › Today (80)
     val homeTopCard: String = TopCard.BUDGET,
     /** Widget keys in the order Today shows them (hidden ones too; [homeWidgets] says which are on). */
@@ -236,6 +246,16 @@ class SettingsRepository(context: Context) {
     suspend fun setBackupFolder(uri: String?) = store.edit { if (uri == null) it.remove(BACKUP_FOLDER) else it[BACKUP_FOLDER] = uri }
     suspend fun setBackupSchedule(s: String) = store.edit { it[BACKUP_SCHEDULE] = s }
     suspend fun setLastBackupAt(at: Long) = store.edit { it[LAST_BACKUP_AT] = at }
+    suspend fun setDriveAccount(email: String?) = store.edit { if (email == null) it.remove(DRIVE_ACCOUNT) else it[DRIVE_ACCOUNT] = email }
+    suspend fun setDriveWifiOnly(on: Boolean) = store.edit { it[DRIVE_WIFI_ONLY] = on }
+    suspend fun setDriveBackupDone(at: Long, count: Int) = store.edit { it[LAST_DRIVE_BACKUP_AT] = at; it[DRIVE_BACKUP_COUNT] = count; it.remove(DRIVE_BACKUP_ERROR) }
+    suspend fun setDriveBackupFailed(reason: String) = store.edit { it[DRIVE_BACKUP_ERROR] = reason }
+    suspend fun setDriveBackupCount(count: Int) = store.edit { it[DRIVE_BACKUP_COUNT] = count }
+    suspend fun setDriveBackupsDeleted() = store.edit { it[DRIVE_BACKUP_COUNT] = 0; it.remove(LAST_DRIVE_BACKUP_AT); it.remove(DRIVE_BACKUP_ERROR) }
+
+    // Play's rating card (play build): when it was last asked for, kept out of [Settings] like the update check.
+    suspend fun reviewAskedAt(): Long? = store.data.first()[REVIEW_ASKED_AT]
+    suspend fun setReviewAskedAt(at: Long) = store.edit { it[REVIEW_ASKED_AT] = at }
 
     /** The backup password, sealed with a key from the Android Keystore (so scheduled backups can run). */
     suspend fun sealedBackupPassword(): String? = store.data.first()[BACKUP_PASSWORD]
@@ -247,6 +267,51 @@ class SettingsRepository(context: Context) {
         prefs.clear()
         if (keep != null) prefs[ONBOARDED] = keep
         prefs[SAMPLES_DONE] = true
+    }
+
+    /** Puts back the settings from a backup in one write; a missing (older-backup) field keeps today's value. */
+    suspend fun restore(b: BackupSettings) = store.edit { p ->
+        p[MAIN_CURRENCY] = b.mainCurrency
+        p[MONTH_START_DAY] = b.monthStartDay.coerceIn(1, 28)
+        ThemeMode.entries.firstOrNull { it.name == b.theme }?.let { p[THEME] = it.name }
+        p[ACCENT_HUE] = b.accentHue
+        p[DYNAMIC_COLOR] = b.dynamicColor
+        BodyFont.entries.firstOrNull { it.name == b.font }?.let { p[FONT] = it.name }
+        TextSize.entries.firstOrNull { it.name == b.textSize }?.let { p[TEXT_SIZE] = it.name }
+        p[HOME_WIDGETS] = b.homeWidgets.filter { it in ALL_HOME_WIDGETS }.toSet()
+        p[ENABLED_PACKS] = b.enabledPacks.filter { id -> app.burrow.money.capture.BUILT_IN_PACKS.any { it.id == id } }.toSet()
+        b.hideAmounts?.let { p[HIDE_AMOUNTS] = it }
+        b.hideInNotifications?.let { p[HIDE_IN_NOTIFICATIONS] = it }
+        b.notifyCapture?.let { p[NOTIFY_CAPTURE] = it }
+        b.notifyBills?.let { p[NOTIFY_BILLS] = it }
+        b.notifyBudgets?.let { p[NOTIFY_BUDGETS] = it }
+        b.notifySummary?.let { p[NOTIFY_SUMMARY] = it }
+        b.notifyWeekly?.let { p[NOTIFY_WEEKLY] = it }
+        b.billReminderMinutes?.let { p[BILL_REMINDER_MINUTES] = it.coerceIn(0, 24 * 60 - 1) }
+        b.weeklyReviewMinutes?.let { p[WEEKLY_REVIEW_MINUTES] = it.coerceIn(0, 24 * 60 - 1) }
+        b.homeTopCard?.let { p[TOP_CARD] = it }
+        b.homeWidgetOrder?.let { p[WIDGET_ORDER] = it.joinToString(",") }
+        b.homeRecentCount?.let { p[RECENT_COUNT] = it }
+        b.homeShowReview?.let { p[SHOW_REVIEW] = it }
+        b.formExtras?.let { x ->
+            p[FORM_EXTRAS] = x - FormExtra.FAVOURITE - FormExtra.RECENT
+            p[FAVOURITE_OFF] = FormExtra.FAVOURITE !in x
+            p[RECENT_OFF] = FormExtra.RECENT !in x
+        }
+        b.formDefaultType?.let { p[FORM_TYPE] = it }
+        b.formDefaultAccount?.let { if (it == 0L) p.remove(FORM_ACCOUNT) else p[FORM_ACCOUNT] = it }
+        b.onPaymentFound?.let { p[PAYMENT_FOUND] = it }
+        b.showTime?.let { p[SHOW_TIME] = it }
+        b.countUpcoming?.let { p[COUNT_UPCOMING] = it }
+        b.upcomingLowersSafe?.let { p[UPCOMING_LOWERS_SAFE] = it }
+        b.confirmDelete?.let { p[CONFIRM_DELETE] = it }
+        b.swipeRight?.let { p[SWIPE_RIGHT] = it }
+        b.swipeLeft?.let { p[SWIPE_LEFT] = it }
+        b.numberFormat?.let { if (it == "AUTO") p.remove(NUMBER_FORMAT) else p[NUMBER_FORMAT] = it }
+        b.dateFormat?.let { p[DATE_FORMAT] = it }
+        b.weekStart?.let { p[WEEK_START] = it }
+        b.currencyDisplay?.let { p[CURRENCY_DISPLAY] = it }
+        b.decimals?.let { p[DECIMALS] = it }
     }
 
     /** True once the sample month was seeded or declined: it never comes back after Delete all data. */
@@ -301,6 +366,11 @@ class SettingsRepository(context: Context) {
             backupSchedule = this[BACKUP_SCHEDULE] ?: "OFF",
             lastBackupAt = this[LAST_BACKUP_AT],
             hasBackupPassword = this[BACKUP_PASSWORD] != null,
+            driveAccount = this[DRIVE_ACCOUNT],
+            driveWifiOnly = this[DRIVE_WIFI_ONLY] ?: true,
+            lastDriveBackupAt = this[LAST_DRIVE_BACKUP_AT],
+            driveBackupError = this[DRIVE_BACKUP_ERROR],
+            driveBackupCount = this[DRIVE_BACKUP_COUNT] ?: 0,
             homeTopCard = this[TOP_CARD] ?: TopCard.BUDGET,
             homeWidgetOrder = this[WIDGET_ORDER]?.split(",")?.filter { it in ALL_HOME_WIDGETS }
                 ?.let { saved -> saved + HOME_WIDGET_ORDER.filter { it !in saved } } ?: HOME_WIDGET_ORDER,
@@ -359,6 +429,12 @@ class SettingsRepository(context: Context) {
         val BACKUP_SCHEDULE = stringPreferencesKey("backupSchedule")
         val LAST_BACKUP_AT = longPreferencesKey("lastBackupAt")
         val BACKUP_PASSWORD = stringPreferencesKey("backupPassword")
+        val DRIVE_ACCOUNT = stringPreferencesKey("driveAccount")
+        val DRIVE_WIFI_ONLY = booleanPreferencesKey("driveWifiOnly")
+        val LAST_DRIVE_BACKUP_AT = longPreferencesKey("lastDriveBackupAt")
+        val DRIVE_BACKUP_ERROR = stringPreferencesKey("driveBackupError")
+        val DRIVE_BACKUP_COUNT = intPreferencesKey("driveBackupCount")
+        val REVIEW_ASKED_AT = longPreferencesKey("reviewAskedAt")
         val TOP_CARD = stringPreferencesKey("homeTopCard")
         val WIDGET_ORDER = stringPreferencesKey("homeWidgetsOrder")
         val RECENT_COUNT = intPreferencesKey("homeRecentCount")

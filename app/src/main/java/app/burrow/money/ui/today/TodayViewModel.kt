@@ -126,7 +126,7 @@ class TodayViewModel(
         val goal = goals.filter { !it.reached }.sortedWith(compareBy({ it.goal.targetDate == null }, { it.goal.targetDate })).firstOrNull()
         Widgets(
             week = weekTotals,
-            nextBill = occ.filter { it.occurrence.status == OccurrenceStatus.UPCOMING }.minByOrNull { it.occurrence.dueDate },
+            nextBill = occ.filter { it.occurrence.status == OccurrenceStatus.UPCOMING && !it.income }.minByOrNull { it.occurrence.dueDate },
             netWorth = netWorth,
             netWorthLine = points,
             netWorthChange = inPeriod.sumOf(::effect),
@@ -137,7 +137,7 @@ class TodayViewModel(
                 listOfNotNull(byCat.drop(3).sumOf { it.second }.takeIf { it > 0 }?.let { Float.NaN to it }),
             goal = goal,
             goalPerMonth = goal?.let { goalPerMonth(it.goal.target, it.saved, today, it.goal.targetDate?.day()) },
-            cameIn = inPeriod.filter { it.txn.type == TxnType.INCOME }.sumOf { it.txn.amount },
+            cameIn = inPeriod.filter { it.txn.type == TxnType.INCOME && !it.txn.excludeFromStats }.sumOf { it.txn.amount },
             wentOut = spentPeriod.sumOf { it.txn.amount },
         )
     }.flowOn(Dispatchers.Default)

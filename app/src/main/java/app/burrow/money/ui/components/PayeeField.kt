@@ -73,7 +73,7 @@ fun PayeeField(value: String, onChange: (String) -> Unit, placeholder: String, c
             ) {
                 lead()
                 Box(Modifier.weight(1f)) {
-                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1)
+                    if (text.field.text.isEmpty()) Text(placeholder, style = BurrowType.bodyLarge, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     field()
                 }
                 if (text.field.text.isNotEmpty()) {
@@ -135,7 +135,7 @@ fun FormChip(
             circle?.invoke()
             if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(Size.iconSmall))
             Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = Size.payeeMaxWidth / 2))
-            if (trailing != null) Text(trailing, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1)
+            if (trailing != null) Text(trailing, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
     }
 }

@@ -78,7 +78,12 @@ class PlanViewModel(private val plan: PlanRepository, private val money: MoneyRe
         combine(money.categories, money.accounts, money.upcoming) { c, a, l -> Triple(c, a, l) },
     ) { occ, bills, (overall, cats), goals, (categories, accounts, txns) ->
         val subs = bills.filter { it.kind == BillKind.SUBSCRIPTION }
-        val monthly = { amount: Long, rule: String -> if (Repeat.parse(rule) is Repeat.Yearly) amount / 12 else amount }
+        val monthly = { amount: Long, rule: String -> when (Repeat.parse(rule)) {
+            // A month's share: a weekly ₹100 is ₹433 a month, not ₹100 (QA 12 Nov).
+            is Repeat.Yearly -> amount / 12
+            is Repeat.Weekly -> amount * 52 / 12
+            else -> amount
+        } }
         val emis = bills.filter { it.kind == BillKind.EMI }
         val left = overall?.left ?: 0
         val loanAccount = emis.firstNotNullOfOrNull { it.toAccountId }?.let { id -> accounts.firstOrNull { it.account.id == id } }

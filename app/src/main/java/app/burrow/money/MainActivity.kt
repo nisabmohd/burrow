@@ -5,9 +5,8 @@ import android.content.Intent
 import android.os.SystemClock
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import app.burrow.money.ui.drawEdgeToEdge
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -21,8 +20,6 @@ import app.burrow.money.ui.LocalMoney
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.burrow.money.ui.nav.BurrowNavHost
 import app.burrow.money.ui.nav.OpenFromNotification
@@ -79,7 +76,8 @@ class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguage.wrap(newBase))
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // Behind the bars from the first frame, icons for the system's light or dark until settings load.
+        drawEdgeToEdge(dark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES)
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) handleIntent(intent)
         val container = (application as BurrowApp).container
@@ -94,14 +92,7 @@ class MainActivity : ComponentActivity() {
             }
             val dark = current.theme.isDark()
             // Status and nav bar icons follow the app's theme, not just the system's.
-            LaunchedEffect(dark) {
-                val style = if (dark) {
-                    SystemBarStyle.dark(Color.Transparent.toArgb())
-                } else {
-                    SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb())
-                }
-                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
-            }
+            LaunchedEffect(dark) { drawEdgeToEdge(dark) }
             val locale = LocalConfiguration.current.locales[0]
             // Hide amounts (More): every amount shows as "₹ ••••" until tapped to reveal (Today's hero).
             var revealed by rememberSaveable(current.hideAmounts) { mutableStateOf(false) }
@@ -151,8 +142,19 @@ class MainActivity : ComponentActivity() {
         stoppedAt = SystemClock.elapsedRealtime()
     }
 
+    /** The day the screens were made for: their ViewModels read "today" once (QA 12 Nov). */
+    private var day: java.time.LocalDate = java.time.LocalDate.now()
+
     override fun onStart() {
         super.onStart()
+        // Back on a new day (left open past midnight): every screen starts again with today's days
+        // left and safe to spend. The ViewModels go first so none keeps yesterday; where you were is saved.
+        if (java.time.LocalDate.now() != day) {
+            day = java.time.LocalDate.now()
+            viewModelStore.clear()
+            recreate()
+            return
+        }
         if (stoppedAt == 0L) return
         val away = SystemClock.elapsedRealtime() - stoppedAt
         val container = (application as BurrowApp).container

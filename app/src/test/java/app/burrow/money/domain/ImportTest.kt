@@ -187,4 +187,30 @@ class ImportTest {
         assertNull(Importer.guessIcon("Misc", false))
         assertNull(Importer.guessIcon("Other stuff", false))
     }
+
+    /** Burrow's own export comes back as it was (QA 12 Nov): refunds, transfers, fixes, lent money. */
+    @Test fun burrowsOwnExportRoundTrips() {
+        val csv = """
+            date,type,payee,amount,currency,category,account,note,excluded
+            2026-11-01 10:00,EXPENSE,Croma,2000.00,INR,Shopping,HDFC Savings,,
+            2026-11-03 10:00,REFUND,Croma,500.00,INR,Shopping,HDFC Savings,,
+            2026-11-04 10:00,TRANSFER,,10000.00,INR,,HDFC Savings → Kotak,,
+            2026-11-05 10:00,GOAL,,3000.00,INR,,HDFC Savings → Trip,,
+            2026-11-06 10:00,ADJUST_UP,Balance fixed,120.00,INR,,Kotak,,yes
+            2026-11-07 10:00,EXPENSE,Ravi,1000.00,INR,Other,HDFC Savings,Lent,yes
+        """.trimIndent()
+        val p = Importer.parse(csv, ImportSource.CSV, { 2 })
+        assertEquals(5, p.rows.size) // the goal row stays out: a goal isn't an account
+        val refund = p.rows.first { it.refund }
+        assertEquals(false, refund.income)
+        assertEquals("Shopping", refund.category)
+        val transfer = p.rows.first { it.toAccount != null }
+        assertEquals("HDFC Savings", transfer.account)
+        assertEquals("Kotak", transfer.toAccount)
+        val fix = p.rows.first { it.adjustment }
+        assertEquals(true, fix.income)
+        val lent = p.rows.first { it.payee == "Ravi" }
+        assertEquals(true, lent.excluded)
+        assertEquals(setOf("HDFC Savings", "Kotak"), p.accounts.keys)
+    }
 }

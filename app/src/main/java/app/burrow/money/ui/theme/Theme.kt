@@ -48,3 +48,7 @@ fun successSwipeColors(): SwipeColors = successSwipeColors(LocalDarkTheme.curren
 
 @Composable @ReadOnlyComposable
 fun warningColors(): WarningColors = warningColors(LocalDarkTheme.current)
+
+/** [ghostColors] for the current light/dark. */
+@Composable @ReadOnlyComposable
+fun ghostColors(): GhostColors = ghostColors(MaterialTheme.colorScheme, LocalDarkTheme.current)

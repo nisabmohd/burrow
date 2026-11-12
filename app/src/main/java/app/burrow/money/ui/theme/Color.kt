@@ -141,3 +141,26 @@ object CategoryHues {
 
 /** Accent swatches offered in Appearance. */
 val AccentSeeds = listOf(345f to "Rose", 12f to "Rust", 38f to "Amber", 150f to "Green", 192f to "Teal", 215f to "Blue", 275f to "Purple")
+
+/**
+ * The empty state's ghost cards (COMPONENTS § Empty state). Light: both cards surfaceContainerLowest,
+ * the back one at 70%. Dark (user, 9 Nov): one tone above the page so the cards show, not just the
+ * bars — front surfaceContainer, back surfaceContainerLow, no opacity, a hairline (~24% lightness),
+ * a deeper shadow, bars at ~27% (front) and ~21% (back).
+ */
+@Immutable
+data class GhostColors(
+    val front: Color, val back: Color, val backAlpha: Float, val line: Color?,
+    val barFront: Color, val barBack: Color, val shadowAlpha: Float,
+)
+
+fun ghostColors(c: androidx.compose.material3.ColorScheme, dark: Boolean) = if (dark) {
+    GhostColors(
+        front = c.surfaceContainer, back = c.surfaceContainerLow, backAlpha = 1f, line = c.surfaceContainerHighest,
+        barFront = androidx.compose.ui.graphics.lerp(c.surfaceContainerHighest, c.outline, 0.3f),
+        barBack = androidx.compose.ui.graphics.lerp(c.surfaceContainerHigh, c.surfaceContainerHighest, 0.25f),
+        shadowAlpha = 0.4f,
+    )
+} else {
+    GhostColors(c.surfaceContainerLowest, c.surfaceContainerLowest, 0.7f, null, c.surfaceContainerHighest, c.surfaceContainerHighest, 0.12f)
+}

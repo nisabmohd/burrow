@@ -14,11 +14,10 @@ import android.util.Base64
 import androidx.room.withTransaction
 import app.burrow.money.BurrowApp
 import app.burrow.money.domain.BackupCrypto
+import app.burrow.money.notify.runBillReminders
 import app.burrow.money.notify.runMonthlySummary
+import app.burrow.money.notify.scheduleWeeklyReview
 import app.burrow.money.notify.runSettleReminders
-import app.burrow.money.ui.theme.BodyFont
-import app.burrow.money.ui.theme.TextSize
-import app.burrow.money.ui.theme.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -35,7 +34,12 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** The settings a backup carries (not the lock, the PIN or the backup folder: those belong to the phone). */
+/**
+ * The settings a backup carries: everything the user chose, so a restore brings the app back as it was.
+ * Not the lock, the PIN, the backup folder and password, the Drive account or the capture switches:
+ * those belong to the phone (capture needs its permissions granted again).
+ * Fields after [enabledPacks] came in backup v5; null = an older backup, the setting stays as it is.
+ */
 @Serializable
 data class BackupSettings(
     val mainCurrency: String,
@@ -47,12 +51,58 @@ data class BackupSettings(
     val textSize: String,
     val homeWidgets: Set<String>,
     val enabledPacks: Set<String>,
+    // v5: More, notifications and every Customise tab.
+    val hideAmounts: Boolean? = null,
+    val hideInNotifications: Boolean? = null,
+    val notifyCapture: Boolean? = null,
+    val notifyBills: Boolean? = null,
+    val notifyBudgets: Boolean? = null,
+    val notifySummary: Boolean? = null,
+    val notifyWeekly: Boolean? = null,
+    val billReminderMinutes: Int? = null,
+    val weeklyReviewMinutes: Int? = null,
+    val homeTopCard: String? = null,
+    val homeWidgetOrder: List<String>? = null,
+    val homeRecentCount: Int? = null,
+    val homeShowReview: Boolean? = null,
+    val formExtras: Set<String>? = null,
+    val formDefaultType: String? = null,
+    /** 0 = no default account. */
+    val formDefaultAccount: Long? = null,
+    val onPaymentFound: String? = null,
+    val showTime: Boolean? = null,
+    val countUpcoming: Boolean? = null,
+    val upcomingLowersSafe: Boolean? = null,
+    val confirmDelete: Boolean? = null,
+    val swipeRight: String? = null,
+    val swipeLeft: String? = null,
+    /** "AUTO" = from the language. */
+    val numberFormat: String? = null,
+    val dateFormat: String? = null,
+    val weekStart: String? = null,
+    val currencyDisplay: String? = null,
+    val decimals: String? = null,
+)
+
+/** The backed-up part of [Settings]. */
+fun Settings.toBackup() = BackupSettings(
+    mainCurrency, monthStartDay, theme.mode.name, theme.accentHue, theme.dynamicColor, theme.font.name, theme.textSize.name,
+    homeWidgets, enabledPacks,
+    hideAmounts = hideAmounts, hideInNotifications = hideInNotifications,
+    notifyCapture = notifyCapture, notifyBills = notifyBills, notifyBudgets = notifyBudgets, notifySummary = notifySummary,
+    notifyWeekly = notifyWeekly, billReminderMinutes = billReminderMinutes, weeklyReviewMinutes = weeklyReviewMinutes,
+    homeTopCard = homeTopCard, homeWidgetOrder = homeWidgetOrder, homeRecentCount = homeRecentCount, homeShowReview = homeShowReview,
+    formExtras = formExtras, formDefaultType = formDefaultType, formDefaultAccount = formDefaultAccount ?: 0L,
+    onPaymentFound = onPaymentFound, showTime = showTime, countUpcoming = countUpcoming, upcomingLowersSafe = upcomingLowersSafe,
+    confirmDelete = confirmDelete, swipeRight = swipeRight, swipeLeft = swipeLeft,
+    numberFormat = numberFormat ?: "AUTO", dateFormat = dateFormat, weekStart = weekStart,
+    currencyDisplay = currencyDisplay, decimals = decimals,
 )
 
 /** Everything in a backup file, as JSON before it is sealed. Message text is never included. */
 @Serializable
 data class BackupData(
-    val version: Int = 3,
+    val version: Int = 6,
     val createdAt: Long,
     val settings: BackupSettings,
     val accounts: List<AccountEntity>,
@@ -74,6 +124,10 @@ data class BackupData(
     val splits: List<SplitEntity> = emptyList(),
     val favourites: List<FavouriteEntity> = emptyList(),
     val importMaps: List<ImportMapEntity> = emptyList(),
+    // v4 (Room v8): cards on a card account's bill. Older backups get one card per card account's digits.
+    val cards: List<CardEntity> = emptyList(),
+    // v6 (Room v9): deposits added to a Once savings account after its first.
+    val deposits: List<DepositEntity> = emptyList(),
 )
 
 /** An attachment's bytes (base64) at its path inside app storage. */
@@ -95,14 +149,11 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
         val b = db.backup()
         BackupData(
             createdAt = System.currentTimeMillis(),
-            settings = BackupSettings(
-                s.mainCurrency, s.monthStartDay, s.theme.mode.name, s.theme.accentHue, s.theme.dynamicColor,
-                s.theme.font.name, s.theme.textSize.name, s.homeWidgets, s.enabledPacks,
-            ),
+            settings = s.toBackup(),
             accounts = b.accounts(), categories = b.categories(), txns = b.txns(), bills = b.bills(),
             occurrences = b.occurrences(), budgets = b.budgets(), goals = b.goals(), rules = b.rules(),
             people = b.people(), tags = b.tags(), txnTags = b.txnTags(), attachments = b.attachments(), rates = b.rates(),
-            splits = b.splits(), favourites = b.favourites(), importMaps = b.importMaps(),
+            splits = b.splits(), favourites = b.favourites(), importMaps = b.importMaps(), cards = b.cards(), deposits = b.deposits(),
             files = b.attachments().mapNotNull { a ->
                 val f = java.io.File(context.filesDir, a.path)
                 if (f.isFile) BackupBlob(a.path, Base64.encodeToString(f.readBytes(), Base64.NO_WRAP)) else null
@@ -128,6 +179,16 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
         name
     }
 
+    /**
+     * A backup sealed with the saved password, the same bytes as a folder backup, for Google Drive.
+     * Returns null without a password. The second value is the transaction count, for the Drive list.
+     */
+    suspend fun sealedWithSavedPassword(): Pair<ByteArray, Int>? = withContext(Dispatchers.IO) {
+        val password = settings.sealedBackupPassword()?.let(PasswordVault::open) ?: return@withContext null
+        val data = snapshot()
+        BackupCrypto.seal(json.encodeToString(BackupData.serializer(), data).toByteArray(), password.toCharArray()) to data.txns.count { !it.isSample }
+    }
+
     /** Backups in the folder, newest first. */
     suspend fun list(): List<BackupFile> = withContext(Dispatchers.IO) {
         val folder = settings.settings.first().backupFolder?.let(Uri::parse) ?: return@withContext emptyList()
@@ -149,7 +210,16 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
     }
 
     /** "Documents/Burrow" from the folder the user picked. */
-    fun folderLabel(uri: String): String = runCatching { DocumentsContract.getTreeDocumentId(uri.toUri()).substringAfter(':').ifEmpty { "/" } }.getOrDefault(uri)
+    /** The folder's name as the system shows it ("Download", "Burrow"); some document IDs are only numbers. */
+    fun folderLabel(uri: String): String = runCatching {
+        val tree = uri.toUri()
+        val id = DocumentsContract.getTreeDocumentId(tree)
+        val doc = DocumentsContract.buildDocumentUriUsingTree(tree, id)
+        context.contentResolver.query(doc, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)
+            ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+            ?.takeIf { it.isNotBlank() }
+            ?: id.substringAfter(':').substringAfterLast('/').ifEmpty { "/" }
+    }.getOrDefault(uri)
 
     suspend fun read(uri: Uri): ByteArray = withContext(Dispatchers.IO) {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("can't read file")
@@ -170,11 +240,12 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
             b.clearOccurrences(); b.clearBills(); b.clearBudgets(); b.clearTxns(); b.clearGoals()
             b.clearRules(); b.clearCaptures(); b.clearCategories(); b.clearAccounts()
             b.clearPeople(); b.clearTxnTags(); b.clearTags(); b.clearAttachments(); b.clearRates()
-            b.clearSplits(); b.clearFavourites(); b.clearImportMaps()
+            b.clearSplits(); b.clearFavourites(); b.clearImportMaps(); b.clearCards(); b.clearDeposits()
             b.putAccounts(data.accounts); b.putCategories(data.categories); b.putTxns(data.txns); b.putBills(data.bills)
             b.putOccurrences(data.occurrences); b.putBudgets(data.budgets); b.putGoals(data.goals); b.putRules(data.rules)
             b.putPeople(data.people); b.putTags(data.tags); b.putTxnTags(data.txnTags); b.putAttachments(data.attachments); b.putRates(data.rates)
             b.putSplits(data.splits); b.putFavourites(data.favourites); b.putImportMaps(data.importMaps)
+            b.putCards(data.cards); b.cardsFromAccounts(); b.putDeposits(data.deposits)
         }
         // Attachment files go back into app storage (only under files/attachments/).
         java.io.File(context.filesDir, Attachments.DIR).deleteRecursively()
@@ -185,16 +256,15 @@ class BackupManager(private val context: Context, private val db: BurrowDatabase
                 f.writeBytes(Base64.decode(blob.data, Base64.NO_WRAP))
             }
         }
-        val s = data.settings
-        settings.setMainCurrency(s.mainCurrency)
-        settings.setMonthStartDay(s.monthStartDay)
-        ThemeMode.entries.firstOrNull { it.name == s.theme }?.let { settings.setThemeMode(it) }
-        settings.setAccentHue(s.accentHue)
-        settings.setDynamicColor(s.dynamicColor)
-        BodyFont.entries.firstOrNull { it.name == s.font }?.let { settings.setFont(it) }
-        TextSize.entries.firstOrNull { it.name == s.textSize }?.let { settings.setTextSize(it) }
+        settings.restore(data.settings)
         settings.setSamplesDone()
         settings.setOnboarded()
+        // Restored reminder times and switches take effect now, not at the next app start.
+        (context.applicationContext as? BurrowApp)?.container?.let { c ->
+            runCatching { c.capture.repairShortSenders() }
+            runCatching { c.runBillReminders() }
+            runCatching { c.scheduleWeeklyReview() }
+        }
     }
 
     suspend fun setPassword(password: String) = settings.setSealedBackupPassword(PasswordVault.seal(password))

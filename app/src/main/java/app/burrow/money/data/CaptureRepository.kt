@@ -3,9 +3,13 @@ package app.burrow.money.data
 import android.content.Context
 import androidx.room.withTransaction
 import app.burrow.money.capture.AccountRef
+import app.burrow.money.capture.CardRef
+import app.burrow.money.capture.matchCard
+import app.burrow.money.capture.withCards
 import app.burrow.money.capture.BUILT_IN_PACKS
 import app.burrow.money.capture.Direction
 import app.burrow.money.capture.Rule
+import app.burrow.money.capture.RuleBuilder
 import app.burrow.money.capture.RuleEngine
 import app.burrow.money.capture.RuleFile
 import app.burrow.money.capture.RuleFiles
@@ -49,6 +53,10 @@ class CaptureRepository(
     }
 
     fun pack(id: String): RuleFile? = packs[id]
+
+    /** Banks a new card can be from (191): the enabled packs' bank names. */
+    fun cardBanks(enabled: Set<String>): List<String> =
+        app.burrow.money.capture.cardBanks(enabled.mapNotNull { packs[it] }.flatMap { f -> f.rules.map { it.name } })
 
     /** Your rules, newest first. */
     val userRules: Flow<List<Rule>> = db.rules().all().map { list ->
@@ -98,19 +106,21 @@ class CaptureRepository(
             db.captures().insert(CaptureEntity(source = source, sender = sender, body = body, receivedAt = at, status = CaptureStatus.UNREAD))
             return@withContext CaptureResult.NotUnderstood
         }
+        // "Not a payment" (236): messages like this are skipped, never stored.
+        if (parsed.type == app.burrow.money.capture.MoneyType.NOT_PAYMENT) return@withContext CaptureResult.Ignored
         val reference = referenceIn(body)
         val seen = db.captures().since(at - app.burrow.money.capture.DEDUPE_WINDOW_MS)
             .map { Seen(it.id, it.source, it.amount ?: 0, it.account, it.reference, it.receivedAt) }
         val dup = findDuplicate(source, parsed.amountMinor, parsed.account, reference, at, seen)
         val rule = rules.firstOrNull { it.id == parsed.ruleId }
         if (rule?.userMade == true) db.rules().used(rule.id)
-        val type = if (parsed.direction == Direction.IN) TxnType.INCOME else TxnType.EXPENSE
+        val type = categoryTypeOf(parsed.type)
         val capture = CaptureEntity(
             source = source, sender = sender, body = body, receivedAt = at,
             status = if (dup != null) CaptureStatus.MERGED else CaptureStatus.REVIEW,
             amount = parsed.amountMinor, currency = parsed.currency ?: main, payee = parsed.payee, account = parsed.account,
-            direction = parsed.direction.name, ruleId = parsed.ruleId, reference = reference,
-            categoryId = suggestions(parsed.payee, type, body).firstOrNull(),
+            direction = parsed.type.stored, ruleId = parsed.ruleId, reference = reference,
+            categoryId = if (type == null) null else suggestions(parsed.payee, type, body).firstOrNull(),
             name = nameFor(parsed.payee, body),
         )
         val id = db.captures().insert(capture)
@@ -142,10 +152,21 @@ class CaptureRepository(
 
     /** The account a capture is about, from its digits or its bank's name. */
     suspend fun accountFor(capture: CaptureEntity): Long? {
-        val accounts = money.accounts.first().map { AccountRef(it.account.id, it.account.name, it.account.number, it.account.type) }
+        // Your own accounts only, once you have one: a sample's ••1234 matched real messages (QA 12 Nov).
+        val all = money.accounts.first()
+        val mine = all.filter { !it.account.isSample }.ifEmpty { all }
+        val accounts = mine.map { AccountRef(it.account.id, it.account.name, it.account.number, it.account.type) }
         val bank = activeRules.first().firstOrNull { it.id == capture.ruleId }?.name
-        return matchAccount(capture.account, bank, accounts)
+        return matchAccount(capture.account, bank, withCards(accounts, cardRefs()))
     }
+
+    private suspend fun cardRefs() = db.cards().allNow().map { CardRef(it.id, it.accountId, it.number) }
+
+    /**
+     * Runs when a payment leaves To review (saved, ignored, opened in New expense), so its
+     * notification goes too: a payment already dealt with never waits in the shade.
+     */
+    var onResolved: (Long) -> Unit = {}
 
     /** Saves a capture as a transaction with [categoryId]; returns the new transaction's id. */
     suspend fun save(captureId: Long, categoryId: Long?): Long? {
@@ -153,17 +174,30 @@ class CaptureRepository(
         if (c.status != CaptureStatus.REVIEW || c.amount == null) return c.txnId
         val accountId = accountFor(c) ?: return null
         val now = System.currentTimeMillis()
-        val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
+        val kind = app.burrow.money.capture.MoneyType.ofStored(c.direction)
+        // A refund links to the expense it pays back (same payee, the 60 days before) and takes its
+        // category, so it lowers that spending; never income. A transfer has no category.
+        val original = if (kind == app.burrow.money.capture.MoneyType.REFUND) c.payee?.let { p ->
+            db.txns().refundMatch(tidyPayee(p), p.trim(), c.receivedAt - REFUND_WINDOW_MS, c.receivedAt, c.amount)
+        } else null
+        val type = txnTypeOf(kind)
+        val category = when {
+            kind == app.burrow.money.capture.MoneyType.TRANSFER -> null
+            original != null -> original.categoryId
+            else -> categoryId ?: c.categoryId
+        }
         val txnId = money.save(
             TxnEntity(
                 type = type, amount = c.amount, currency = c.currency ?: "INR", baseAmount = c.amount,
-                accountId = accountId, categoryId = categoryId ?: c.categoryId,
+                accountId = accountId, categoryId = category, refundOf = original?.id,
                 // The expense is named by the message's words when it had some; the merchant stays hidden.
                 payee = c.name ?: c.payee?.let(::tidyPayee), merchant = c.payee?.let(::tidyPayee),
                 at = c.receivedAt, source = c.source, createdAt = now, updatedAt = now,
+                cardId = matchCard(c.account, accountId, cardRefs()),
             ),
         )
-        db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId ?: c.categoryId))
+        db.captures().update(c.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = category))
+        onResolved(captureId)
         return txnId
     }
 
@@ -176,6 +210,7 @@ class CaptureRepository(
 
     suspend fun setStatus(captureId: Long, status: String) {
         db.captures().get(captureId)?.let { db.captures().update(it.copy(status = status)) }
+        if (status != CaptureStatus.REVIEW) onResolved(captureId)
     }
 
     suspend fun setCategory(captureId: Long, categoryId: Long) {
@@ -187,6 +222,7 @@ class CaptureRepository(
     /** "Open it to edit first": the capture was saved from New expense as [txnId]. */
     suspend fun markSaved(captureId: Long, txnId: Long, categoryId: Long?) {
         db.captures().get(captureId)?.let { db.captures().update(it.copy(status = CaptureStatus.SAVED, txnId = txnId, categoryId = categoryId)) }
+        onResolved(captureId)
     }
 
     /** Drops message text older than 30 days (docs/CAPTURE.md § Keep). Run on app start. */
@@ -197,6 +233,57 @@ class CaptureRepository(
     suspend fun saveRule(rule: Rule) = db.rules().upsert(
         CaptureRuleEntity(id = rule.id, json = RuleFiles.encodeRule(rule.copy(userMade = true)), enabled = rule.enabled, userMade = true, createdAt = System.currentTimeMillis()),
     )
+
+    /**
+     * A new rule's name from its sender: the bank a built-in pack knows it as ("JM-HDFCBK-S" →
+     * "HDFC Bank"), else the app's name for a notification, else the sender's own name ("JIOPAY").
+     * A second rule from the same bank gets "HDFC Bank 2". Null without a sender.
+     */
+    suspend fun ruleNameFor(sender: String): String? = withContext(Dispatchers.IO) {
+        val s = sender.trim().ifBlank { return@withContext null }
+        val base = bankRules().firstOrNull { r -> runCatching { Regex(r.sender).containsMatchIn(s) }.getOrDefault(false) }?.name
+            ?: if (RuleBuilder.isPackage(s)) runCatching {
+                context.packageManager.run { getApplicationLabel(getApplicationInfo(s, 0)).toString() }
+            }.getOrElse { s.substringAfterLast('.').replaceFirstChar { it.uppercase() } }
+            else RuleBuilder.senderCore(s)
+        uniqueName(base)
+    }
+
+    /** Built-in rules for one bank or app (not the "Any bank" ones), in pack order. */
+    private fun bankRules(): Sequence<Rule> = packs.values.asSequence().flatMap { it.rules }
+        .filter { !it.id.contains(".any.") && !it.name.startsWith("Any ", ignoreCase = true) && it.name != "Bank" }
+
+    /** [base], or "HDFC Bank 2" when one of your rules already has that name. */
+    private suspend fun uniqueName(base: String, except: String? = null): String {
+        val taken = userRules.first().filter { it.id != except }.map { it.name.lowercase() }.toSet()
+        return (sequenceOf(base) + generateSequence(2) { it + 1 }.map { "$base $it" })
+            .first { it.lowercase() !in taken }.take(RULE_NAME_MAX)
+    }
+
+    /**
+     * Rules taught from a sender like "JM-HDFCBK-S" before 0.4.0 matched any sender ending in "S" and
+     * were named "S". Each gets its bank back: from the first message it read, else from its example
+     * message (a built-in rule that reads it, or the bank's name in the text). Run on app start and after a restore.
+     */
+    suspend fun repairShortSenders() = withContext(Dispatchers.IO) {
+        val short = Regex("""\(\?i\)[A-Za-z0-9]\$""")
+        for (e in db.backup().rules()) {
+            if (!e.userMade) continue
+            val rule = runCatching { RuleFiles.decodeRule(e.json) }.getOrNull() ?: continue
+            if (!short.matches(rule.sender)) continue
+            val fixed: Pair<String, String>? = db.captures().firstSenderFor(rule.id)
+                ?.takeIf { RuleBuilder.senderCore(it).length >= 2 }
+                ?.let { sender -> RuleBuilder.senderPattern(sender) to (bankRules().firstOrNull { r -> runCatching { Regex(r.sender).containsMatchIn(sender) }.getOrDefault(false) }?.name ?: RuleBuilder.senderCore(sender)) }
+                ?: rule.example?.let { text ->
+                    val bank = bankRules().firstOrNull { r -> runCatching { Regex(r.pattern).containsMatchIn(text) }.getOrDefault(false) }
+                        ?: bankRules().firstOrNull { r -> text.contains(r.name, ignoreCase = true) }
+                    bank?.let { it.sender to it.name }
+                }
+            fixed ?: continue
+            val name = if (rule.name.length <= 1) uniqueName(fixed.second, except = rule.id) else rule.name
+            db.rules().setJson(rule.id, RuleFiles.encodeRule(rule.copy(sender = fixed.first, name = name, userMade = true)))
+        }
+    }
 
     suspend fun setRuleEnabled(id: String, on: Boolean) = db.rules().setEnabled(id, on)
 
@@ -221,12 +308,14 @@ class CaptureRepository(
         for (c in waiting) {
             val p = engine.parse(c.sender, c.body, rules) { cur -> minorDigits(cur ?: main) } ?: continue
             if (rules.firstOrNull { it.id == p.ruleId }?.userMade == true) db.rules().used(p.ruleId)
-            val type = if (p.direction == Direction.IN) TxnType.INCOME else TxnType.EXPENSE
+            // Taught "Not a payment": the waiting message goes, like one skipped on arrival.
+            if (p.type == app.burrow.money.capture.MoneyType.NOT_PAYMENT) { db.captures().update(c.copy(status = CaptureStatus.IGNORED)); continue }
+            val type = categoryTypeOf(p.type)
             db.captures().update(
                 c.copy(
                     status = CaptureStatus.REVIEW, amount = p.amountMinor, currency = p.currency ?: main, payee = p.payee,
-                    account = p.account, direction = p.direction.name, ruleId = p.ruleId, reference = referenceIn(c.body),
-                    categoryId = suggestions(p.payee, type, c.body).firstOrNull(), name = nameFor(p.payee, c.body),
+                    account = p.account, direction = p.type.stored, ruleId = p.ruleId, reference = referenceIn(c.body),
+                    categoryId = if (type == null) null else suggestions(p.payee, type, c.body).firstOrNull(), name = nameFor(p.payee, c.body),
                 ),
             )
             moved++
@@ -257,3 +346,21 @@ fun upiName(raw: String): String? {
 
 /** Longest rule name kept (it shows as a row title and a header). */
 const val RULE_NAME_MAX = 40
+
+/** How far back a refund looks for the expense it pays back. */
+const val REFUND_WINDOW_MS = 60L * 24 * 3_600_000
+
+/** The transaction a capture of [type] becomes. */
+fun txnTypeOf(type: app.burrow.money.capture.MoneyType): String = when (type) {
+    app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
+    app.burrow.money.capture.MoneyType.REFUND -> TxnType.REFUND
+    app.burrow.money.capture.MoneyType.TRANSFER -> TxnType.TRANSFER
+    else -> TxnType.EXPENSE
+}
+
+/** Which categories a capture of [type] picks from: income ones for income, none for a transfer, else spending. */
+fun categoryTypeOf(type: app.burrow.money.capture.MoneyType): String? = when (type) {
+    app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
+    app.burrow.money.capture.MoneyType.TRANSFER, app.burrow.money.capture.MoneyType.NOT_PAYMENT -> null
+    else -> TxnType.EXPENSE
+}

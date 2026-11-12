@@ -1,10 +1,15 @@
 package app.burrow.money.ui.review
 
+import app.burrow.money.capture.MoneyType
+import app.burrow.money.data.categoryTypeOf
+import app.burrow.money.ui.findActivity
+
 import app.burrow.money.ui.filters.range
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,6 +40,8 @@ import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import app.burrow.money.ui.accounts.staleInvestments
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -43,12 +50,28 @@ import java.time.LocalDate
 class SundayReviewViewModel(private val app: AppContainer) : ViewModel() {
     val state: StateFlow<WeeklySummary?> = app.weeklySummaryFlow().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** Market-value savings last updated 30+ days ago (101: "Update 1 investment"). */
+    val stale: StateFlow<List<app.burrow.money.data.AccountWithBalance>> = app.money.accounts
+        .map { list -> staleInvestments(list) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Update value (212) from Update values (228): the gain over what was put in, dated now. */
+    fun updateValue(a: app.burrow.money.data.AccountWithBalance, value: Long) = viewModelScope.launch {
+        app.money.updateAccount(a.account.copy(marketGain = value - a.balance, valueUpdatedAt = System.currentTimeMillis()))
+    }
+
+    /** The review is finished ("Save N and finish" or "Done"): the calm moment for Play's rating card. */
+    fun finished(activity: android.app.Activity?) {
+        activity ?: return
+        app.appScope.launch { app.maybeAskForReview(activity) }
+    }
+
     /** "Save N and finish": every payment waiting in To review, with its chosen or suggested category. */
     fun saveAll(onDone: (Int, (suspend () -> Unit)?) -> Unit) = viewModelScope.launch {
         val waiting = app.capture.toReview.first()
         val saved = waiting.mapNotNull { c ->
-            val type = if (c.direction == Direction.IN.name) TxnType.INCOME else TxnType.EXPENSE
-            val category = c.categoryId ?: app.capture.suggestions(c.payee, type, c.body).firstOrNull()
+            val type = categoryTypeOf(MoneyType.ofStored(c.direction))
+            val category = c.categoryId ?: type?.let { app.capture.suggestions(c.payee, it, c.body).firstOrNull() }
             app.capture.save(c.id, category)?.let { c.id }
         }
         onDone(saved.size, if (saved.isEmpty()) null else ({ saved.forEach { app.capture.unsave(it) } }))
@@ -68,8 +91,12 @@ fun SundayReviewScreen(
     onBills: () -> Unit,
     onBudget: () -> Unit,
     onCategory: (Long) -> Unit,
+    onAccount: (Long?) -> Unit = {},
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val stale by vm.stale.collectAsStateWithLifecycle()
+    var updating by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    var picked by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<Long?>(null) }
     val s = state ?: return
     val money = LocalMoney.current
     val dates = rememberDateText()
@@ -83,11 +110,12 @@ fun SundayReviewScreen(
                 BurrowButton(pluralStringResource(R.plurals.save_n_and_finish, s.toReview, s.toReview), {
                     vm.saveAll { n, undo ->
                         if (n > 0) snackbar.show(context.resources.getQuantityString(R.plurals.n_payments_saved, n, n), undo)
+                        vm.finished(context.findActivity())
                         onBack()
                     }
                 }, Modifier.fillMaxWidth(), icon = painterResource(R.drawable.ic_check_regular), height = Size.buttonBottom)
             } else {
-                BurrowButton(stringResource(R.string.done), onBack, Modifier.fillMaxWidth(), height = Size.buttonBottom)
+                BurrowButton(stringResource(R.string.done), { vm.finished(context.findActivity()); onBack() }, Modifier.fillMaxWidth(), height = Size.buttonBottom)
             }
         },
     ) {
@@ -135,6 +163,19 @@ fun SundayReviewScreen(
                     onClick = onBudget,
                 )
             }
+            if (stale.isNotEmpty()) add { i, n ->
+                val first = stale.first().account
+                val oldest = first.valueUpdatedAt?.let { dates.shortDay(dates.date(it)) }.orEmpty()
+                ListRow(
+                    pluralStringResource(R.plurals.update_investments, stale.size, stale.size), i, n,
+                    // 227: "Index fund, Gold · oldest from 1 Oct"; one opens its account, two or more the Update values sheet.
+                    supporting = if (stale.size == 1) stringResource(R.string.value_from, first.name, oldest)
+                    else stringResource(R.string.oldest_from, stale.joinToString(", ") { it.account.name }, oldest),
+                    lead = { IconCircle(painterResource(R.drawable.ic_bar_chart_duotone)) },
+                    trailing = { Chevron() },
+                    onClick = { if (stale.size == 1) onAccount(first.id) else updating = true },
+                )
+            }
             add { i, n ->
                 val top = s.topCategory
                 ListRow(
@@ -146,5 +187,12 @@ fun SundayReviewScreen(
             }
         }
         ListGroup(Modifier.padding(top = Space.block)) { rows.forEachIndexed { i, r -> r(i, rows.size) } }
+    }
+    val pick = stale.firstOrNull { it.account.id == picked }
+    when {
+        pick != null -> app.burrow.money.ui.accounts.UpdateValueSheet(
+            pick.account, app.burrow.money.ui.accounts.SavingsInfo(app.burrow.money.data.SavingsMode.ANY, true, pick.worth, pick.balance, null), { picked = null },
+        ) { v -> vm.updateValue(pick, v); picked = null }
+        updating && stale.isNotEmpty() -> app.burrow.money.ui.accounts.UpdateValuesSheet(stale, { picked = it.account.id }, { updating = false })
     }
 }

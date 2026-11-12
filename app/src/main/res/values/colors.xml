@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="page">#FDF9FA</color>
-    <color name="ic_launcher_background">#A3294B</color>
+    <color name="ic_launcher_background">#A3294A</color>
     <!-- Capture notification pills (RemoteViews can't read the Compose theme): Rose tokens from docs/TOKENS.md. -->
     <color name="notification_pill">#E9D3D8</color>
     <color name="notification_pill_text">#381E25</color>

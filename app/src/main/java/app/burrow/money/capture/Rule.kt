@@ -47,6 +47,12 @@ data class Rule(
      * [RuleFiles.export] leaves it out, so shared files never carry message text.
      */
     val example: String? = null,
+    /** The type the user picked in Teach (236); it wins over [direction] and the words. */
+    val type: MoneyType? = null,
+    /** Words this rule adds to the language's list per type ("Add a word", 236). */
+    val typeWords: Map<MoneyType, List<String>> = emptyMap(),
+    /** Built-in words this rule doesn't use (✕ on a pack word, 236): "paid" may mean something else for one bank. */
+    val removedWords: Map<MoneyType, List<String>> = emptyMap(),
 )
 
 /**
@@ -64,4 +70,6 @@ data class Parsed(
     val ruleId: String,
     /** Where each part sits in the message. */
     val spans: Map<Part, IntRange> = emptyMap(),
+    /** Expense, income, refund, transfer or not a payment; [direction] follows from it. */
+    val type: MoneyType = if (direction == Direction.IN) MoneyType.INCOME else MoneyType.EXPENSE,
 )

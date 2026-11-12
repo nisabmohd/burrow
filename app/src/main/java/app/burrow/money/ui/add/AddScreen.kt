@@ -83,9 +83,9 @@ private enum class AddSheet { TYPE, CATEGORY, ACCOUNT, TO_ACCOUNT, DATE, TIME, N
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit, onFavourites: () -> Unit = {}) {
+fun AddScreen(app: AppContainer, vm: AddViewModel, onClose: () -> Unit, onSaved: (Saved) -> Unit, onFavourites: () -> Unit = {}, onSplit: () -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
-    AddContent(state, vm, onClose, onSaved, onFavourites) { s, dismiss -> AttachSheet(app, vm, s, dismiss) }
+    AddContent(state, vm, onClose, onSaved, onFavourites, onSplit) { s, dismiss -> AttachSheet(app, vm, s, dismiss) }
 }
 
 /**
@@ -100,6 +100,8 @@ fun AddContent(
     onClose: () -> Unit,
     onSaved: (Saved) -> Unit,
     onFavourites: () -> Unit = {},
+    /** Editing a split payment: its parts. */
+    onSplit: () -> Unit = {},
     attach: @Composable (AddUiState, onDismiss: () -> Unit) -> Unit,
 ) {
     val s = state ?: return // nothing drawn until the form has loaded
@@ -146,12 +148,12 @@ fun AddContent(
             // Short and wide (landscape phone): the keypad sits beside the form (Day 26).
             if (maxWidth > maxHeight && maxHeight < Size.landscapeMaxHeight) {
                 Row(Modifier.fillMaxSize()) {
-                    Form(s, vm, !imeUp, { sheet = it }, done, onFavourites, Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()))
+                    Form(s, vm, !imeUp, { sheet = it }, done, onFavourites, Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), onSplit)
                     if (!imeUp) keypad(Modifier.width(Size.keypadSide).align(Alignment.CenterVertically))
                 }
             } else {
                 Column(Modifier.fillMaxSize()) {
-                    Form(s, vm, !imeUp, { sheet = it }, done, onFavourites, Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()))
+                    Form(s, vm, !imeUp, { sheet = it }, done, onFavourites, Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), onSplit)
                     if (!imeUp) keypad(Modifier)
                 }
             }
@@ -186,6 +188,7 @@ private fun Form(
     onSaved: (Saved) -> Unit,
     onFavourites: () -> Unit,
     modifier: Modifier,
+    onSplit: () -> Unit = {},
 ) {
     val f = s.form
     val c = MaterialTheme.colorScheme
@@ -215,7 +218,8 @@ private fun Form(
         }
         // While the form is empty (01), one row of pills under the amount: favourites ("₹20 Chai",
         // filled; one tap saves straight away, with Undo), then Recent (the last few different
-        // entries, outlined with their category; one tap fills the form to check and save).
+        // entries; one tap fills the form to check and save). Both look the same, filled with the
+        // amount first and no circle (175, 238: an outlined pill with a circle read as a category chip).
         val favouritesShow = f.type == TxnType.EXPENSE && s.blank && s.favourites.isNotEmpty() && s.shows(FormExtra.FAVOURITE)
         val recent = s.recentChips
         if (favouritesShow || recent.isNotEmpty()) FormChipRow(Modifier.padding(bottom = Space.small)) {
@@ -226,8 +230,7 @@ private fun Form(
             recent.forEach { r ->
                 val cat = s.categories.first { it.id == r.categoryId }
                 FormChip(
-                    money.plain(r.amount), { vm.pickRecent(r, s.accountsForType) },
-                    circle = { CategoryCircle(cat.icon, cat.colorHue, Size.favouriteCircle) },
+                    money.plain(r.amount), { vm.pickRecent(r, s.accountsForType) }, FormChipStyle.FILLED,
                     trailing = r.payee?.ifBlank { null } ?: cat.name,
                 )
             }
@@ -245,8 +248,19 @@ private fun Form(
                     s.suggestions.take(4).forEach { p -> FormChip(p.name, { vm.pickPayee(p) }) }
                 }
             }
+            // A split payment (user, 2026-11-12): its parts decide the categories, so one row opens them
+            // instead of chips that changed the label but not a single total.
+            if (s.splitParts > 0) app.burrow.money.ui.components.ListGroup {
+                app.burrow.money.ui.components.ListRow(
+                    pluralStringResource(R.plurals.split_in_parts, s.splitParts, s.splitParts), 0, 1,
+                    supporting = stringResource(R.string.split_explain_short),
+                    lead = { IconCircle(painterResource(R.drawable.ic_call_split_duotone)) },
+                    trailing = { app.burrow.money.ui.components.Chevron() },
+                    onClick = onSplit,
+                )
+            }
             // Category chips: the 4 most used and More (the category sheet).
-            FormChipRow {
+            else FormChipRow {
                 s.quickCategories.forEach { cat2 ->
                     FormChip(
                         cat2.name, { vm.setCategory(cat2.id) },
