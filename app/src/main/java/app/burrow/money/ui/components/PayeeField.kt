@@ -122,7 +122,7 @@ fun FormChip(
             Modifier.height(Size.chip).clip(Shapes.pill).indication(interaction, androidx.compose.material3.ripple())
                 .then(
                     when (style) {
-                        FormChipStyle.OUTLINED -> Modifier.border(Space.group / 4, c.outline, Shapes.pill)
+                        FormChipStyle.OUTLINED -> Modifier.border(Size.outline, c.outline, Shapes.pill)
                         FormChipStyle.SELECTED -> Modifier.background(c.secondaryContainer)
                         FormChipStyle.TONAL -> Modifier.background(c.surfaceContainer)
                         FormChipStyle.FILLED -> Modifier.background(c.surfaceContainerHigh)
@@ -134,7 +134,8 @@ fun FormChip(
         ) {
             circle?.invoke()
             if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(Size.iconSmall))
-            Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = Size.payeeMaxWidth / 2))
+            // Large text: the chip may take the row's width, so a category's name is never cut ("Food & drin…").
+            Text(label, style = BurrowType.button, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = if (isLargeText()) Size.payeeMaxWidth else Size.payeeMaxWidth / 2))
             if (trailing != null) Text(trailing, style = BurrowType.body, color = c.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
     }

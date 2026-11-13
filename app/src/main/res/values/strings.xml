@@ -1267,8 +1267,8 @@
     </plurals>
     <string name="teach_once_line">Teach once and messages like it are read</string>
     <string name="not_understood_line">These looked like payments, but no rule could read them. Teach one and messages like it are read from then on.</string>
-    <string name="nothing_to_teach">Nothing to teach</string>
-    <string name="nothing_to_teach_line">Messages the app can\'t read show up here.</string>
+    <string name="nothing_to_check">Nothing to check</string>
+    <string name="nothing_to_check_line">Messages Burrow can’t read yet show up here.</string>
     <string name="teach">Teach</string>
     <string name="paused">Paused</string>
     <string name="needs_access">Needs access</string>
@@ -1547,11 +1547,10 @@
     <string name="dynamic_colour_on">On · colours come from your wallpaper</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">Review</string>
-    <string name="review_hint">Tap one to check its message. Swipe right to save, left to ignore.</string>
+    <string name="review_hint">Tap a payment to see its SMS or change it. Swipe right to save, left to ignore.</string>
     <string name="edit_details">Edit details</string>
     <string name="edit_details_line">Amount, payee, account, date</string>
     <string name="tap_it_in_message">Tap it in the message</string>
-    <string name="type_after_account">Filled in after the account</string>
     <string name="type_it_says">%1$s · it says “%2$s”</string>
     <string name="type_sheet_line">What a message like this means</string>
     <string name="words_that_mean">Words that mean %1$s</string>
@@ -1574,4 +1573,52 @@
     <string name="add_category_budget">Add a category budget</string>
     <string name="delete_goal_text_money">%1$s goes back to the accounts it came from.</string>
     <string name="delete_goal_text_empty">Nothing was added to it.</string>
+    <string name="ready_to_save">Ready to save</string>
+    <string name="review_seen_before">Seen before</string>
+    <string name="pick_a_category_header">Pick a category</string>
+    <string name="review_new">New to Burrow</string>
+    <string name="review_not_sure">Burrow isn’t sure · what was it for?</string>
+    <string name="pick_categories_first">Pick categories first</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">Save %d ready</item>
+        <item quantity="other">Save %d ready</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">%d message to check</item>
+        <item quantity="other">%d messages to check</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow couldn’t read this. Check it once and messages like it are read after that.</item>
+        <item quantity="other">Burrow couldn’t read these. Check each one once and messages like them are read after that.</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">Check it</item>
+        <item quantity="other">Check them one by one</item>
+    </plurals>
+    <string name="check_a_message">Check a message</string>
+    <string name="n_of_m">%1$d of %2$d</string>
+    <string name="burrow_read_it_as">Burrow read it as</string>
+    <string name="from_your_sms">From your SMS</string>
+    <string name="is_this_right">Is this right?</string>
+    <string name="no_fix_it">No, fix it</string>
+    <string name="yes_save">Yes, save</string>
+    <string name="whats_wrong">What’s wrong?</string>
+    <string name="tap_part_to_fix">Tap the part to fix.</string>
+    <string name="tap_right_amount">Tap the right amount</string>
+    <string name="tap_right_name">Tap the right name</string>
+    <string name="tap_right_account">Tap the right account</string>
+    <string name="ringed_line">The ringed parts of the message are what it could be.</string>
+    <string name="type_unknown">Type unknown</string>
+    <string name="to_name">to %1$s</string>
+    <string name="from_name">from %1$s</string>
+    <string name="did_money_go">Did money go out or in?</string>
+    <string name="message_doesnt_say">The message doesn’t say.</string>
+    <string name="saved_read_from_now">Saved · messages like this are read from now on</string>
+    <string name="all_checked">All checked</string>
+    <string name="all_checked_line">Messages like these are read by themselves from now on.</string>
+    <string name="back_to_review">Back to Review</string>
+    <string name="not_set">Not set</string>
+    <string name="pick_type_first">Pick Expense, Income, Refund or Transfer first</string>
+    <string name="missed_hint">Burrow hasn’t seen these kinds of messages. Check one once and the rest like it are read for you.</string>
+    <string name="read_marked_right">Burrow read the marked parts. Right?</string>
 </resources>

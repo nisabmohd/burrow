@@ -4,6 +4,11 @@
 Chosen over Hugeicons; outline only, no duotone, so every icon looks the same (user, 2026-10-31). CC BY needs credit: the licence text with the credit line is
 `res/raw/licence_solar_cc_by.txt`, shown in About › Licences as "Solar icons by 480 Design". Keep that row.
 
+**Source of truth since 12 Nov: the design's own paths, `design/icons/solar-icons.json`** (from `burrow-design-final-1112.zip`).
+`python3 tools/solar_icon.py --kit design/icons/solar-icons.json` rewrites every drawable it covers; the bare ✕ + ✓ − are the
+inner glyphs of Solar's circle icons, as the design draws them. Icons only the app uses (category icons) still come from the
+npm package below.
+
 Every icon is a vector drawable in `app/src/main/res/drawable/`, named by meaning: `ic_<meaning>_<weight>.xml`
 with weights `regular`, `fill`, `duotone`. The app uses **one style**, Linear (1.5 strokes, round caps, viewport 24),
 so the three files are the same outline icon. The weight names stay so screens pick a weight by role; the selected
@@ -38,9 +43,9 @@ Solar has no rupee or pound glyph: those use banknotes.
 ## Names (meaning → Solar)
 | Meaning | Solar |
 |---|---|
-| `account_balance` | safe-square |
+| `account_balance` | buildings-2 |
 | `account_balance_wallet` | wallet |
-| `add` | add |
+| `add` | (glyph from add-circle) |
 | `alarm` | alarm |
 | `apartment` | buildings |
 | `arrow_back` | arrow-left |
@@ -48,7 +53,7 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `arrow_drop_down` | alt-arrow-down |
 | `arrow_forward` | arrow-right |
 | `arrow_upward` | arrow-up |
-| `arrow_upward_alt` | arrow-up |
+| `arrow_upward_alt` | arrow-right-up |
 | `attach_file` | paperclip |
 | `attach_money` | dollar |
 | `autorenew` | refresh |
@@ -65,16 +70,16 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `calendar_month` | calendar |
 | `calendar_view_day` | calendar-minimalistic |
 | `calendar_view_month` | calendar-date |
-| `call_split` | branching-paths-down |
+| `call_split` | routing-2 |
 | `category` | widget |
 | `celebration` | confetti |
-| `check` | check |
+| `check` | (glyph from check-circle) |
 | `check_circle` | check-circle |
 | `checkroom` | t-shirt |
 | `chevron_left` | alt-arrow-left |
 | `chevron_right` | alt-arrow-right |
-| `child_care` | balloon |
-| `close` | close |
+| `child_care` | smile-circle |
+| `close` | (glyph from close-circle) |
 | `cloud` | cloud |
 | `cloud_done` | cloud-check |
 | `cloud_upload` | cloud-upload |
@@ -84,55 +89,55 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `code` | code |
 | `coffee` | cup-hot |
 | `content_copy` | copy |
-| `content_paste` | clipboard-text |
+| `content_paste` | clipboard |
 | `cooking_gas` | fire |
 | `credit_card` | card |
-| `currency_exchange` | round-transfer-horizontal |
-| `currency_pound` | banknote-2 |
-| `currency_rupee` | banknote |
+| `currency_exchange` | transfer-horizontal |
+| `currency_pound` | dollar |
+| `currency_rupee` | dollar |
 | `dark_mode` | moon |
 | `dashboard_customize` | widget-add |
-| `date` | calendar-minimalistic |
-| `date_range` | calendar-date |
+| `date` | calendar-date |
+| `date_range` | calendar-mark |
 | `delete` | trash-bin-minimalistic |
 | `delete_forever` | trash-bin-trash |
 | `delivery` | delivery |
 | `description` | document-text |
-| `directions_car` | car |
+| `directions_car` | bus |
 | `doctor` | stethoscope |
-| `donut_large` | pie-chart-3 |
+| `donut_large` | pie-chart-2 |
 | `download` | download-minimalistic |
-| `drag_indicator` | the ⠿ six-dot grip, drawn in the repo (Solar has no grip; its "reorder" lines read as a menu) |
-| `edit` | pen-2 |
+| `drag_indicator` | hamburger-menu |
+| `edit` | pen |
 | `edit_note` | pen-new-square |
 | `envelope` | letter |
 | `error` | danger-circle |
 | `euro` | euro |
-| `event` | calendar-mark |
-| `event_available` | calendar-mark |
-| `event_busy` | calendar |
+| `event` | calendar |
+| `event_available` | calendar-add |
+| `event_busy` | calendar-minimalistic |
 | `event_repeat` | repeat |
-| `event_upcoming` | calendar-date |
+| `event_upcoming` | calendar-search |
 | `expand_less` | alt-arrow-up |
 | `expand_more` | alt-arrow-down |
 | `export` | export |
 | `fastfood` | donut-bitten |
 | `favorite` | heart |
 | `filter_alt_off` | filter |
-| `filter_list` | filter |
+| `filter_list` | sort |
 | `fingerprint` | shield-keyhole |
-| `fitness_center` | dumbbell-large-minimalistic |
+| `fitness_center` | dumbbell-large |
 | `flag` | flag |
-| `flight` | plane |
+| `flight` | suitcase-tag |
 | `folder` | folder |
 | `format_list_bulleted` | list |
 | `gadgets` | headphones-round |
 | `games` | gamepad |
 | `gold` | medal-ribbons-star |
-| `grid_view` | widget |
+| `grid_view` | widget-2 |
 | `group` | users-group-rounded |
 | `hand_tap` | cursor |
-| `handshake` | hand-shake |
+| `handshake` | hand-money |
 | `help` | question-circle |
 | `history` | history |
 | `home` | home-2 |
@@ -142,7 +147,7 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `image` | gallery |
 | `import` | import |
 | `info` | info-circle |
-| `insights` | chart-square |
+| `insights` | graph-up |
 | `insurance` | umbrella |
 | `investment` | graph-new-up |
 | `ios_share` | share |
@@ -154,73 +159,73 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `loan_emi` | hand-money |
 | `local_bar` | wineglass |
 | `local_gas_station` | gas-station |
-| `local_mall` | bag |
+| `local_mall` | bag-4 |
 | `lock` | lock-keyhole |
 | `medicine` | pill |
 | `more_horiz` | menu-dots |
 | `movie` | clapperboard-play |
 | `notes` | notes |
 | `notifications` | bell |
-| `notifications_active` | bell-ring |
+| `notifications_active` | bell-bing |
 | `notifications_off` | bell-off |
-| `notifications_paused` | alarm-sleep |
+| `notifications_paused` | bell-off |
 | `palette` | palette |
 | `pause` | pause |
 | `pause_circle` | pause-circle |
 | `pause_circle_filled` | pause-circle |
-| `payments` | wallet-money |
+| `payments` | banknote-2 |
 | `percent` | sale |
-| `person` | user |
+| `person` | user-rounded |
 | `pets` | paw |
 | `photo_camera` | camera |
 | `pie` | pie-chart-2 |
 | `pie_chart` | pie-chart-2 |
-| `pin` | password |
+| `pin` | pin |
 | `plants` | leaf |
 | `play_arrow` | play |
 | `public` | global |
-| `real_estate_agent` | home-angle |
+| `real_estate_agent` | home-smile |
 | `receipt_long` | bill-list |
 | `redeem` | gift |
-| `redeem2` | ticket-sale |
-| `redo` | undo-right |
-| `refund` | undo-left-round |
-| `remove` | minus |
+| `redeem2` | gift |
+| `redo` | restart |
+| `refund` | card-recive |
+| `remove` | (glyph from minus-circle) |
 | `repairs` | sledgehammer |
-| `restaurant` | chef-hat-minimalistic |
-| `rule` | checklist |
+| `restaurant` | chef-hat |
+| `rule` | checklist-minimalistic |
 | `salon` | scissors |
-| `savings` | money-bag |
+| `savings` | safe-2 |
 | `scales` | scale |
 | `schedule` | clock-circle |
 | `school` | square-academic-cap |
 | `science` | test-tube |
-| `search` | magnifier |
-| `search_off` | magnifier-slash |
+| `search` | magnifer |
+| `search_off` | magnifer-bug |
 | `settings_backup_restore` | restart |
 | `shield` | shield |
 | `shield_check` | shield-check |
 | `shoes` | running-2 |
 | `shopping_cart` | cart-large-2 |
-| `signal_cellular_4_bar` | sim-card |
+| `signal_cellular_4_bar` | chart |
 | `smartphone` | smartphone |
 | `sms` | chat-round-dots |
-| `spa` | meditation-round |
+| `spa` | leaf |
 | `star` | star |
 | `storefront` | shop |
 | `summarize` | clipboard-list |
 | `swap_horiz` | transfer-horizontal |
 | `swap_vert` | transfer-vertical |
-| `table` | table |
-| `table_view` | table |
-| `tag` | tag-horizontal |
+| `table` | document-text |
+| `table_view` | document-text |
+| `tag` | hashtag |
 | `task_alt` | check-circle |
 | `tax` | calculator |
 | `taxi` | streets-navigation |
-| `text_fields` | text-field |
+| `text_fields` | text |
 | `tickets` | ticket |
 | `timer` | stopwatch |
-| `today` | calendar |
+| `today` | calendar-mark |
 | `toys` | balls |
 | `train` | tram |
 | `translate` | translation |
@@ -231,15 +236,15 @@ Solar has no rupee or pound glyph: those use banknotes.
 | `tv` | tv |
 | `two_wheeler` | scooter |
 | `undo` | undo-left |
-| `upload_file` | upload |
+| `upload_file` | file-send |
 | `vegetables` | cart-large-4 |
 | `visibility_off` | eye-closed |
 | `volunteer_activism` | hand-heart |
 | `wallet` | wallet |
-| `wallpaper` | wallpaper |
+| `wallpaper` | gallery-wide |
 | `water` | waterdrop |
-| `wifi` | wi-fi-router-round |
-| `wifi_off` | wi-fi-router-minimalistic |
+| `wifi` | wi-fi-router |
+| `wifi_off` | wi-fi-router |
 
 `ic_shortcut_*`: layer-list, a white glyph on the rose circle (app shortcuts; launchers draw them as they are).
 `ic_notification`, `ic_launcher_*`, `ic_mid_apps`: the Burrow and mid apps marks, not icons from the set.

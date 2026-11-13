@@ -63,6 +63,7 @@ import app.burrow.money.ui.pickers.CategoryCircle
 import app.burrow.money.ui.pickers.DateSheet
 import app.burrow.money.ui.pickers.accountTypeLabel
 import app.burrow.money.ui.plan.DetailFrame
+import app.burrow.money.ui.plan.LazyDetailFrame
 import app.burrow.money.ui.plan.digitsUnit
 import app.burrow.money.ui.rememberDateText
 import app.burrow.money.ui.theme.Size
@@ -267,9 +268,11 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
     val a = s.account
     // Nothing under the header until its numbers are in (no "₹0" flash).
     if (a.type == AccountType.SAVINGS && sv == null) return
-    DetailFrame(onBack, actions = {
+    val today = LocalDate.now()
+    LazyDetailFrame(onBack, actions = {
         TonalIconButton(painterResource(R.drawable.ic_edit_regular), stringResource(R.string.edit), { onEdit(a.id) })
     }) {
+      item(key = "top", contentType = "top") { Column {
         val icon: @Composable () -> Unit = { CategoryCircle(a.icon, a.colorHue, Size.iconCircleBig) }
         val netWorth: @Composable (Int, Int) -> Unit = { i, n ->
             ListRow(
@@ -382,15 +385,16 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
         }
         // Savings keep it in their one list (202); every other kind has it on its own.
         if (sv == null) ListGroup(Modifier.padding(top = Space.block)) { netWorth(0, 1) }
-        if (a.type != AccountType.SAVINGS) {
-            val today = LocalDate.now()
-            if (s.txns.isEmpty()) app.burrow.money.ui.components.EmptyState(
-                shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(a.icon)), a.colorHue) },
-                title = stringResource(R.string.no_payments_yet),
-                line = stringResource(R.string.account_empty_line, a.name),
-            )
-            s.txns.groupBy { dates.date(it.txn.at) }.entries.take(30).forEach { (day, list) ->
-                SectionHeader(dates.day(day, today))
+        if (a.type != AccountType.SAVINGS && s.txns.isEmpty()) app.burrow.money.ui.components.EmptyState(
+            shape = { app.burrow.money.ui.components.Ghost(painterResource(app.burrow.money.ui.components.duotoneIcon(a.icon)), a.colorHue) },
+            title = stringResource(R.string.no_payments_yet),
+            line = stringResource(R.string.account_empty_line, a.name),
+        )
+      } }
+        // The history: one header and one group per day, composed only when on screen.
+        if (a.type != AccountType.SAVINGS) s.days.forEach { (day, list) ->
+            item(key = "day-$day", contentType = "header") { SectionHeader(dates.day(day, today)) }
+            item(key = "group-$day", contentType = "group") {
                 ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }
             }
         }

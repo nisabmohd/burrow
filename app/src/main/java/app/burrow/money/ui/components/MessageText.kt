@@ -41,16 +41,37 @@ enum class MarkStyle { STRONG, SOFT, RING }
 data class Mark(val range: IntRange, val style: MarkStyle)
 
 /**
- * A bank message with pill highlights behind the parts a rule read (Review, Rule, Teach).
+ * A bank message with highlights behind the parts a rule read (Review, Rule, Teach): soft 6 dp-cornered marks a step
+ * shorter than the line, so rows of marks never touch (the design's <mark>, 44 / 52); a marked word's text turns dark
+ * (onPrimaryContainer / onSecondaryContainer); a ringed choice (Fix it, 239) stays a pill outline.
  * With [onTap], tapping reports the character offset that was tapped (Teach).
  */
 @Composable
-fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
+fun MessageText(
+    text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null,
+    /** A CheckCard shows two lines until tapped (44, 243): the rest ends in "…" and its marks aren't drawn. */
+    maxLines: Int = Int.MAX_VALUE,
+) {
     val c = MaterialTheme.colorScheme
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    // One look for every bank message, wherever it shows (transaction, Review cards and sheets, Check a message, rules;
+    // user, 12 Nov): bodyLarge in the text colour. No per-screen size or colour.
+    val style = BurrowType.bodyLarge
+    val annotated = remember(text, marks, c) {
+        androidx.compose.ui.text.buildAnnotatedString {
+            append(text)
+            marks.forEach { m ->
+                if (m.range.isEmpty() || m.range.last >= text.length) return@forEach
+                val fg = when (m.style) { MarkStyle.STRONG -> c.onPrimaryContainer; MarkStyle.SOFT -> c.onSecondaryContainer; MarkStyle.RING -> null }
+                if (fg != null) addStyle(androidx.compose.ui.text.SpanStyle(color = fg), m.range.first, m.range.last + 1)
+            }
+        }
+    }
     Text(
-        text,
-        style = BurrowType.bodyLarge,
+        annotated,
+        style = style,
+        maxLines = maxLines,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         color = c.onSurface,
         onTextLayout = { layout = it },
         modifier = modifier
@@ -62,8 +83,14 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
             .drawBehind {
                 val l = layout ?: return@drawBehind
                 val padX = app.burrow.money.ui.theme.Size.markPad.toPx()
-                marks.forEach { m ->
-                    if (m.range.isEmpty() || m.range.last >= text.length) return@forEach
+                // The design's mark is about 1.3 × the font size tall (18 on 14 / 22), centred on its line.
+                val markH = style.fontSize.toPx() * MARK_HEIGHT
+                val corner = app.burrow.money.ui.theme.Size.markCorner.toPx()
+                // With a line limit, only what is on screen is marked (the rest is cut at "…").
+                val shownEnd = if (l.lineCount == 0) 0 else l.getLineEnd(l.lineCount - 1, visibleEnd = true)
+                marks.forEach { mark ->
+                    if (mark.range.isEmpty() || mark.range.last >= text.length || mark.range.first >= shownEnd) return@forEach
+                    val m = if (mark.range.last < shownEnd) mark else mark.copy(range = mark.range.first..(shownEnd - 1))
                     val first = l.getLineForOffset(m.range.first)
                     val last = l.getLineForOffset(m.range.last)
                     for (line in first..last) {
@@ -71,13 +98,14 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
                         val end = if (line == last) m.range.last + 1 else l.getLineEnd(line, visibleEnd = true)
                         val left = l.getHorizontalPosition(start, true) - padX
                         val right = l.getHorizontalPosition(end, true) + padX
-                        val top = l.getLineTop(line)
-                        val h = l.getLineBottom(line) - top
-                        val r = CornerRadius(h / 2, h / 2)
+                        val lineTop = l.getLineTop(line)
+                        val lineH = l.getLineBottom(line) - lineTop
+                        val h = minOf(markH, lineH)
+                        val top = lineTop + (lineH - h) / 2
                         when (m.style) {
-                            MarkStyle.STRONG -> drawRoundRect(c.primaryContainer, Offset(left, top), GSize(right - left, h), r)
-                            MarkStyle.SOFT -> drawRoundRect(c.secondaryContainer, Offset(left, top), GSize(right - left, h), r)
-                            MarkStyle.RING -> drawRoundRect(c.primary, Offset(left, top), GSize(right - left, h), r, style = Stroke(app.burrow.money.ui.theme.Size.markRing.toPx()))
+                            MarkStyle.STRONG -> drawRoundRect(c.primaryContainer, Offset(left, top), GSize(right - left, h), CornerRadius(corner, corner))
+                            MarkStyle.SOFT -> drawRoundRect(c.secondaryContainer, Offset(left, top), GSize(right - left, h), CornerRadius(corner, corner))
+                            MarkStyle.RING -> drawRoundRect(c.primary, Offset(left, top), GSize(right - left, h), CornerRadius(h / 2, h / 2), style = Stroke(app.burrow.money.ui.theme.Size.markRing.toPx()))
                         }
                     }
                 }
@@ -85,14 +113,22 @@ fun MessageText(text: String, marks: List<Mark>, modifier: Modifier = Modifier, 
     )
 }
 
+private const val MARK_HEIGHT = 1.3f
+
 /**
  * The grey box a message sits in: a small header (sms icon, sender or bank, time) and the text.
+ * The text is the one [MessageText] look everywhere.
  */
 @Composable
-fun MessageBox(header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null) {
+fun MessageBox(
+    header: String?, text: String, marks: List<Mark>, modifier: Modifier = Modifier, onTap: ((Int) -> Unit)? = null,
+    /** Inside a CheckCard (44, 116): the page's colour and a 16 dp corner, to stand off the card. The text never changes. */
+    inCard: Boolean = false,
+) {
     val c = MaterialTheme.colorScheme
     Column(
-        modifier.fillMaxWidth().clip(Shapes.surface).background(c.surfaceContainer).padding(horizontal = Space.card, vertical = Space.block),
+        modifier.fillMaxWidth().clip(if (inCard) Shapes.inset else Shapes.surface).background(if (inCard) c.background else c.surfaceContainer)
+            .padding(horizontal = if (inCard) Space.insetH else Space.card, vertical = if (inCard) Space.insetV else Space.block),
         verticalArrangement = Arrangement.spacedBy(Space.group),
     ) {
         // No header when the card above already says who sent it (Not understood, 116).

@@ -21,8 +21,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -39,6 +41,10 @@ const val MAX_DIGITS = 6
 private val zone = ZoneId.systemDefault()
 internal fun Long.day(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 private fun LocalDate.millis(): Long = atStartOfDay(zone).toInstant().toEpochMilli()
+
+/** An account page shows its last 30 days with payments (unchanged), read from at most 1,000 of its own rows. */
+internal const val ACCOUNT_DAYS = 30
+internal const val ACCOUNT_ROWS = 1_000
 
 /** One whole unit of [currency] in minor units (₹1 = 100). */
 internal fun unit(currency: String): Long {
@@ -142,6 +148,8 @@ data class AccountState(
     val account: AccountEntity,
     val balance: Long,
     val txns: List<TxnView>,
+    /** The page's history: its last [ACCOUNT_DAYS] days with payments, newest first. */
+    val days: List<Pair<LocalDate, List<TxnView>>> = emptyList(),
     val others: List<AccountWithBalance>,
     val card: CardInfo?,
     val loan: LoanInfo?,
@@ -163,29 +171,40 @@ class AccountViewModel(
 
     private val monthStart = YearMonth.from(today).atDay(1).millis()
 
-    val state: StateFlow<AccountState?> = combine(money.accounts, money.latest(400), money.cards, money.cardCounts(monthStart)) { accs, txns, cards, counts ->
+    /** A card's last statement day (null: none set, or not a card). */
+    private fun statementDate(a: AccountEntity): LocalDate? = a.statementDay?.takeIf { a.type == AccountType.CARD }?.let { d ->
+        val here = YearMonth.from(today).atDay(d.coerceAtMost(YearMonth.from(today).lengthOfMonth()))
+        if (here.isAfter(today)) here.minusMonths(1) else here
+    }
+
+    /** "₹X since statement", summed in SQL over every row since that day, not a page of rows. */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val sinceStatement = money.accounts.map { l -> l.firstOrNull { it.account.id == id }?.account?.let(::statementDate) }
+        .distinctUntilChanged()
+        .flatMapLatest { s -> if (s == null) kotlinx.coroutines.flow.flowOf(0L) else money.expenseSince(id, s.millis()) }
+
+    val state: StateFlow<AccountState?> = combine(
+        money.accounts, money.forAccount(id, ACCOUNT_ROWS), sinceStatement, money.cards, money.cardCounts(monthStart),
+    ) { accs, mine, since, cards, counts ->
         val me = accs.firstOrNull { it.account.id == id } ?: return@combine null
         val a = me.account
-        val mine = txns.filter { it.txn.accountId == id || it.txn.toAccountId == id }
         AccountState(
             account = a,
             balance = me.balance,
             txns = mine,
+            days = mine.groupBy { it.txn.at.day() }.entries.take(ACCOUNT_DAYS).map { it.key to it.value },
             others = accs.filter { it.account.id != id },
-            card = if (a.type == AccountType.CARD) card(a, me.balance, mine, accs) else null,
+            card = if (a.type == AccountType.CARD) card(a, me.balance, since, accs) else null,
             loan = if (a.type == AccountType.LOAN) loan(a, me.balance) else null,
             cards = cards.filter { it.accountId == id },
             cardCounts = counts,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    }.flowOn(kotlinx.coroutines.Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private fun card(a: AccountEntity, balance: Long, txns: List<TxnView>, accs: List<AccountWithBalance>): CardInfo {
-        val statement = a.statementDay?.let { d ->
-            val here = YearMonth.from(today).atDay(d.coerceAtMost(YearMonth.from(today).lengthOfMonth()))
-            if (here.isAfter(today)) here.minusMonths(1) else here
-        }
+    private fun card(a: AccountEntity, balance: Long, sinceStatement: Long, accs: List<AccountWithBalance>): CardInfo {
+        val statement = statementDate(a)
         val due = a.dueDay?.let { app.burrow.money.domain.Repeat.Monthly(it).nextOnOrAfter(today) }
-        val since = statement?.let { s -> txns.filter { it.txn.accountId == a.id && it.txn.type == TxnType.EXPENSE && !it.txn.at.day().isBefore(s) }.sumOf { it.txn.amount } } ?: 0
+        val since = if (statement != null) sinceStatement else 0
         // One credit line: the limit is the line's first card's, and every card on it uses it up.
         val line = creditLine(a.id, accs.map { it.account })
         val owner = accs.firstOrNull { it.account.id == line }?.account ?: a

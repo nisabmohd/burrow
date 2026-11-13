@@ -224,4 +224,147 @@ class ProjectRulesTest {
         }
         assertNone("unescaped ' (aapt drops the text after it)", bad)
     }
+
+    // --- Long data (docs/PERFORMANCE.md): years of payments over many accounts and cards stay fast. ---
+
+    /** Only the CSV export reads every row; screens read the days they show (a quiet card lost its history, 0.4.1). */
+    @Test fun noScreenReadsAllHistory() = assertNone("whole-history read outside the CSV export: read a range (between) or one account (forAccount)",
+        violations { f, _, l ->
+            !l.trim().startsWith("//") && !l.trim().startsWith("*") && (
+                (Regex("""\.everything\(\)""").containsMatchIn(l) && f.name != "CsvTransfer.kt") ||
+                    (Regex("""latest\(\s*(Int\.MAX_VALUE)?\s*\)""").containsMatchIn(l) && f.name != "MoneyRepository.kt") ||
+                    Regex("""\bnext\.stats\b""").containsMatchIn(l)
+                )
+        })
+
+    /** Every query that lists transactions with names is bounded: a WHERE (range, account, status) or a LIMIT. */
+    @Test fun transactionListQueriesAreBounded() {
+        val daos = File(main, "java/app/burrow/money/data/Daos.kt").readText()
+        val found = Regex("""@Query\(\s*\"\"\"(.*?)\"\"\",?\s*\)\s*fun (\w+)\([^)]*\):\s*Flow<List<TxnView>>""", RegexOption.DOT_MATCHES_ALL)
+            .findAll(daos).filter { m -> m.groupValues[1].let { "WHERE" !in it && "LIMIT" !in it } }.map { it.groupValues[2] }.toList()
+        assertNone("Flow<List<TxnView>> query with neither WHERE nor LIMIT", found)
+    }
+
+    /** A transaction row is drawn inside a lazy list item (Activity, accounts, budgets, category insights, Today). */
+    @Test fun transactionRowsAreInLazyLists() {
+        val found = kotlin.filter { it.name != "TxnRow.kt" }.flatMap { f ->
+            val lines = f.readLines()
+            lines.indices.filter { "TxnRow(" in lines[it] && !lines[it].trim().startsWith("//") }.mapNotNull { i ->
+                val before = (maxOf(0, i - 16)..i).joinToString("\n") { lines[it] }
+                if (Regex("""\b(item|items|itemsIndexed)\(""").containsMatchIn(before)) null else "${rel(f)}:${i + 1}: ${lines[i].trim().take(110)}"
+            }
+        }
+        assertNone("TxnRow outside a LazyColumn item: use LazyDetailFrame / LazyColumn with keys", found)
+    }
+
+    /** Lazy items have stable keys, so rows keep their state and skip when the list changes. */
+    @Test fun lazyItemsHaveKeys() = assertNone("item/items/itemsIndexed over data without key = (TimeWheel, tabs and static text lists excepted)",
+        violations { f, _, l ->
+            f.name !in setOf("TimeWheel.kt", "Controls.kt", "SettingsScreens.kt") && !l.trim().startsWith("//") &&
+                Regex("""\b(itemsIndexed|items)\(""").containsMatchIn(l) && "key" !in l
+        })
+
+    // --- UI consistency (user, 12 Nov: "minor things make a lot of difference"; Weft's constants approach). ---
+
+    private fun code(l: String) = l.substringBefore("//").takeIf { !l.trim().startsWith("*") } ?: ""
+    private fun inTheme(f: File) = f.path.replace('\\', '/').contains("/ui/theme/")
+    private fun inComponents(f: File) = f.path.replace('\\', '/').contains("/ui/components/")
+
+    /** One strength per meaning: see-through colours are `Alpha.*` in Color.kt, never a number on a screen. */
+    @Test fun alphasOnlyInColorKt() = assertNone("raw alpha: add or use a token in Alpha (Color.kt)",
+        violations { f, _, l -> !inTheme(f) && Regex("""alpha\s*=\s*\d*\.\d|\.alpha\(\s*\d*\.\d""").containsMatchIn(code(l)) })
+
+    /** Colours come from the scheme by role; Color.Gray and friends ignore the accent and dark mode. */
+    @Test fun noNamedColours() = assertNone("named colour (Color.Gray, Color.Black…): use a colour role or a Color.kt token",
+        violations { f, _, l -> !inTheme(f) && Regex("""\bColor\.(Black|White|Gray|Grey|DarkGray|LightGray|Red|Green|Blue|Yellow|Cyan|Magenta)\b""").containsMatchIn(code(l)) })
+
+    /** The one-shape rule: shapes are `Shapes.*` (24 dp surfaces, pills, the logo tile, the ghost). */
+    @Test fun shapesOnlyInDimensKt() = assertNone("RoundedCornerShape / CutCornerShape outside Dimens.kt: use Shapes.*",
+        violations { f, _, l -> !inTheme(f) && Regex("""\b(RoundedCornerShape|CutCornerShape|AbsoluteRoundedCornerShape)\(""").containsMatchIn(code(l)) })
+
+    /** Outlines are one of four widths, by name: an outlined chip, a ring, a focus ring, the ghost's hairline. */
+    @Test fun borderWidthsAreNamed() = assertNone(".border( width that isn't Size.outline / ring / focusRing / ghostHairline",
+        violations { f, _, l ->
+            !inTheme(f) && Regex("""\.border\(\s*(?!Size\.(outline|ring|focusRing|ghostHairline)\b)[^)]""").containsMatchIn(code(l))
+        })
+
+    /**
+     * Space.* is a gap, Size.* is a size: a spacing token never sizes a box or draws a border, and screens don't do
+     * sums on tokens (`Space.sheet * 2`): a gap the design needs gets its own name. Components may measure (layout maths).
+     */
+    @Test fun spacingTokensAreGapsNotSizes() = assertNone("spacing token used as a size, or token arithmetic on a screen: add a named token",
+        violations { f, _, l ->
+            val c = code(l)
+            !inTheme(f) && (
+                Regex("""\.(size|width|height|requiredSize|border)\(\s*Space\.""").containsMatchIn(c) && !Regex("""Spacer\(Modifier\.(height|width|size)\(Space\.\w+\)\)""").containsMatchIn(c) ||
+                    !inComponents(f) && Regex("""(Spacer|padding|size|height|width|spacedBy)\([^)]*\b(Space|Size)\.\w+\s*[-+*/]\s*[\w.]""").containsMatchIn(c)
+                )
+        })
+
+    /** Screens build from the shared components only: Material widgets are wrapped once in ui/components. */
+    @Test fun materialWidgetsOnlyInComponents() = assertNone("Material widget on a screen: use the Burrow component (BurrowButton, Chip, BurrowSwitch, BurrowSheet…)",
+        violations { f, _, l ->
+            !inComponents(f) && !inTheme(f) &&
+                Regex("""(?<![\w.])(Button|OutlinedButton|TextButton|FilledTonalButton|ElevatedButton|IconButton|FilledIconButton|FilterChip|AssistChip|SuggestionChip|InputChip|Switch|Checkbox|RadioButton|Slider|Card|ElevatedCard|OutlinedCard|AlertDialog|ModalBottomSheet|HorizontalDivider|Divider|NavigationBar|TopAppBar|CenterAlignedTopAppBar)\(""").containsMatchIn(code(l))
+        })
+
+    /** Every Text names its style (BurrowType); the Material default would bring another size and weight. */
+    @Test fun everyTextHasAStyle() {
+        val found = kotlin.flatMap { f ->
+            val t = f.readText()
+            Regex("""(?<![\w.])Text\(""").findAll(t).mapNotNull { m ->
+                var i = m.range.last + 1; var depth = 1
+                while (i < t.length && depth > 0) { if (t[i] == '(') depth++ else if (t[i] == ')') depth--; i++ }
+                val call = t.substring(m.range.first, i)
+                if ("style" in call) null else "${rel(f)}:${t.substring(0, m.range.first).count { it == '\n' } + 1}: ${call.take(90)}"
+            }.toList()
+        }
+        assertNone("Text( without style =", found)
+    }
+
+    /**
+     * The one alignment rule (TOKENS): heading text (section labels, field labels; `button`, `label` or `titleSmall`
+     * on its own line) starts 24 dp from the edge, i.e. `Space.headingInset` inside the 16 dp content. A heading
+     * indented by any other step drifts off that line (the Filter sheet's labels sat at 20, 12 Nov).
+     */
+    @Test fun headingsStartAtTheHeadingInset() = assertNone("heading Text indented by something other than Space.headingInset",
+        violations { f, _, l ->
+            val c = code(l)
+            !inTheme(f) && Regex("""private fun \w*(Label|Header|Heading)\w*\(""").containsMatchIn(c) &&
+                Regex("""padding\(start = Space\.(?!headingInset)\w+""").containsMatchIn(c)
+        })
+
+    /**
+     * DESIGN rule 4: no buttons inside cards; tap the row or card to open it. A composable named …Card, …Row or …Tile
+     * never draws a button of its own. The one exception: [BUTTON_CARDS] (Review's CheckCard, approved in the list;
+     * user, 12 Nov: "follow the design PNG").
+     */
+    @Test fun noButtonsInsideCards() {
+        val button = Regex("""(?<![\w.])(BurrowButton|TextButton|LinkButton|TonalIconButton)\(""")
+        val found = kotlin.flatMap { f ->
+            val t = f.readText()
+            Regex("""fun (\w*(Card|Row|Tile))\(""").findAll(t).filter { it.groupValues[1] !in BUTTON_CARDS }.mapNotNull { m ->
+                val open = t.indexOf('{', m.range.last).takeIf { it >= 0 } ?: return@mapNotNull null
+                var i = open + 1; var depth = 1
+                while (i < t.length && depth > 0) { if (t[i] == '{') depth++ else if (t[i] == '}') depth--; i++ }
+                val body = t.substring(open, i)
+                if (button.containsMatchIn(body)) "${rel(f)}: ${m.groupValues[1]} draws a button" else null
+            }.toList()
+        }
+        assertNone("button inside a card / row / tile (DESIGN rule 4)", found)
+    }
+
+    /**
+     * One look for a bank message everywhere (user, 12 Nov, the third ask): its text goes through MessageText (or
+     * MessageBox / CheckCard, which use it), never a Text of its own, so a transaction, a Review card and a sheet match.
+     */
+    @Test fun bankMessagesUseOneComponent() = assertNone("a bank message drawn with its own Text: use MessageText / MessageBox",
+        violations { f, _, l ->
+            f.name != "MessageText.kt" && Regex("""(Text\([^)]*|supporting\s*=\s*)\b[a-z]\w*\.body\b""").containsMatchIn(code(l))
+        })
+
+    private companion object {
+        /** Cards allowed to hold buttons (DESIGN rule 4's exception). Add one only with the user's say-so. */
+        val BUTTON_CARDS = setOf("CheckCard")
+    }
 }

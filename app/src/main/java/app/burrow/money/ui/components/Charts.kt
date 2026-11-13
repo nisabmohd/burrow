@@ -77,7 +77,7 @@ fun PillBarChart(
             customActions = bars.indices.map { i -> CustomAccessibilityAction(labelFor?.invoke(i) ?: bars[i].label) { onSelect(i); true } }
         }
     val avg = if (bars.isEmpty()) 0f else bars.sumOf { it.value.coerceAtLeast(0L) }.toFloat() / bars.size
-    val soft = c.primary.copy(alpha = 0.22f).compositeOverSurface(c.surfaceContainer)
+    val soft = c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.soft).compositeOverSurface(c.surfaceContainer)
     // Grow once per data set.
     val grow = remember(bars) { Animatable(0f) }
     LaunchedEffect(bars) { grow.animateTo(1f, app.burrow.money.ui.theme.barGrowSpec(bars.size)) }
@@ -209,7 +209,7 @@ fun WavyProgress(progress: Float, color: Color, modifier: Modifier = Modifier) {
         }
         val gap = Chart.wavyGap.toPx()
         if (end < size.width - Chart.wavyTail.toPx()) {
-            drawLine(color.copy(alpha = 0.22f), Offset(end + gap, mid), Offset(size.width - gap, mid), strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(color.copy(alpha = app.burrow.money.ui.theme.Alpha.soft), Offset(end + gap, mid), Offset(size.width - gap, mid), strokeWidth = stroke, cap = StrokeCap.Round)
             drawCircle(color, radius = Chart.wavyEndDot.toPx(), center = Offset(size.width - Chart.wavyEndDot.toPx(), mid))
         }
     }
@@ -226,7 +226,7 @@ fun RingPercent(fraction: Float, color: Color, track: Color, size: Dp = Size.ico
     val shown by androidx.compose.animation.core.animateFloatAsState(fraction.coerceIn(0f, 1f), app.burrow.money.ui.theme.progressSpec(), label = "ring")
     val ringColor = if (over) c.error else color
     val stroke = when { size >= Size.ringWide -> Chart.ringWide; size > Size.iconCircle -> Chart.ringWidget; else -> Chart.ringRow }
-    ProgressRing(if (done) 1f else shown, ringColor, if (over) c.error.copy(alpha = 0.25f) else track, size, stroke = stroke) {
+    ProgressRing(if (done) 1f else shown, ringColor, if (over) c.error.copy(alpha = app.burrow.money.ui.theme.Alpha.overTrack) else track, size, stroke = stroke) {
         if (done) {
             androidx.compose.material3.Icon(
                 androidx.compose.ui.res.painterResource(app.burrow.money.R.drawable.ic_check_regular), null,
@@ -273,7 +273,7 @@ fun CumulativeLineChart(current: List<Long>, previous: List<Long>, modifier: Mod
                 lineTo(x(0), size.height)
                 close()
             }
-            drawPath(area, c.primary.copy(alpha = 0.12f))
+            drawPath(area, c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.area))
             drawPath(line, c.primary, style = Stroke(Chart.line.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         } else if (current.size == 1) {
             drawCircle(c.primary, Chart.lineDot.toPx(), Offset(x(0), y(current[0])))
@@ -299,7 +299,7 @@ fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, fill: Boolean =
         }
         if (fill) {
             val area = androidx.compose.ui.graphics.Path().apply { addPath(p); lineTo(size.width - pad, size.height); lineTo(pad, size.height); close() }
-            drawPath(area, c.primary.copy(alpha = 0.12f))
+            drawPath(area, c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.area))
         }
         drawPath(p, c.primary, style = Stroke(Chart.lineBefore.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
@@ -313,9 +313,11 @@ fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, fill: Boolean =
 fun StackBar(parts: List<Pair<Color, Long>>, modifier: Modifier = Modifier) {
     val shown = parts.filter { it.second > 0 }
     val total = shown.sumOf { it.second }.coerceAtLeast(1)
+    // Nothing yet: the empty track every bar and ring uses (TOKENS: tracks are surfaceContainer), not a grey.
+    val track = MaterialTheme.colorScheme.surfaceContainer
     Canvas(modifier.fillMaxWidth().height(Size.stackBar)) {
         if (shown.isEmpty()) {
-            drawRoundRect(Color.Gray.copy(alpha = 0.15f), Offset.Zero, size, CornerRadius(size.height / 2, size.height / 2))
+            drawRoundRect(track, Offset.Zero, size, CornerRadius(size.height / 2, size.height / 2))
             return@Canvas
         }
         val gap = Chart.stackGap.toPx()
@@ -348,9 +350,9 @@ fun heatColor(level: Int): Color {
     val c = MaterialTheme.colorScheme
     return when (level) {
         0 -> c.surfaceContainer
-        1 -> c.primary.copy(alpha = 0.22f).compositeOverSurface(c.surfaceContainerLow)
-        2 -> c.primary.copy(alpha = 0.42f).compositeOverSurface(c.surfaceContainerLow)
-        3 -> c.primary.copy(alpha = 0.68f).compositeOverSurface(c.surfaceContainerLow)
+        1 -> c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.soft).compositeOverSurface(c.surfaceContainerLow)
+        2 -> c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.heat2).compositeOverSurface(c.surfaceContainerLow)
+        3 -> c.primary.copy(alpha = app.burrow.money.ui.theme.Alpha.heat3).compositeOverSurface(c.surfaceContainerLow)
         else -> c.primary
     }
 }
@@ -360,12 +362,13 @@ fun heatColor(level: Int): Color {
 fun DonutChart(parts: List<Pair<Color, Long>>, size: Dp = Size.ringWidget, stroke: Dp = Chart.donut) {
     val shown = parts.filter { it.second > 0 }
     val total = shown.sumOf { it.second }.coerceAtLeast(1)
+    val track = MaterialTheme.colorScheme.surfaceContainer
     Canvas(Modifier.size(size)) {
         val s = stroke.toPx()
         val tl = Offset(s / 2, s / 2)
         val arc = GSize(this.size.width - s, this.size.height - s)
         if (shown.size <= 1) {
-            drawArc(shown.firstOrNull()?.first ?: Color.Gray.copy(alpha = 0.2f), -90f, 360f, false, tl, arc, style = Stroke(s))
+            drawArc(shown.firstOrNull()?.first ?: track, -90f, 360f, false, tl, arc, style = Stroke(s))
             return@Canvas
         }
         val gap = ringGapDegrees(s, arc.width / 2, Chart.donutGap.toPx())

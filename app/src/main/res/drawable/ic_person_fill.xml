@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar user (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_person_fill), tint = …) -->
+<!-- Solar person (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_person_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M8,6a4,4 0 1,0 8,0a4,4 0 1,0 -8,0Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M20 17.5C20 19.9853 20 22 12 22C4 22 4 19.9853 4 17.5C4 15.0147 7.58172 13 12 13C16.4183 13 20 15.0147 20 17.5Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M8,6a4,4 0 1,0 8,0a4,4 0 1,0 -8,0Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M5,17a7,4 0 1,0 14,0a7,4 0 1,0 -14,0Z" />
 </vector>

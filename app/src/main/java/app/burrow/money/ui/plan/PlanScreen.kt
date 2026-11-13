@@ -322,7 +322,7 @@ private fun BudgetsSection(s: BudgetsState, vm: PlanViewModel, padding: PaddingV
     }
     if (pickCategory) {
         val used = s.lines.mapNotNull { it.category?.id }.toSet()
-        CategorySheet(s.categories.filter { it.id !in used }, null, null, { cat ->
+        CategorySheet(s.categories.filter { it.id !in used }, null, { cat ->
             pickCategory = false
             edit = BudgetEdit(cat.id, cat.name, money.digitsUnit() * 5_000)
         }, { pickCategory = false })

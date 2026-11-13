@@ -101,6 +101,9 @@ data class TxnView(
     val cardNumber: String? = null,
 )
 
+/** The columns Activity's filters read, without names or text (cheap to hold for 20,000 rows). */
+data class FilterKey(val at: Long, val type: String, val accountId: Long, val toAccountId: Long?, val categoryId: Long?)
+
 /** SUM(amount) of transfers into one account. */
 data class AccountInSum(val accountId: Long, val total: Long)
 
@@ -360,6 +363,37 @@ interface TxnDao {
         """,
     )
     fun between(from: Long, to: Long): Flow<List<TxnView>>
+
+    /**
+     * One account's rows (paid from it or moved into it), newest first, at most [limit]: its page
+     * reads these, never the whole history filtered in Kotlin (a quiet card lost its rows, 0.4.1).
+     */
+    @Query(
+        """
+        SELECT t.*, c.name AS categoryName, c.icon AS categoryIcon, c.colorHue AS categoryHue,
+               a.name AS accountName, a.icon AS accountIcon, a.colorHue AS accountHue,
+               ta.name AS toAccountName, ta.icon AS toAccountIcon, ta.colorHue AS toAccountHue, g.name AS goalName,
+               cd.name AS cardName, cd.number AS cardNumber
+        FROM TxnEntity t
+        JOIN AccountEntity a ON a.id = t.accountId
+        LEFT JOIN CategoryEntity c ON c.id = t.categoryId
+        LEFT JOIN AccountEntity ta ON ta.id = t.toAccountId
+        LEFT JOIN GoalEntity g ON g.id = t.goalId
+        LEFT JOIN CardEntity cd ON cd.id = t.cardId AND cd.accountId = t.accountId
+        WHERE t.accountId = :accountId OR t.toAccountId = :accountId
+        ORDER BY t.at DESC, t.id DESC
+        LIMIT :limit
+        """,
+    )
+    fun forAccount(accountId: Long, limit: Int): Flow<List<TxnView>>
+
+    /** A card's spending from [from] on (its statement day): "₹X since statement", summed in SQL. */
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM TxnEntity WHERE accountId = :accountId AND type = 'EXPENSE' AND at >= :from")
+    fun expenseSince(accountId: Long, from: Long): Flow<Long>
+
+    /** What Activity's filters look at, for every posted row: counts and "is there more" without loading rows. */
+    @Query("SELECT at, type, accountId, toAccountId, categoryId FROM TxnEntity WHERE status = 'POSTED'")
+    fun postedKeys(): Flow<List<FilterKey>>
 
     /** Transactions dated in the future (Plan › Bills › Upcoming), soonest first. */
     @Query(

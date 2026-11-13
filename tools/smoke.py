@@ -265,6 +265,20 @@ def accounts_card_and_loan():
 
 
 @check
+def account_page_lists_its_own_history():
+    # 0.4.1: the page reads its own rows (not the newest few hundred of every account) in a lazy list.
+    recover()
+    d.nav("Today")
+    d.tap("Accounts")
+    d.tap("ICICI Amazon Pay")
+    assert d.exists("Since statement", contains=True, timeout=5), "card has no since-statement row"
+    assert d.scroll_to("Uber"), "card page has no Uber payment in its history"
+    assert not crashed(), "crash scrolling the card's history"
+    d.back()
+    d.back()
+
+
+@check
 def insights_heatmap_opens_activity():
     recover()
     d.nav("Insights")
@@ -473,14 +487,12 @@ def new_transfer_between_accounts():
     d.tap("Transfer")
     assert d.exists("New transfer", timeout=3), "the type sheet didn't switch to transfer"
     keypad("1000")
-    # Your own account comes first (Kotak, made above; samples never default: QA 12 Nov) and the
-    # "to" account is filled in beside it.
+    # Your own accounts are filled in, from and to side by side (samples never default: QA 12 Nov). Onboarding's
+    # HDFC Savings is yours too, so it may be the From and Kotak (made above) the To.
     nodes = d.dump()
-    srcs = [n for n in nodes if n.label == "Kotak"]
-    assert srcs, "a transfer doesn't start from your own account"
-    # "Kotak" may show more than once (a recent pill too): the one with an account beside it is the From.
-    to = [n for src in srcs for n in nodes if n.label and n is not src and abs(n.center[1] - src.center[1]) < 40 and n.center[0] > src.center[0] + 100]
-    assert to, f"no 'to' account beside Kotak: {[x.label for x in nodes if x.label][:30]}"
+    mine = [n for n in nodes if n.label in ("Kotak", "HDFC Savings")]
+    pair = [(a, b) for a in mine for b in mine if a is not b and a.label != b.label and abs(a.center[1] - b.center[1]) < 40]
+    assert pair, f"the transfer's from and to aren't your own accounts: {[x.label for x in nodes if x.label][:30]}"
     d.tap("Save")
     snackbar()
     d.nav("Activity")
@@ -816,7 +828,11 @@ def capture_intro_turns_on():
         d.tap("ALLOW")
     # The intro opens the notification-access settings; grant it the way the switch there would.
     d.shell(f"cmd notification allow_listener {d.PACKAGE}/{d.PACKAGE}.capture.PaymentNotificationListener")
-    d.back()
+    # Back to the app: one step on API 35, two on 36 (it opens the list, then the app's page).
+    for _ in range(3):
+        d.back()
+        if d.exists("Bank SMS", timeout=3):
+            break
     assert d.exists("Bank SMS", timeout=5), "Allow did not end on Auto-capture"
 
 
@@ -843,16 +859,19 @@ def sms_capture_dedupes_and_reviews():
         seen = [n.label for n in d.dump() if "to review" in n.label]
         raise AssertionError(f"expected 2 to review (the 240 and one 180), saw {seen or 'none'}")
     d.tap("2 payments to review")
-    save = [n for n in d.dump() if n.label == "Save 2 payments"]
-    assert save, "no Save 2 payments button"
-    tap_node(save[0])
+    # Final 12 Nov (44): CheckCards. Both payees are new to Burrow: "?" cards, Save off, the bottom button waits.
+    assert d.exists("Pick categories first", timeout=2), "Save should wait while no payment is ready"
+    d.tap("Food & drinks")  # the first card's chip: now it is ready
+    save = d.find("Save 1 ready", timeout=3)
+    assert save is not None, "no Save 1 ready button after picking a category"
+    tap_node(save)
     time.sleep(0.5)
     nodes = d.dump()  # read and tap Undo from one dump: the snackbar lasts ~4 s
-    assert any(n.label == "All caught up" for n in nodes), "review not emptied after saving"
+    assert any("isn’t sure" in n.label for n in nodes), "the other payment didn't stay waiting for a category"
     undo = [n for n in nodes if n.label == "Undo"]
     assert undo, "no Undo after saving"
     tap_node(undo[0])
-    assert d.exists("Save 2 payments", timeout=5), "Undo did not bring the payments back"
+    assert d.exists("Save 1 ready", timeout=5), "Undo did not bring the payment back"
 
 
 @check
@@ -937,13 +956,20 @@ def not_understood_waits_for_teach():
     # "1 message not understood · Teach it the ones it missed" opens the list (sender on each card).
     assert d.exists("1 message not understood", timeout=5), "unreadable bank SMS not kept for Teach"
     d.tap("1 message not understood")
-    # 2026-11-12 (116): Review opens on its Not understood tab; a row is sender · message · date, tap = Teach.
+    # Review opens on its Not understood tab.
     assert d.exists("Not understood · 1", timeout=5), "Review did not open on the Not understood tab"
-    row = d.find("KOTAKB", contains=True, timeout=3)
-    assert row is not None, "the missed message doesn't say who sent it"
-    tap_node(row)
-    assert d.exists("Teach a message", timeout=5), "tapping a missed message did not open Teach"
-    d.tap("Close")
+    # Final 12 Nov (116): a CheckCard with Burrow's own reading; Edit opens Fix it; Yes, save keeps the rule.
+    assert d.exists("Zomato", timeout=3), "the card doesn't name who was paid"
+    assert d.exists("Burrow read the marked parts. Right?", timeout=2), "the card doesn't ask about what Burrow read"
+    assert d.exists("−₹2,350", timeout=2), "Burrow didn't read the amount"
+    d.tap("Edit")
+    assert d.exists("What’s wrong?", timeout=5), "Edit didn't open Fix it"
+    d.tap("Amount")
+    assert d.exists("Tap the right amount", timeout=3), "fixing the amount doesn't ask for it"
+    d.tap("Done")
+    assert d.exists("Is this right?", timeout=3), "Done didn't show Burrow's reading"
+    d.tap("Yes, save")
+    assert d.exists("messages like this are read", contains=True, timeout=3), "saving didn't say messages like it are read now"
     d.back()
 
 
@@ -1084,9 +1110,37 @@ def licences_open_their_text():
     d.back()
 
 
+def pick_in_card(category="Other"):
+    """A new payee's CheckCard (44): More opens the category list sheet; picking a category turns its Save on."""
+    if not d.exists("More", timeout=1):
+        # More is last in the card's chip row, which scrolls sideways: swipe the row as a user would.
+        chip = d.find("Food", timeout=3) or d.find("Groceries", timeout=1)
+        assert chip is not None, "the card has no category chips"
+        w = d.screen_size()[0]
+        d.swipe(int(w * 0.85), chip.center[1], int(w * 0.15), chip.center[1], 300)
+        time.sleep(0.5)
+    d.tap("More")
+    assert d.exists("Category", timeout=3), "More didn't open the category sheet"
+    d.tap(category)
+    time.sleep(0.5)
+
+
+def save_everything_waiting():
+    """To review: give every new payee a category on its card, then the one bottom button."""
+    for _ in range(10):
+        if d.find("isn’t sure", contains=True, timeout=2) is None:
+            break
+        pick_in_card("Other")
+    for label in ("payments", "Save payment", "ready"):
+        n = d.find(label, contains=True, timeout=1)
+        if n is not None:
+            tap_node(n)
+            return
+
+
 @check
 def review_cards_save_one_by_one():
-    # 2026-11-12 (44, 234): To review rows; tap opens the Review sheet (Ignore · Save); swipe right saves.
+    # Final 12 Nov (44, 241): To review as CheckCards: chips, More (the grid), Ignore · Edit · Save on each card.
     # Different amounts: the same amount and account within 10 minutes is one payment (dedupe).
     for ref, amount in (("7001", "75.00"), ("7002", "86.00")):
         d.adb("emu", "sms", "send", "HDFCBK", f"Rs.{amount} debited from A/c XX1234 to VPA tea{ref}@okaxis. UPI Ref {ref}.")
@@ -1097,17 +1151,16 @@ def review_cards_save_one_by_one():
     assert n is not None, "no payments to review"
     tap_node(n)
     assert d.exists("To review · ", contains=True, timeout=5), "Review has no To review tab with its count"
-    row = d.find("tea7001", contains=True, timeout=3)
-    assert row is not None, "the payment is not a row in To review"
-    tap_node(row)
-    assert d.exists("Edit details", timeout=3), "tapping a row did not open the Review sheet"
-    tap_last("Save")
-    assert d.exists("Saved", timeout=3), "Save in the Review sheet didn't save"
-    row = d.find("tea7002", contains=True, timeout=3)
-    assert row is not None, "the second payment is not in To review"
-    y = row.center[1]
-    d.swipe(150, y, 1000, y, 250)  # right = Save
-    assert d.exists("Saved", timeout=3), "swiping right didn't save"
+    # Final 12 Nov (44): each payment is a CheckCard approved in place. A new payee: Save is off until a chip.
+    assert d.exists("Tea7001", contains=True, timeout=3) or d.exists("tea7001", contains=True, timeout=1), "the payment is not a card in To review"
+    assert d.exists("Edit", timeout=2) and d.exists("Ignore", timeout=2), "the card has no Ignore · Edit"
+    pick_in_card("Food & drinks")
+    d.tap("Save")  # the first card's own Save (the one just given a category)
+    assert d.exists("Saved", timeout=3), "Save on the card didn't save"
+    # The second: a chip on the card, then its own Save.
+    d.tap("Food & drinks")
+    d.tap("Save")  # the first card's own Save (the one just given a category)
+    assert d.exists("Saved", timeout=3), "the second card didn't save"
     d.back()
 
 
@@ -1130,7 +1183,7 @@ def builtin_rules_list_like_yours_and_rename():
 
 
 @check
-def teach_has_type_filled_in():
+def pasted_message_is_read_first():
     open_more_row("Auto-capture")
     d.scroll_to("Message rules")
     d.tap("Message rules")
@@ -1140,9 +1193,9 @@ def teach_has_type_filled_in():
     tap_node(nodes[0]); d.type_text("Rs.99.00 debited from A/c XX1111")
     tap_node(nodes[1]); d.type_text("TESTBK")
     d.tap("Continue")
-    # 2026-11-12 (52, 235): Amount · Paid to · Account are tapped; Type is filled in by Burrow.
-    assert d.exists("Tap it in the message", timeout=5), "Teach doesn't say where to tap"
-    assert d.exists("Filled in after the account", timeout=2), "Teach has no Type row"
+    # Final 12 Nov (52): a pasted message is read the same way; its type comes from "debited".
+    assert d.exists("Burrow read it as", timeout=5), "a pasted message isn't read first"
+    assert d.exists("Expense", contains=True, timeout=2), "the type isn't filled in from the message's words"
     d.tap("Close")
     d.back()
 
@@ -1380,7 +1433,7 @@ def on_a_tab():
 # action → something only that screen shows
 LINKS = [
     ("NEW_EXPENSE", "New expense"), ("NEW_INCOME", "New income"), ("OPEN_PLAN", "Budgets"),
-    ("OPEN_INSIGHTS", "By category"), ("OPEN_ACCOUNTS", "Net worth"), ("OPEN_REVIEW", "To review"),
+    ("OPEN_INSIGHTS", "By category"), ("OPEN_ACCOUNTS", "Net worth"), ("OPEN_REVIEW", "Review"),
     ("SUNDAY_REVIEW", "Sunday review"), ("SEARCH", "Search payee, amount, note"),
 ]
 
@@ -1713,6 +1766,8 @@ def welcome_skip_budget_leaves_none():
 def two_cards_one_bill():
     # Designs 186–201: a second card from the same bank on the Same bill; SMS from either card's
     # digits land on the one account and each payment says which card paid it.
+    # It runs after the last fresh install (welcome_skip_budget_leaves_none): turn capture on first.
+    capture_intro_turns_on()
     recover()
     d.nav("Today")
     d.tap("Accounts")
@@ -1739,7 +1794,7 @@ def two_cards_one_bill():
     n = d.find("to review", contains=True, timeout=6)
     assert n is not None, "the card payments aren't waiting in To review"
     tap_node(n)
-    d.tap("payments", contains=True)  # "Save N payments": earlier checks may leave others waiting
+    save_everything_waiting()  # earlier checks may leave others waiting; new shops get a category first
     time.sleep(1)
     d.back()
     d.nav("Activity")

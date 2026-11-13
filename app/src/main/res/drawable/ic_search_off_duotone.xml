@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar magnifier-slash (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_search_off_duotone), tint = …) -->
+<!-- Solar search_off (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_search_off_duotone), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M2,11.5a9.5,9.5 0 1,0 19,0a9.5,9.5 0 1,0 -19,0Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M9.73242 13.2676L11.5002 11.4998L13.268 9.73204" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M18.2173 18.2178L21.9999 22.0004" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M2,11.5a9.5,9.5 0 1,0 19,0a9.5,9.5 0 1,0 -19,0Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M11.5 15.5a3 3 0 0 1-3-3v-2m3 5a3 3 0 0 0 3-3v-2m-3 5v-5m3 0a3 3 0 1 0-6 0m6 0h-6m6.072 1H16m-9 0h1.5m6 2.5l1 .5m-7-.5l-1 .5m7-5.5l1-.5m-7 .5l-1-.5m11 10L22 22" />
 </vector>

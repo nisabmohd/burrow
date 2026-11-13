@@ -10,7 +10,7 @@ quick-settings tile), the store icon and feature graphic (`release/`, fastlane, 
 Never hand-edit those files; change the script and run it.
 
 Read before working: `docs/DESIGN.md` (rules), `docs/TOKENS.md`, `docs/COMPONENTS.md`,
-`docs/SCREENS.md` (with `design/screens/*.png`, light only; 89–104 are the burrow-next round), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
+`docs/SCREENS.md` (with `design/screens/*.png`, light; `design/screens/dark/` keeps a few key screens in dark, not a copy of every one (user, 12 Nov); 239–244 are the final 12 Nov rounds), `docs/NEXT.md`, `docs/MOTION.md`, `docs/PERFORMANCE.md`,
 `docs/CAPTURE.md`, `docs/DATA.md`, `docs/COPY.md`, `docs/ICONS.md`. Today's work: `TODO.md`.
 The PNGs are the source of truth for layout, sizes and colours. `design/prototype/burrow-prototype.html`
 (not in git) is the clickable version.
@@ -37,6 +37,10 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - **Money is `Long` minor units.** Never Float/Double. Interest maths in BigDecimal, round once, HALF_EVEN.
 - All user-facing text in `strings.xml` (plurals for counts). No raw colour outside `Color.kt`, no raw
   text size/weight outside `Type.kt`, no raw spacing/size/shape outside `Dimens.kt`, no `tween` outside `Motion.kt`.
+- **One look per element (user, 12 Nov):** when two screens show the same thing (a bank message, a category sheet, a
+  card, a chip), they call one shared component with **no per-screen look options**; data it always shows (e.g. this
+  month's spending in the category sheet) comes from the app (a CompositionLocal), not from each caller. Found two
+  that look alike but differ? Merge them into one component first. `ProjectRulesTest` guards the known ones.
 - Screens use only the components in `docs/COMPONENTS.md`. Missing one? Add it there first. Never invent a new
   element or one-off style; copy the nearest existing screen. UI without a PNG goes on TODO.md as
   "Design review: …" for the user to check (user, 2026-11-08).
@@ -60,7 +64,9 @@ investments with live prices, tax module, document vault, multiple ledgers.
 - Half widgets 184 dp fixed; a lone widget goes wide (text left, 104 dp ring right).
 - **Pick one** = the round check (24 dp ring → primary ✓) on the right, in every list, sheet and screen; rows never tint.
 - **Tabs** = `PillTabs` (Plan equal widths, Customise scrolling); settings choices stay a button group with a check.
-- **Swipe** only on Coming up rows, Review rows (right Save, left Ignore; Not understood left only) and Activity rows if set in Customise. Review is one screen with tabs To review · Not understood: plain rows, tap opens the Review sheet (234) or Teach; no cards with buttons (12 Nov).
+- **Swipe** only on Coming up rows and Activity rows if set in Customise. Review is one screen with tabs To review · Not understood,
+  each a list of **CheckCards** (user, 12 Nov: "follow the design PNG"): the SMS, chips, Ignore · Edit · Save in the card; the one
+  exception to "no buttons inside cards" (DESIGN rule 4, ProjectRulesTest).
 - **Wide (≥ 840 dp):** nav rail, widgets three across. **Large text:** nav shows only the selected label, widgets and tiles one per row, rows wrap, the FAB goes icon-only.
 - Amounts never coloured except "₹X over" in red. Red only for overdue / over budget / errors.
 - Motion: shared axis X for push/pop, fade through for tabs, predictive back, count-up once. See MOTION.md.
@@ -109,4 +115,4 @@ Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/w
 ## Working with Claude
 - Start each session with `TODO.md`: pick the next unticked day, build it screen by screen against its PNGs.
 - Skills in `.claude/skills/`: `build-screen`, `add-feature`, `capture-rules`, `verify-app`, `release`.
-- After each screen: run, compare with the PNG (light), check dark mode in the app, fix, commit, tick the box.
+- After each screen: run, compare with the PNG (light), check dark mode in the app (a dark PNG only where one exists), fix, commit, tick the box.

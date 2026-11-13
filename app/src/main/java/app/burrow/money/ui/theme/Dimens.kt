@@ -32,9 +32,13 @@ object Space {
     val empty = 40.dp         // above and below an empty state
     val emptyTop = 32.dp      // above the illustrated empty state (the ghost cards)
     val keypad = 6.dp         // between keypad keys (17)
+    val insetV = 10.dp        // a message inside a CheckCard: top and bottom (44; prototype .cc-sms 10 × 14)
+    val insetH = 14.dp        // and its sides
     val fabLift = 56.dp       // the FAB moves up this much while a snackbar shows
     val swipeTrigger = 96.dp  // a row dragged this far counts; let go sooner and it springs back
     val navBarEnd = 8.dp      // at each end of the bottom nav, so its end pills sit ~16 dp in, like the screen
+    val introGap = 48.dp      // intro and Welcome: the picture panel → its headline
+    val pinRows = 32.dp       // PIN pad: the dots → the keys, and between keys in a row (71)
 }
 
 object Size {
@@ -80,14 +84,17 @@ object Size {
     val ghostLine = 9.dp       // a pill bar's height, and the gap between bars
     val ghostCircle = 28.dp
     val ghostIcon = 16.dp
-    val ghostShadow = 6.dp
+    val ghostShadow = 12.dp    // the ghost cards' far shadow (the design's 0 12px 28px)
+    val ghostShadowNear = 2.dp // and its near one (0 2px 6px): together the soft two-layer shadow (final 12 Nov)
     val ghostHairline = 1.dp   // the ghost cards' hairline in dark mode
     val emptyLine = 280.dp     // an empty state's line never runs wider
+    val headerLine = 300.dp    // a centred title header's line never runs wider (116; prototype max-width 300)
     val wavyHeight = 14.dp
     val thinBar = 8.dp
     val handle = 32.dp        // a sheet's drag handle (4 dp high: Space.grid)
     val handleArea = 12.dp    // the handle's area above a sheet's content (8 above the 4 dp handle)
-    val markPad = 4.dp        // a highlighted word's pill reaches this far past its letters
+    val markPad = 4.dp        // a highlighted word's mark reaches this far past its letters
+    val markCorner = 6.dp     // a highlighted word's mark: a soft rectangle, as the design's <mark> (44, 52)
     val markRing = 1.5.dp     // the outline of a ringed (tappable, not yet picked) word
     val dot = 8.dp            // step dots (intro); the current step is a pill
     val lineChart = 140.dp    // Insights' running-total line
@@ -129,6 +136,14 @@ object Size {
     val toggleTile = 112.dp   // a toggle tile's height (81, 82)
     val choiceTile = 72.dp    // a choice tile's height when it shows a value (83)
     val badge = 16.dp         // the count on a header button (filters set)
+    /** The actions inside a CheckCard (44: Ignore · Edit · Save): 40 dp pills; Material keeps the 48 dp touch area. */
+    val buttonSmall = 40.dp
+    /** Lines drawn around things: an outlined chip (1), a ring (round check, today, picked swatch, PIN dot: 2). */
+    val outline = 1.dp
+    val ring = 2.dp
+    val pinDot = 16.dp        // a PIN digit: a ring, filled once typed (71)
+    val legendDot = 16.dp     // a heatmap legend step (Less … More, 41)
+    val notificationIcon = 26.dp // the Burrow mark in the capture notification preview
 }
 
 /** Strokes, gaps and dots inside the Canvas charts (Charts.kt). */
@@ -168,6 +183,10 @@ object Shapes {
     val surface = RoundedCornerShape(24.dp)
     val sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     val pill = CircleShape // RoundedCornerShape(50) for wide pills
+    /** The Burrow mark's tile (About 112, Welcome 40): the app icon's corner, 112/512 of its side (TOKENS § Shape). */
+    fun logo(side: androidx.compose.ui.unit.Dp) = RoundedCornerShape(side * 112f / 512f)
+    /** A message inside a CheckCard (44, 116): a box inside a 24 dp card, so a step smaller (16), as the design draws it. */
+    val inset = RoundedCornerShape(16.dp)
     /** The ghost rows of the illustrated empty state (a drawing, not a surface). */
     val ghost = RoundedCornerShape(20.dp)
     /** Grouped list: 24 dp on the outside of the group, 6 dp between its rows. */

@@ -32,7 +32,7 @@ Room (SQLite) + DataStore Preferences. Schema v1 is in `starter/…/data/BurrowD
   each card account with digits one card (empty name, shown as "Card"). Backups v4 carry `cards`.
 - **Merchant and expense name** (v7): `txn.merchant` = the merchant the bank message named, kept out of sight (the
   payee is the expense's own name, "Medicines"); usual categories, aliases and bill matching read it. `capture.name` =
-  the expense name the message's words gave ("Petrol"), when they gave one. See CAPTURE.md.
+  the expense name: the readable merchant, else the message's plain word ("Petrol"), when there is one. See CAPTURE.md.
 - **Exchange rates**: `rate` (currency, perPrimary as BigDecimal text, setAt); each txn keeps its own `fxRate`.
 
 ## Entities
@@ -115,6 +115,16 @@ stays unpaid (no BESCOM payment that month), so Coming up always has an Overdue 
   Repeating ones are `bill`s. Upcoming items never show in Activity's history or any total.
 - DataStore: `upcomingLowersSafe` (true): Safe to spend takes off unpaid expenses due before the period ends
   (bills and upcoming one-offs; card bills, EMIs and transfers excluded). `homeWidgets` defaults to week + topcat.
+
+## Review sorted (Room v11, 12 Nov)
+- `CaptureEntity.categoryPicked` (default false): set when the user picks the category in Review (the Review sheet's chips
+  or More). To review's **Ready to save** = a transfer, a refund, a picked category, or the category
+  Burrow *knows* (`CaptureRepository.knownCategory`: the merchant's usual category, else the message's words). Anything else
+  waits under **Pick a category** ("Burrow isn't sure"); "Save N ready" never saves those.
+
+## Index on transfers in (Room v10, 0.4.1)
+- `TxnEntity` gains an index on `toAccountId` (auto-migration 9 → 10): an account page reads its own rows,
+  paid from it or moved into it, with one indexed query. No column changes; backups are unchanged.
 
 ## Savings (Room v9, backup v6)
 - `AccountEntity.savingsMode` ONCE / MONTHLY / ANY (null = before v9: ONCE with a maturity date, else ANY); `marketValue`,

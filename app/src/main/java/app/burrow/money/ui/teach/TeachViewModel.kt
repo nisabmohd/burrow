@@ -14,18 +14,22 @@ import app.burrow.money.data.CaptureRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** The three parts the user taps (52); Type is filled in by Burrow (235). */
+/** The parts Burrow reads and the user can fix (52, 235); Type is the fourth row. */
 val TAPPED_PARTS = listOf(Part.AMOUNT, Part.PAYEE, Part.ACCOUNT)
+
+/** Check a message (52): Burrow's reading and "Is this right?"; Fix it (235, 239): What's wrong? and the ringed choices. */
+enum class TeachMode { CHECK, FIX }
 
 @Immutable
 data class TeachState(
     val text: String,
     val sender: String,
     val receivedAt: Long?,
-    /** The part the next tap picks; null when all are picked or skipped. */
+    /** Fix it: the part the next tap picks (239); null = the What's wrong? list (235), or nothing to pick (CHECK). */
     val step: Part?,
     val picks: Map<Part, IntRange>,
     val notAmount: Boolean = false,
@@ -43,6 +47,16 @@ data class TeachState(
     val addingWord: Boolean = false,
     /** The phone's language: its word list, then English (TypeWords.builtIn). */
     val language: String = java.util.Locale.getDefault().language,
+    val mode: TeachMode = TeachMode.CHECK,
+    /** "1 of 2": where this message is among the ones waiting; 0 = a pasted message (no counter). */
+    val position: Int = 0,
+    val total: Int = 0,
+    /** Every waiting message checked (149): All checked · Back to Review. */
+    val done: Boolean = false,
+    /** The bank, by name ("Kotak Bank"), for the message header and "from Kotak ••4471". */
+    val bank: String = "",
+    /** What the rule reads back: the amount in minor units and its currency, for the big number. */
+    val read: app.burrow.money.capture.Parsed? = null,
 ) {
     /** The word in the message that says what it is ("debited"), from the built-in list and the rule's own. */
     val found: TypeWord? get() = TypeWords.detect(text, ownWords, language, removedWords)
@@ -50,17 +64,60 @@ data class TeachState(
     fun wordsFor(type: MoneyType): List<String> = TypeWords.merged(ownWords, language, removedWords)[type].orEmpty()
     /** What the message is: the user's pick, else its word, else an expense. */
     val type: MoneyType get() = pickedType ?: found?.type ?: MoneyType.EXPENSE
-    /** Type shows once the three tapped parts are picked or skipped (52: "Filled in after the account"). */
-    val typeReady get() = step == null
-    val canSave get() = rule != null && typeReady
-    /** The amount the message seems to have, ringed before the first tap (52). */
-    val guess: IntRange? get() = if (Part.AMOUNT in picks) null else RuleBuilder.firstAmount(text)
+    /** The message has no word that says out or in, and nothing is picked yet: "Type unknown", "Did money go out or in?" (240). */
+    val typeUnknown get() = found == null && pickedType == null
+    /** Ask out or in under the message while its words don't say (240), the chips staying once one is picked. */
+    val asksType get() = found == null
+    /** Yes, save: a rule that reads the amount back, and a type (240 waits for a pick). */
+    val canSave get() = rule != null && !typeUnknown
+    /** Fix it (239): the words the part being fixed could be, ringed in the message. */
+    val ringed: List<IntRange> get() = step?.let { p -> RuleBuilder.candidates(text, p, listOfNotNull(picks[p])) }.orEmpty()  // the current pick is filled, not ringed; other parts may be ringed (PNG 240: 3321)
 }
 
 /**
- * Teach a message (52, 235, 236): from a message not understood ([captureId]) or a pasted one. The
- * user taps the amount, who was paid and the account; the type comes from the words in the message
- * and can be changed in the Type sheet, which also adds words for it.
+ * Burrow reads a message itself (52, 116): the amount, who was paid and the account it can find, and the type from its
+ * words, then the rule those parts make. With no amount it opens on Fix it › Tap the right amount. Shared by Check a
+ * message and the Not understood cards.
+ */
+fun readMessage(s: TeachState, engine: RuleEngine, ruleName: String): TeachState {
+    val picks = listOfNotNull(
+        RuleBuilder.firstAmount(s.text)?.let { Part.AMOUNT to it },
+        RuleBuilder.guessPayee(s.text)?.let { Part.PAYEE to it },
+        RuleBuilder.guessAccount(s.text)?.let { Part.ACCOUNT to it },
+    ).fold(emptyMap<Part, IntRange>()) { kept, (p, r) -> if (kept.values.any { it.first <= r.last && r.first <= it.last }) kept else kept + (p to r) }
+    val built = rebuildRule(s.copy(picks = picks), engine, ruleName)
+    return if (Part.AMOUNT in picks) built else built.copy(mode = TeachMode.FIX, step = Part.AMOUNT)
+}
+
+/** The rule [s]'s parts make, kept only when it reads the message back with the picked amount and type. */
+fun rebuildRule(s: TeachState, engine: RuleEngine, ruleName: String): TeachState {
+    val amount = s.picks[Part.AMOUNT] ?: return s.copy(rule = null)
+    val built = RuleBuilder.build(
+        id = "user.${System.currentTimeMillis()}", name = ruleName, sender = s.sender.ifBlank { null },
+        text = s.text, amount = amount, payee = s.picks[Part.PAYEE], account = s.picks[Part.ACCOUNT],
+    )
+    // The words decide when they agree with the type shown, so a "credited" message from the same
+    // bank is still read as income. When they don't (no word, or the user picked another type),
+    // the rule keeps the picked type.
+    val byWords = s.found?.type == s.type
+    val rule = built.copy(
+        direction = if (byWords) null else s.type.direction,
+        type = if (byWords) null else s.type,
+        typeWords = s.ownWords,
+        language = s.language,
+        removedWords = s.removedWords.filterValues { it.isNotEmpty() },
+    )
+    // Good only if the rule finds the amount exactly where it was tapped.
+    val read = engine.parseWith(rule, s.sender.ifBlank { null }, s.text)
+    val ok = read != null && read.spans[Part.AMOUNT]?.last == amount.last && read.type == s.type
+    return s.copy(rule = if (ok) rule else null, read = if (ok) read else null)
+}
+
+/**
+ * Check a message (52, 235, 236, 239, 240, 149; final 12 Nov): from a message not understood ([captureId], then the
+ * next ones waiting) or a pasted one. Burrow reads the amount, who was paid, the account and the type itself and asks
+ * "Is this right?"; No, fix it lists the parts, and fixing one rings what it could be in the message. Yes, save keeps
+ * the rule, so messages like it are read from then on.
  */
 class TeachViewModel(
     private val capture: CaptureRepository,
@@ -69,6 +126,8 @@ class TeachViewModel(
     pastedSender: String,
     pastedText: String,
     private val fallbackName: String,
+    /** A Not understood card's Edit: Fix it first, this one message only, closed on save (116). */
+    private val startFixing: Boolean = false,
 ) : ViewModel() {
     private val _state = MutableStateFlow<TeachState?>(null)
     val state: StateFlow<TeachState?> = _state.asStateFlow()
@@ -78,19 +137,54 @@ class TeachViewModel(
 
     fun setUseRule(on: Boolean) = _state.update { it?.copy(useRule = on) }
 
+    /** The messages waiting when Check a message opened, in order: "1 of 2", then the next after each save. */
+    private var queue: List<Long> = emptyList()
+
     init {
         viewModelScope.launch {
-            val c = if (captureId != 0L) capture.get(captureId) else null
-            ruleName = capture.ruleNameFor(c?.sender ?: pastedSender) ?: fallbackName
-            _state.value = TeachState(
-                text = c?.body ?: pastedText,
-                sender = c?.sender ?: pastedSender,
-                receivedAt = c?.receivedAt,
-                step = Part.AMOUNT,
-                picks = emptyMap(),
-            )
+            if (captureId != 0L && startFixing) {
+                queue = listOf(captureId)
+                load(captureId, 1)
+                _state.update { it?.copy(total = 0, position = 0, mode = TeachMode.FIX, step = null) }
+            } else if (captureId != 0L) {
+                queue = capture.notUnderstood.first().map { it.id }.let { ids -> if (captureId in ids) ids.dropWhile { it != captureId } else listOf(captureId) }
+                load(captureId, 1)
+            } else {
+                ruleName = capture.ruleNameFor(pastedSender) ?: fallbackName
+                _state.value = read(TeachState(text = pastedText, sender = pastedSender, receivedAt = null, step = null, picks = emptyMap(), bank = bankOf(pastedSender)))
+            }
         }
     }
+
+    private suspend fun load(id: Long, position: Int) {
+        val c = capture.get(id) ?: return
+        ruleName = capture.ruleNameFor(c.sender) ?: fallbackName
+        current = id
+        _state.value = read(
+            TeachState(
+                text = c.body, sender = c.sender, receivedAt = c.receivedAt, step = null, picks = emptyMap(),
+                position = position, total = queue.size, bank = bankOf(c.sender),
+            ),
+        )
+    }
+
+    /** The bank by name when a rule knows the sender; "" otherwise (never the fallback rule name: "from My ••4471"). */
+    private suspend fun bankOf(sender: String): String = sender.ifBlank { null }?.let { capture.bankName(it) ?: capture.ruleNameFor(it) }.orEmpty()
+
+    /** The message on screen (the queue moves on after each save). */
+    private var current: Long = captureId
+
+    /**
+     * Burrow reads it first (52): the amount, who was paid and the account it can find, and the type from its words.
+     * With no amount it opens on Fix it › Tap the right amount.
+     */
+    private fun read(s: TeachState): TeachState = readMessage(s, engine, ruleName)
+
+    /** No, fix it: What's wrong? (235). */
+    fun fix() = _state.update { it?.copy(mode = TeachMode.FIX, step = null, notAmount = false) }
+
+    /** Done on Fix it: back to Is this right? with what was fixed. */
+    fun doneFixing() = _state.update { it?.copy(mode = TeachMode.CHECK, step = null, notAmount = false, addingWord = false) }
 
     fun tap(offset: Int) = _state.update { s ->
         s ?: return@update null
@@ -108,17 +202,12 @@ class TeachViewModel(
         if (step == Part.AMOUNT && !RuleBuilder.isAmount(s.text.substring(token))) return@update s.copy(notAmount = true)
         // A word already picked for another part stays there (a second tap on the amount did crash).
         if (s.picks.any { (part, r) -> part != step && r.first <= token.last && token.first <= r.last }) return@update s
-        val picks = s.picks + (step to token)
-        rebuild(s.copy(picks = picks, step = next(step, picks), notAmount = false))
+        // Picked: back to What's wrong? with the new reading.
+        rebuild(s.copy(picks = s.picks + (step to token), step = null, notAmount = false))
     }
 
-    fun choose(part: Part) = _state.update { it?.copy(step = part, notAmount = false, addingWord = false) }
-
-    fun skip() = _state.update { s ->
-        s ?: return@update null
-        val step = s.step ?: return@update s
-        rebuild(s.copy(picks = s.picks - step, step = next(step, s.picks)))
-    }
+    /** Fix it › a row: Tap the right amount / name / account (239). */
+    fun choose(part: Part) = _state.update { it?.copy(mode = TeachMode.FIX, step = part, notAmount = false, addingWord = false) }
 
     /** Type sheet (236): what a message like this means. */
     fun pickType(type: MoneyType) = _state.update { s -> s?.let { rebuild(it.copy(pickedType = type)) } }
@@ -138,42 +227,8 @@ class TeachViewModel(
         }
     }
 
-    private fun next(after: Part, picks: Map<Part, IntRange>): Part? =
-        TAPPED_PARTS.dropWhile { it != after }.drop(1).firstOrNull { it !in picks }
+    private fun rebuild(s: TeachState): TeachState = rebuildRule(s, engine, ruleName)
 
-    private fun rebuild(s: TeachState): TeachState {
-        val amount = s.picks[Part.AMOUNT] ?: return s.copy(rule = null)
-        val built = RuleBuilder.build(
-            id = "user.${System.currentTimeMillis()}", name = ruleName, sender = s.sender.ifBlank { null },
-            text = s.text, amount = amount, payee = s.picks[Part.PAYEE], account = s.picks[Part.ACCOUNT],
-        )
-        // The words decide when they agree with the type shown, so a "credited" message from the same
-        // bank is still read as income. When they don't (no word, or the user picked another type),
-        // the rule keeps the picked type.
-        val byWords = s.found?.type == s.type
-        val rule = built.copy(
-            direction = if (byWords) null else s.type.direction,
-            type = if (byWords) null else s.type,
-            typeWords = s.ownWords,
-            language = s.language,
-            removedWords = s.removedWords.filterValues { it.isNotEmpty() },
-        )
-        // Good only if the rule finds the amount exactly where it was tapped.
-        val read = engine.parseWith(rule, s.sender.ifBlank { null }, s.text)
-        val ok = read != null && read.spans[Part.AMOUNT]?.last == amount.last && read.type == s.type
-        return s.copy(rule = if (ok) rule else null)
-    }
-
-    /** A message from the inbox can be ignored instead (not a payment, or not worth a rule). */
-    val canIgnore get() = captureId != 0L
-
-    fun ignore(onDone: (suspend () -> Unit) -> Unit) {
-        if (captureId == 0L) return
-        viewModelScope.launch {
-            capture.setStatus(captureId, app.burrow.money.data.CaptureStatus.IGNORED)
-            onDone { capture.setStatus(captureId, app.burrow.money.data.CaptureStatus.UNREAD) }
-        }
-    }
 
     /**
      * Saves the rule and tries it on every message waiting; returns how many moved to To review.
@@ -184,11 +239,17 @@ class TeachViewModel(
     fun save(onDone: (Int) -> Unit) {
         val s = _state.value ?: return
         val rule = s.rule ?: return
+        if (!s.canSave) return
         viewModelScope.launch {
             capture.saveRule(rule)
             val moved = capture.retryNotUnderstood()
             if (!s.useRule) capture.setRuleEnabled(rule.id, false)
             onDone(moved)
+            // The next message still waiting (the new rule may have read some of them), else All checked (149).
+            if (s.total == 0) return@launch
+            val waiting = capture.notUnderstood.first().map { it.id }.toSet()
+            val next = queue.dropWhile { it != current }.drop(1).firstOrNull { it in waiting }
+            if (next != null) load(next, queue.indexOf(next) + 1) else _state.update { it?.copy(done = true) }
         }
     }
 }

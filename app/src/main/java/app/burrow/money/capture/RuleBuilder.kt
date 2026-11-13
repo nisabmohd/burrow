@@ -38,6 +38,63 @@ object RuleBuilder {
     /** An amount token: optional currency letters/symbol, then a number. */
     fun isAmount(token: String): Boolean = AMOUNT_TOKEN.matches(token)
 
+    // --- Check a message (52, final 12 Nov): Burrow's own reading of a message no rule could read. ---
+
+    /** Words after which a name follows: "to VPA zomato@…", "at DECATHLON", "towards ZOMATO", "from RAHUL". */
+    private val NAME_AFTER = Regex("""(?i)\b(?:vpa|towards|at|to|from|by)\s+(?=(\S+))""")  // lookahead: "to VPA zomato" tries both
+
+    /** Words that are never the payee or account ("to your", "from A/c", "at the"). */
+    private val NOT_A_NAME = setOf(
+        "a/c", "ac", "acct", "account", "your", "you", "the", "a", "an", "vpa", "upi", "card", "bank", "on", "rs", "rs.", "inr",
+        "ref", "info", "txn", "via", "of", "for", "with", "is", "has", "been", "debited", "credited", "sent", "paid", "received",
+        "not", "call", "avl", "bal", "lmt", "wallet", "counter", "mobile", "number", "beneficiary", "upi-",
+        // How the money moved is never who: "credited by NEFT from ACME" is ACME.
+        "neft", "imps", "rtgs", "nach", "ecs", "cheque", "cash", "atm", "pos", "ach", "swift",
+    )
+
+    /** "XX4471", "**4471", "••4471", "x1234": the masked account or card number banks write. */
+    private val MASKED = Regex("""(?i)^[x*•.]+\d{2,6}$""")
+
+    /** Words a card or account number follows: "Card 7711", "ending 3321", "A/c 4471". */
+    private val NUMBER_AFTER = Regex("""(?i)\b(?:ending|card|a/c|ac|acct|account)(?:\s+no\.?)?\s+(?=(\S+))""")
+
+    private fun tokens(text: String): List<IntRange> =
+        Regex("\\S+").findAll(text).mapNotNull { m -> tokenAt(text, m.range.first) }.distinct().toList()
+
+    private fun nameLike(word: String): Boolean =
+        word.length >= 2 && word.lowercase() !in NOT_A_NAME && (word.first().isLetter() && word.none { it.isDigit() } || '@' in word)
+
+    /** Who was paid (or who paid): the first name-like word after to / at / towards / VPA / from. Null rather than a wrong guess. */
+    fun guessPayee(text: String): IntRange? = NAME_AFTER.findAll(text).firstNotNullOfOrNull { m ->
+        val g = m.groups[1] ?: return@firstNotNullOfOrNull null
+        tokenAt(text, g.range.first)?.takeIf { nameLike(text.substring(it)) }
+    }
+
+    /** The account or card: the first masked number ("XX4471"), else the 3–6 digits after Card / ending / A/c. */
+    fun guessAccount(text: String): IntRange? =
+        tokens(text).firstOrNull { MASKED.matches(text.substring(it)) }
+            ?: NUMBER_AFTER.findAll(text).firstNotNullOfOrNull { m ->
+                val g = m.groups[1] ?: return@firstNotNullOfOrNull null
+                tokenAt(text, g.range.first)?.takeIf { Regex("""^\d{3,6}$""").matches(text.substring(it)) }
+            }
+
+    /**
+     * Fix it (239): the words [part] could be, ringed in the message; [taken] (the parts already read) are left out.
+     * Amount: every word with a digit that isn't a masked account. Paid to: names (after to / at / VPA…, a UPI id, or a
+     * word in capitals). Account: masked numbers and plain 3–6 digit numbers.
+     */
+    fun candidates(text: String, part: Part, taken: List<IntRange>): List<IntRange> {
+        val after = NAME_AFTER.findAll(text).mapNotNull { m -> m.groups[1]?.let { tokenAt(text, it.range.first) } }.toSet()
+        return tokens(text).filter { r -> taken.none { it.overlaps(r) } }.filter { r ->
+            val w = text.substring(r)
+            when (part) {
+                Part.AMOUNT -> w.any { it.isDigit() } && !MASKED.matches(w)
+                Part.PAYEE -> nameLike(w) && ('@' in w || r in after || w.length >= 3 && w.all { it.isUpperCase() || !it.isLetter() } && w.any { it.isLetter() })
+                else -> MASKED.matches(w) || Regex("""^\d{3,6}$""").matches(w)
+            }
+        }
+    }
+
     fun build(id: String, name: String, sender: String?, text: String, amount: IntRange, payee: IntRange?, account: IntRange?, directionWord: IntRange? = null): Rule {
         // A word picked for two parts counts once (the amount wins), so the text between parts never runs backwards.
         val parts = listOfNotNull(Part.AMOUNT to amount, payee?.let { Part.PAYEE to it }, account?.let { Part.ACCOUNT to it })

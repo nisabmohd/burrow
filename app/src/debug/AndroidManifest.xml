@@ -9,6 +9,7 @@
                 <action android:name="app.burrow.money.debug.HOME" />
                 <action android:name="app.burrow.money.debug.PIN_WIDGET" />
                 <action android:name="app.burrow.money.debug.SEED_REVIEW" />
+                <action android:name="app.burrow.money.debug.KEEP_SAMPLES" />
             </intent-filter>
         </receiver>
     </application>

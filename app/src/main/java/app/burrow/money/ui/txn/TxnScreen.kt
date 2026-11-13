@@ -237,7 +237,7 @@ fun TxnScreen(
         }
         val txn = t
         when (sheet) {
-            TxnSheet.CATEGORY -> CategorySheet(s.categories, s.spentByCategory, txn.txn.categoryId, { cat ->
+            TxnSheet.CATEGORY -> CategorySheet(s.categories, txn.txn.categoryId, { cat ->
                 sheet = null
                 vm.setCategory(cat.id) { undo -> snackbar.show(context.getString(R.string.saved), undo) }
             }, { sheet = null })

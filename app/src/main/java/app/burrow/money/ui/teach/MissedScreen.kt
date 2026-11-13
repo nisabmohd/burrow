@@ -54,12 +54,62 @@ import app.burrow.money.ui.theme.Shapes
 import app.burrow.money.ui.theme.Space
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** Messages with money that no rule could read, newest first (they wait here for Teach). */
-class MissedViewModel(private val capture: CaptureRepository) : ViewModel() {
-    val state: StateFlow<List<CaptureEntity>?> = capture.notUnderstood.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+/** A message not understood (116): the bank by name ("Kotak Bank", never "AX-KOTAKB") and Burrow's own reading of it. */
+@Immutable
+data class MissedRow(val capture: CaptureEntity, val bank: String?, val reading: TeachState)
+
+/**
+ * Not understood as CheckCards (116, 244; final 12 Nov): every message Burrow couldn't read, newest first, each with
+ * what Burrow reads in it now. A type picked on the card ([pickType]) reads it again; Yes, save keeps the rule.
+ */
+class MissedViewModel(
+    private val capture: CaptureRepository,
+    private val engine: app.burrow.money.capture.RuleEngine,
+    private val fallbackName: String,
+) : ViewModel() {
+    private val picked = kotlinx.coroutines.flow.MutableStateFlow<Map<Long, app.burrow.money.capture.MoneyType>>(emptyMap())
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val state: StateFlow<List<MissedRow>?> = kotlinx.coroutines.flow.combine(capture.notUnderstood, picked) { list, p -> list to p }
+        .mapLatest { (list, p) ->
+            list.map { c ->
+                val bank = capture.bankName(c.sender)
+                val name = capture.ruleNameFor(c.sender) ?: fallbackName
+                val start = TeachState(text = c.body, sender = c.sender, receivedAt = c.receivedAt, step = null, picks = emptyMap(), bank = bank ?: capture.ruleNameFor(c.sender).orEmpty())
+                val read = readMessage(start, engine, name)
+                MissedRow(c, bank, p[c.id]?.let { t -> rebuildRule(read.copy(pickedType = t), engine, name) } ?: read)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Did money go out or in? (244): the chip picked on the card. */
+    fun pickType(id: Long, type: app.burrow.money.capture.MoneyType) = picked.update { it + (id to type) }
+
+    /**
+     * Yes, save (116): the rule is kept and every waiting message it reads moves on (to To review). Undo removes the
+     * rule and puts those messages back here.
+     */
+    fun save(id: Long, onDone: (suspend () -> Unit) -> Unit) {
+        val row = state.value?.firstOrNull { it.capture.id == id } ?: return
+        val rule = row.reading.rule ?: return
+        if (!row.reading.canSave) return
+        viewModelScope.launch {
+            val before = capture.notUnderstood.first().map { it.id }.toSet()
+            capture.saveRule(rule)
+            capture.retryNotUnderstood()
+            val moved = before - capture.notUnderstood.first().map { it.id }.toSet()
+            onDone {
+                capture.deleteRule(rule.id)
+                moved.forEach { capture.setStatus(it, CaptureStatus.UNREAD) }
+            }
+        }
+    }
 
     /** Not a payment, or not worth a rule: out of the list, with Undo. */
     fun ignore(id: Long, onDone: (suspend () -> Unit) -> Unit) = viewModelScope.launch {

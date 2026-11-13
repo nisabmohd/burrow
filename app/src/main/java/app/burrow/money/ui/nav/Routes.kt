@@ -29,7 +29,8 @@ import kotlinx.serialization.Serializable
 
 /** Teach a waiting message ([captureId]) or a pasted one ([sender], [text]). */
 @Serializable data object MissedRoute
-@Serializable data class TeachRoute(val captureId: Long = 0L, val sender: String = "", val text: String = "")
+/** [fix]: a Not understood card's Edit (116): straight to Fix it for that one message, back to the list on save. */
+@Serializable data class TeachRoute(val captureId: Long = 0L, val sender: String = "", val text: String = "", val fix: Boolean = false)
 
 // Plan (week 3)
 @Serializable data class BillRoute(val id: Long)

@@ -49,24 +49,6 @@ class PickAndCardsTest(private val widthDp: Float, private val fontScale: Float)
         rule.onNodeWithText("Between your accounts · not spending", useUnmergedTree = true).assertNotClipped()
     }
 
-    @Test fun messageCardButtonIgnoreAndNoSwipe() {
-        var saves = 0; var ignores = 0
-        rule.show(width, fontScale) {
-            MessageCard(
-                lead = { IconCircle(painterResource(R.drawable.ic_sms_duotone)) },
-                title = "Chaayos", line = "HDFC Savings · 8:05 AM", amount = "−₹180",
-                ignoreLabel = "Ignore", onIgnore = { ignores++ },
-                button = "Save", buttonIcon = painterResource(R.drawable.ic_check_regular), onButton = { saves++ },
-            ) { MessageBox("HDFC Bank", "Rs.180.00 debited from A/c XX1234 to VPA chaayos.paytm@hdfc.", emptyList()) }
-        }
-        rule.onNodeWithText("Chaayos").performTouchInput { swipeRight() }
-        rule.runOnIdle { assertEquals("a swipe does nothing", 0, saves + ignores) }
-        rule.onNodeWithText("Save").assertWidthIsAtLeast(200.dp).performClick()
-        rule.onNodeWithContentDescription("Ignore").performClick()
-        rule.runOnIdle { assertEquals(1, saves); assertEquals(1, ignores) }
-        assertNoOverlap(rule.onNodeWithText("Chaayos", useUnmergedTree = true), rule.onNodeWithText("−₹180", useUnmergedTree = true))
-    }
-
     @Test fun messageBoxWithoutHeader() {
         rule.show(width, fontScale) { MessageBox(null, "Txn of Rs 899.00 on SBI Card ending 3321", emptyList()) }
         rule.onNodeWithText("Txn of Rs 899.00 on SBI Card ending 3321", substring = true).assertIsDisplayed()

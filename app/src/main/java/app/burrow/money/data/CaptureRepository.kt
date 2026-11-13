@@ -146,7 +146,10 @@ class CaptureRepository(
      */
     suspend fun nameFor(merchant: String?, body: String): String? {
         val alias = merchant?.let { db.txns().aliasFor(tidyPayee(it), it.trim()) }
-        return (alias ?: categoryWords(merchant, body)?.name ?: merchant?.let(::upiName))
+        // A readable payee names it ("swiggy.food@icici" is Swiggy Food, never "Food"); the message's plain word
+        // ("Petrol", "Medicines") only names a payment whose payee is missing or a code.
+        val readable = merchant?.let(::upiName) ?: merchant?.takeIf(::readablePayee)
+        return (alias ?: merchant?.let(::upiName) ?: (if (readable == null) categoryWords(merchant, body)?.name else null))
             ?.takeIf { merchant == null || !it.equals(tidyPayee(merchant), ignoreCase = true) }
     }
 
@@ -213,9 +216,29 @@ class CaptureRepository(
         if (status != CaptureStatus.REVIEW) onResolved(captureId)
     }
 
+    /** The user picked the category (Review sheet, What was it for?): the payment is ready to save. */
     suspend fun setCategory(captureId: Long, categoryId: Long) {
-        db.captures().get(captureId)?.let { db.captures().update(it.copy(categoryId = categoryId)) }
+        db.captures().get(captureId)?.let { db.captures().update(it.copy(categoryId = categoryId, categoryPicked = true)) }
     }
+
+    /**
+     * The category Burrow *knows* for a payment (To review's Ready to save, 44): the one usually picked for this
+     * merchant, else the one the message's words point at ("petrol", "Swiggy"). Null = a new shop: the guess is only
+     * "your most used", so To review asks (Pick a category).
+     */
+    suspend fun knownCategory(payee: String?, type: String, body: String = ""): Long? {
+        payee?.let { db.txns().usualCategoriesFor(tidyPayee(it), it.trim(), type, 1).firstOrNull() }?.let { return it }
+        val ofKind = money.categories.first().filter { !it.archived && it.kind == if (type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE }
+        return categoryWords(payee, body)?.let { w -> ofKind.filter { it.icon == w.icon }.minByOrNull { it.sortOrder }?.id }
+    }
+
+    /**
+     * The bank a message came from, by name ("AX-KOTAKB" → "Kotak Bank"): the first rule whose sender matches, the
+     * catch-all "any bank" rules left out. Null when no rule knows the sender (show the sender itself).
+     */
+    suspend fun bankName(sender: String): String? = activeRules.first().firstOrNull { r ->
+        ".any." !in r.id && runCatching { Regex(r.sender).containsMatchIn(sender) }.getOrDefault(false)
+    }?.name
 
     suspend fun get(id: Long): CaptureEntity? = db.captures().get(id)
 
@@ -363,4 +386,10 @@ fun categoryTypeOf(type: app.burrow.money.capture.MoneyType): String? = when (ty
     app.burrow.money.capture.MoneyType.INCOME -> TxnType.INCOME
     app.burrow.money.capture.MoneyType.TRANSFER, app.burrow.money.capture.MoneyType.NOT_PAYMENT -> null
     else -> TxnType.EXPENSE
+}
+
+/** A payee that reads as a name: letters, not a UPI id and not a code of four or more digits. */
+fun readablePayee(raw: String): Boolean {
+    val p = raw.trim()
+    return '@' !in p && p.any(Char::isLetter) && p.count(Char::isDigit) < 4
 }

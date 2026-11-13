@@ -236,8 +236,8 @@ fun SplitScreen(vm: SplitViewModel, onClose: () -> Unit) {
         }
     }
     when (val p = picker) {
-        is SplitPicker.Category -> CategorySheet(s.categories, s.spentByCategory, s.parts.getOrNull(p.index)?.categoryId, { vm.setCategory(p.index, it.id); picker = null }, { picker = null })
-        SplitPicker.NewPart -> CategorySheet(s.categories.filter { cat -> s.parts.none { it.categoryId == cat.id } }, s.spentByCategory, null, { vm.addPart(it.id, unit); picker = null }, { picker = null })
+        is SplitPicker.Category -> CategorySheet(s.categories, s.parts.getOrNull(p.index)?.categoryId, { vm.setCategory(p.index, it.id); picker = null }, { picker = null })
+        SplitPicker.NewPart -> CategorySheet(s.categories.filter { cat -> s.parts.none { it.categoryId == cat.id } }, null, { vm.addPart(it.id, unit); picker = null }, { picker = null })
         is SplitPicker.Amount -> s.parts.getOrNull(p.index)?.let { part ->
             app.burrow.money.ui.components.AmountSheet(
                 title = s.category(part.categoryId)?.name.orEmpty(), line = stringResource(R.string.split_part_line, money.plain(s.total)),

@@ -75,7 +75,7 @@ fun IntroTile(modifier: Modifier = Modifier, tilt: Float = 0f, content: @Composa
 @Composable
 fun BurrowLogo(size: Dp, modifier: Modifier = Modifier) {
     val c = MaterialTheme.colorScheme
-    Box(modifier.size(size).clip(androidx.compose.foundation.shape.RoundedCornerShape(size * 0.25f)).background(c.primary), contentAlignment = Alignment.Center) {
+    Box(modifier.size(size).clip(app.burrow.money.ui.theme.Shapes.logo(size)).background(c.primary), contentAlignment = Alignment.Center) {
         // The mark takes the launcher icon's share of the tile (44 of 72 dp; tools/burrow_mark.py): 0.733 × 20/24.
         Icon(painterResource(R.drawable.ic_notification), null, tint = c.onPrimary, modifier = Modifier.size(size * 0.733f))
     }

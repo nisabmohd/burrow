@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar arrow-up (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_arrow_upward_alt_fill), tint = …) -->
+<!-- Solar arrow_upward_alt (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_arrow_upward_alt_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12 20L12 4M6 10L12 4L18 10" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M6 18L18 6m0 0H9m9 0v9" />
 </vector>

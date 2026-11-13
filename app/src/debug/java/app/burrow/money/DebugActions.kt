@@ -23,7 +23,9 @@ import java.time.temporal.TemporalAdjusters
  * sends the Sunday review now (as if it were this Sunday, 6:30 PM); `…debug.HOME` redraws the widgets
  * and shortcuts; `…debug.PIN_WIDGET --es which safe|bill|add` asks the launcher to put that widget on the home
  * screen (smoke checks the widgets update as data changes). Used by tools/smoke.py. `…debug.SEED_REVIEW` adds data to check the 2026-10-27 changes
- * by hand (TODO.md › Design todo): messages not understood, and three cards on one credit line.
+ * by hand (TODO.md › Design todo): messages not understood, and three cards on one credit line. `…debug.KEEP_SAMPLES`
+ * makes the sample month look like real data (every isSample flag cleared), so store shots show Today without the
+ * sample note (tools/capture.py; user, 12 Nov). Restart the app after it: the screens read the database afresh.
  */
 class DebugActions : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -47,6 +49,7 @@ class DebugActions : BroadcastReceiver() {
                             .requestPinAppWidget(android.content.ComponentName(context, provider), null, null)
                     }
                     "app.burrow.money.debug.SEED_REVIEW" -> seedReview(app)
+                    "app.burrow.money.debug.KEEP_SAMPLES" -> keepSamples(app)
                 }
             } finally {
                 pending.finish()
@@ -90,3 +93,16 @@ private suspend fun seedReview(app: AppContainer) {
     app.money.addAccount(card("HDFC Millennia", "8820", 12_500, 210f, sharesWith = regalia))
     app.money.addAccount(card("Regalia add-on", "4472", 3_200, 30f, sharesWith = regalia))
 }
+
+/** Every table with an isSample column: the flag cleared, so the sample month counts as the user's own (store shots). */
+private fun keepSamples(app: AppContainer) {
+    val db = app.database.openHelper.writableDatabase
+    val tables = db.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'room_%'").use { c ->
+        buildList { while (c.moveToNext()) add(c.getString(0)) }
+    }
+    tables.forEach { t ->
+        val hasFlag = db.query("PRAGMA table_info(`$t`)").use { c -> generateSequence { if (c.moveToNext()) c.getString(1) else null }.any { it == "isSample" } }
+        if (hasFlag) db.execSQL("UPDATE `$t` SET isSample = 0 WHERE isSample = 1")
+    }
+}
+

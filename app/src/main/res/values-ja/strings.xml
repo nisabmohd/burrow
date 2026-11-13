@@ -1121,8 +1121,8 @@
     </plurals>
     <string name="not_understood_title">読み取れなかったもの</string>
     <string name="not_understood_line">支払いのようですが、どのルールでも読み取れませんでした。一度教えれば、似たメッセージはそれ以降読み取られます。</string>
-    <string name="nothing_to_teach">教えるものはありません</string>
-    <string name="nothing_to_teach_line">アプリが読み取れないメッセージがここに表示されます。</string>
+    <string name="nothing_to_check">確認するものはありません</string>
+    <string name="nothing_to_check_line">Burrow がまだ読めないメッセージがここに表示されます。</string>
     <string name="teach">教える</string>
     <string name="capture_off_title">自動記録はオフです</string>
     <string name="capture_off_line">銀行 SMS か支払いアプリをオンにすると支払いが自動で記録されます</string>
@@ -1427,11 +1427,10 @@
     <string name="dynamic_colour_on">オン · 壁紙から色を取ります</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">確認</string>
-    <string name="review_hint">タップしてメッセージを確認。右にスワイプで保存、左で無視。</string>
+    <string name="review_hint">支払いをタップして SMS を見たり変更したりできます。右にスワイプで保存、左で無視。</string>
     <string name="edit_details">詳細を編集</string>
     <string name="edit_details_line">金額、支払先、口座、日付</string>
     <string name="tap_it_in_message">メッセージ内をタップ</string>
-    <string name="type_after_account">口座のあとに入ります</string>
     <string name="type_it_says">%1$s · 「%2$s」とあります</string>
     <string name="type_sheet_line">このようなメッセージの意味</string>
     <string name="words_that_mean">%1$sを表す言葉</string>
@@ -1454,4 +1453,48 @@
     <string name="add_category_budget">カテゴリ予算を追加</string>
     <string name="delete_goal_text_money">%1$sは元の口座に戻ります。</string>
     <string name="delete_goal_text_empty">まだ何も追加されていません。</string>
+    <string name="ready_to_save">保存できます</string>
+    <string name="review_seen_before">前にも見たもの</string>
+    <string name="pick_a_category_header">カテゴリを選ぶ</string>
+    <string name="review_new">Burrow には初めて</string>
+    <string name="review_not_sure">Burrow にはわかりません · 何に使いましたか?</string>
+    <string name="pick_categories_first">先にカテゴリを選んでください</string>
+    <plurals name="save_n_ready">
+        <item quantity="other">準備できた %d 件を保存</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="other">確認するメッセージ %d 件</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="other">Burrow が読めなかったメッセージです。一度ずつ確認すると、同じようなメッセージは次から読めます。</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="other">1 件ずつ確認</item>
+    </plurals>
+    <string name="check_a_message">メッセージを確認</string>
+    <string name="n_of_m">%1$d / %2$d</string>
+    <string name="burrow_read_it_as">Burrow の読み取り</string>
+    <string name="from_your_sms">SMS の内容</string>
+    <string name="is_this_right">合っていますか?</string>
+    <string name="no_fix_it">いいえ、直す</string>
+    <string name="yes_save">はい、保存</string>
+    <string name="whats_wrong">どこが違いますか?</string>
+    <string name="tap_part_to_fix">直す部分をタップしてください。</string>
+    <string name="tap_right_amount">正しい金額をタップ</string>
+    <string name="tap_right_name">正しい名前をタップ</string>
+    <string name="tap_right_account">正しい口座をタップ</string>
+    <string name="ringed_line">囲まれた部分が候補です。</string>
+    <string name="type_unknown">種類が不明</string>
+    <string name="to_name">%1$s へ</string>
+    <string name="from_name">%1$s から</string>
+    <string name="did_money_go">お金は出ましたか、入りましたか?</string>
+    <string name="message_doesnt_say">メッセージには書かれていません。</string>
+    <string name="saved_read_from_now">保存しました · 同じようなメッセージは次から読み取ります</string>
+    <string name="all_checked">すべて確認しました</string>
+    <string name="all_checked_line">同じようなメッセージは次から自動で読み取ります。</string>
+    <string name="back_to_review">確認に戻る</string>
+    <string name="not_set">未設定</string>
+    <string name="pick_type_first">先に支出・収入・返金・振替を選んでください</string>
+    <string name="missed_hint">Burrow がまだ知らない種類のメッセージです。一度確認すると、同じようなものは自動で読み取ります。</string>
+    <string name="read_marked_right">Burrow は印の部分を読み取りました。合っていますか?</string>
 </resources>

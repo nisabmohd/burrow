@@ -136,8 +136,7 @@ fun TxnActionsHost(actions: TxnActions) {
             val kind = if (t.txn.type == TxnType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
             val cats by app.money.categories.collectAsStateWithLifecycle(emptyList())
             val period = remember { BudgetPeriod.containing(LocalDate.now(), actions.monthStartDay) }
-            val spent by remember { app.money.spentByCategory(period) }.collectAsStateWithLifecycle(emptyMap())
-            CategorySheet(cats.filter { it.kind == kind }, spent, t.txn.categoryId, { cat ->
+            CategorySheet(cats.filter { it.kind == kind }, t.txn.categoryId, { cat ->
                 scope.launch {
                     val before = t.txn
                     app.money.save(before.copy(categoryId = cat.id, updatedAt = System.currentTimeMillis()))

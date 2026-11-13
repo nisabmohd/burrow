@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solar users-group-rounded (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_group_fill), tint = …) -->
+<!-- Solar group (design kit) (Linear) by 480 Design, CC BY 4.0. Tint it: Icon(painterResource(R.drawable.ic_group_fill), tint = …) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M5,6a4,4 0 1,0 8,0a4,4 0 1,0 -8,0Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M15 9C16.6569 9 18 7.65685 18 6C18 4.34315 16.6569 3 15 3" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M2,17a7,4 0 1,0 14,0a7,4 0 1,0 -14,0Z" />
-    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M18 14C19.7542 14.3847 21 15.3589 21 16.5C21 17.5293 19.9863 18.4229 18.5 18.8704" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M5,6a4,4 0 1,0 8,0a4,4 0 1,0 -8,0Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M15 9a3 3 0 1 0 0-6" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:pathData="M2,17a7,4 0 1,0 14,0a7,4 0 1,0 -14,0Z" />
+    <path android:strokeColor="@android:color/white" android:strokeWidth="1.5" android:strokeLineCap="round" android:pathData="M18 14c1.754.385 3 1.359 3 2.5c0 1.03-1.014 1.923-2.5 2.37" />
 </vector>

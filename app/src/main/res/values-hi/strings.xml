@@ -1151,8 +1151,8 @@
     </plurals>
     <string name="not_understood_title">समझ नहीं आए</string>
     <string name="not_understood_line">ये भुगतान जैसे लगे, पर कोई नियम इन्हें पढ़ नहीं पाया। एक बार सिखाएँ, फिर ऐसे संदेश पढ़े जाएँगे।</string>
-    <string name="nothing_to_teach">सिखाने को कुछ नहीं</string>
-    <string name="nothing_to_teach_line">जो संदेश ऐप नहीं पढ़ पाता, वे यहाँ दिखते हैं।</string>
+    <string name="nothing_to_check">जाँचने को कुछ नहीं</string>
+    <string name="nothing_to_check_line">जो संदेश Burrow अभी पढ़ नहीं पाता, वे यहाँ दिखते हैं।</string>
     <string name="teach">सिखाएँ</string>
     <string name="capture_off_title">ऑटो-कैप्चर बंद है</string>
     <string name="capture_off_line">पेमेंट अपने-आप दर्ज हों, इसके लिए बैंक SMS या पेमेंट ऐप चालू करें</string>
@@ -1461,11 +1461,10 @@
     <string name="dynamic_colour_on">चालू · रंग आपके वॉलपेपर से आते हैं</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">जाँचें</string>
-    <string name="review_hint">संदेश देखने के लिए टैप करें। सहेजने के लिए दाएँ, अनदेखा करने के लिए बाएँ स्वाइप करें।</string>
+    <string name="review_hint">SMS देखने या बदलने के लिए भुगतान पर टैप करें। सेव करने के लिए दाएँ, अनदेखा करने के लिए बाएँ स्वाइप करें।</string>
     <string name="edit_details">विवरण बदलें</string>
     <string name="edit_details_line">रकम, किसे, खाता, तारीख</string>
     <string name="tap_it_in_message">संदेश में टैप करें</string>
-    <string name="type_after_account">खाते के बाद भरा जाता है</string>
     <string name="type_it_says">%1$s · इसमें लिखा है “%2$s”</string>
     <string name="type_sheet_line">ऐसे संदेश का मतलब</string>
     <string name="words_that_mean">%1$s वाले शब्द</string>
@@ -1488,4 +1487,52 @@
     <string name="add_category_budget">श्रेणी बजट जोड़ें</string>
     <string name="delete_goal_text_money">%1$s उन्हीं खातों में वापस जाएगा जहाँ से आया था।</string>
     <string name="delete_goal_text_empty">इसमें कुछ नहीं जोड़ा गया।</string>
+    <string name="ready_to_save">सेव के लिए तैयार</string>
+    <string name="review_seen_before">पहले देखे हुए</string>
+    <string name="pick_a_category_header">श्रेणी चुनें</string>
+    <string name="review_new">Burrow के लिए नए</string>
+    <string name="review_not_sure">Burrow को पक्का नहीं · यह किसके लिए था?</string>
+    <string name="pick_categories_first">पहले श्रेणियाँ चुनें</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">%d तैयार सेव करें</item>
+        <item quantity="other">%d तैयार सेव करें</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">जाँचने के लिए %d संदेश</item>
+        <item quantity="other">जाँचने के लिए %d संदेश</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow इसे पढ़ नहीं पाया। इसे एक बार जाँचें, फिर ऐसे संदेश पढ़े जाएँगे।</item>
+        <item quantity="other">Burrow इन्हें पढ़ नहीं पाया। हर एक को एक बार जाँचें, फिर ऐसे संदेश पढ़े जाएँगे।</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">जाँचें</item>
+        <item quantity="other">एक-एक करके जाँचें</item>
+    </plurals>
+    <string name="check_a_message">संदेश जाँचें</string>
+    <string name="n_of_m">%2$d में से %1$d</string>
+    <string name="burrow_read_it_as">Burrow ने इसे ऐसे पढ़ा</string>
+    <string name="from_your_sms">आपके SMS से</string>
+    <string name="is_this_right">क्या यह सही है?</string>
+    <string name="no_fix_it">नहीं, ठीक करें</string>
+    <string name="yes_save">हाँ, सेव करें</string>
+    <string name="whats_wrong">क्या गलत है?</string>
+    <string name="tap_part_to_fix">ठीक करने वाले हिस्से पर टैप करें।</string>
+    <string name="tap_right_amount">सही राशि पर टैप करें</string>
+    <string name="tap_right_name">सही नाम पर टैप करें</string>
+    <string name="tap_right_account">सही खाते पर टैप करें</string>
+    <string name="ringed_line">संदेश के घेरे गए हिस्से इसके विकल्प हैं।</string>
+    <string name="type_unknown">प्रकार पता नहीं</string>
+    <string name="to_name">%1$s को</string>
+    <string name="from_name">%1$s से</string>
+    <string name="did_money_go">पैसा गया या आया?</string>
+    <string name="message_doesnt_say">संदेश में नहीं लिखा है।</string>
+    <string name="saved_read_from_now">सेव हुआ · ऐसे संदेश अब से पढ़े जाएँगे</string>
+    <string name="all_checked">सब जाँच लिया</string>
+    <string name="all_checked_line">ऐसे संदेश अब से अपने-आप पढ़े जाएँगे।</string>
+    <string name="back_to_review">समीक्षा पर लौटें</string>
+    <string name="not_set">तय नहीं</string>
+    <string name="pick_type_first">पहले खर्च, आय, रिफ़ंड या ट्रांसफ़र चुनें</string>
+    <string name="missed_hint">Burrow ने ऐसे संदेश पहले नहीं देखे। एक बार जाँचें, फिर ऐसे बाकी आपके लिए पढ़े जाएँगे।</string>
+    <string name="read_marked_right">Burrow ने चिह्नित हिस्से पढ़े। सही है?</string>
 </resources>

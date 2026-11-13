@@ -24,7 +24,8 @@ Code: `capture/` (pure Kotlin, unit-tested), `SmsReceiver`, `PaymentNotification
    (so a renamed category is still found). The merchant's usual category comes first (what you chose wins), then
    the words' category, then your most used. Whole words only.
    **Merchant and expense name**: the merchant the message named is kept on the payment, hidden (`TxnEntity.merchant`);
-   the expense is named by its plain word when there is one ("Medicines"), else by the merchant. The notification,
+   the expense is named by the merchant when it reads as a name ("swiggy.food@icici" is Swiggy Food, "Sai Pharmacy"),
+   else by the message's plain word ("Medicines") when the merchant is missing or a code. The notification,
    To review and the Transaction screen (a Merchant row) show both; with no merchant the title is "₹500 on Petrol".
    Usual categories and bill matching read the hidden merchant too.
    **Ask**: post the capture notification ("₹240 to Third Wave Coffee · HDFC ••1234 · pick a category")
@@ -49,11 +50,20 @@ number style) · **Test it** (paste any message; parts highlight live) · Use th
 taps (literal text around the tapped spans, digits generalised to `[\d,.]+`, the sender as the sender
 regex), shows a test on the original message, and saves a user rule.
 
+**Check a message (final 12 Nov, 52/235/239/240/149).** Not understood is checked, not taught: Burrow reads the message
+itself first (`RuleBuilder.firstAmount`, `guessPayee`: the first name after to / at / towards / VPA / from, `guessAccount`:
+a masked number or the digits after Card / ending / A/c; null rather than a wrong guess) and asks **Is this right?**.
+Yes, save keeps the rule and moves to the next waiting message ("1 of 2"); No, fix it lists Amount · Paid to · Account ·
+Type, and a part being fixed rings what it could be (`RuleBuilder.candidates`). With no out/in word the type is unknown
+(red), the screen asks **Did money go out or in?** and Yes, save waits for a pick. A message counts as a payment worth
+checking when it has an amount and a money word, "Txn" / "transaction" included (a card's "Txn of Rs 899").
+
 **Type (12 Nov, 235/236).** The user taps only Amount, Paid to and Account. Burrow fills in the type from the
 words in the message (`capture/TypeWords.kt`, tried in this order): Not a payment ("requested", "is due",
 "will be debited") · Refund ("refund", "refunded", "reversal", "cashback") · Transfer ("self transfer", "to your
 own") · Income ("credited", "received", "deposited") · Expense ("debited", "spent", "paid", "sent", "withdrawn",
-"purchase"). Whole words, any case. The Type sheet changes it and adds words (`Rule.typeWords`). When the words
+"purchase"). Whole words, any case. The Type row is there from the start and can be tapped at any time; Save needs
+only the amount (Paid to and Account are optional, any order; 0.4.1). The Type sheet changes it and adds words (`Rule.typeWords`). When the words
 agree with the type, the rule decides by words each time (a "credited" message from the same bank is income); when
 they don't, the rule keeps the picked type (`Rule.type`). A capture stores its type in `direction`: OUT, IN,
 REFUND or TRANSFER. Not a payment is never stored. A refund links to the latest expense with the same payee in the

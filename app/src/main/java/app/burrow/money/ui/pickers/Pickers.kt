@@ -13,6 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -39,6 +42,7 @@ import app.burrow.money.ui.components.confirm
 import app.burrow.money.ui.components.duotoneIcon
 import app.burrow.money.ui.components.tick
 import app.burrow.money.ui.theme.Size
+import app.burrow.money.ui.theme.Space
 import java.time.LocalDate
 
 /*
@@ -55,6 +59,12 @@ fun CategoryCircle(icon: String?, hue: Float?, size: androidx.compose.ui.unit.Dp
 val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> Unit)?> { null }
 
 /**
+ * What each category has spent this budget month, for every category sheet ("₹2,708 this month"): provided once by the
+ * nav host, so every sheet (New expense, Review, a transaction, bills, budgets, split, import) looks exactly the same.
+ */
+val LocalCategorySpent = androidx.compose.runtime.compositionLocalOf<Map<Long, Long>?> { null }
+
+/**
  * Category (19, 167): every category with what was spent on it this month. When both kinds are
  * listed, an Expense group then an Income group; New category last. [spent] null = the screen has no
  * spending to show (bills, budgets, review, import): no line under the rows, rather than a wrong "nothing".
@@ -62,13 +72,14 @@ val LocalNewCategory = androidx.compose.runtime.staticCompositionLocalOf<(() -> 
 @Composable
 fun CategorySheet(
     categories: List<CategoryEntity>,
-    spent: Map<Long, Long>?,
     selectedId: Long?,
     onPick: (CategoryEntity) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val money = LocalMoney.current
     val haptics = LocalHapticFeedback.current
+    // One sheet everywhere: the month's spending comes from the app, never from the caller (user, 12 Nov).
+    val spent = LocalCategorySpent.current
     var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     val shown = if (query.isBlank()) categories else categories.filter { it.name.contains(query.trim(), ignoreCase = true) }
     BurrowSheet(onDismiss) {
@@ -289,4 +300,8 @@ fun DateSheet(
         }
     }
 }
+
+/** A category's short name in the grid: "Food & drinks" → "Food" (241; the prototype's `split(' &')`). */
+fun gridLabel(name: String): String = name.substringBefore(" &").ifBlank { name }
+
 

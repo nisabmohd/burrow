@@ -17,7 +17,7 @@ class CsvTransfer(private val money: MoneyRepository, private val db: BurrowData
     private val stamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     suspend fun export(): String = withContext(Dispatchers.Default) {
-        val rows = money.latest().first().filter { !it.txn.isSample }.map { t ->
+        val rows = money.everything().first().filter { !it.txn.isSample }.map { t ->
             val x = t.txn
             listOf(
                 // Money put into a goal is its own type: a goal isn't an account to import into.

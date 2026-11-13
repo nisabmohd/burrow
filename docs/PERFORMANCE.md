@@ -25,7 +25,21 @@ Burrow must feel instant on a ₹8,000 phone and stay tiny.
 - Nothing heavy in `Application.onCreate`; `AppContainer` is all `lazy`.
 - Room on `Dispatchers.IO`; totals computed in SQL (`SUM`, `GROUP BY`), not in Kotlin over lists.
   Index `at`, `accountId`, `categoryId`, `dueDate` (already in the schema).
-- Query only the visible range (paging by month for Activity).
+- Query only the visible range. No screen reads every row (only the CSV export does; `ProjectRulesTest` checks):
+  - **Activity** browsing reads 3 months, then 3 more when the list is 30 rows from its end (`ACTIVITY_MONTHS`,
+    `ACTIVITY_LOAD_AHEAD`). Picked dates read just those days; a search or filter reads all history so nothing is
+    missed. The Filter sheet's count runs over `postedKeys` (5 columns per row), not full rows.
+  - **Account pages** read their own rows (`forAccount`, paid from it or moved into it, ≤ 1,000) and show the last
+    30 days with payments; a card's "since statement" is a SQL `SUM` (`expenseSince`). Before 0.4.1 they filtered the
+    newest 400 rows of every account, so a quiet card lost its history.
+  - **Today** reads from 7 weeks back (net-worth line) or the budget month's start; the **Sunday review** 21 days;
+    **Insights** the picked range, the one before and the heatmap month.
+- Every `Flow<List<TxnView>>` query has a `WHERE` or `LIMIT`; `TxnEntity` is indexed on `at`, `accountId`,
+  `toAccountId` (Room v10), `categoryId`, `refundOf`.
+- Lists that grow with use are lazy: Activity, Today, and the account, budget and category-insights pages
+  (`LazyDetailFrame`, one item per day header and per day group). `TxnRow` outside a lazy item fails `ProjectRulesTest`.
+- `LongHistoryTest` (androidTest, in-memory Room): 20,000 rows over 3 years, 6 accounts, a quiet card. Budgets: month
+  query < 30 ms, account page < 60 ms, filter keys < 150 ms (emulator, 12 Nov: 1 / 6 / 10 ms).
 - Compose: stable keys in every `LazyColumn` (`key = { it.id }`), `contentType` for headers vs rows,
   immutable UI state (`@Immutable` data classes, `ImmutableList`-like `List` from `toList()`), lambdas
   that read state late (`Modifier.offset { }`), `derivedStateOf` for "scrolled" flags, no `remember`

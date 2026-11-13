@@ -1178,8 +1178,8 @@
     </plurals>
     <string name="not_understood_title">Nicht verstanden</string>
     <string name="not_understood_line">Diese sahen wie Zahlungen aus, aber keine Regel konnte sie lesen. Einmal beibringen, dann werden solche Nachrichten ab jetzt gelesen.</string>
-    <string name="nothing_to_teach">Nichts beizubringen</string>
-    <string name="nothing_to_teach_line">Nachrichten, die die App nicht lesen kann, erscheinen hier.</string>
+    <string name="nothing_to_check">Nichts zu prüfen</string>
+    <string name="nothing_to_check_line">Nachrichten, die Burrow noch nicht lesen kann, erscheinen hier.</string>
     <string name="teach">Beibringen</string>
     <string name="capture_off_title">Auto-Erfassung ist aus</string>
     <string name="capture_off_line">Schalte Bank-SMS oder Zahlungs-Apps ein, damit Zahlungen sich selbst erfassen</string>
@@ -1488,11 +1488,10 @@
     <string name="dynamic_colour_on">An · Farben kommen vom Hintergrundbild</string>
     <string name="legend_period">%1$s  %2$s</string>
     <string name="review">Prüfen</string>
-    <string name="review_hint">Tippe auf eine, um die Nachricht zu prüfen. Nach rechts wischen speichert, nach links ignoriert.</string>
+    <string name="review_hint">Tippe auf eine Zahlung, um ihre SMS zu sehen oder sie zu ändern. Nach rechts wischen speichert, nach links ignoriert.</string>
     <string name="edit_details">Details bearbeiten</string>
     <string name="edit_details_line">Betrag, Empfänger, Konto, Datum</string>
     <string name="tap_it_in_message">In der Nachricht antippen</string>
-    <string name="type_after_account">Wird nach dem Konto ausgefüllt</string>
     <string name="type_it_says">%1$s · da steht „%2$s“</string>
     <string name="type_sheet_line">Was eine Nachricht wie diese bedeutet</string>
     <string name="words_that_mean">Wörter für %1$s</string>
@@ -1515,4 +1514,52 @@
     <string name="add_category_budget">Kategoriebudget hinzufügen</string>
     <string name="delete_goal_text_money">%1$s geht zurück auf die Konten, von denen es kam.</string>
     <string name="delete_goal_text_empty">Es wurde nichts hinzugefügt.</string>
+    <string name="ready_to_save">Bereit zum Speichern</string>
+    <string name="review_seen_before">Schon bekannt</string>
+    <string name="pick_a_category_header">Kategorie wählen</string>
+    <string name="review_new">Neu für Burrow</string>
+    <string name="review_not_sure">Burrow ist unsicher · wofür war das?</string>
+    <string name="pick_categories_first">Erst Kategorien wählen</string>
+    <plurals name="save_n_ready">
+        <item quantity="one">%d bereite speichern</item>
+        <item quantity="other">%d bereite speichern</item>
+    </plurals>
+    <plurals name="n_messages_to_check">
+        <item quantity="one">%d Nachricht zu prüfen</item>
+        <item quantity="other">%d Nachrichten zu prüfen</item>
+    </plurals>
+    <plurals name="messages_to_check_line">
+        <item quantity="one">Burrow konnte sie nicht lesen. Prüfe sie einmal, dann werden solche Nachrichten gelesen.</item>
+        <item quantity="other">Burrow konnte sie nicht lesen. Prüfe jede einmal, dann werden solche Nachrichten gelesen.</item>
+    </plurals>
+    <plurals name="check_them_one_by_one">
+        <item quantity="one">Prüfen</item>
+        <item quantity="other">Nacheinander prüfen</item>
+    </plurals>
+    <string name="check_a_message">Nachricht prüfen</string>
+    <string name="n_of_m">%1$d von %2$d</string>
+    <string name="burrow_read_it_as">Burrow hat es so gelesen</string>
+    <string name="from_your_sms">Aus deiner SMS</string>
+    <string name="is_this_right">Stimmt das?</string>
+    <string name="no_fix_it">Nein, korrigieren</string>
+    <string name="yes_save">Ja, speichern</string>
+    <string name="whats_wrong">Was stimmt nicht?</string>
+    <string name="tap_part_to_fix">Tippe auf den Teil, der falsch ist.</string>
+    <string name="tap_right_amount">Tippe auf den richtigen Betrag</string>
+    <string name="tap_right_name">Tippe auf den richtigen Namen</string>
+    <string name="tap_right_account">Tippe auf das richtige Konto</string>
+    <string name="ringed_line">Die eingekreisten Teile der Nachricht kommen infrage.</string>
+    <string name="type_unknown">Art unbekannt</string>
+    <string name="to_name">an %1$s</string>
+    <string name="from_name">von %1$s</string>
+    <string name="did_money_go">Ging Geld raus oder rein?</string>
+    <string name="message_doesnt_say">Die Nachricht sagt es nicht.</string>
+    <string name="saved_read_from_now">Gespeichert · solche Nachrichten werden ab jetzt gelesen</string>
+    <string name="all_checked">Alles geprüft</string>
+    <string name="all_checked_line">Solche Nachrichten werden ab jetzt von selbst gelesen.</string>
+    <string name="back_to_review">Zurück zur Prüfung</string>
+    <string name="not_set">Nicht festgelegt</string>
+    <string name="pick_type_first">Wähle zuerst Ausgabe, Einnahme, Erstattung oder Umbuchung</string>
+    <string name="missed_hint">Burrow kennt diese Art Nachricht noch nicht. Prüfe eine einmal, dann werden ähnliche für dich gelesen.</string>
+    <string name="read_marked_right">Burrow hat die markierten Teile gelesen. Stimmt das?</string>
 </resources>

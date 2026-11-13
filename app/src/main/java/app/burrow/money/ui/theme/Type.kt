@@ -125,4 +125,5 @@ object BurrowType {
 
     /** 24/32 Regular: keypad digits only (the prototype's keys). */
     val keypad: TextStyle @Composable @ReadOnlyComposable get() = MaterialTheme.typography.displaySmall
+
 }

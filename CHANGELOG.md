@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.1
+- Teach: the type can be checked and changed at any time, and Save works as soon as the amount is picked. Paid to and Account are optional and can be picked in any order; they no longer have to be filled one by one first.
+- Teach › Type: the words that mean a type are small chips sized to their word, as in the design, instead of stretching across the sheet.
+- Card and account pages show their own history in full: a card used now and then no longer looks empty, and "since statement" counts every payment since the statement day, however many payments other accounts have.
+- Long histories stay fast: Activity loads three months at a time as you scroll, Today and the Sunday review read only the weeks they show, and account, budget and category pages draw rows only as they scroll into view. Searching and filtering still look through everything.
+- Review is a list of cards you approve right there: each payment shows the whole SMS with its bank's name, category chips (as in New expense) with Burrow's guess picked, ✕ to ignore, and Edit · Save; a payee Burrow hasn't seen asks "what was it for?" and More opens the category list. The bottom button saves every card that has a category ("Save 2 ready", then "Save 3 payments").
+- Every bank message looks the same everywhere (a transaction, Review, Fix it), with soft highlights and the marked words in a darker colour.
+- Not understood is cards too: Burrow marks what it read in each message and asks "Right?" (or whether money went out or in); Yes, save reads messages like it from then on, with Undo, and Edit opens Fix it.
+- Fix it (from a card's Edit): Burrow's reading part by part; fixing a part rings what it could be in the message.
+- Icons follow the final design exactly (Solar Linear paths from the design kit): bank accounts are a bank building, amounts a banknote, and + ✕ ✓ − are the bare glyphs.
+- Empty states stand out in light mode: the illustration's cards are white, with a fine outline and a soft shadow, instead of melting into the page; the back card is no longer cut off at one edge.
+- Not understood, when empty, says "Nothing to check"; a new payee in To review asks "what was it for?".
+- Review and New expense open the same category list, with this month's spending beside each category.
+- With large text, a Review card puts the amount under the name, so the name is never cut short.
+- A captured payment is named by who was paid: swiggy.food@icici is "Swiggy Food", no longer "Food". A word like "Petrol" names it only when the message has no readable payee.
+- Not understood cards show the time today, like To review, instead of a long date.
+- Date ranges follow your language: "Nov 1 – 13" in US English (it read "1 – Nov 13"), "1 – 13 Nov" elsewhere; a numeric date format keeps both dates whole.
+- New store screenshots: Today with your balance, Review and Not understood as cards.
+
 ## 0.4.0
 - A new logo: three arches, a burrow, the same and centred everywhere (app icon, notifications, About, widget, store).
 - Rate in About opens Google Play's rating card (Google Play build).

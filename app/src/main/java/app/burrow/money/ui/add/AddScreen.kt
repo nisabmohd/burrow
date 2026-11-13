@@ -162,7 +162,7 @@ fun AddContent(
 
     when (sheet) {
         AddSheet.TYPE -> TypeSheet(f.type, { vm.setType(it); sheet = null }, { sheet = null })
-        AddSheet.CATEGORY -> CategorySheet(s.categoriesForType, s.spentByCategory, f.categoryId, { vm.setCategory(it.id); sheet = null }, { sheet = null })
+        AddSheet.CATEGORY -> CategorySheet(s.categoriesForType, f.categoryId, { vm.setCategory(it.id); sheet = null }, { sheet = null })
         AddSheet.ACCOUNT -> AccountSheet(s.accountsForType, f.accountId, { vm.setAccount(it.account.id); sheet = null }, { sheet = null })
         AddSheet.TO_ACCOUNT -> AccountSheet(s.accounts.filter { it.account.id != f.accountId }, f.toAccountId, { vm.setToAccount(it.account.id); sheet = null }, { sheet = null })
         AddSheet.DATE -> DateSheet(

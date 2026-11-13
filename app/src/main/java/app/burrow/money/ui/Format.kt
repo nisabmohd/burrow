@@ -57,7 +57,10 @@ class DateText(private val context: Context, locale: Locale, style: String = "WR
         else -> null
     }
     private val dayFormat = DateTimeFormatter.ofPattern(numeric?.let { "EEEE, ${it.first}" } ?: DateFormat.getBestDateTimePattern(locale, "EEEEdMMM"), locale)
-    private val shortDayFormat = DateTimeFormatter.ofPattern(numeric?.first ?: DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
+    private val shortDayPattern = numeric?.first ?: DateFormat.getBestDateTimePattern(locale, "dMMM")
+    private val shortDayFormat = DateTimeFormatter.ofPattern(shortDayPattern, locale)
+    /** Whether the short day is written day first ("13 Oct") or month first ("Oct 13"). */
+    private val dayFirst = shortDayPattern.indexOf('d') < shortDayPattern.indexOf('M')
     private val monthFormat = DateTimeFormatter.ofPattern("LLLL", locale)
     private val language = locale.language
     private val weekdayDayFormat = DateTimeFormatter.ofPattern(numeric?.let { "EEE, ${it.first}" } ?: DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), locale)
@@ -86,6 +89,16 @@ class DateText(private val context: Context, locale: Locale, style: String = "WR
 
     /** "13 Oct". */
     fun shortDay(date: LocalDate): String = shortDayFormat.format(date)
+
+    /**
+     * Two days of one month, the month written once where the locale writes it: "1 – 13 Nov", "Nov 1 – 13".
+     * A numeric date format (Customise › Region) keeps both whole: "01/11 – 13/11".
+     */
+    fun sameMonth(start: LocalDate, end: LocalDate): String = when {
+        numeric != null -> "${shortDay(start)} – ${shortDay(end)}"
+        dayFirst -> "${start.dayOfMonth} – ${shortDay(end)}"
+        else -> "${shortDay(start)} – ${end.dayOfMonth}"
+    }
 
     /** When a bill is due, from today: "Today", "Tomorrow", "in 6 days", "in 2 months"; past: "Late". */
     fun due(date: LocalDate, today: LocalDate = LocalDate.now()): String {

@@ -101,7 +101,8 @@ fun weeklySummary(
 fun AppContainer.weeklySummaryFlow(today: LocalDate = LocalDate.now()): Flow<WeeklySummary> {
     val settingsFlow = settings.settings
     return combine(
-        combine(next.stats, capture.reviewCount, plan.occurrences(today.minusDays(31), today.plusDays(7))) { a, b, c -> Triple(a, b, c) },
+        // The review week and the one before it: 21 days back covers both, whatever the week start.
+        combine(next.statsBetween(today.minusDays(21).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(), Long.MAX_VALUE), capture.reviewCount, plan.occurrences(today.minusDays(31), today.plusDays(7))) { a, b, c -> Triple(a, b, c) },
         settingsFlow,
         next.spentToday(today),
     ) { (stats, review, occ), s, spentToday ->

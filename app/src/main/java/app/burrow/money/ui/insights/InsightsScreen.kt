@@ -309,7 +309,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
                                 Box(
                                     Modifier.size(Size.heatmapDay).clip(Shapes.pill)
                                         .background(if (future) androidx.compose.ui.graphics.Color.Transparent else heatColor(level))
-                                        .then(if (d == today) Modifier.border(Space.group / 2, c.primary, Shapes.pill) else Modifier)
+                                        .then(if (d == today) Modifier.border(Size.ring, c.primary, Shapes.pill) else Modifier)
                                         .then(if (!future) Modifier.clickable(role = Role.Button, onClickLabel = label) { onDay(d) } else Modifier)
                                         .semantics { contentDescription = label },
                                     contentAlignment = Alignment.Center,
@@ -317,7 +317,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
                                     CappedFontScale {
                                         Text(
                                             d.dayOfMonth.toString(), style = BurrowType.label,
-                                            color = when { future -> c.onSurfaceVariant.copy(alpha = 0.5f); level >= 3 -> c.onPrimary; else -> c.onSurface },
+                                            color = when { future -> c.onSurfaceVariant.copy(alpha = app.burrow.money.ui.theme.Alpha.future); level >= 3 -> c.onPrimary; else -> c.onSurface },
                                         )
                                     }
                                 }
@@ -329,7 +329,7 @@ private fun HeatmapCard(s: InsightsState, onDay: (LocalDate) -> Unit) {
         }
         Row(Modifier.fillMaxWidth().padding(top = Space.card), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.less), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(end = Space.small))
-            (0..4).forEach { l -> Box(Modifier.padding(horizontal = Space.group / 2).size(Space.card).clip(Shapes.pill).background(heatColor(l))) }
+            (0..4).forEach { l -> Box(Modifier.padding(horizontal = Space.row).size(Size.legendDot).clip(Shapes.pill).background(heatColor(l))) }
             Text(stringResource(R.string.more_word), style = BurrowType.label, color = c.onSurfaceVariant, modifier = Modifier.padding(start = Space.small))
         }
     }
@@ -346,9 +346,11 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
     val today = remember { LocalDate.now() }
     var picking by rememberSaveable { mutableStateOf(false) }
     // The calendar button (42, 231): the same Dates sheet as Insights, so both pages keep one range.
-    DetailFrame(onBack, actions = {
+    val days = remember(s.txns) { s.txns.groupBy { it.day() }.toList() }
+    app.burrow.money.ui.plan.LazyDetailFrame(onBack, actions = {
         app.burrow.money.ui.components.TonalIconButton(painterResource(R.drawable.ic_calendar_month_regular), stringResource(R.string.dates), { picking = true })
     }) {
+      item(key = "top", contentType = "top") { androidx.compose.foundation.layout.Column {
         val diff = s.total - s.previousTotal
         CenterHeader(
             icon = { CategoryCircle(s.category.icon, s.category.colorHue, Size.iconCircleBig) },
@@ -385,9 +387,11 @@ fun CategoryInsightsScreen(vm: CategoryInsightsViewModel, onBack: () -> Unit, on
                 )
             }
         }
-        s.txns.groupBy { it.day() }.forEach { (d, list) ->
-            SectionHeader(dates.day(d, today), meta = money.signed(-list.sumOf { it.txn.amount }))
-            ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } }
+      } }
+        // A long range (a year of groceries) stays smooth: each day is composed only when on screen.
+        days.forEach { (d, list) ->
+            item(key = "day-$d", contentType = "header") { SectionHeader(dates.day(d, today), meta = money.signed(-list.sumOf { it.txn.amount })) }
+            item(key = "group-$d", contentType = "group") { ListGroup { list.forEachIndexed { i, t -> TxnRow(t, i, list.size, dates, today, { onOpenTxn(t.txn.id) }) } } }
         }
     }
     if (picking) DatesSheet(s.range, onApply = { vm.setRange(it); picking = false }, onDismiss = { picking = false })

@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -130,7 +131,7 @@ fun Note(
             }
             Column(Modifier.weight(1f)) {
                 Text(title, style = BurrowType.titleSmall, color = fg)
-                if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = 0.85f))
+                if (line != null) Text(line, style = BurrowType.body, color = fg.copy(alpha = app.burrow.money.ui.theme.Alpha.onTintLine))
             }
             if (!stacked && action != null && onAction != null) TextButton(onClick = onAction) { Text(action, style = BurrowType.button, color = fg) }
             else if (arrow != null) Icon(arrow, null, tint = fg)
@@ -259,8 +260,13 @@ fun Ghost(icon: Painter, hue: Float? = null) {
     val c = MaterialTheme.colorScheme
     val g = app.burrow.money.ui.theme.ghostColors()
     val card: (Color) -> Modifier = { fill ->
+        val tint = g.shadowTint ?: c.scrim
         Modifier
-            .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = c.scrim.copy(alpha = g.shadowAlpha), spotColor = c.scrim.copy(alpha = g.shadowAlpha))
+            .shadow(Size.ghostShadow, Shapes.ghost, ambientColor = tint.copy(alpha = g.shadowAlpha), spotColor = tint.copy(alpha = g.shadowAlpha))
+            .then(
+                if (g.nearShadowAlpha > 0f) Modifier.shadow(Size.ghostShadowNear, Shapes.ghost, ambientColor = tint.copy(alpha = g.nearShadowAlpha), spotColor = tint.copy(alpha = g.nearShadowAlpha))
+                else Modifier,
+            )
             .background(fill, Shapes.ghost)
             .then(g.line?.let { Modifier.border(Size.ghostHairline, it, Shapes.ghost) } ?: Modifier)
             .padding(horizontal = Space.card, vertical = Size.ghostPadV)
@@ -268,7 +274,10 @@ fun Ghost(icon: Painter, hue: Float? = null) {
     val bar: @Composable (Float, Color) -> Unit = { w, col -> Box(Modifier.fillMaxWidth(w).height(Size.ghostLine).background(col, Shapes.pill)) }
     Box(Modifier.size(Size.ghostWidth, Size.ghostHeight).clearAndSetSemantics { }) {
         Column(
-            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT).alpha(g.backAlpha).size(Size.ghostBackWidth, Size.ghostBackHeight).then(card(g.back)),
+            Modifier.padding(top = Size.ghostBackTop).rotate(GHOST_BACK_TILT)
+                // See-through without an offscreen layer: .alpha() clipped the card's shadow and tilted corners to its box.
+                .graphicsLayer { alpha = g.backAlpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
+                .size(Size.ghostBackWidth, Size.ghostBackHeight).then(card(g.back)),
             verticalArrangement = Arrangement.spacedBy(Size.ghostLine, Alignment.CenterVertically),
         ) { bar(0.6f, g.barBack); bar(0.8f, g.barBack) }
         Column(
@@ -277,7 +286,7 @@ fun Ghost(icon: Painter, hue: Float? = null) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.inline + Space.row)) {
                 val colors = hue?.let { categoryColors(it) }
-                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: g.back, Shapes.pill), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(Size.ghostCircle).background(colors?.container ?: g.circle, Shapes.pill), contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = colors?.onContainer ?: c.onSurfaceVariant, modifier = Modifier.size(Size.ghostIcon))
                 }
                 bar(0.52f, g.barFront)
@@ -310,7 +319,7 @@ fun CenterTitleHeader(icon: Painter, title: String, modifier: Modifier = Modifie
         HeaderIcon(icon)
         Spacer(Modifier.height(Space.block))
         Text(title, style = BurrowType.title, color = c.onSurface, textAlign = TextAlign.Center)
-        if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center)
+        if (line != null) Text(line, style = BurrowType.body, color = c.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = Size.headerLine))
     }
 }
 

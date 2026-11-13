@@ -11,9 +11,15 @@ Screen numbers point to `design/screens/`.
       the release key and the debug key; turn on the Google Drive API
 - [ ] When Drive goes on: Google Cloud setup (`~/Downloads/burrow-google-drive-setup.md`), set `DRIVE_BACKUP` true in app/build.gradle.kts, Play Console Data safety (`release/data-safety.md`)
 
+
+- [ ] India pack: an SBI Card rule ("Txn of Rs 899.00 on SBI Card ending 3321 at …", sender JD-SBICRD); until then Check a
+      message names it "SBICRD", not "SBI Card" (design 240). Use the capture-rules skill with real messages
+
 ## On your phone (USB debugging; user will connect it)
 - [ ] Pending Google Cloud / Play Console setup — Drive with a Google account: connect, back up, clear data, restore, compare counts; 11 backups keep 10; switch
       account; disconnect; delete backups; `adb shell cmd jobscheduler run -f app.burrow.money 3101` while charging
+- [ ] 0.4.1 long history on a real phone with a year or more of payments: Activity scrolls back past 3 months with no
+      gap or jump; a card used rarely shows its payments and the right "since statement"; Filter sheet count = rows shown
 
 
 ## Notes
