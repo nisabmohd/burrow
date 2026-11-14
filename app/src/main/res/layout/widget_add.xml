@@ -15,7 +15,7 @@
         android:layout_gravity="top|start"
         android:background="@drawable/widget_circle_primary"
         android:importantForAccessibility="no"
-        android:padding="10dp"
+        android:padding="@dimen/widget_icon_inset_plus"
         android:src="@drawable/ic_add_regular"
         android:tint="@color/widget_on_primary" />
 

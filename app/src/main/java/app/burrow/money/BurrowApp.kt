@@ -48,6 +48,8 @@ class BurrowApp : Application() {
         val tables = arrayOf(
             "TxnEntity", "BillEntity", "BillOccurrenceEntity", "BudgetEntity", "AccountEntity", "CategoryEntity",
             "CaptureEntity", "GoalEntity", "SplitEntity",
+            // The Add expense widget's pills (89): adding, removing or reordering a favourite redraws it.
+            "FavouriteEntity",
         )
         kotlinx.coroutines.flow.merge(
             container.database.invalidationTracker.createFlow(*tables, emitInitialState = false).map { },

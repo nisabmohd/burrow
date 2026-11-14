@@ -963,8 +963,14 @@
     <string name="widget_safe_description">Quanto você pode gastar hoje com tranquilidade e um botão para adicionar um gasto</string>
     <string name="widget_add_description">Adicione um gasto com um toque</string>
     <string name="widget_bill_description">Sua próxima conta e quando vence</string>
-    <string name="no_bills_due">Nenhuma conta a vencer</string>
-    <string name="due_tomorrow">Vence amanhã</string>
+    <string name="widget_saved_undo">Salvo · toque para desfazer</string>
+    <string name="widget_marked_paid">Marcado como pago · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">mais %d esta semana</item>
+        <item quantity="many">mais %d esta semana</item>
+        <item quantity="other">mais %d esta semana</item>
+    </plurals>
+    <string name="widget_nothing_due">Nada a pagar</string>
     <string name="not_paid_yet">Ainda não paga</string>
     <string name="search">Buscar</string>
     <plurals name="review_n_payments">
@@ -976,11 +982,6 @@
         <item quantity="one">%d dia</item>
         <item quantity="many">%d dias</item>
         <item quantity="other">%d dias</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">Vence em %d dia</item>
-        <item quantity="many">Vence em %d dias</item>
-        <item quantity="other">Vence em %d dias</item>
     </plurals>
     <string name="favourite">Favorito</string>
     <string name="favourites">Favoritos</string>

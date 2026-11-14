@@ -78,7 +78,11 @@ DataStore Preferences, Navigation Compose (type-safe routes), ViewModel + StateF
 + `NotificationListenerService`. Reminders: AlarmManager + boot receiver. Backup: encrypted file via SAF.
 Flavors: `play`, `foss` (F-Droid, no Google code), `github` (APK). Fonts: Lexend, Outfit, Atkinson, Space Grotesk:
 variable TTFs drawn a step heavier to match the PNGs (Lexend 440/540; see `docs/TOKENS.md`).
-Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/widget.xml`.
+Home-screen widgets are plain RemoteViews (no Glance), colours in `res/values*/widget.xml`, picker previews from
+`tools/widget_previews.py`. Add expense shows the first 2 favourites (one tap saves, 4 s undo on the pill); Next bill
+shows bills due this week with a ✓ Mark paid ring (89, 15 Nov). Every widget lays itself out for the size the launcher
+gives (`home/WidgetLayout.kt`, as Weft; nothing cut), within min/max resize limits; check all sizes with the debug
+`WidgetGallery` (`adb shell am start -n app.burrow.money/.WidgetGallery`).
 
 ## Behaviour rules
 - New expense (17, 111, 112): title "New expense ▾" opens the type sheet; amount with a blinking caret; **keypad always

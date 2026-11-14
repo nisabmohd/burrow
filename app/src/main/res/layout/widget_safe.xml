@@ -39,6 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:text="@string/safe_to_spend_today"
@@ -46,10 +47,14 @@
                 android:textSize="@dimen/widget_body" />
         </LinearLayout>
 
+        <!-- Shrinks to the width (44 → 28 sp) on a narrow widget, never cut (WidgetLayout). -->
         <TextView
             android:id="@+id/widget_amount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/widget_amount_line"
+            android:autoSizeMaxTextSize="@dimen/widget_amount"
+            android:autoSizeMinTextSize="@dimen/widget_amount_min"
+            android:autoSizeTextType="uniform"
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
             android:maxLines="1"
