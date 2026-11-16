@@ -5,7 +5,7 @@ reminds you of bills and shows what is left. **It never sends your data anywhere
 Package `app.burrow.money` · by **mid apps** (developer mark in `design/logo/mid-apps/`) · GNU GPL v3 · Play title "Burrow: Expense Tracker".
 **Logo** (`burrow-icon.zip`, 2026-11-08): three nested arches (a burrow), white on burgundy `#A3294A`. **One geometry,
 `tools/burrow_mark.py`, writes every copy, each centred exactly on its canvas (as Weft's):** launcher foreground and
-monochrome (44 dp of the 108 dp canvas), `ic_notification` (20 of 24; also tinted in `BurrowLogo`, the widget and the
+monochrome (42 dp of the 108 dp canvas: 15 dp each side of the 72 dp that show, the same padding as Unpeep and Asusual), `ic_notification` (20 of 24; also tinted in `BurrowLogo`, the widget and the
 quick-settings tile), the store icon and feature graphic (`release/`, fastlane, `design/logo/`), the wordmark and SVGs.
 Never hand-edit those files; change the script and run it.
 
