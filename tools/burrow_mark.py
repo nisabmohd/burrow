@@ -5,15 +5,17 @@ The mark's box (strokes included) is 258 x 194 in the 512 design space, centred 
 zip's translate(0 -12) is baked into the paths below. Its launcher copy was 2.3 units above the
 middle of the 108 canvas; here every copy is centred on the box.
 
-  launcher  app/src/main/res/drawable/ic_launcher_foreground.xml   44 dp wide of the 108 dp canvas (the
-                                                                   old mark's size), white on #A3294A
+  launcher  app/src/main/res/drawable/ic_launcher_foreground.xml   42 dp wide of the 108 dp canvas: 15 dp
+                                                                   from each side of the 72 dp that show
+                                                                   (the same padding as Unpeep and Asusual,
+                                                                   2026-11-17), white on #A3294A
             app/src/main/res/drawable/ic_launcher_monochrome.xml   the same, for themed icons (Android 13+)
             app/src/main/res/values/colors.xml                     ic_launcher_background
   in app    app/src/main/res/drawable/ic_notification.xml          20 of 24 units, white: the notification
                                                                    small icon, and tinted in BurrowLogo
                                                                    (Welcome, About), the widget and the tile
   store     release/icon-512.png (+ fastlane icon.png, design/logo/play-store-icon-512.png): full square,
-            Play masks it; the mark takes the launcher's share of what shows (44 of 72 dp → 313 px)
+            Play masks it; the mark takes the launcher's share of what shows (42 of 72 dp → 299 px)
             release/feature-graphic-1024x500.png (+ fastlane featureGraphic.png, design/logo/)
   design    design/logo/*.svg, burrow-icon-512.png (rounded tile), burrow-wordmark.png
 
@@ -36,7 +38,8 @@ PATHS = [
     "M140,288 A76,76 0 0,1 292,288 V340",
     "M140,288 A36,36 0 0,1 212,288 V340",
 ]
-LAUNCHER_DP = 44          # mark width on the 108 dp launcher canvas
+LAUNCHER_DP = 42          # mark width on the 108 dp launcher canvas
+SHARE = LAUNCHER_DP / 72  # the mark's width / the side that shows, everywhere it sits on a tile
 STORE_PX = round(LAUNCHER_DP / 72 * 512)  # 72 dp of the 108 show inside the launcher mask
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 FONT = os.path.join(ROOT, "app", "src", "main", "res", "font", "lexend.ttf")
@@ -117,12 +120,12 @@ html, body {{ margin: 0; width: {width}px; height: {height}px; overflow: hidden;
 
 
 def feature_graphic():
-    """1024 x 500: the pale tile with the mark, "Burrow" and two lines, on burgundy (the old layout)."""
+    """1024 x 500: the pale tile with the mark, "Burrow" and two lines, on burgundy, centred as one group."""
     tile = 200
-    s, t = group(tile, round(tile * 0.56))
+    s, t = group(tile, round(tile * SHARE))
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{tile}" height="{tile}" style="flex:none"><rect width="{tile}" height="{tile}" rx="44" fill="{PALE}"/>'
            f'{mark_svg(DEEP, s, t, t)}</svg>')
-    body = f'''<div style="width:1024px;height:500px;background:{BURGUNDY};display:flex;align-items:center;gap:48px;padding-left:96px;box-sizing:border-box;font-family:Lexend;color:#fff">
+    body = f'''<div style="width:1024px;height:500px;background:{BURGUNDY};display:flex;align-items:center;justify-content:center;gap:48px;box-sizing:border-box;font-family:Lexend;color:#fff">
   {svg}
   <div><div style="font-size:84px;font-variation-settings:'wght' 540;line-height:1">Burrow</div>
   <div style="font-size:31px;font-variation-settings:'wght' 440;line-height:1.4;margin-top:22px;opacity:.92">Money that tracks itself.<br>Private. Open source.</div></div>
@@ -133,7 +136,7 @@ def feature_graphic():
 def wordmark():
     """385 x 144, transparent: the rounded tile and "Burrow" in ink."""
     tile = 144
-    s, t = group(tile, round(tile * 0.56))
+    s, t = group(tile, round(tile * SHARE))
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{tile}" height="{tile}" style="flex:none"><rect width="{tile}" height="{tile}" rx="32" fill="{BURGUNDY}"/>'
            f'{mark_svg("#FFFFFF", s, t, t)}</svg>')
     body = f'''<div style="width:385px;height:144px;display:flex;align-items:center;gap:22px;font-family:Lexend;color:{INK}">
