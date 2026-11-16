@@ -12,7 +12,7 @@ Today's hero line, the home-screen widget and the Sunday review all show this sa
 ## Add
 | # | Screen | What it is |
 |---|---|---|
-| 02 | Home-screen widget (Glance) | 4×2: Burrow mark + "Safe to spend today", 44 sp amount, "₹13.6k left in October · 13 days", thin progress bar, 56 dp + button (opens New expense). Small 2×2 widgets: Add expense; Next bill (name, amount, "Due today"). primaryContainer surface, system font. Tap anywhere else opens Today. |
+| 02 · 89 | Home-screen widgets (RemoteViews, no Glance) | 4×2: Burrow mark + "Safe to spend today", 44 sp amount, "₹13.6k left in October · 13 days", thin progress bar, 56 dp + button (opens New expense); tap anywhere else opens Today. Small 2×2 widgets (15 Nov): Add expense with the first 2 favourites as one-tap pills (4 s "Saved · tap to undo"); Next bill with its category circle, a ✓ ring that marks it paid, "Due today · 2 more this week", and "Nothing due / This week" (→ Coming up) when nothing is due this week. System font. |
 | 02 | App shortcuts | Long-press the icon: New expense, New income, Review N payments, Search. Static + one dynamic (Review only when there are payments). |
 | 03 | Quick settings tile | "Add expense · Burrow" tile with the Burrow mark; opens New expense directly. |
 | 04–05 | Favourites | On New expense (Expense type, empty amount): label "Favourites · one tap saves" + chips (24 dp category circle, name, amount) + "Edit". **One tap saves** the expense to today with an Undo snackbar. Add one with the Favourite chip in the extras row, or from the long-press sheet. Favourites screen: centred header (count), rows with drag handle + remove. |

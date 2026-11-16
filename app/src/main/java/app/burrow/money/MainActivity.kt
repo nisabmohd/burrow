@@ -46,6 +46,8 @@ class MainActivity : ComponentActivity() {
         const val ACTION_OPEN_BILL = "app.burrow.money.action.OPEN_BILL"
         /** From a budget alert: open Plan › Budgets. */
         const val ACTION_OPEN_PLAN = "app.burrow.money.action.OPEN_PLAN"
+        /** Next bill widget with nothing due: open Plan › Coming up. */
+        const val ACTION_OPEN_COMING_UP = "app.burrow.money.action.OPEN_COMING_UP"
         /** From the monthly summary: open Insights. */
         const val ACTION_OPEN_INSIGHTS = "app.burrow.money.action.OPEN_INSIGHTS"
         /** "Open it to edit first": New expense filled in from a found payment ([EXTRA_ID]). */
@@ -179,6 +181,7 @@ class MainActivity : ComponentActivity() {
             ACTION_OPEN_REVIEW -> OpenFromNotification.Review
             ACTION_OPEN_BILL -> OpenFromNotification.Bill(intent.getLongExtra(EXTRA_ID, 0L))
             ACTION_OPEN_PLAN -> OpenFromNotification.Budgets
+            ACTION_OPEN_COMING_UP -> OpenFromNotification.ComingUp
             ACTION_OPEN_INSIGHTS -> OpenFromNotification.Insights
             ACTION_OPEN_CAPTURE -> intent.getLongExtra(EXTRA_ID, 0L).let { id ->
                 // Edit on the capture notification: the notification goes once New expense opens.

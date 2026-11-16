@@ -22,6 +22,10 @@ Screen numbers point to `design/screens/`.
       gap or jump; a card used rarely shows its payments and the right "since statement"; Filter sheet count = rows shown
 
 
+- [ ] 0.4.2 widgets (89) on your launcher: Add expense with 2 favourites (tap saves, pill says "Saved · tap to undo",
+      a second tap within 4 s undoes); Next bill ✓ marks it paid with the toast; "Nothing due" opens Coming up; light + dark
+
+
 ## Notes
 - Smoke takes ~1.5 h on the API 35 emulator with animations off; run a part with `python3 tools/smoke.py <names>`.
   Instrumented tests need API 35 (36.1 can't run Espresso). Use `ANDROID_SERIAL=emulator-5558`.

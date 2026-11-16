@@ -24,9 +24,14 @@ data class CaptureStatus(
     /** The user turned something on (SMS only counts where this build reads SMS). */
     val wanted: Boolean get() = (smsInBuild && smsWanted) || appsWanted
 
-    /** What the user turned on that Android blocks; notification access first (it covers more apps). */
+    /**
+     * Why nothing records although the user turned something on; notification access first (it
+     * covers more apps). Null while either source records: Bank SMS alone is enough, Payment apps is
+     * optional, so a missing notification access never warns while SMS works.
+     */
     val blocked: Blocked?
         get() = when {
+            anyOn -> null
             appsWanted && !appsAllowed -> Blocked.NOTIFICATIONS
             smsInBuild && smsWanted && !smsAllowed -> Blocked.SMS
             else -> null

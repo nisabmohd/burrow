@@ -23,6 +23,18 @@
     <dimen name="widget_mark">24dp</dimen>
     <dimen name="widget_bar">8dp</dimen>
     <dimen name="widget_amount">44sp</dimen>
+    <!-- The amount's line (44 sp + 4 dp above) and its smallest size on a narrow widget. -->
+    <dimen name="widget_amount_line">56dp</dimen>
+    <dimen name="widget_amount_min">28sp</dimen>
     <dimen name="widget_title">16sp</dimen>
     <dimen name="widget_body">14sp</dimen>
+    <!-- Add expense with favourites (89): 12 dp padding, 36 dp pills 8 dp apart; the ✓ ring's 2 dp line. -->
+    <dimen name="widget_padding_tight">12dp</dimen>
+    <dimen name="widget_gap">8dp</dimen>
+    <dimen name="widget_gap_small">6dp</dimen>
+    <dimen name="widget_pill">36dp</dimen>
+    <dimen name="widget_pill_radius">18dp</dimen>
+    <dimen name="widget_ring_stroke">2dp</dimen>
+    <dimen name="widget_icon_inset">9dp</dimen>
+    <dimen name="widget_icon_inset_plus">10dp</dimen>
 </resources>

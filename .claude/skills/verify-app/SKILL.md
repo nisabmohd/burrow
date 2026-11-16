@@ -34,6 +34,8 @@ description: Build the app and check every feature on an emulator with the smoke
 - Screenshots: status bar demo mode (`adb shell settings put global sysui_demo_allowed 1`, then `am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0930`, and `battery`, `network -e wifi show -e level 4 -e fully true`, `notifications -e visible false`).
 6. Check the play and foss merged manifests have no INTERNET (github has it for the update check only): `grep -c INTERNET app/build/intermediates/merged_manifests/playDebug/*/AndroidManifest.xml` must print 0 (or only the `tools:node="remove"` line before merging).
 7. Compare the changed screens with their PNGs in `design/screens/` (light), then check them in dark mode on the device.
+   Home-screen widgets: `adb shell am start -S -n app.burrow.money/.WidgetGallery --es which add` (debug) draws one widget
+   at every size launchers give (design, tall Pixel cell, min, max) from its real RemoteViews; launchers won't resize by adb.
 8. Test SMS capture on an emulator: `adb emu sms send HDFCBK "Rs.240.00 debited from A/c XX1234 to VPA thirdwave@okicici. UPI Ref 4821."`
 
 ## Notes (2026-11-02)

@@ -891,8 +891,12 @@
     <string name="widget_safe_description">今日使える金額と、支出を追加するボタン</string>
     <string name="widget_add_description">タップひとつで支出を追加</string>
     <string name="widget_bill_description">次の請求とその期日</string>
-    <string name="no_bills_due">期日の近い請求はありません</string>
-    <string name="due_tomorrow">明日が期日</string>
+    <string name="widget_saved_undo">保存しました · タップで取り消し</string>
+    <string name="widget_marked_paid">支払い済みにしました · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="other">今週あと %d 件</item>
+    </plurals>
+    <string name="widget_nothing_due">期日の近い支払いなし</string>
     <string name="not_paid_yet">未払い</string>
     <string name="search">検索</string>
     <plurals name="review_n_payments">
@@ -900,9 +904,6 @@
     </plurals>
     <plurals name="n_days">
         <item quantity="other">%d 日</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="other">期日まであと %d 日</item>
     </plurals>
     <string name="favourite">お気に入り</string>
     <string name="favourites">お気に入り</string>

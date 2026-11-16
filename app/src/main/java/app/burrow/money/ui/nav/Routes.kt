@@ -61,6 +61,7 @@ sealed interface OpenFromNotification {
     data object Review : OpenFromNotification
     data class Bill(val id: Long) : OpenFromNotification
     data object Budgets : OpenFromNotification
+    data object ComingUp : OpenFromNotification
     data object Insights : OpenFromNotification
     data class EditCapture(val captureId: Long) : OpenFromNotification
     data class Txn(val id: Long) : OpenFromNotification

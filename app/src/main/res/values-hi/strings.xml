@@ -899,8 +899,13 @@
     <string name="widget_safe_description">आज कितना ख़र्च सुरक्षित है, और ख़र्च जोड़ने का बटन</string>
     <string name="widget_add_description">एक टैप में ख़र्च जोड़ें</string>
     <string name="widget_bill_description">आपका अगला बिल और उसकी तारीख़</string>
-    <string name="no_bills_due">कोई बिल बाकी नहीं</string>
-    <string name="due_tomorrow">कल देना है</string>
+    <string name="widget_saved_undo">सेव हो गया · वापस लेने के लिए टैप करें</string>
+    <string name="widget_marked_paid">भुगतान दर्ज हुआ · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">इस हफ़्ते %d और</item>
+        <item quantity="other">इस हफ़्ते %d और</item>
+    </plurals>
+    <string name="widget_nothing_due">कुछ बाकी नहीं</string>
     <string name="not_paid_yet">अभी भुगतान नहीं हुआ</string>
     <string name="search">खोजें</string>
     <plurals name="review_n_payments">
@@ -910,10 +915,6 @@
     <plurals name="n_days">
         <item quantity="one">%d दिन</item>
         <item quantity="other">%d दिन</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">%d दिन में देना है</item>
-        <item quantity="other">%d दिन में देना है</item>
     </plurals>
     <string name="favourite">पसंदीदा</string>
     <string name="favourites">पसंदीदा</string>
