@@ -317,11 +317,12 @@ private fun AddMoneySheet(s: GoalState, goalName: String, onDismiss: () -> Unit,
     val unit = money.digitsUnit()
     val pay = s.accounts.filter { it.account.type != "LOAN" && it.account.type != "SAVINGS" }
     var amount by rememberSaveable { mutableLongStateOf(5_000 * unit) }
-    var from by rememberSaveable { mutableStateOf(pay.firstOrNull { it.account.id == s.line.goal.accountId }?.account?.id ?: pay.firstOrNull()?.account?.id) }
+    var from by rememberSaveable { mutableStateOf<Long?>(null) }
     var picking by remember { mutableStateOf(false) }
-    val account = pay.firstOrNull { it.account.id == from }
+    // Picked, else the goal's account, else the first: the list may arrive after the sheet opens.
+    val account = pay.firstOrNull { it.account.id == from } ?: pay.firstOrNull { it.account.id == s.line.goal.accountId } ?: pay.firstOrNull()
     if (picking) {
-        AccountSheet(pay, from, { from = it.account.id; picking = false }, { picking = false })
+        AccountSheet(pay, account?.account?.id, { from = it.account.id; picking = false }, { picking = false })
         return
     }
     app.burrow.money.ui.components.AmountSheet(
@@ -331,12 +332,12 @@ private fun AddMoneySheet(s: GoalState, goalName: String, onDismiss: () -> Unit,
         onChange = { amount = it },
         chips = listOf(2_000, 5_000, 10_000, 20_000).map { money.plain(it * unit) to it * unit },
         confirm = stringResource(R.string.add), cancel = true, min = 1,
-        onDone = { a -> from?.let { onAdd(it, a) } },
-        onDismiss = onDismiss,
+        onDone = { a -> account?.let { onAdd(it.account.id, a) } },
+        onDismiss = onDismiss, enabled = account != null,
         rows = {
             ListGroup {
                 ListRow(
-                    stringResource(R.string.from_account, account?.account?.name.orEmpty()), 0, 1,
+                    stringResource(R.string.from_account, account?.account?.name ?: stringResource(R.string.an_account)), 0, 1,
                     supporting = stringResource(R.string.a_transfer_not_spending),
                     lead = { CategoryCircle(account?.account?.icon, account?.account?.colorHue) },
                     onClick = { picking = true },

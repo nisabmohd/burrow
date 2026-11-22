@@ -451,6 +451,8 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
             var years by rememberSaveable { mutableStateOf<Int?>(2) }
             var maturity by rememberSaveable { mutableStateOf(LocalDate.now().plusYears(2)) }
             var amountKept by rememberSaveable { mutableStateOf<Long?>(null) }
+            var fromKept by rememberSaveable { mutableStateOf<Long?>(null) }
+            var dayKept by rememberSaveable { mutableStateOf<LocalDate?>(null) }
             var step by rememberSaveable { mutableStateOf<String?>(null) }
             when (step) {
                 "deposit" -> NewDepositSheet(
@@ -466,6 +468,7 @@ fun AccountScreen(vm: AccountViewModel, onBack: () -> Unit, onEdit: (Long) -> Un
                     confirm = stringResource(if (monthly) R.string.pay else R.string.add),
                     extra = if (newDeposit) ({ i, n -> NewDepositRow(rate, maturity, i, n) { step = "deposit" } }) else null,
                     onAmount = { amountKept = it },
+                    startFrom = fromKept, startDay = dayKept, onPicked = { f, d -> fromKept = f; dayKept = d },
                 ) { from, amount, day ->
                     sheet = null
                     if (monthly) vm.payInstalment(from, amount, day) { undo -> snackbar.show(context.getString(R.string.instalment_paid), undo) }
@@ -535,28 +538,34 @@ private fun PayInSheet(
     extra: (@Composable (Int, Int) -> Unit)? = null,
     /** Every change as typed, so a sheet opened from a row comes back to it (215). */
     onAmount: (Long) -> Unit = {},
+    /** The account and day as picked, so a sheet that steps away (New deposit) comes back to them. */
+    startFrom: Long? = null,
+    startDay: LocalDate? = null,
+    onPicked: (Long?, LocalDate) -> Unit = { _, _ -> },
     onPay: (Long, Long, LocalDate) -> Unit,
 ) {
     val money = LocalMoney.current
     val dates = app.burrow.money.ui.rememberDateText()
     var amount by rememberSaveable { mutableLongStateOf(start) }
-    var fromId by rememberSaveable { mutableStateOf(from.firstOrNull()?.account?.id) }
-    var day by rememberSaveable { mutableStateOf(LocalDate.now()) }
+    var fromId by rememberSaveable { mutableStateOf(startFrom) }
+    var day by rememberSaveable { mutableStateOf(startDay ?: LocalDate.now()) }
     var picking by rememberSaveable { mutableStateOf<String?>(null) }
-    val account = from.firstOrNull { it.account.id == fromId }
+    // The picked account, else the first one: the list may arrive after the sheet opens, and an
+    // archived pick falls back too. None at all: Save looks off rather than doing nothing.
+    val account = from.firstOrNull { it.account.id == fromId } ?: from.firstOrNull()
     when (picking) {
-        "account" -> { AccountSheet(from, fromId, { fromId = it.account.id; picking = null }, { picking = null }); return }
-        "date" -> { app.burrow.money.ui.pickers.DateSheet(day, { day = it; picking = null }, { picking = null }); return }
+        "account" -> { AccountSheet(from, account?.account?.id, { fromId = it.account.id; onPicked(it.account.id, day); picking = null }, { picking = null }); return }
+        "date" -> { app.burrow.money.ui.pickers.DateSheet(day, { day = it; onPicked(fromId, it); picking = null }, { picking = null }); return }
     }
     app.burrow.money.ui.components.AmountSheet(
         title = title, line = line, amount = amount, onChange = { amount = it; onAmount(it) }, chips = chips,
         confirm = confirm, cancel = true, min = 1,
-        onDone = { a -> fromId?.let { onPay(it, a, day) } }, onDismiss = onDismiss,
+        onDone = { a -> account?.let { onPay(it.account.id, a, day) } }, onDismiss = onDismiss, enabled = account != null,
         rows = {
             val n = if (extra != null) 3 else 2
             ListGroup {
                 ListRow(
-                    stringResource(accountLabel, account?.account?.name.orEmpty()), 0, n,
+                    stringResource(accountLabel, account?.account?.name ?: stringResource(R.string.an_account)), 0, n,
                     supporting = listOfNotNull(account?.let { money.plain(it.balance) }, stringResource(accountLine)).joinToString(" · "),
                     lead = { CategoryCircle(account?.account?.icon, account?.account?.colorHue) },
                     onClick = { picking = "account" },
