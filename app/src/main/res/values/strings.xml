@@ -1589,14 +1589,6 @@
         <item quantity="one">%d message to check</item>
         <item quantity="other">%d messages to check</item>
     </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow couldn’t read this. Check it once and messages like it are read after that.</item>
-        <item quantity="other">Burrow couldn’t read these. Check each one once and messages like them are read after that.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Check it</item>
-        <item quantity="other">Check them one by one</item>
-    </plurals>
     <string name="check_a_message">Check a message</string>
     <string name="n_of_m">%1$d of %2$d</string>
     <string name="burrow_read_it_as">Burrow read it as</string>

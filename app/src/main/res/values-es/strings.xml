@@ -1586,14 +1586,6 @@
         <item quantity="one">%d mensaje por revisar</item>
         <item quantity="other">%d mensajes por revisar</item>
     </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow no pudo leerlo. Revísalo una vez y los mensajes como este se leerán después.</item>
-        <item quantity="other">Burrow no pudo leerlos. Revisa cada uno una vez y los mensajes como esos se leerán después.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Revisarlo</item>
-        <item quantity="other">Revisarlos uno a uno</item>
-    </plurals>
     <string name="check_a_message">Revisar un mensaje</string>
     <string name="n_of_m">%1$d de %2$d</string>
     <string name="burrow_read_it_as">Burrow lo leyó así</string>

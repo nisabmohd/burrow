@@ -1466,12 +1466,6 @@
     <plurals name="n_messages_to_check">
         <item quantity="other">確認するメッセージ %d 件</item>
     </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="other">Burrow が読めなかったメッセージです。一度ずつ確認すると、同じようなメッセージは次から読めます。</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="other">1 件ずつ確認</item>
-    </plurals>
     <string name="check_a_message">メッセージを確認</string>
     <string name="n_of_m">%1$d / %2$d</string>
     <string name="burrow_read_it_as">Burrow の読み取り</string>

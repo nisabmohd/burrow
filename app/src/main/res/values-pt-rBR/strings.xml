@@ -1586,14 +1586,6 @@
         <item quantity="one">%d mensagem para conferir</item>
         <item quantity="other">%d mensagens para conferir</item>
     </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">O Burrow não conseguiu ler esta. Confira uma vez e mensagens parecidas serão lidas depois.</item>
-        <item quantity="other">O Burrow não conseguiu ler estas. Confira cada uma uma vez e mensagens parecidas serão lidas depois.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Conferir</item>
-        <item quantity="other">Conferir uma por uma</item>
-    </plurals>
     <string name="check_a_message">Conferir uma mensagem</string>
     <string name="n_of_m">%1$d de %2$d</string>
     <string name="burrow_read_it_as">O Burrow leu assim</string>

@@ -1529,14 +1529,6 @@
         <item quantity="one">%d Nachricht zu prüfen</item>
         <item quantity="other">%d Nachrichten zu prüfen</item>
     </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow konnte sie nicht lesen. Prüfe sie einmal, dann werden solche Nachrichten gelesen.</item>
-        <item quantity="other">Burrow konnte sie nicht lesen. Prüfe jede einmal, dann werden solche Nachrichten gelesen.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Prüfen</item>
-        <item quantity="other">Nacheinander prüfen</item>
-    </plurals>
     <string name="check_a_message">Nachricht prüfen</string>
     <string name="n_of_m">%1$d von %2$d</string>
     <string name="burrow_read_it_as">Burrow hat es so gelesen</string>
