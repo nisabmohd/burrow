@@ -928,8 +928,13 @@
     <string name="widget_safe_description">Was du heute sicher ausgeben kannst, und eine Taste für eine neue Ausgabe</string>
     <string name="widget_add_description">Eine Ausgabe mit einem Tippen hinzufügen</string>
     <string name="widget_bill_description">Deine nächste Rechnung und wann sie fällig ist</string>
-    <string name="no_bills_due">Keine Rechnungen fällig</string>
-    <string name="due_tomorrow">Morgen fällig</string>
+    <string name="widget_saved_undo">Gespeichert · tippen zum Rückgängigmachen</string>
+    <string name="widget_marked_paid">Als bezahlt markiert · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">%d weitere diese Woche</item>
+        <item quantity="other">%d weitere diese Woche</item>
+    </plurals>
+    <string name="widget_nothing_due">Nichts fällig</string>
     <string name="not_paid_yet">Noch nicht bezahlt</string>
     <string name="search">Suchen</string>
     <plurals name="review_n_payments">
@@ -939,10 +944,6 @@
     <plurals name="n_days">
         <item quantity="one">%d Tag</item>
         <item quantity="other">%d Tage</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">Fällig in %d Tag</item>
-        <item quantity="other">Fällig in %d Tagen</item>
     </plurals>
     <string name="favourite">Favorit</string>
     <string name="favourites">Favoriten</string>
@@ -1527,14 +1528,6 @@
     <plurals name="n_messages_to_check">
         <item quantity="one">%d Nachricht zu prüfen</item>
         <item quantity="other">%d Nachrichten zu prüfen</item>
-    </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow konnte sie nicht lesen. Prüfe sie einmal, dann werden solche Nachrichten gelesen.</item>
-        <item quantity="other">Burrow konnte sie nicht lesen. Prüfe jede einmal, dann werden solche Nachrichten gelesen.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Prüfen</item>
-        <item quantity="other">Nacheinander prüfen</item>
     </plurals>
     <string name="check_a_message">Nachricht prüfen</string>
     <string name="n_of_m">%1$d von %2$d</string>

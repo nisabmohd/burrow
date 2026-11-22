@@ -208,6 +208,7 @@ fun BurrowNavHost(container: AppContainer, settings: Settings, open: OpenFromNot
             OpenFromNotification.Review -> nav.navigate(ReviewRoute) { launchSingleTop = true }
             is OpenFromNotification.Bill -> nav.navigate(BillRoute(open.id)) { launchSingleTop = true }
             OpenFromNotification.Budgets -> { planSection = app.burrow.money.ui.plan.PlanSection.BUDGETS; nav.openTab(PlanRoute) }
+            OpenFromNotification.ComingUp -> { planSection = app.burrow.money.ui.plan.PlanSection.BILLS; nav.openTab(PlanRoute) }
             OpenFromNotification.Insights -> nav.openTab(InsightsRoute)
             is OpenFromNotification.EditCapture -> nav.navigate(AddRoute(captureId = open.captureId))
             is OpenFromNotification.Txn -> nav.navigate(TxnRoute(open.id))

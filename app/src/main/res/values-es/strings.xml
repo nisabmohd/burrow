@@ -963,8 +963,14 @@
     <string name="widget_safe_description">Lo que puedes gastar hoy con tranquilidad y un botón para añadir un gasto</string>
     <string name="widget_add_description">Añade un gasto con un toque</string>
     <string name="widget_bill_description">Tu próxima factura y cuándo vence</string>
-    <string name="no_bills_due">Sin facturas pendientes</string>
-    <string name="due_tomorrow">Vence mañana</string>
+    <string name="widget_saved_undo">Guardado · toca para deshacer</string>
+    <string name="widget_marked_paid">Marcado como pagado · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">%d más esta semana</item>
+        <item quantity="many">%d más esta semana</item>
+        <item quantity="other">%d más esta semana</item>
+    </plurals>
+    <string name="widget_nothing_due">Nada pendiente</string>
     <string name="not_paid_yet">Aún sin pagar</string>
     <string name="search">Buscar</string>
     <plurals name="review_n_payments">
@@ -976,11 +982,6 @@
         <item quantity="one">%d día</item>
         <item quantity="many">%d días</item>
         <item quantity="other">%d días</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">Vence en %d día</item>
-        <item quantity="many">Vence en %d días</item>
-        <item quantity="other">Vence en %d días</item>
     </plurals>
     <string name="favourite">Favorito</string>
     <string name="favourites">Favoritos</string>
@@ -1584,14 +1585,6 @@
     <plurals name="n_messages_to_check">
         <item quantity="one">%d mensaje por revisar</item>
         <item quantity="other">%d mensajes por revisar</item>
-    </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow no pudo leerlo. Revísalo una vez y los mensajes como este se leerán después.</item>
-        <item quantity="other">Burrow no pudo leerlos. Revisa cada uno una vez y los mensajes como esos se leerán después.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Revisarlo</item>
-        <item quantity="other">Revisarlos uno a uno</item>
     </plurals>
     <string name="check_a_message">Revisar un mensaje</string>
     <string name="n_of_m">%1$d de %2$d</string>

@@ -68,6 +68,8 @@ Every feature must **save taps or give a reason to open the app**, never add a s
 - **The daily number:** "Safe to spend today" = (left this month + spent today) ÷ days left incl. today − spent today, never below 0.
   Same number on Today's hero line, the home-screen widget and Sunday review.
 - **Outside the app:** home-screen widget, app-icon shortcuts, quick-settings tile. Widgets use the system font.
+  Small widgets save taps (89, 15 Nov): Add expense's favourite pills save in one tap (4 s undo on the pill); Next bill's
+  ✓ ring marks it paid (toast). These two are the only buttons in widgets.
 - **Favourites:** one tap saves (with Undo). Added by long-press › Save as favourite.
 - **Long-press any transaction** opens the action sheet; tap still opens the detail.
 - **Reorder is drag only:** ⠿ handle on the left, the row lifts; no up/down arrows.

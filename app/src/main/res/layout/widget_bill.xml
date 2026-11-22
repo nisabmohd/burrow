@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Small widget 2×2 (02): the next bill, its amount and when it's due; opens that bill. -->
+<!-- Next bill 2×2 (89): the bill's own circle (top left), a ✓ ring that marks it paid (top right),
+     "Netflix ₹649" and "Due today · 2 more this week"; tap opens the bill. Nothing due this week:
+     the calendar circle, "Nothing due" / "This week", tap opens Plan › Coming up.
+     Circle colours are set in code (setColorFilter), so the layout carries no tint. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -7,15 +10,39 @@
     android:background="@drawable/widget_bg_surface"
     android:padding="@dimen/widget_padding">
 
-    <ImageView
+    <FrameLayout
         android:layout_width="@dimen/widget_add_small"
         android:layout_height="@dimen/widget_add_small"
         android:layout_gravity="top|start"
-        android:background="@drawable/widget_circle_surface"
-        android:importantForAccessibility="no"
-        android:padding="9dp"
-        android:src="@drawable/ic_event_available_duotone"
-        android:tint="@color/widget_text_muted" />
+        android:importantForAccessibility="no">
+
+        <ImageView
+            android:id="@+id/widget_circle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_circle_surface" />
+
+        <ImageView
+            android:id="@+id/widget_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:padding="@dimen/widget_icon_inset"
+            android:src="@drawable/ic_event_available_duotone" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/widget_paid"
+        android:layout_width="@dimen/widget_add_small"
+        android:layout_height="@dimen/widget_add_small"
+        android:layout_gravity="top|end"
+        android:background="@drawable/widget_ring_primary"
+        android:contentDescription="@string/mark_paid"
+        android:padding="@dimen/widget_icon_inset_plus"
+        android:src="@drawable/ic_check_regular"
+        android:tint="@color/widget_primary"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,7 +55,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
             android:text="@string/next_bill"
             android:textColor="@color/widget_text"
             android:textSize="@dimen/widget_title" />
@@ -38,7 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:maxLines="2"
             android:text="@string/widget_open_once"
             android:textColor="@color/widget_text_muted"
             android:textSize="@dimen/widget_body" />

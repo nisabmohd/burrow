@@ -147,12 +147,14 @@ fun AmountSheet(
     /** Every change as it is typed, for a sheet that steps away and back (Add money → account picker). */
     onChange: ((Long) -> Unit)? = null,
     secondary: Pair<String, () -> Unit>? = null,
+    /** False while something else the sheet needs is missing (no account to pay from): Save looks off. */
+    enabled: Boolean = true,
 ) {
     val money = LocalMoney.current
     // Starts showing the current amount; the first key typed replaces it (fresh = not typed yet).
     var input by rememberSaveable(stateSaver = AmountTypedSaver) { mutableStateOf(AmountTyped(AmountInput.of(amount, digits), fresh = true)) }
     val value = input.input.minor()
-    val ok = value >= min && (max == null || value <= max)
+    val ok = enabled && value >= min && (max == null || value <= max)
     ValueSheet(
         title = title, value = if (input.fresh || input.input.hasOperator) money.plain(value) else money.typed(input.input.text), line = line, label = label,
         onKey = { key -> input = input.press(key, digits); onChange?.invoke(input.input.minor()) },

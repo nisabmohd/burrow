@@ -1,0 +1,5 @@
+- Bank SMS alone is enough for auto-capture: no more "blocked" warning.
+- Add expense widget: your first two favourites save in one tap, with undo.
+- Next bill widget: mark a bill paid right from the home screen.
+- Widgets fit any size your launcher gives them.
+- Add money, card bill and EMI sheets always pick an account to pay from.

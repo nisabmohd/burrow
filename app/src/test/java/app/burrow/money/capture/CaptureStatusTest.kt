@@ -37,7 +37,7 @@ class CaptureStatusTest {
     @Test fun oneSourceWorkingIsOnEvenIfTheOtherIsBlocked() {
         val st = s(smsWanted = true, smsAllowed = true, appsWanted = true, appsAllowed = false)
         assertTrue(st.anyOn); assertEquals(Tile.ON, st.tile)
-        assertEquals("the note still says what is blocked", Blocked.NOTIFICATIONS, st.blocked)
+        assertNull("SMS alone is enough: no paused note for the optional Payment apps", st.blocked)
     }
 
     @Test fun notificationAccessIsReportedBeforeSms() {
@@ -65,8 +65,10 @@ class CaptureStatusTest {
             when (st.blocked) {
                 Blocked.NOTIFICATIONS -> { assertTrue(label, aw); assertFalse(label, aa) }
                 Blocked.SMS -> { assertTrue(label, sw && inBuild); assertFalse(label, sa) }
-                null -> assertFalse(label, (aw && !aa) || (inBuild && sw && !sa))
+                null -> assertFalse(label, !st.anyOn && ((aw && !aa) || (inBuild && sw && !sa)))
             }
+            // Paused (a note) exactly when the user wants capture and nothing records.
+            assertEquals(label, st.tile == Tile.PAUSED, st.blocked != null)
         }
     }
 }

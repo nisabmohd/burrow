@@ -963,8 +963,14 @@
     <string name="widget_safe_description">Ce que vous pouvez dépenser sans souci aujourd\'hui, et un bouton pour ajouter une dépense</string>
     <string name="widget_add_description">Ajouter une dépense d\'un appui</string>
     <string name="widget_bill_description">Votre prochaine facture et son échéance</string>
-    <string name="no_bills_due">Aucune facture due</string>
-    <string name="due_tomorrow">Dû demain</string>
+    <string name="widget_saved_undo">Enregistré · touchez pour annuler</string>
+    <string name="widget_marked_paid">Marqué comme payé · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">%d autre cette semaine</item>
+        <item quantity="many">%d autres cette semaine</item>
+        <item quantity="other">%d autres cette semaine</item>
+    </plurals>
+    <string name="widget_nothing_due">Rien à payer</string>
     <string name="not_paid_yet">Pas encore payé</string>
     <string name="search">Rechercher</string>
     <plurals name="review_n_payments">
@@ -976,11 +982,6 @@
         <item quantity="one">%d jour</item>
         <item quantity="many">%d jours</item>
         <item quantity="other">%d jours</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">Dû dans %d jour</item>
-        <item quantity="many">Dû dans %d jours</item>
-        <item quantity="other">Dû dans %d jours</item>
     </plurals>
     <string name="favourite">Favori</string>
     <string name="favourites">Favoris</string>
@@ -1584,14 +1585,6 @@
     <plurals name="n_messages_to_check">
         <item quantity="one">%d message à vérifier</item>
         <item quantity="other">%d messages à vérifier</item>
-    </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow n’a pas pu le lire. Vérifiez-le une fois et les messages semblables seront lus ensuite.</item>
-        <item quantity="other">Burrow n’a pas pu les lire. Vérifiez chacun une fois et les messages semblables seront lus ensuite.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Le vérifier</item>
-        <item quantity="other">Les vérifier un par un</item>
     </plurals>
     <string name="check_a_message">Vérifier un message</string>
     <string name="n_of_m">%1$d sur %2$d</string>

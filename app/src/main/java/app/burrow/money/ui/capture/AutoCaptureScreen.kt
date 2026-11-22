@@ -113,7 +113,8 @@ fun AutoCaptureContent(
     val smsOn = status.smsOn
     val appsOn = status.appsOn
     val anyOn = status.anyOn
-    val blocked = restricted && ((smsRefused && !smsAccess) || (s.apps && !appsAccess))
+    // Warn only when nothing records: SMS working is enough, Payment apps is optional.
+    val blocked = restricted && !anyOn && ((smsRefused && !smsAccess) || (s.apps && !appsAccess))
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenTopBar(painterResource(R.drawable.ic_arrow_back_regular), stringResource(R.string.back), onBack, title = stringResource(R.string.auto_capture))

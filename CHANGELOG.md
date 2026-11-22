@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2
+- Auto-capture with only Bank SMS on no longer warns "Android is blocking access", and Today no longer says capture is paused, when payment app notifications aren't allowed: SMS alone is enough, and Payment apps is optional.
+- Add expense widget: your first two favourites sit under the + as pills ("₹20 Chai"). One tap saves it; the pill reads "Saved · tap to undo" for 4 seconds.
+- Next bill widget: the bill's own category circle, a ✓ that marks it paid ("Marked paid · Netflix"), and "· 2 more this week" when more are due. With nothing due this week it says "Nothing due" and opens Coming up.
+- Widget previews in the picker show the new Add expense and Next bill.
+- Widgets look right at any size a launcher gives them: on tall or narrow cells they rearrange instead of leaving text cut off (the amount shrinks to fit, Add expense keeps its favourites at the bottom, Next bill wraps its name), and each has a smallest and largest size.
+- Adding or removing a favourite updates the Add expense widget at once.
+- Add money, Pay card bill, Pay EMI, Prepay, Settle up and a goal's Add money always have an account to pay from: Add no longer does nothing when the sheet opens before your accounts have loaded, and the account and date you picked stay when you look at New deposit and come back.
+
 ## 0.4.1
 - Teach: the type can be checked and changed at any time, and Save works as soon as the amount is picked. Paid to and Account are optional and can be picked in any order; they no longer have to be filled one by one first.
 - Teach › Type: the words that mean a type are small chips sized to their word, as in the design, instead of stretching across the sheet.

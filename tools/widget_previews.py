@@ -79,23 +79,41 @@ def safe(c):
 
 
 def add(c):
-    w, h = 172, 122
+    """Add expense with two favourites (89, 15 Nov): the + row, then "₹20 Chai" and "₹40 Metro" pills."""
+    w, h = 172, 152
+    def pill(amount, name):
+        return f'''<div style="height:36px;border-radius:18px;background:{c['circle']};display:flex;align-items:center;gap:6px;padding:0 12px;margin-top:8px;font-size:14px">
+    <span class="b">{amount}</span><span style="color:{c['text_muted']}">{name}</span></div>'''
     body = f'''
-<div class="w" style="--w:{w}px;--h:{h}px;background:{c['surface']};color:{c['text']}">
-  <div class="circle" style="width:40px;height:40px;background:{c['primary']}">{icon('ic_add_regular', c['on_primary'], 22)}</div>
-  <div class="b" style="position:absolute;left:16px;bottom:16px;font-size:16px">Add expense</div>
+<div class="w" style="--w:{w}px;--h:{h}px;background:{c['surface']};color:{c['text']};padding:12px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="circle" style="width:40px;height:40px;background:{c['primary']};flex:none">{icon('ic_add_regular', c['on_primary'], 22)}</div>
+    <div class="b" style="font-size:16px;white-space:nowrap">Add expense</div>
+  </div>
+  {pill('₹20', 'Chai')}
+  {pill('₹40', 'Metro')}
 </div>'''
     return body, w, h
 
 
-def bill(c):
-    w, h = 172, 122
+def category(hue, night):
+    """A category's circle colours, as categoryColors() in Color.kt: (container, onContainer)."""
+    if night:
+        return f"hsl({hue},30%,24%)", f"hsl({hue},72%,84%)"
+    return f"hsl({hue},72%,90%)", f"hsl({hue},62%,27%)"
+
+
+def bill(c, night):
+    """Next bill (89, 15 Nov): the bill's category circle, the ✓ ring, name and amount, due line."""
+    w, h = 172, 152
+    bg, fg = category(275, night)  # Entertainment (Lavender), as Netflix in the design
     body = f'''
 <div class="w" style="--w:{w}px;--h:{h}px;background:{c['surface']};color:{c['text']}">
-  <div class="circle" style="width:40px;height:40px;background:{c['circle']}">{icon('ic_event_available_duotone', c['text_muted'], 22)}</div>
-  <div style="position:absolute;left:16px;bottom:16px">
+  <div class="circle" style="width:40px;height:40px;background:{bg}">{icon('ic_movie_duotone', fg, 22)}</div>
+  <div class="circle" style="position:absolute;right:16px;top:16px;width:40px;height:40px;border:2px solid {c['primary']}">{icon('ic_check_regular', c['primary'], 20)}</div>
+  <div style="position:absolute;left:16px;right:16px;bottom:16px">
     <div class="b" style="font-size:16px">Netflix ₹649</div>
-    <div style="font-size:14px;color:{c['text_muted']}">Due today</div>
+    <div style="font-size:14px;color:{c['text_muted']}">Due today · 2 more this week</div>
   </div>
 </div>'''
     return body, w, h
@@ -107,7 +125,7 @@ def main():
         c = colours(night)
         folder = os.path.join(RES, "drawable-night-nodpi" if night else "drawable-nodpi")
         os.makedirs(folder, exist_ok=True)
-        for name, draw in (("safe", safe), ("add", add), ("bill", bill)):
+        for name, draw in (("safe", safe), ("add", add), ("bill", lambda c: bill(c, night))):
             body, w, h = draw(c)
             html = bm.page(f"<style>{CSS}</style>{body}", w, h).replace(
                 "--force-device-scale-factor=1", "")

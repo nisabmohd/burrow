@@ -1003,8 +1003,14 @@
     <string name="widget_safe_description">What is safe to spend today, and a button to add an expense</string>
     <string name="widget_add_description">Add an expense in one tap</string>
     <string name="widget_bill_description">Your next bill and when it is due</string>
-    <string name="no_bills_due">No bills due</string>
-    <string name="due_tomorrow">Due tomorrow</string>
+    <!-- Home-screen widgets (89, 15 Nov) -->
+    <string name="widget_saved_undo">Saved · tap to undo</string>
+    <string name="widget_marked_paid">Marked paid · %s</string>
+    <plurals name="widget_more_this_week">
+        <item quantity="one">%d more this week</item>
+        <item quantity="other">%d more this week</item>
+    </plurals>
+    <string name="widget_nothing_due">Nothing due</string>
     <string name="not_paid_yet">Not paid yet</string>
     <string name="search">Search</string>
     <plurals name="review_n_payments">
@@ -1014,10 +1020,6 @@
     <plurals name="n_days">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
-    </plurals>
-    <plurals name="due_in_days">
-        <item quantity="one">Due in %d day</item>
-        <item quantity="other">Due in %d days</item>
     </plurals>
     <!-- Favourites (04, 05) -->
     <string name="favourite">Favourite</string>
@@ -1586,14 +1588,6 @@
     <plurals name="n_messages_to_check">
         <item quantity="one">%d message to check</item>
         <item quantity="other">%d messages to check</item>
-    </plurals>
-    <plurals name="messages_to_check_line">
-        <item quantity="one">Burrow couldn’t read this. Check it once and messages like it are read after that.</item>
-        <item quantity="other">Burrow couldn’t read these. Check each one once and messages like them are read after that.</item>
-    </plurals>
-    <plurals name="check_them_one_by_one">
-        <item quantity="one">Check it</item>
-        <item quantity="other">Check them one by one</item>
     </plurals>
     <string name="check_a_message">Check a message</string>
     <string name="n_of_m">%1$d of %2$d</string>

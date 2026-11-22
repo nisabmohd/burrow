@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Add expense 2×2 with favourites (89): the + row ("Add expense", opens New expense) at the top, the
+     favourites that fit as pills at the bottom (WidgetLayout.add); one tap saves, the pill then reads
+     "Saved · tap to undo" for 4 s. On a tall widget the gap is between the two, as on Next bill. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_surface"
+    android:padding="@dimen/widget_padding_tight">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/widget_add_small"
+            android:layout_height="@dimen/widget_add_small"
+            android:background="@drawable/widget_circle_primary"
+            android:importantForAccessibility="no"
+            android:padding="@dimen/widget_icon_inset_plus"
+            android:src="@drawable/ic_add_regular"
+            android:tint="@color/widget_on_primary" />
+
+        <TextView
+            android:id="@+id/widget_add_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/widget_padding_tight"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:text="@string/add_expense"
+            android:textColor="@color/widget_text"
+            android:textSize="@dimen/widget_title" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/widget_add_label_below"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/widget_gap"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:text="@string/add_expense"
+        android:textColor="@color/widget_text"
+        android:textSize="@dimen/widget_title"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/widget_fav_1"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/widget_pill"
+        android:background="@drawable/widget_pill_surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/widget_padding_tight">
+
+        <TextView
+            android:id="@+id/widget_fav_1_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="@dimen/widget_body" />
+
+        <TextView
+            android:id="@+id/widget_fav_1_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/widget_gap_small"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text_muted"
+            android:textSize="@dimen/widget_body" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_fav_2"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/widget_pill"
+        android:layout_marginTop="@dimen/widget_gap"
+        android:background="@drawable/widget_pill_surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/widget_padding_tight">
+
+        <TextView
+            android:id="@+id/widget_fav_2_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="@dimen/widget_body" />
+
+        <TextView
+            android:id="@+id/widget_fav_2_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/widget_gap_small"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text_muted"
+            android:textSize="@dimen/widget_body" />
+    </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

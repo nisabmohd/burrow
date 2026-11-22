@@ -1030,6 +1030,34 @@ def capture_status_follows_real_access():
 
 
 @check
+def capture_sms_alone_is_enough():
+    # 2026-11-15: with Bank SMS working and Payment apps turned on but not allowed, Auto-capture warned
+    # "Android is blocking access" and Today said paused. Payment apps is optional: no warning while SMS records.
+    listener = f"{d.PACKAGE}/{d.PACKAGE}.capture.PaymentNotificationListener"
+    d.shell(f"cmd notification disallow_listener {listener}")
+    try:
+        d.shell("input keyevent KEYCODE_HOME")
+        time.sleep(1)
+        d.adb("shell", "am", "start", "-n", f"{d.PACKAGE}/app.burrow.money.MainActivity")
+        time.sleep(2)
+        recover()  # the app may reopen on Auto-capture, not a tab
+        d.nav("Today")
+        assert not d.exists("Auto-capture is paused", contains=True, timeout=3), "Today says paused while SMS records"
+        open_more_row("Auto-capture")
+        assert d.exists("Bank SMS", timeout=5), "Auto-capture didn't open"
+        assert not d.exists("Android is blocking access", timeout=2), "warns 'blocking access' while SMS records"
+        assert not d.exists("Auto-capture is off", timeout=1), "says off while SMS records"
+        switches = [n for n in d.dump() if n.checkable]
+        assert len(switches) == 2 and switches[0].checked and not switches[1].checked, \
+            f"want Bank SMS on and Payment apps off, got {[n.checked for n in switches]}"
+        d.back()
+        d.nav("More")
+        assert d.exists("On", timeout=5), "More tile isn't On while SMS records"
+    finally:
+        d.shell(f"cmd notification allow_listener {listener}")
+
+
+@check
 def no_text_overlaps_at_large_font():
     # Big font sizes on Android 14+ (non-linear scaling) crowded wrapped lines into each other.
     problems = []
@@ -1678,6 +1706,67 @@ def widget_hides_amounts_with_the_app():
         tap_node(switch)
     assert hidden, "the widget shows amounts while Hide amounts is on"
     assert not any("••••" in l for l in home_labels()), "the widget still hides amounts after turning it off"
+
+
+def activity_count(name):
+    """How many Activity rows mention [name] (top of the list: today's)."""
+    recover()
+    d.nav("Activity")
+    time.sleep(1)
+    return len([n for n in d.dump() if name in n.label])
+
+
+@check
+def widget_favourite_saves_in_one_tap_with_undo():
+    # 89 (15 Nov): the Add expense widget's first two favourites save in one tap; the pill reads
+    # "Saved · tap to undo" for 4 s and a second tap deletes the payment.
+    name = "Pillchai"
+    open_add()
+    keypad("15")
+    d.tap("Paid to")
+    d.type_text(name)
+    d.back()  # keyboard down
+    d.tap("Food & drinks")
+    d.tap("Save")
+    snackbar()
+    d.nav("Activity")
+    d.long_press(name, contains=True)
+    d.tap("Save as favourite")
+    snackbar("Saved as a favourite")
+    before = activity_count(name)
+    pill = find_on_home(name)
+    assert pill, f"no {name} pill on the Add expense widget"
+    tap_node(pill)
+    saved = d.find("Saved · tap to undo", timeout=3)
+    assert saved, "the pill didn't say 'Saved · tap to undo'"
+    tap_node(saved)  # undo, within the 4 s
+    time.sleep(2)
+    assert activity_count(name) == before, "a second tap on the pill didn't undo the payment"
+    pill = find_on_home(name)
+    tap_node(pill)
+    time.sleep(5)  # past the undo time: the pill is a favourite again
+    assert d.find(name, timeout=2), "the pill didn't come back after 4 s"
+    assert activity_count(name) == before + 1, "one tap on the pill didn't save the payment"
+
+
+@check
+def widget_bill_mark_paid():
+    # 89 (15 Nov): ✓ on the Next bill widget marks the bill paid (as a right swipe on Coming up).
+    ring = find_on_home("Mark paid")
+    if not ring:
+        assert any("Nothing due" in l for l in home_labels()), "no ✓ on the Next bill widget and not 'Nothing due'"
+        return
+    # The bill's title, "Electricity ₹1,800" (the safe-to-spend lines and the pills start with the amount).
+    # With its due line: paying an overdue bill can show the same bill's next date.
+    titles = lambda labels: [l for l in labels if ("₹" in l and not l.startswith("₹") and "left" not in l and "over" not in l)
+                             or l.startswith("Due ") or l.startswith("Not paid yet")]
+    before = titles(home_labels())
+    ring = find_on_home("Mark paid")
+    tap_node(ring)
+    time.sleep(3)
+    after = home_labels()
+    assert titles(after) != before or any("Nothing due" in l for l in after), \
+        f"the Next bill widget didn't move on after Mark paid ({before} → {titles(after)})"
 
 
 @check
