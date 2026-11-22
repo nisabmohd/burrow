@@ -103,7 +103,7 @@ class FollowUpsTest {
         var newCategory = 0
         val cats = listOf(cat(1, "Salary", CategoryKind.INCOME), cat(2, "Groceries", CategoryKind.EXPENSE), cat(3, "Interest", CategoryKind.INCOME))
         rule.show {
-            CompositionLocalProvider(LocalNewCategory provides { newCategory++ }) { CategorySheet(cats, emptyMap(), null, {}, {}) }
+            CompositionLocalProvider(LocalNewCategory provides { newCategory++ }) { CategorySheet(cats, null, {}, {}) }
         }
         val top = { text: String -> rule.onNodeWithText(text).getUnclippedBoundsInRoot().top }
         val order = listOf(string(R.string.type_expense), "Groceries", string(R.string.type_income), "Salary", "Interest", string(R.string.new_category))
@@ -114,7 +114,7 @@ class FollowUpsTest {
     }
 
     @Test fun oneKindHasNoHeadersAndNoNewCategoryWithoutAWayThere() {
-        rule.show { CategorySheet(listOf(cat(1, "Groceries", CategoryKind.EXPENSE), cat(2, "Food", CategoryKind.EXPENSE)), emptyMap(), 2, {}, {}) }
+        rule.show { CategorySheet(listOf(cat(1, "Groceries", CategoryKind.EXPENSE), cat(2, "Food", CategoryKind.EXPENSE)), 2, {}, {}) }
         rule.onNodeWithText(string(R.string.type_expense)).assertDoesNotExist()
         rule.onNodeWithText(string(R.string.new_category)).assertDoesNotExist()
         assertTrue(rule.onNodeWithText("Food").isSelected())

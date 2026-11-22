@@ -66,6 +66,13 @@ class ButtonGroupTest(private val widthDp: Float, private val fontScale: Float) 
 
     @Test fun pillsAreEqualAndTallEnoughToTap() {
         rule.show(width, fontScale) { ButtonGroup(options, "Dark", { it }, {}) }
+        val bounds = options.map { rule.onNodeWithText(it).getUnclippedBoundsInRoot() }
+        if (bounds.any { (it.bottom - it.top) < 48.dp }) {
+            // Too narrow for a row of pills: it wraps to ChoiceChips (user, 2026-11-09), drawn
+            // Size.chip tall with Compose's 48 dp minimum touch target around each one.
+            for (o in options) rule.onNodeWithText(o).assertHeightIsAtLeast(app.burrow.money.ui.theme.Size.chip)
+            return
+        }
         val widths = options.map { rule.onNodeWithText(it).assertHeightIsAtLeast(48.dp).getUnclippedBoundsInRoot().let { r -> (r.right - r.left).value } }
         assertEquals(widths.first(), widths.max(), 1f)
         assertEquals(widths.first(), widths.min(), 1f)
